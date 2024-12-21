@@ -46,14 +46,14 @@ class _UniffiRustBuffer(ctypes.Structure):
 
     @staticmethod
     def alloc(size):
-        return _uniffi_rust_call(_UniffiLib.ffi_algo_models_rustbuffer_alloc, size)
+        return _uniffi_rust_call(_UniffiLib.ffi_algo_models_ffi_rustbuffer_alloc, size)
 
     @staticmethod
     def reserve(rbuf, additional):
-        return _uniffi_rust_call(_UniffiLib.ffi_algo_models_rustbuffer_reserve, rbuf, additional)
+        return _uniffi_rust_call(_UniffiLib.ffi_algo_models_ffi_rustbuffer_reserve, rbuf, additional)
 
     def free(self):
-        return _uniffi_rust_call(_UniffiLib.ffi_algo_models_rustbuffer_free, self)
+        return _uniffi_rust_call(_UniffiLib.ffi_algo_models_ffi_rustbuffer_free, self)
 
     def __str__(self):
         return "_UniffiRustBuffer(capacity={}, len={}, data={})".format(
@@ -446,7 +446,7 @@ def _uniffi_load_indirect():
         # Anything else must be an ELF platform - Linux, *BSD, Solaris/illumos
         libname = "lib{}.so"
 
-    libname = libname.format("algo_models")
+    libname = libname.format("algo_models_ffi")
     path = os.path.join(os.path.dirname(__file__), libname)
     lib = ctypes.cdll.LoadLibrary(path)
     return lib
@@ -455,22 +455,22 @@ def _uniffi_check_contract_api_version(lib):
     # Get the bindings contract version from our ComponentInterface
     bindings_contract_version = 26
     # Get the scaffolding contract version by calling the into the dylib
-    scaffolding_contract_version = lib.ffi_algo_models_uniffi_contract_version()
+    scaffolding_contract_version = lib.ffi_algo_models_ffi_uniffi_contract_version()
     if bindings_contract_version != scaffolding_contract_version:
         raise InternalError("UniFFI contract version mismatch: try cleaning and rebuilding your project")
 
 def _uniffi_check_api_checksums(lib):
-    if lib.uniffi_algo_models_checksum_func_attach_signature() != 33435:
+    if lib.uniffi_algo_models_ffi_checksum_func_attach_signature() != 24223:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    if lib.uniffi_algo_models_checksum_func_decode_asset_transfer() != 48433:
+    if lib.uniffi_algo_models_ffi_checksum_func_decode_asset_transfer() != 49838:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    if lib.uniffi_algo_models_checksum_func_decode_payment() != 51798:
+    if lib.uniffi_algo_models_ffi_checksum_func_decode_payment() != 34597:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    if lib.uniffi_algo_models_checksum_func_encode_asset_transfer() != 56609:
+    if lib.uniffi_algo_models_ffi_checksum_func_encode_asset_transfer() != 53437:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    if lib.uniffi_algo_models_checksum_func_encode_payment() != 24731:
+    if lib.uniffi_algo_models_ffi_checksum_func_encode_payment() != 33584:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    if lib.uniffi_algo_models_checksum_func_get_encoded_transaction_type() != 45756:
+    if lib.uniffi_algo_models_ffi_checksum_func_get_encoded_transaction_type() != 48003:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
 
 # A ctypes library to expose the extern-C FFI definitions.
@@ -578,326 +578,326 @@ class _UniffiForeignFutureStructVoid(ctypes.Structure):
     ]
 _UNIFFI_FOREIGN_FUTURE_COMPLETE_VOID = ctypes.CFUNCTYPE(None,ctypes.c_uint64,_UniffiForeignFutureStructVoid,
 )
-_UniffiLib.uniffi_algo_models_fn_func_attach_signature.argtypes = (
+_UniffiLib.uniffi_algo_models_ffi_fn_func_attach_signature.argtypes = (
     _UniffiRustBuffer,
     _UniffiRustBuffer,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
-_UniffiLib.uniffi_algo_models_fn_func_attach_signature.restype = _UniffiRustBuffer
-_UniffiLib.uniffi_algo_models_fn_func_decode_asset_transfer.argtypes = (
+_UniffiLib.uniffi_algo_models_ffi_fn_func_attach_signature.restype = _UniffiRustBuffer
+_UniffiLib.uniffi_algo_models_ffi_fn_func_decode_asset_transfer.argtypes = (
     _UniffiRustBuffer,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
-_UniffiLib.uniffi_algo_models_fn_func_decode_asset_transfer.restype = _UniffiRustBuffer
-_UniffiLib.uniffi_algo_models_fn_func_decode_payment.argtypes = (
+_UniffiLib.uniffi_algo_models_ffi_fn_func_decode_asset_transfer.restype = _UniffiRustBuffer
+_UniffiLib.uniffi_algo_models_ffi_fn_func_decode_payment.argtypes = (
     _UniffiRustBuffer,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
-_UniffiLib.uniffi_algo_models_fn_func_decode_payment.restype = _UniffiRustBuffer
-_UniffiLib.uniffi_algo_models_fn_func_encode_asset_transfer.argtypes = (
+_UniffiLib.uniffi_algo_models_ffi_fn_func_decode_payment.restype = _UniffiRustBuffer
+_UniffiLib.uniffi_algo_models_ffi_fn_func_encode_asset_transfer.argtypes = (
     _UniffiRustBuffer,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
-_UniffiLib.uniffi_algo_models_fn_func_encode_asset_transfer.restype = _UniffiRustBuffer
-_UniffiLib.uniffi_algo_models_fn_func_encode_payment.argtypes = (
+_UniffiLib.uniffi_algo_models_ffi_fn_func_encode_asset_transfer.restype = _UniffiRustBuffer
+_UniffiLib.uniffi_algo_models_ffi_fn_func_encode_payment.argtypes = (
     _UniffiRustBuffer,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
-_UniffiLib.uniffi_algo_models_fn_func_encode_payment.restype = _UniffiRustBuffer
-_UniffiLib.uniffi_algo_models_fn_func_get_encoded_transaction_type.argtypes = (
+_UniffiLib.uniffi_algo_models_ffi_fn_func_encode_payment.restype = _UniffiRustBuffer
+_UniffiLib.uniffi_algo_models_ffi_fn_func_get_encoded_transaction_type.argtypes = (
     _UniffiRustBuffer,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
-_UniffiLib.uniffi_algo_models_fn_func_get_encoded_transaction_type.restype = _UniffiRustBuffer
-_UniffiLib.ffi_algo_models_rustbuffer_alloc.argtypes = (
+_UniffiLib.uniffi_algo_models_ffi_fn_func_get_encoded_transaction_type.restype = _UniffiRustBuffer
+_UniffiLib.ffi_algo_models_ffi_rustbuffer_alloc.argtypes = (
     ctypes.c_uint64,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
-_UniffiLib.ffi_algo_models_rustbuffer_alloc.restype = _UniffiRustBuffer
-_UniffiLib.ffi_algo_models_rustbuffer_from_bytes.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rustbuffer_alloc.restype = _UniffiRustBuffer
+_UniffiLib.ffi_algo_models_ffi_rustbuffer_from_bytes.argtypes = (
     _UniffiForeignBytes,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
-_UniffiLib.ffi_algo_models_rustbuffer_from_bytes.restype = _UniffiRustBuffer
-_UniffiLib.ffi_algo_models_rustbuffer_free.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rustbuffer_from_bytes.restype = _UniffiRustBuffer
+_UniffiLib.ffi_algo_models_ffi_rustbuffer_free.argtypes = (
     _UniffiRustBuffer,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
-_UniffiLib.ffi_algo_models_rustbuffer_free.restype = None
-_UniffiLib.ffi_algo_models_rustbuffer_reserve.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rustbuffer_free.restype = None
+_UniffiLib.ffi_algo_models_ffi_rustbuffer_reserve.argtypes = (
     _UniffiRustBuffer,
     ctypes.c_uint64,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
-_UniffiLib.ffi_algo_models_rustbuffer_reserve.restype = _UniffiRustBuffer
-_UniffiLib.ffi_algo_models_rust_future_poll_u8.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rustbuffer_reserve.restype = _UniffiRustBuffer
+_UniffiLib.ffi_algo_models_ffi_rust_future_poll_u8.argtypes = (
     ctypes.c_uint64,
     _UNIFFI_RUST_FUTURE_CONTINUATION_CALLBACK,
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_poll_u8.restype = None
-_UniffiLib.ffi_algo_models_rust_future_cancel_u8.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_poll_u8.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_cancel_u8.argtypes = (
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_cancel_u8.restype = None
-_UniffiLib.ffi_algo_models_rust_future_free_u8.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_cancel_u8.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_free_u8.argtypes = (
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_free_u8.restype = None
-_UniffiLib.ffi_algo_models_rust_future_complete_u8.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_free_u8.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_complete_u8.argtypes = (
     ctypes.c_uint64,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
-_UniffiLib.ffi_algo_models_rust_future_complete_u8.restype = ctypes.c_uint8
-_UniffiLib.ffi_algo_models_rust_future_poll_i8.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_complete_u8.restype = ctypes.c_uint8
+_UniffiLib.ffi_algo_models_ffi_rust_future_poll_i8.argtypes = (
     ctypes.c_uint64,
     _UNIFFI_RUST_FUTURE_CONTINUATION_CALLBACK,
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_poll_i8.restype = None
-_UniffiLib.ffi_algo_models_rust_future_cancel_i8.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_poll_i8.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_cancel_i8.argtypes = (
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_cancel_i8.restype = None
-_UniffiLib.ffi_algo_models_rust_future_free_i8.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_cancel_i8.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_free_i8.argtypes = (
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_free_i8.restype = None
-_UniffiLib.ffi_algo_models_rust_future_complete_i8.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_free_i8.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_complete_i8.argtypes = (
     ctypes.c_uint64,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
-_UniffiLib.ffi_algo_models_rust_future_complete_i8.restype = ctypes.c_int8
-_UniffiLib.ffi_algo_models_rust_future_poll_u16.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_complete_i8.restype = ctypes.c_int8
+_UniffiLib.ffi_algo_models_ffi_rust_future_poll_u16.argtypes = (
     ctypes.c_uint64,
     _UNIFFI_RUST_FUTURE_CONTINUATION_CALLBACK,
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_poll_u16.restype = None
-_UniffiLib.ffi_algo_models_rust_future_cancel_u16.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_poll_u16.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_cancel_u16.argtypes = (
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_cancel_u16.restype = None
-_UniffiLib.ffi_algo_models_rust_future_free_u16.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_cancel_u16.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_free_u16.argtypes = (
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_free_u16.restype = None
-_UniffiLib.ffi_algo_models_rust_future_complete_u16.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_free_u16.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_complete_u16.argtypes = (
     ctypes.c_uint64,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
-_UniffiLib.ffi_algo_models_rust_future_complete_u16.restype = ctypes.c_uint16
-_UniffiLib.ffi_algo_models_rust_future_poll_i16.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_complete_u16.restype = ctypes.c_uint16
+_UniffiLib.ffi_algo_models_ffi_rust_future_poll_i16.argtypes = (
     ctypes.c_uint64,
     _UNIFFI_RUST_FUTURE_CONTINUATION_CALLBACK,
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_poll_i16.restype = None
-_UniffiLib.ffi_algo_models_rust_future_cancel_i16.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_poll_i16.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_cancel_i16.argtypes = (
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_cancel_i16.restype = None
-_UniffiLib.ffi_algo_models_rust_future_free_i16.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_cancel_i16.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_free_i16.argtypes = (
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_free_i16.restype = None
-_UniffiLib.ffi_algo_models_rust_future_complete_i16.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_free_i16.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_complete_i16.argtypes = (
     ctypes.c_uint64,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
-_UniffiLib.ffi_algo_models_rust_future_complete_i16.restype = ctypes.c_int16
-_UniffiLib.ffi_algo_models_rust_future_poll_u32.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_complete_i16.restype = ctypes.c_int16
+_UniffiLib.ffi_algo_models_ffi_rust_future_poll_u32.argtypes = (
     ctypes.c_uint64,
     _UNIFFI_RUST_FUTURE_CONTINUATION_CALLBACK,
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_poll_u32.restype = None
-_UniffiLib.ffi_algo_models_rust_future_cancel_u32.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_poll_u32.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_cancel_u32.argtypes = (
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_cancel_u32.restype = None
-_UniffiLib.ffi_algo_models_rust_future_free_u32.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_cancel_u32.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_free_u32.argtypes = (
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_free_u32.restype = None
-_UniffiLib.ffi_algo_models_rust_future_complete_u32.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_free_u32.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_complete_u32.argtypes = (
     ctypes.c_uint64,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
-_UniffiLib.ffi_algo_models_rust_future_complete_u32.restype = ctypes.c_uint32
-_UniffiLib.ffi_algo_models_rust_future_poll_i32.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_complete_u32.restype = ctypes.c_uint32
+_UniffiLib.ffi_algo_models_ffi_rust_future_poll_i32.argtypes = (
     ctypes.c_uint64,
     _UNIFFI_RUST_FUTURE_CONTINUATION_CALLBACK,
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_poll_i32.restype = None
-_UniffiLib.ffi_algo_models_rust_future_cancel_i32.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_poll_i32.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_cancel_i32.argtypes = (
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_cancel_i32.restype = None
-_UniffiLib.ffi_algo_models_rust_future_free_i32.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_cancel_i32.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_free_i32.argtypes = (
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_free_i32.restype = None
-_UniffiLib.ffi_algo_models_rust_future_complete_i32.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_free_i32.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_complete_i32.argtypes = (
     ctypes.c_uint64,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
-_UniffiLib.ffi_algo_models_rust_future_complete_i32.restype = ctypes.c_int32
-_UniffiLib.ffi_algo_models_rust_future_poll_u64.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_complete_i32.restype = ctypes.c_int32
+_UniffiLib.ffi_algo_models_ffi_rust_future_poll_u64.argtypes = (
     ctypes.c_uint64,
     _UNIFFI_RUST_FUTURE_CONTINUATION_CALLBACK,
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_poll_u64.restype = None
-_UniffiLib.ffi_algo_models_rust_future_cancel_u64.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_poll_u64.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_cancel_u64.argtypes = (
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_cancel_u64.restype = None
-_UniffiLib.ffi_algo_models_rust_future_free_u64.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_cancel_u64.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_free_u64.argtypes = (
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_free_u64.restype = None
-_UniffiLib.ffi_algo_models_rust_future_complete_u64.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_free_u64.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_complete_u64.argtypes = (
     ctypes.c_uint64,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
-_UniffiLib.ffi_algo_models_rust_future_complete_u64.restype = ctypes.c_uint64
-_UniffiLib.ffi_algo_models_rust_future_poll_i64.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_complete_u64.restype = ctypes.c_uint64
+_UniffiLib.ffi_algo_models_ffi_rust_future_poll_i64.argtypes = (
     ctypes.c_uint64,
     _UNIFFI_RUST_FUTURE_CONTINUATION_CALLBACK,
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_poll_i64.restype = None
-_UniffiLib.ffi_algo_models_rust_future_cancel_i64.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_poll_i64.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_cancel_i64.argtypes = (
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_cancel_i64.restype = None
-_UniffiLib.ffi_algo_models_rust_future_free_i64.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_cancel_i64.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_free_i64.argtypes = (
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_free_i64.restype = None
-_UniffiLib.ffi_algo_models_rust_future_complete_i64.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_free_i64.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_complete_i64.argtypes = (
     ctypes.c_uint64,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
-_UniffiLib.ffi_algo_models_rust_future_complete_i64.restype = ctypes.c_int64
-_UniffiLib.ffi_algo_models_rust_future_poll_f32.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_complete_i64.restype = ctypes.c_int64
+_UniffiLib.ffi_algo_models_ffi_rust_future_poll_f32.argtypes = (
     ctypes.c_uint64,
     _UNIFFI_RUST_FUTURE_CONTINUATION_CALLBACK,
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_poll_f32.restype = None
-_UniffiLib.ffi_algo_models_rust_future_cancel_f32.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_poll_f32.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_cancel_f32.argtypes = (
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_cancel_f32.restype = None
-_UniffiLib.ffi_algo_models_rust_future_free_f32.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_cancel_f32.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_free_f32.argtypes = (
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_free_f32.restype = None
-_UniffiLib.ffi_algo_models_rust_future_complete_f32.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_free_f32.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_complete_f32.argtypes = (
     ctypes.c_uint64,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
-_UniffiLib.ffi_algo_models_rust_future_complete_f32.restype = ctypes.c_float
-_UniffiLib.ffi_algo_models_rust_future_poll_f64.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_complete_f32.restype = ctypes.c_float
+_UniffiLib.ffi_algo_models_ffi_rust_future_poll_f64.argtypes = (
     ctypes.c_uint64,
     _UNIFFI_RUST_FUTURE_CONTINUATION_CALLBACK,
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_poll_f64.restype = None
-_UniffiLib.ffi_algo_models_rust_future_cancel_f64.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_poll_f64.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_cancel_f64.argtypes = (
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_cancel_f64.restype = None
-_UniffiLib.ffi_algo_models_rust_future_free_f64.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_cancel_f64.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_free_f64.argtypes = (
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_free_f64.restype = None
-_UniffiLib.ffi_algo_models_rust_future_complete_f64.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_free_f64.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_complete_f64.argtypes = (
     ctypes.c_uint64,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
-_UniffiLib.ffi_algo_models_rust_future_complete_f64.restype = ctypes.c_double
-_UniffiLib.ffi_algo_models_rust_future_poll_pointer.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_complete_f64.restype = ctypes.c_double
+_UniffiLib.ffi_algo_models_ffi_rust_future_poll_pointer.argtypes = (
     ctypes.c_uint64,
     _UNIFFI_RUST_FUTURE_CONTINUATION_CALLBACK,
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_poll_pointer.restype = None
-_UniffiLib.ffi_algo_models_rust_future_cancel_pointer.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_poll_pointer.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_cancel_pointer.argtypes = (
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_cancel_pointer.restype = None
-_UniffiLib.ffi_algo_models_rust_future_free_pointer.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_cancel_pointer.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_free_pointer.argtypes = (
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_free_pointer.restype = None
-_UniffiLib.ffi_algo_models_rust_future_complete_pointer.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_free_pointer.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_complete_pointer.argtypes = (
     ctypes.c_uint64,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
-_UniffiLib.ffi_algo_models_rust_future_complete_pointer.restype = ctypes.c_void_p
-_UniffiLib.ffi_algo_models_rust_future_poll_rust_buffer.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_complete_pointer.restype = ctypes.c_void_p
+_UniffiLib.ffi_algo_models_ffi_rust_future_poll_rust_buffer.argtypes = (
     ctypes.c_uint64,
     _UNIFFI_RUST_FUTURE_CONTINUATION_CALLBACK,
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_poll_rust_buffer.restype = None
-_UniffiLib.ffi_algo_models_rust_future_cancel_rust_buffer.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_poll_rust_buffer.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_cancel_rust_buffer.argtypes = (
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_cancel_rust_buffer.restype = None
-_UniffiLib.ffi_algo_models_rust_future_free_rust_buffer.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_cancel_rust_buffer.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_free_rust_buffer.argtypes = (
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_free_rust_buffer.restype = None
-_UniffiLib.ffi_algo_models_rust_future_complete_rust_buffer.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_free_rust_buffer.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_complete_rust_buffer.argtypes = (
     ctypes.c_uint64,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
-_UniffiLib.ffi_algo_models_rust_future_complete_rust_buffer.restype = _UniffiRustBuffer
-_UniffiLib.ffi_algo_models_rust_future_poll_void.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_complete_rust_buffer.restype = _UniffiRustBuffer
+_UniffiLib.ffi_algo_models_ffi_rust_future_poll_void.argtypes = (
     ctypes.c_uint64,
     _UNIFFI_RUST_FUTURE_CONTINUATION_CALLBACK,
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_poll_void.restype = None
-_UniffiLib.ffi_algo_models_rust_future_cancel_void.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_poll_void.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_cancel_void.argtypes = (
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_cancel_void.restype = None
-_UniffiLib.ffi_algo_models_rust_future_free_void.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_cancel_void.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_free_void.argtypes = (
     ctypes.c_uint64,
 )
-_UniffiLib.ffi_algo_models_rust_future_free_void.restype = None
-_UniffiLib.ffi_algo_models_rust_future_complete_void.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_free_void.restype = None
+_UniffiLib.ffi_algo_models_ffi_rust_future_complete_void.argtypes = (
     ctypes.c_uint64,
     ctypes.POINTER(_UniffiRustCallStatus),
 )
-_UniffiLib.ffi_algo_models_rust_future_complete_void.restype = None
-_UniffiLib.uniffi_algo_models_checksum_func_attach_signature.argtypes = (
+_UniffiLib.ffi_algo_models_ffi_rust_future_complete_void.restype = None
+_UniffiLib.uniffi_algo_models_ffi_checksum_func_attach_signature.argtypes = (
 )
-_UniffiLib.uniffi_algo_models_checksum_func_attach_signature.restype = ctypes.c_uint16
-_UniffiLib.uniffi_algo_models_checksum_func_decode_asset_transfer.argtypes = (
+_UniffiLib.uniffi_algo_models_ffi_checksum_func_attach_signature.restype = ctypes.c_uint16
+_UniffiLib.uniffi_algo_models_ffi_checksum_func_decode_asset_transfer.argtypes = (
 )
-_UniffiLib.uniffi_algo_models_checksum_func_decode_asset_transfer.restype = ctypes.c_uint16
-_UniffiLib.uniffi_algo_models_checksum_func_decode_payment.argtypes = (
+_UniffiLib.uniffi_algo_models_ffi_checksum_func_decode_asset_transfer.restype = ctypes.c_uint16
+_UniffiLib.uniffi_algo_models_ffi_checksum_func_decode_payment.argtypes = (
 )
-_UniffiLib.uniffi_algo_models_checksum_func_decode_payment.restype = ctypes.c_uint16
-_UniffiLib.uniffi_algo_models_checksum_func_encode_asset_transfer.argtypes = (
+_UniffiLib.uniffi_algo_models_ffi_checksum_func_decode_payment.restype = ctypes.c_uint16
+_UniffiLib.uniffi_algo_models_ffi_checksum_func_encode_asset_transfer.argtypes = (
 )
-_UniffiLib.uniffi_algo_models_checksum_func_encode_asset_transfer.restype = ctypes.c_uint16
-_UniffiLib.uniffi_algo_models_checksum_func_encode_payment.argtypes = (
+_UniffiLib.uniffi_algo_models_ffi_checksum_func_encode_asset_transfer.restype = ctypes.c_uint16
+_UniffiLib.uniffi_algo_models_ffi_checksum_func_encode_payment.argtypes = (
 )
-_UniffiLib.uniffi_algo_models_checksum_func_encode_payment.restype = ctypes.c_uint16
-_UniffiLib.uniffi_algo_models_checksum_func_get_encoded_transaction_type.argtypes = (
+_UniffiLib.uniffi_algo_models_ffi_checksum_func_encode_payment.restype = ctypes.c_uint16
+_UniffiLib.uniffi_algo_models_ffi_checksum_func_get_encoded_transaction_type.argtypes = (
 )
-_UniffiLib.uniffi_algo_models_checksum_func_get_encoded_transaction_type.restype = ctypes.c_uint16
-_UniffiLib.ffi_algo_models_uniffi_contract_version.argtypes = (
+_UniffiLib.uniffi_algo_models_ffi_checksum_func_get_encoded_transaction_type.restype = ctypes.c_uint16
+_UniffiLib.ffi_algo_models_ffi_uniffi_contract_version.argtypes = (
 )
-_UniffiLib.ffi_algo_models_uniffi_contract_version.restype = ctypes.c_uint32
+_UniffiLib.ffi_algo_models_ffi_uniffi_contract_version.restype = ctypes.c_uint32
 
 _uniffi_check_contract_api_version(_UniffiLib)
 # _uniffi_check_api_checksums(_UniffiLib)
@@ -1209,41 +1209,20 @@ class MsgPackError(Exception):
 _UniffiTempMsgPackError = MsgPackError
 
 class MsgPackError:  # type: ignore
-    class SerializeError(_UniffiTempMsgPackError):
+    class EncodingError(_UniffiTempMsgPackError):
         def __init__(self):
             pass
 
         def __repr__(self):
-            return "MsgPackError.SerializeError({})".format(str(self))
-    _UniffiTempMsgPackError.SerializeError = SerializeError # type: ignore
-    class DeserializeError(_UniffiTempMsgPackError):
+            return "MsgPackError.EncodingError({})".format(str(self))
+    _UniffiTempMsgPackError.EncodingError = EncodingError # type: ignore
+    class DecodingError(_UniffiTempMsgPackError):
         def __init__(self):
             pass
 
         def __repr__(self):
-            return "MsgPackError.DeserializeError({})".format(str(self))
-    _UniffiTempMsgPackError.DeserializeError = DeserializeError # type: ignore
-    class RmpvEncodeError(_UniffiTempMsgPackError):
-        def __init__(self):
-            pass
-
-        def __repr__(self):
-            return "MsgPackError.RmpvEncodeError({})".format(str(self))
-    _UniffiTempMsgPackError.RmpvEncodeError = RmpvEncodeError # type: ignore
-    class RmpvDecodeError(_UniffiTempMsgPackError):
-        def __init__(self):
-            pass
-
-        def __repr__(self):
-            return "MsgPackError.RmpvDecodeError({})".format(str(self))
-    _UniffiTempMsgPackError.RmpvDecodeError = RmpvDecodeError # type: ignore
-    class RmpvConvertError(_UniffiTempMsgPackError):
-        def __init__(self):
-            pass
-
-        def __repr__(self):
-            return "MsgPackError.RmpvConvertError({})".format(str(self))
-    _UniffiTempMsgPackError.RmpvConvertError = RmpvConvertError # type: ignore
+            return "MsgPackError.DecodingError({})".format(str(self))
+    _UniffiTempMsgPackError.DecodingError = DecodingError # type: ignore
 
 MsgPackError = _UniffiTempMsgPackError # type: ignore
 del _UniffiTempMsgPackError
@@ -1254,47 +1233,26 @@ class _UniffiConverterTypeMsgPackError(_UniffiConverterRustBuffer):
     def read(buf):
         variant = buf.read_i32()
         if variant == 1:
-            return MsgPackError.SerializeError(
+            return MsgPackError.EncodingError(
             )
         if variant == 2:
-            return MsgPackError.DeserializeError(
-            )
-        if variant == 3:
-            return MsgPackError.RmpvEncodeError(
-            )
-        if variant == 4:
-            return MsgPackError.RmpvDecodeError(
-            )
-        if variant == 5:
-            return MsgPackError.RmpvConvertError(
+            return MsgPackError.DecodingError(
             )
         raise InternalError("Raw enum value doesn't match any cases")
 
     @staticmethod
     def check_lower(value):
-        if isinstance(value, MsgPackError.SerializeError):
+        if isinstance(value, MsgPackError.EncodingError):
             return
-        if isinstance(value, MsgPackError.DeserializeError):
-            return
-        if isinstance(value, MsgPackError.RmpvEncodeError):
-            return
-        if isinstance(value, MsgPackError.RmpvDecodeError):
-            return
-        if isinstance(value, MsgPackError.RmpvConvertError):
+        if isinstance(value, MsgPackError.DecodingError):
             return
 
     @staticmethod
     def write(value, buf):
-        if isinstance(value, MsgPackError.SerializeError):
+        if isinstance(value, MsgPackError.EncodingError):
             buf.write_i32(1)
-        if isinstance(value, MsgPackError.DeserializeError):
+        if isinstance(value, MsgPackError.DecodingError):
             buf.write_i32(2)
-        if isinstance(value, MsgPackError.RmpvEncodeError):
-            buf.write_i32(3)
-        if isinstance(value, MsgPackError.RmpvDecodeError):
-            buf.write_i32(4)
-        if isinstance(value, MsgPackError.RmpvConvertError):
-            buf.write_i32(5)
 
 
 
@@ -1450,7 +1408,7 @@ def attach_signature(encoded_tx: "bytes",signature: "bytes") -> "bytes":
     
     _UniffiConverterBytes.check_lower(signature)
     
-    return _UniffiConverterBytes.lift(_uniffi_rust_call_with_error(_UniffiConverterTypeMsgPackError,_UniffiLib.uniffi_algo_models_fn_func_attach_signature,
+    return _UniffiConverterBytes.lift(_uniffi_rust_call_with_error(_UniffiConverterTypeMsgPackError,_UniffiLib.uniffi_algo_models_ffi_fn_func_attach_signature,
         _UniffiConverterBytes.lower(encoded_tx),
         _UniffiConverterBytes.lower(signature)))
 
@@ -1458,28 +1416,28 @@ def attach_signature(encoded_tx: "bytes",signature: "bytes") -> "bytes":
 def decode_asset_transfer(bytes: "bytes") -> "AssetTransferTransactionFields":
     _UniffiConverterBytes.check_lower(bytes)
     
-    return _UniffiConverterTypeAssetTransferTransactionFields.lift(_uniffi_rust_call_with_error(_UniffiConverterTypeMsgPackError,_UniffiLib.uniffi_algo_models_fn_func_decode_asset_transfer,
+    return _UniffiConverterTypeAssetTransferTransactionFields.lift(_uniffi_rust_call_with_error(_UniffiConverterTypeMsgPackError,_UniffiLib.uniffi_algo_models_ffi_fn_func_decode_asset_transfer,
         _UniffiConverterBytes.lower(bytes)))
 
 
 def decode_payment(bytes: "bytes") -> "PayTransactionFields":
     _UniffiConverterBytes.check_lower(bytes)
     
-    return _UniffiConverterTypePayTransactionFields.lift(_uniffi_rust_call_with_error(_UniffiConverterTypeMsgPackError,_UniffiLib.uniffi_algo_models_fn_func_decode_payment,
+    return _UniffiConverterTypePayTransactionFields.lift(_uniffi_rust_call_with_error(_UniffiConverterTypeMsgPackError,_UniffiLib.uniffi_algo_models_ffi_fn_func_decode_payment,
         _UniffiConverterBytes.lower(bytes)))
 
 
 def encode_asset_transfer(tx: "AssetTransferTransactionFields") -> "bytes":
     _UniffiConverterTypeAssetTransferTransactionFields.check_lower(tx)
     
-    return _UniffiConverterBytes.lift(_uniffi_rust_call_with_error(_UniffiConverterTypeMsgPackError,_UniffiLib.uniffi_algo_models_fn_func_encode_asset_transfer,
+    return _UniffiConverterBytes.lift(_uniffi_rust_call_with_error(_UniffiConverterTypeMsgPackError,_UniffiLib.uniffi_algo_models_ffi_fn_func_encode_asset_transfer,
         _UniffiConverterTypeAssetTransferTransactionFields.lower(tx)))
 
 
 def encode_payment(tx: "PayTransactionFields") -> "bytes":
     _UniffiConverterTypePayTransactionFields.check_lower(tx)
     
-    return _UniffiConverterBytes.lift(_uniffi_rust_call_with_error(_UniffiConverterTypeMsgPackError,_UniffiLib.uniffi_algo_models_fn_func_encode_payment,
+    return _UniffiConverterBytes.lift(_uniffi_rust_call_with_error(_UniffiConverterTypeMsgPackError,_UniffiLib.uniffi_algo_models_ffi_fn_func_encode_payment,
         _UniffiConverterTypePayTransactionFields.lower(tx)))
 
 
@@ -1491,7 +1449,7 @@ def get_encoded_transaction_type(bytes: "bytes") -> "TransactionType":
 
     _UniffiConverterBytes.check_lower(bytes)
     
-    return _UniffiConverterTypeTransactionType.lift(_uniffi_rust_call_with_error(_UniffiConverterTypeMsgPackError,_UniffiLib.uniffi_algo_models_fn_func_get_encoded_transaction_type,
+    return _UniffiConverterTypeTransactionType.lift(_uniffi_rust_call_with_error(_UniffiConverterTypeMsgPackError,_UniffiLib.uniffi_algo_models_ffi_fn_func_get_encoded_transaction_type,
         _UniffiConverterBytes.lower(bytes)))
 
 

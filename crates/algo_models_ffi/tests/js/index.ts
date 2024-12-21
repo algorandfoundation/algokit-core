@@ -2,7 +2,7 @@ import init, {
   type PayTransactionFields,
   encodePayment,
   attachSignature,
-} from "./pkg/algo_models";
+} from "./pkg/algo_models_ffi";
 
 let { AlgorandTransactionCrafter } = require("@algorandfoundation/algo-models");
 import * as ed from "@noble/ed25519";

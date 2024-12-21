@@ -1,43 +1,25 @@
 # algo_models
 
-Rust library for encoding and decoding Algorand transactions. Also includes WASM and Python bindings provided by [wasm-pack](https://github.com/rustwasm/wasm-pack) and [uniffi-rs](https://github.com/mozilla/uniffi-rs).
+Rust library for encoding and decoding Algorand transactions. Primary goal is to enable transaction encoding/decoding for creating transactions and attaching signatures (or program).
 
-## Key Files
+See [algo_models_ffi](../algo_models_ffi/) for foreign interfaces.
 
-- [src/lib.rs](src/lib.rs): Core Rust library
-- [src/foreign_exports.rs](src/foreign_exports.rs): Wrappers around the Rust library for the WASM and Python bindings
-- [tests/js/pkg/algo_models.js](tests/js/pkg/algo_models.js): auto-generated WASM bindings
-- [tests/js/index.ts](tests/js/index.ts): example of using the WASM bindings
-- [tests/py/algo_models.py](tests/py/algo_models.py): auto-generated Python bindings
-- [tests/py/app.py](tests/py/app.py): example of using the Python bindings
-- [build.py](build.py): script to build the WASM and Python bindings
+## Features
 
-## Example
+### Encoding and Decoding Support
 
-### TypeScript
+- [x] Payment transactions
+- [x] Asset transfer transactions
+- [ ] Asset freeze transactions
+- [ ] Asset configuration transactions
+- [ ] Application call transactions
+- [ ] Key registration transactions
+- [ ] State proof transactions
+- [ ] Heartbeat transactions
+- [x] Signed transactions (one signer)
+- [ ] Signed multi-sig transactions
+- [ ] Logic signature transactions
 
-Example of using the library in TypeScript:
+### Out of Scope
 
-```ts
-const fields = {
-  header: {
-    sender: tx.snd,
-    fee: tx.fee,
-    transactionType: "Payment",
-    firstValid: tx.fv,
-    lastValid: tx.lv,
-    genesisHash: tx.gh,
-    genesisId: tx.gen,
-  },
-  receiver: tx.rcv,
-  amount: tx.amt,
-} as PayTransactionFields;
-
-const btyesForSigning = encodePayment(fields);
-
-// Signing with a ed25519 lib that has no idea about Algorand
-const sig = await ed.signAsync(btyesForSigning, privKey);
-const signedTx = attachSignature(btyesForSigning, sig);
-```
-
-See [tests/js/index.ts](tests/js/index.ts) for the full example.
+- Encoding/decoding of transactions in blocks (i.e. transactions with `ApplyData`)

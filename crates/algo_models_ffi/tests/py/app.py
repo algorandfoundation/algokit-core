@@ -1,4 +1,4 @@
-from algo_models import decode_payment, encode_payment
+from algo_models_ffi import decode_payment, encode_payment
 from pprint import pprint
 
 

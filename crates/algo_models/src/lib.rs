@@ -2,12 +2,6 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use thiserror::Error;
 
-mod foreign_exports;
-
-#[cfg(feature = "ffi_uniffi")]
-uniffi::setup_scaffolding!();
-
-#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 #[derive(Debug, Error)]
 pub enum MsgPackError {
     #[error("Failed to serialize transaction")]
@@ -128,41 +122,41 @@ type Pubkey = Byte32;
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct TransactionHeader {
     #[serde(rename = "type")]
-    transaction_type: TransactionType,
+    pub transaction_type: TransactionType,
 
     #[serde(rename = "snd")]
-    sender: Pubkey,
+    pub sender: Pubkey,
 
-    fee: u64,
+    pub fee: u64,
 
     #[serde(rename = "fv")]
-    first_valid: u64,
+    pub first_valid: u64,
 
     #[serde(rename = "lv")]
-    last_valid: u64,
+    pub last_valid: u64,
 
     #[serde(rename = "gh")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    genesis_hash: Option<Byte32>,
+    pub genesis_hash: Option<Byte32>,
 
     #[serde(rename = "gen")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    genesis_id: Option<String>,
+    pub genesis_id: Option<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    note: Option<serde_bytes::ByteBuf>,
+    pub note: Option<serde_bytes::ByteBuf>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "rekey")]
-    rekey_to: Option<Pubkey>,
+    pub rekey_to: Option<Pubkey>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "lx")]
-    lease: Option<Byte32>,
+    pub lease: Option<Byte32>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "grp")]
-    group: Option<Byte32>,
+    pub group: Option<Byte32>,
 }
 
 impl AlgorandMsgpack for TransactionHeader {}
@@ -170,17 +164,17 @@ impl AlgorandMsgpack for TransactionHeader {}
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct PayTransactionFields {
     #[serde(flatten)]
-    header: TransactionHeader,
+    pub header: TransactionHeader,
 
     #[serde(rename = "rcv")]
-    receiver: Pubkey,
+    pub receiver: Pubkey,
 
     #[serde(rename = "amt")]
-    amount: u64,
+    pub amount: u64,
 
     #[serde(rename = "close")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    close_remainder_to: Option<Pubkey>,
+    pub close_remainder_to: Option<Pubkey>,
 }
 
 impl AlgorandMsgpack for PayTransactionFields {}
@@ -188,24 +182,24 @@ impl AlgorandMsgpack for PayTransactionFields {}
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct AssetTransferTransactionFields {
     #[serde(flatten)]
-    header: TransactionHeader,
+    pub header: TransactionHeader,
 
     #[serde(rename = "xaid")]
-    asset_id: u64,
+    pub asset_id: u64,
 
     #[serde(rename = "aamt")]
-    amount: u64,
+    pub amount: u64,
 
     #[serde(rename = "arcv")]
-    receiver: Pubkey,
+    pub receiver: Pubkey,
 
     #[serde(rename = "asnd")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    asset_sender: Option<Pubkey>,
+    pub asset_sender: Option<Pubkey>,
 
     #[serde(rename = "aclose")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    close_remainder_to: Option<Pubkey>,
+    pub close_remainder_to: Option<Pubkey>,
 }
 
 impl AlgorandMsgpack for AssetTransferTransactionFields {}
@@ -244,10 +238,10 @@ impl Transaction {
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct SignedTransaction {
     #[serde(rename = "txn")]
-    transaction: Transaction,
+    pub transaction: Transaction,
 
     #[serde(rename = "sig")]
-    signature: Byte32,
+    pub signature: Byte32,
 }
 
 impl AlgorandMsgpack for SignedTransaction {

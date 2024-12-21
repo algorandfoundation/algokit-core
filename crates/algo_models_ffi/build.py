@@ -52,7 +52,7 @@ if len(sys.argv) > 1:
 
 if build_mode == "wasm":
     run(
-        "wasm-pack build --target web --out-dir ./tests/js/pkg -- --color always --features ffi_wasm"
+        "wasm-pack build --target web --out-dir ./tests/js/pkg -- --color always --no-default-features --features ffi_wasm"
     )
 
     # Remove the generated .gitignore file from the pkg directory
@@ -63,7 +63,7 @@ else:
 
 if build_mode == "py":
     run(
-        "cargo --color always run -p uniffi-bindgen generate --library ../../target/release/libalgo_models.dylib --language python --out-dir tests/py"
+        "cargo --color always run -p uniffi-bindgen generate --library ../../target/release/libalgo_models_ffi.dylib --language python --out-dir tests/py"
     )
 
     extension = None
@@ -71,13 +71,13 @@ if build_mode == "py":
     # Determine what the extension of the library is
     extensions = ("dylib", "so", "dll")
     for ext in extensions:
-        if os.path.exists(f"../../target/release/libalgo_models.{ext}"):
+        if os.path.exists(f"../../target/release/libalgo_models_ffi.{ext}"):
             extension = ext
             break
 
     copy_args = [
-        f"../../target/release/libalgo_models.{extension}",
-        f"tests/py/libalgo_models.{extension}",
+        f"../../target/release/libalgo_models_ffi.{extension}",
+        f"tests/py/libalgo_models_ffi.{extension}",
     ]
 
     # Copy the library file using Python's shutil

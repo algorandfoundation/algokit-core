@@ -9,10 +9,9 @@
   ],
   "main": "algo_models.js",
   "types": "algo_models.d.ts",
-  "sideEffects": [
-    "./snippets/*"
-  ],
   "dependencies": {
-    "@noble/ed25519": "^2.1.0"
+    "@algorandfoundation/algo-models": "^0.0.2",
+    "@noble/ed25519": "^2.1.0",
+    "algo-msgpack-with-bigint": "^2.1.1"
   }
 }

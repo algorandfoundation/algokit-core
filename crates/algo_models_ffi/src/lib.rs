@@ -1,11 +1,33 @@
-use crate::{AlgorandMsgpack, MsgPackError};
+use algo_models::AlgorandMsgpack;
 use serde::{Deserialize, Serialize};
 use serde_bytes::ByteBuf;
 
-#[cfg(feature = "ffi_uniffi")]
-use crate::UniffiCustomTypeConverter;
+#[derive(Debug, thiserror::Error)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
+pub enum MsgPackError {
+    #[error("Algorand encoding failed")]
+    EncodingError,
+    #[error("Algorand decoding failed")]
+    DecodingError,
+}
+
+impl From<algo_models::MsgPackError> for MsgPackError {
+    fn from(e: algo_models::MsgPackError) -> Self {
+        match e {
+            algo_models::MsgPackError::DeserializeError => MsgPackError::DecodingError,
+            algo_models::MsgPackError::SerializeError => MsgPackError::EncodingError,
+            algo_models::MsgPackError::RmpvDecodeError => MsgPackError::DecodingError,
+            algo_models::MsgPackError::RmpvEncodeError => MsgPackError::EncodingError,
+            algo_models::MsgPackError::RmpvConvertError => MsgPackError::EncodingError,
+        }
+    }
+}
+
 #[cfg(feature = "ffi_uniffi")]
 use uniffi::{self};
+
+#[cfg(feature = "ffi_uniffi")]
+uniffi::setup_scaffolding!();
 
 #[cfg(feature = "ffi_wasm")]
 use tsify_next::Tsify;
@@ -134,20 +156,20 @@ pub struct AssetTransferTransactionFields {
 }
 
 // Go from wasm to rust
-impl From<TransactionType> for crate::TransactionType {
+impl From<TransactionType> for algo_models::TransactionType {
     fn from(tx: TransactionType) -> Self {
         match tx {
-            TransactionType::Payment => crate::TransactionType::Payment,
-            TransactionType::AssetTransfer => crate::TransactionType::AssetTransfer,
-            TransactionType::AssetFreeze => crate::TransactionType::AssetFreeze,
-            TransactionType::AssetConfig => crate::TransactionType::AssetConfig,
-            TransactionType::KeyRegistration => crate::TransactionType::KeyRegistration,
-            TransactionType::ApplicationCall => crate::TransactionType::ApplicationCall,
+            TransactionType::Payment => algo_models::TransactionType::Payment,
+            TransactionType::AssetTransfer => algo_models::TransactionType::AssetTransfer,
+            TransactionType::AssetFreeze => algo_models::TransactionType::AssetFreeze,
+            TransactionType::AssetConfig => algo_models::TransactionType::AssetConfig,
+            TransactionType::KeyRegistration => algo_models::TransactionType::KeyRegistration,
+            TransactionType::ApplicationCall => algo_models::TransactionType::ApplicationCall,
         }
     }
 }
 
-impl From<TransactionHeader> for crate::TransactionHeader {
+impl From<TransactionHeader> for algo_models::TransactionHeader {
     fn from(tx: TransactionHeader) -> Self {
         Self {
             transaction_type: tx.transaction_type.into(),
@@ -165,7 +187,7 @@ impl From<TransactionHeader> for crate::TransactionHeader {
     }
 }
 
-impl From<PayTransactionFields> for crate::PayTransactionFields {
+impl From<PayTransactionFields> for algo_models::PayTransactionFields {
     fn from(tx: PayTransactionFields) -> Self {
         Self {
             header: tx.header.into(),
@@ -176,7 +198,7 @@ impl From<PayTransactionFields> for crate::PayTransactionFields {
     }
 }
 
-impl From<AssetTransferTransactionFields> for crate::AssetTransferTransactionFields {
+impl From<AssetTransferTransactionFields> for algo_models::AssetTransferTransactionFields {
     fn from(tx: AssetTransferTransactionFields) -> Self {
         Self {
             header: tx.header.into(),
@@ -189,8 +211,8 @@ impl From<AssetTransferTransactionFields> for crate::AssetTransferTransactionFie
     }
 }
 
-impl From<crate::TransactionHeader> for TransactionHeader {
-    fn from(tx: crate::TransactionHeader) -> Self {
+impl From<algo_models::TransactionHeader> for TransactionHeader {
+    fn from(tx: algo_models::TransactionHeader) -> Self {
         Self {
             transaction_type: tx.transaction_type.into(),
             sender: ByteBuf::from(tx.sender.to_vec()),
@@ -207,8 +229,8 @@ impl From<crate::TransactionHeader> for TransactionHeader {
     }
 }
 
-impl From<crate::PayTransactionFields> for PayTransactionFields {
-    fn from(tx: crate::PayTransactionFields) -> Self {
+impl From<algo_models::PayTransactionFields> for PayTransactionFields {
+    fn from(tx: algo_models::PayTransactionFields) -> Self {
         Self {
             header: tx.header.into(),
             receiver: ByteBuf::from(tx.receiver.to_vec()),
@@ -218,8 +240,8 @@ impl From<crate::PayTransactionFields> for PayTransactionFields {
     }
 }
 
-impl From<crate::AssetTransferTransactionFields> for AssetTransferTransactionFields {
-    fn from(tx: crate::AssetTransferTransactionFields) -> Self {
+impl From<algo_models::AssetTransferTransactionFields> for AssetTransferTransactionFields {
+    fn from(tx: algo_models::AssetTransferTransactionFields) -> Self {
         Self {
             header: tx.header.into(),
             asset_id: tx.asset_id,
@@ -232,15 +254,15 @@ impl From<crate::AssetTransferTransactionFields> for AssetTransferTransactionFie
 }
 
 // Go from rust to wasm
-impl From<crate::TransactionType> for TransactionType {
-    fn from(tx: crate::TransactionType) -> Self {
+impl From<algo_models::TransactionType> for TransactionType {
+    fn from(tx: algo_models::TransactionType) -> Self {
         match tx {
-            crate::TransactionType::Payment => TransactionType::Payment,
-            crate::TransactionType::AssetTransfer => TransactionType::AssetTransfer,
-            crate::TransactionType::AssetFreeze => TransactionType::AssetFreeze,
-            crate::TransactionType::AssetConfig => TransactionType::AssetConfig,
-            crate::TransactionType::KeyRegistration => TransactionType::KeyRegistration,
-            crate::TransactionType::ApplicationCall => TransactionType::ApplicationCall,
+            algo_models::TransactionType::Payment => TransactionType::Payment,
+            algo_models::TransactionType::AssetTransfer => TransactionType::AssetTransfer,
+            algo_models::TransactionType::AssetFreeze => TransactionType::AssetFreeze,
+            algo_models::TransactionType::AssetConfig => TransactionType::AssetConfig,
+            algo_models::TransactionType::KeyRegistration => TransactionType::KeyRegistration,
+            algo_models::TransactionType::ApplicationCall => TransactionType::ApplicationCall,
         }
     }
 }
@@ -256,7 +278,7 @@ impl From<crate::TransactionType> for TransactionType {
 /// This is particularly useful when decoding a transaction that has a unknow type
 pub fn get_encoded_transaction_type(bytes: &[u8]) -> Result<TransactionType, MsgPackError> {
     let header: TransactionHeader =
-        rmp_serde::from_slice(bytes).map_err(|_| MsgPackError::DeserializeError)?;
+        rmp_serde::from_slice(bytes).map_err(|_| MsgPackError::DecodingError)?;
     Ok(header.transaction_type)
 }
 
@@ -264,15 +286,15 @@ pub fn get_encoded_transaction_type(bytes: &[u8]) -> Result<TransactionType, Msg
 #[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
 #[allow(dead_code)]
 pub fn encode_payment(tx: PayTransactionFields) -> Result<Vec<u8>, MsgPackError> {
-    let ctx: crate::PayTransactionFields = tx.into();
-    ctx.encode()
+    let ctx: algo_models::PayTransactionFields = tx.into();
+    ctx.encode().map_err(|_| MsgPackError::EncodingError)
 }
 
 #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = "decodePayment"))]
 #[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
 #[allow(dead_code)]
 pub fn decode_payment(bytes: &[u8]) -> Result<PayTransactionFields, MsgPackError> {
-    let tx = crate::PayTransactionFields::decode(bytes)?;
+    let tx = algo_models::PayTransactionFields::decode(bytes)?;
     Ok(tx.into())
 }
 
@@ -280,15 +302,15 @@ pub fn decode_payment(bytes: &[u8]) -> Result<PayTransactionFields, MsgPackError
 #[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
 #[allow(dead_code)]
 pub fn encode_asset_transfer(tx: AssetTransferTransactionFields) -> Result<Vec<u8>, MsgPackError> {
-    let ctx: crate::AssetTransferTransactionFields = tx.into();
-    ctx.encode()
+    let ctx: algo_models::AssetTransferTransactionFields = tx.into();
+    ctx.encode().map_err(|_| MsgPackError::EncodingError)
 }
 
 #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = "decodeAssetTransfer"))]
 #[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
 #[allow(dead_code)]
 pub fn decode_asset_transfer(bytes: &[u8]) -> Result<AssetTransferTransactionFields, MsgPackError> {
-    let tx = crate::AssetTransferTransactionFields::decode(bytes)?;
+    let tx = algo_models::AssetTransferTransactionFields::decode(bytes)?;
     Ok(tx.into())
 }
 
@@ -296,10 +318,10 @@ pub fn decode_asset_transfer(bytes: &[u8]) -> Result<AssetTransferTransactionFie
 #[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
 #[allow(dead_code)]
 pub fn attach_signature(encoded_tx: &[u8], signature: &[u8]) -> Result<Vec<u8>, MsgPackError> {
-    let encoded_tx = crate::Transaction::decode(encoded_tx)?;
-    let signed_tx = crate::SignedTransaction {
+    let encoded_tx = algo_models::Transaction::decode(encoded_tx)?;
+    let signed_tx = algo_models::SignedTransaction {
         transaction: encoded_tx,
         signature: ByteBuf::from(signature.to_vec()),
     };
-    signed_tx.encode()
+    signed_tx.encode().map_err(|_| MsgPackError::EncodingError)
 }

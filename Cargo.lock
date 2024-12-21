@@ -38,6 +38,17 @@ dependencies = [
  "serde_bytes",
  "serde_json",
  "thiserror 2.0.7",
+]
+
+[[package]]
+name = "algo_models_ffi"
+version = "0.1.0"
+dependencies = [
+ "algo_models",
+ "rmp-serde",
+ "serde",
+ "serde_bytes",
+ "thiserror 2.0.7",
  "tsify-next",
  "uniffi",
  "wasm-bindgen",

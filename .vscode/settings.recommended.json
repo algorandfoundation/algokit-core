@@ -1,7 +1,0 @@
-{
-    "rust-analyzer.cargo.features": [
-        // For some reason, enabling both features results in errors related to unsafe code
-        // "ffi_wasm",
-        "ffi_uniffi"
-    ]
-}

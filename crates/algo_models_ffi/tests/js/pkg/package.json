@@ -1,0 +1,15 @@
+{
+  "name": "algo_models_ffi",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "algo_models_ffi_bg.wasm",
+    "algo_models_ffi.js",
+    "algo_models_ffi.d.ts"
+  ],
+  "main": "algo_models_ffi.js",
+  "types": "algo_models_ffi.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
