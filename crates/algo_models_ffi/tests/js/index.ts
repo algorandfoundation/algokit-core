@@ -2,6 +2,7 @@ import init, {
   type PayTransactionFields,
   encodePayment,
   attachSignature,
+  decodePayment,
 } from "./pkg/algo_models_ffi";
 
 let { AlgorandTransactionCrafter } = require("@algorandfoundation/algo-models");
@@ -85,6 +86,18 @@ async function main() {
     throw new Error("Signed transactions are not equal");
   } else {
     console.log("Signed transactions are equal");
+  }
+
+  try {
+    const badBytes = new Uint8Array(btyesForSigning);
+    badBytes[13] = 37;
+    decodePayment(badBytes);
+    throw new Error("Should have raised a DecodingError");
+  } catch (e: any) {
+    if (!e.toString().startsWith("DecodingError")) {
+      throw new Error("Should have raised a DecodingError");
+    }
+    console.log("Caught a DecodingError:", e);
   }
 }
 

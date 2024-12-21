@@ -1,4 +1,4 @@
-from algo_models_ffi import decode_payment, encode_payment
+from algo_models_ffi import decode_payment, encode_payment, MsgPackError
 from pprint import pprint
 
 
@@ -180,7 +180,14 @@ def main():
     pprint(decoded_tx.__dict__)
     encoded_tx = encode_payment(decoded_tx)
     assert encoded_tx[2:] == tx_bytes
-    print("success")
+
+    try:
+        tx_u8[13] = 37
+        bad_bytes = bytes(tx_u8)
+        decoded_tx = decode_payment(bad_bytes)
+        assert False, "Should have raised a DecodingError"
+    except MsgPackError.DecodingError as e:
+        print(f"Caught a DecodingError: {e}")
 
 
 if __name__ == "__main__":
