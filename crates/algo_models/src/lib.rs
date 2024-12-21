@@ -4,11 +4,11 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum MsgPackError {
-    #[error("Failed to serialize transaction")]
-    SerializeError,
+    #[error("Failed to encode transaction")]
+    EncodeError,
 
-    #[error("Failed to deserialize transaction")]
-    DeserializeError,
+    #[error("Failed to decode transaction")]
+    DecodeError,
 
     #[error("Failed to encode rmpv value")]
     RmpvEncodeError,
@@ -31,7 +31,7 @@ pub trait AlgorandMsgpack: Serialize + for<'de> Deserialize<'de> {
             .with_bytes(rmp_serde::config::BytesMode::ForceAll);
 
         self.serialize(&mut temp_serializer)
-            .map_err(|_| MsgPackError::SerializeError)?;
+            .map_err(|_| MsgPackError::EncodeError)?;
 
         // Deserialize into a Value and sort recursively
         let value = rmpv::decode::read_value(&mut temp_buf.as_slice())
@@ -50,9 +50,9 @@ pub trait AlgorandMsgpack: Serialize + for<'de> Deserialize<'de> {
     fn decode(bytes: &[u8]) -> Result<Self, MsgPackError> {
         if bytes[0] == b'T' && bytes[1] == b'X' {
             let without_prefix = bytes[2..].to_vec();
-            rmp_serde::from_slice(&without_prefix).map_err(|_| MsgPackError::DeserializeError)
+            rmp_serde::from_slice(&without_prefix).map_err(|_| MsgPackError::DecodeError)
         } else {
-            rmp_serde::from_slice(bytes).map_err(|_| MsgPackError::DeserializeError)
+            rmp_serde::from_slice(bytes).map_err(|_| MsgPackError::DecodeError)
         }
     }
 
@@ -230,7 +230,7 @@ impl Transaction {
             TransactionType::AssetTransfer => Ok(Transaction::AssetTransfer(
                 AssetTransferTransactionFields::decode(bytes)?,
             )),
-            _ => Err(MsgPackError::DeserializeError),
+            _ => Err(MsgPackError::DecodeError),
         }
     }
 }

@@ -14,8 +14,8 @@ pub enum MsgPackError {
 impl From<algo_models::MsgPackError> for MsgPackError {
     fn from(e: algo_models::MsgPackError) -> Self {
         match e {
-            algo_models::MsgPackError::DeserializeError => MsgPackError::DecodingError,
-            algo_models::MsgPackError::SerializeError => MsgPackError::EncodingError,
+            algo_models::MsgPackError::DecodeError => MsgPackError::DecodingError,
+            algo_models::MsgPackError::EncodeError => MsgPackError::EncodingError,
             algo_models::MsgPackError::RmpvDecodeError => MsgPackError::DecodingError,
             algo_models::MsgPackError::RmpvEncodeError => MsgPackError::EncodingError,
             algo_models::MsgPackError::RmpvConvertError => MsgPackError::EncodingError,
