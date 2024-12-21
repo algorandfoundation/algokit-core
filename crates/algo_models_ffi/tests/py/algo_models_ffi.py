@@ -1210,15 +1210,31 @@ _UniffiTempMsgPackError = MsgPackError
 
 class MsgPackError:  # type: ignore
     class EncodingError(_UniffiTempMsgPackError):
-        def __init__(self):
-            pass
+        def __init__(self, *values):
+            if len(values) != 1:
+                raise TypeError(f"Expected 1 arguments, found {len(values)}")
+            if not isinstance(values[0], str):
+                raise TypeError(f"unexpected type for tuple element 0 - expected 'str', got '{type(values[0])}'")
+            super().__init__(", ".join(map(repr, values)))
+            self._values = values
+
+        def __getitem__(self, index):
+            return self._values[index]
 
         def __repr__(self):
             return "MsgPackError.EncodingError({})".format(str(self))
     _UniffiTempMsgPackError.EncodingError = EncodingError # type: ignore
     class DecodingError(_UniffiTempMsgPackError):
-        def __init__(self):
-            pass
+        def __init__(self, *values):
+            if len(values) != 1:
+                raise TypeError(f"Expected 1 arguments, found {len(values)}")
+            if not isinstance(values[0], str):
+                raise TypeError(f"unexpected type for tuple element 0 - expected 'str', got '{type(values[0])}'")
+            super().__init__(", ".join(map(repr, values)))
+            self._values = values
+
+        def __getitem__(self, index):
+            return self._values[index]
 
         def __repr__(self):
             return "MsgPackError.DecodingError({})".format(str(self))
@@ -1234,25 +1250,31 @@ class _UniffiConverterTypeMsgPackError(_UniffiConverterRustBuffer):
         variant = buf.read_i32()
         if variant == 1:
             return MsgPackError.EncodingError(
+                _UniffiConverterString.read(buf),
             )
         if variant == 2:
             return MsgPackError.DecodingError(
+                _UniffiConverterString.read(buf),
             )
         raise InternalError("Raw enum value doesn't match any cases")
 
     @staticmethod
     def check_lower(value):
         if isinstance(value, MsgPackError.EncodingError):
+            _UniffiConverterString.check_lower(value._values[0])
             return
         if isinstance(value, MsgPackError.DecodingError):
+            _UniffiConverterString.check_lower(value._values[0])
             return
 
     @staticmethod
     def write(value, buf):
         if isinstance(value, MsgPackError.EncodingError):
             buf.write_i32(1)
+            _UniffiConverterString.write(value._values[0], buf)
         if isinstance(value, MsgPackError.DecodingError):
             buf.write_i32(2)
+            _UniffiConverterString.write(value._values[0], buf)
 
 
 

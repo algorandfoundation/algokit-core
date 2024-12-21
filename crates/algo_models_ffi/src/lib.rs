@@ -5,20 +5,26 @@ use serde_bytes::ByteBuf;
 #[derive(Debug, thiserror::Error)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum MsgPackError {
-    #[error("Algorand encoding failed")]
-    EncodingError,
-    #[error("Algorand decoding failed")]
-    DecodingError,
+    #[error("EncodingError: {0}")]
+    EncodingError(String),
+    #[error("DecodingError: {0}")]
+    DecodingError(String),
 }
 
 impl From<algo_models::MsgPackError> for MsgPackError {
     fn from(e: algo_models::MsgPackError) -> Self {
         match e {
-            algo_models::MsgPackError::DeserializeError => MsgPackError::DecodingError,
-            algo_models::MsgPackError::SerializeError => MsgPackError::EncodingError,
-            algo_models::MsgPackError::RmpvDecodeError => MsgPackError::DecodingError,
-            algo_models::MsgPackError::RmpvEncodeError => MsgPackError::EncodingError,
-            algo_models::MsgPackError::RmpvConvertError => MsgPackError::EncodingError,
+            algo_models::MsgPackError::DecodeError(_) => MsgPackError::DecodingError(e.to_string()),
+            algo_models::MsgPackError::EncodeError(_) => MsgPackError::EncodingError(e.to_string()),
+            algo_models::MsgPackError::RmpvDecodeError(_) => {
+                MsgPackError::DecodingError(e.to_string())
+            }
+            algo_models::MsgPackError::RmpvEncodeError(_) => {
+                MsgPackError::EncodingError(e.to_string())
+            }
+            algo_models::MsgPackError::UnknownTransactionType => {
+                MsgPackError::DecodingError(e.to_string())
+            }
         }
     }
 }
@@ -278,7 +284,7 @@ impl From<algo_models::TransactionType> for TransactionType {
 /// This is particularly useful when decoding a transaction that has a unknow type
 pub fn get_encoded_transaction_type(bytes: &[u8]) -> Result<TransactionType, MsgPackError> {
     let header: TransactionHeader =
-        rmp_serde::from_slice(bytes).map_err(|_| MsgPackError::DecodingError)?;
+        rmp_serde::from_slice(bytes).map_err(|w| MsgPackError::DecodingError(w.to_string()))?;
     Ok(header.transaction_type)
 }
 
@@ -287,7 +293,7 @@ pub fn get_encoded_transaction_type(bytes: &[u8]) -> Result<TransactionType, Msg
 #[allow(dead_code)]
 pub fn encode_payment(tx: PayTransactionFields) -> Result<Vec<u8>, MsgPackError> {
     let ctx: algo_models::PayTransactionFields = tx.into();
-    ctx.encode().map_err(|_| MsgPackError::EncodingError)
+    Ok(ctx.encode()?)
 }
 
 #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = "decodePayment"))]
@@ -303,7 +309,7 @@ pub fn decode_payment(bytes: &[u8]) -> Result<PayTransactionFields, MsgPackError
 #[allow(dead_code)]
 pub fn encode_asset_transfer(tx: AssetTransferTransactionFields) -> Result<Vec<u8>, MsgPackError> {
     let ctx: algo_models::AssetTransferTransactionFields = tx.into();
-    ctx.encode().map_err(|_| MsgPackError::EncodingError)
+    Ok(ctx.encode()?)
 }
 
 #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = "decodeAssetTransfer"))]
@@ -323,5 +329,5 @@ pub fn attach_signature(encoded_tx: &[u8], signature: &[u8]) -> Result<Vec<u8>, 
         transaction: encoded_tx,
         signature: ByteBuf::from(signature.to_vec()),
     };
-    signed_tx.encode().map_err(|_| MsgPackError::EncodingError)
+    Ok(signed_tx.encode()?)
 }
