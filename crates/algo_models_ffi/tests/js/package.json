@@ -13,5 +13,8 @@
     "@algorandfoundation/algo-models": "^0.0.2",
     "@noble/ed25519": "^2.1.0",
     "algo-msgpack-with-bigint": "^2.1.1"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.1.14"
   }
 }

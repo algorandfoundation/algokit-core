@@ -373,9 +373,12 @@ impl From<algo_models::TransactionType> for TransactionType {
 /// Get the transaction type from the encoded transaction.
 /// This is particularly useful when decoding a transaction that has a unknow type
 pub fn get_encoded_transaction_type(bytes: &[u8]) -> Result<TransactionType, MsgPackError> {
-    let header: TransactionHeader =
-        rmp_serde::from_slice(bytes).map_err(|w| MsgPackError::DecodingError(w.to_string()))?;
-    Ok(header.transaction_type)
+    let decoded = algo_models::Transaction::decode(bytes)?;
+
+    match decoded {
+        algo_models::Transaction::Payment(_) => Ok(TransactionType::Payment),
+        algo_models::Transaction::AssetTransfer(_) => Ok(TransactionType::AssetTransfer),
+    }
 }
 
 #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = "encodePayment"))]
@@ -415,4 +418,39 @@ pub fn attach_signature(encoded_tx: &[u8], signature: &[u8]) -> Result<Vec<u8>, 
         signature: signature.try_into().expect("signature should be 64 bytes"),
     };
     Ok(signed_tx.encode()?)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_encoded_transaction_type() {
+        // Create a minimal payment transaction
+        let tx = PayTransactionFields {
+            header: TransactionHeader {
+                transaction_type: TransactionType::Payment,
+                sender: ByteBuf::from(vec![0; 32]), // 32-byte dummy public key
+                fee: 1000,
+                first_valid: 1000,
+                last_valid: 2000,
+                genesis_hash: None,
+                genesis_id: None,
+                note: None,
+                rekey_to: None,
+                lease: None,
+                group: None,
+            },
+            receiver: ByteBuf::from(vec![1; 32]), // 32-byte dummy receiver
+            amount: 1000000,
+            close_remainder_to: None,
+        };
+
+        // Encode the transaction
+        let encoded = encode_payment(tx).unwrap();
+
+        // Test the get_encoded_transaction_type function
+        let tx_type = get_encoded_transaction_type(&encoded).unwrap();
+        assert_eq!(tx_type, TransactionType::Payment);
+    }
 }
