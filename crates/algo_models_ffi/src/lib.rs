@@ -2,6 +2,8 @@ use algo_models::AlgorandMsgpack;
 use serde::{Deserialize, Serialize};
 use serde_bytes::ByteBuf;
 
+// thiserror is used to easily create errors than can be propagated to the language bindings
+// UniFFI will create classes for errors (i.e. `MsgPackError.EncodingError` in Python)
 #[derive(Debug, thiserror::Error)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum MsgPackError {
@@ -11,6 +13,17 @@ pub enum MsgPackError {
     DecodingError(String),
 }
 
+// For now, in WASM we just throw the string, hence the error
+// type being included in the error string above
+// Perhaps in the future we could use a class like in UniFFI
+#[cfg(feature = "ffi_wasm")]
+impl From<MsgPackError> for JsValue {
+    fn from(e: MsgPackError) -> Self {
+        JsValue::from(e.to_string())
+    }
+}
+
+// Convert errors from the Rust crate into the FFI-specific errors
 impl From<algo_models::MsgPackError> for MsgPackError {
     fn from(e: algo_models::MsgPackError) -> Self {
         match e {
@@ -40,6 +53,8 @@ use tsify_next::Tsify;
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::*;
 
+// We need to use ByteBuf directly in the structs to get Uint8Array in TSify
+// custom_type! and this impl is used to convert the ByteBuf to a Vec<u8> for the UniFFI bindings
 #[cfg(feature = "ffi_uniffi")]
 impl UniffiCustomTypeConverter for ByteBuf {
     type Builtin = Vec<u8>;
@@ -56,13 +71,8 @@ impl UniffiCustomTypeConverter for ByteBuf {
 #[cfg(feature = "ffi_uniffi")]
 uniffi::custom_type!(ByteBuf, Vec<u8>);
 
-#[cfg(feature = "ffi_wasm")]
-impl From<MsgPackError> for JsValue {
-    fn from(e: MsgPackError) -> Self {
-        JsValue::from(e.to_string())
-    }
-}
-
+// This becomes an enum in UniFFI lnaguage bindings and a
+// string literal union in TS
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "ffi_wasm", derive(Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -76,6 +86,14 @@ pub enum TransactionType {
     ApplicationCall,
 }
 
+// Even though these stucts are all defined in the crate, we need to re-define them
+// because we have to use different serde attributes for the struct fields.
+// In the crate, we need to use the msgpack names for the fields, but in the FFI
+// we need to use the camelCase names for the fields for TSify.
+
+// A Record in UniFFI becomes a native struct in the language bindings
+// and an interface in TS. Using `large_number_types_as_bigints` is essential
+// for tsify to correctly use bigint for uint64s
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "ffi_wasm", derive(Tsify))]
 #[cfg_attr(
@@ -161,7 +179,8 @@ pub struct AssetTransferTransactionFields {
     close_remainder_to: Option<ByteBuf>,
 }
 
-// Go from wasm to rust
+// Various from impls to convert between the FFI types and the crate types
+
 impl From<TransactionType> for algo_models::TransactionType {
     fn from(tx: TransactionType) -> Self {
         match tx {
@@ -259,7 +278,6 @@ impl From<algo_models::AssetTransferTransactionFields> for AssetTransferTransact
     }
 }
 
-// Go from rust to wasm
 impl From<algo_models::TransactionType> for TransactionType {
     fn from(tx: algo_models::TransactionType) -> Self {
         match tx {
@@ -273,13 +291,14 @@ impl From<algo_models::TransactionType> for TransactionType {
     }
 }
 
+// Each function need to be explicitly renamed for WASM
+// and exported for UniFFI
+
 #[cfg_attr(
     feature = "ffi_wasm",
     wasm_bindgen(js_name = "getEncodedTransactionType")
 )]
 #[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
-#[allow(dead_code)]
-
 /// Get the transaction type from the encoded transaction.
 /// This is particularly useful when decoding a transaction that has a unknow type
 pub fn get_encoded_transaction_type(bytes: &[u8]) -> Result<TransactionType, MsgPackError> {
@@ -290,7 +309,6 @@ pub fn get_encoded_transaction_type(bytes: &[u8]) -> Result<TransactionType, Msg
 
 #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = "encodePayment"))]
 #[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
-#[allow(dead_code)]
 pub fn encode_payment(tx: PayTransactionFields) -> Result<Vec<u8>, MsgPackError> {
     let ctx: algo_models::PayTransactionFields = tx.into();
     Ok(ctx.encode()?)
@@ -298,7 +316,6 @@ pub fn encode_payment(tx: PayTransactionFields) -> Result<Vec<u8>, MsgPackError>
 
 #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = "decodePayment"))]
 #[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
-#[allow(dead_code)]
 pub fn decode_payment(bytes: &[u8]) -> Result<PayTransactionFields, MsgPackError> {
     let tx = algo_models::PayTransactionFields::decode(bytes)?;
     Ok(tx.into())
@@ -306,7 +323,6 @@ pub fn decode_payment(bytes: &[u8]) -> Result<PayTransactionFields, MsgPackError
 
 #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = "encodeAssetTransfer"))]
 #[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
-#[allow(dead_code)]
 pub fn encode_asset_transfer(tx: AssetTransferTransactionFields) -> Result<Vec<u8>, MsgPackError> {
     let ctx: algo_models::AssetTransferTransactionFields = tx.into();
     Ok(ctx.encode()?)
@@ -314,7 +330,6 @@ pub fn encode_asset_transfer(tx: AssetTransferTransactionFields) -> Result<Vec<u
 
 #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = "decodeAssetTransfer"))]
 #[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
-#[allow(dead_code)]
 pub fn decode_asset_transfer(bytes: &[u8]) -> Result<AssetTransferTransactionFields, MsgPackError> {
     let tx = algo_models::AssetTransferTransactionFields::decode(bytes)?;
     Ok(tx.into())
@@ -322,7 +337,6 @@ pub fn decode_asset_transfer(bytes: &[u8]) -> Result<AssetTransferTransactionFie
 
 #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = "attachSignature"))]
 #[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
-#[allow(dead_code)]
 pub fn attach_signature(encoded_tx: &[u8], signature: &[u8]) -> Result<Vec<u8>, MsgPackError> {
     let encoded_tx = algo_models::Transaction::decode(encoded_tx)?;
     let signed_tx = algo_models::SignedTransaction {
