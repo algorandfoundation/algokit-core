@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 use std::collections::BTreeMap;
 use thiserror::Error;
 
@@ -116,6 +117,7 @@ pub enum TransactionType {
 type Byte32 = serde_bytes::ByteBuf;
 type Pubkey = Byte32;
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct TransactionHeader {
     #[serde(rename = "type")]
@@ -133,31 +135,26 @@ pub struct TransactionHeader {
     pub last_valid: u64,
 
     #[serde(rename = "gh")]
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub genesis_hash: Option<Byte32>,
 
     #[serde(rename = "gen")]
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub genesis_id: Option<String>,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub note: Option<serde_bytes::ByteBuf>,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "rekey")]
     pub rekey_to: Option<Pubkey>,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "lx")]
     pub lease: Option<Byte32>,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "grp")]
     pub group: Option<Byte32>,
 }
 
 impl AlgorandMsgpack for TransactionHeader {}
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct PayTransactionFields {
     #[serde(flatten)]
@@ -170,12 +167,12 @@ pub struct PayTransactionFields {
     pub amount: u64,
 
     #[serde(rename = "close")]
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub close_remainder_to: Option<Pubkey>,
 }
 
 impl AlgorandMsgpack for PayTransactionFields {}
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct AssetTransferTransactionFields {
     #[serde(flatten)]
@@ -191,11 +188,9 @@ pub struct AssetTransferTransactionFields {
     pub receiver: Pubkey,
 
     #[serde(rename = "asnd")]
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub asset_sender: Option<Pubkey>,
 
     #[serde(rename = "aclose")]
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub close_remainder_to: Option<Pubkey>,
 }
 
