@@ -196,79 +196,116 @@ impl From<TransactionType> for algo_models::TransactionType {
 
 // TODO: Impl TryFrom instead of using expect
 
-impl From<TransactionHeader> for algo_models::TransactionHeader {
-    fn from(tx: TransactionHeader) -> Self {
-        Self {
+impl TryFrom<TransactionHeader> for algo_models::TransactionHeader {
+    type Error = MsgPackError;
+
+    fn try_from(tx: TransactionHeader) -> Result<Self, MsgPackError> {
+        Ok(Self {
             transaction_type: tx.transaction_type.into(),
-            sender: tx
-                .sender
-                .to_vec()
-                .try_into()
-                .expect("sender should be 32 bytes"),
+            sender: tx.sender.to_vec().try_into().map_err(|_| {
+                MsgPackError::EncodingError("sender should be 32 byte public key".to_string())
+            })?,
             fee: tx.fee,
             first_valid: tx.first_valid,
             last_valid: tx.last_valid,
             genesis_id: tx.genesis_id,
-            genesis_hash: tx.genesis_hash.map(|b| {
-                b.to_vec()
-                    .try_into()
-                    .expect("genesis_hash should be 32 bytes")
-            }),
+            genesis_hash: tx
+                .genesis_hash
+                .map(|b| {
+                    b.to_vec().try_into().map_err(|_| {
+                        MsgPackError::EncodingError(
+                            "genesis_hash should be 32 byte hash".to_string(),
+                        )
+                    })
+                })
+                .transpose()?,
             note: tx.note.map(|b| b.to_vec()),
             rekey_to: tx
                 .rekey_to
-                .map(|b| b.to_vec().try_into().expect("rekey_to should be 32 bytes")),
+                .map(|b| {
+                    b.to_vec().try_into().map_err(|_| {
+                        MsgPackError::EncodingError(
+                            "rekey_to should be 32 byte public key".to_string(),
+                        )
+                    })
+                })
+                .transpose()?,
             lease: tx
                 .lease
-                .map(|b| b.to_vec().try_into().expect("lease should be 32 bytes")),
+                .map(|b| {
+                    b.to_vec().try_into().map_err(|_| {
+                        MsgPackError::EncodingError("lease should be 32 bytes".to_string())
+                    })
+                })
+                .transpose()?,
             group: tx
                 .group
-                .map(|b| b.to_vec().try_into().expect("group should be 32 bytes")),
-        }
+                .map(|b| {
+                    b.to_vec().try_into().map_err(|_| {
+                        MsgPackError::EncodingError("group should be 32 byte hash".to_string())
+                    })
+                })
+                .transpose()?,
+        })
     }
 }
 
-impl From<PayTransactionFields> for algo_models::PayTransactionFields {
-    fn from(tx: PayTransactionFields) -> Self {
-        Self {
-            header: tx.header.into(),
-            receiver: tx
-                .receiver
-                .to_vec()
-                .try_into()
-                .expect("receiver should be 32 bytes"),
+impl TryFrom<PayTransactionFields> for algo_models::PayTransactionFields {
+    type Error = MsgPackError;
+
+    fn try_from(tx: PayTransactionFields) -> Result<Self, MsgPackError> {
+        Ok(Self {
+            header: tx.header.try_into()?,
+            receiver: tx.receiver.to_vec().try_into().map_err(|_| {
+                MsgPackError::EncodingError("receiver should be 32 byte public key".to_string())
+            })?,
             amount: tx.amount,
-            close_remainder_to: tx.close_remainder_to.map(|b| {
-                b.to_vec()
-                    .try_into()
-                    .expect("close_remainder_to should be 32 bytes")
-            }),
-        }
+            close_remainder_to: tx
+                .close_remainder_to
+                .map(|b| {
+                    b.to_vec().try_into().map_err(|_| {
+                        MsgPackError::EncodingError(
+                            "close remainder to should be 32 byte public key".to_string(),
+                        )
+                    })
+                })
+                .transpose()?,
+        })
     }
 }
 
-impl From<AssetTransferTransactionFields> for algo_models::AssetTransferTransactionFields {
-    fn from(tx: AssetTransferTransactionFields) -> Self {
-        Self {
-            header: tx.header.into(),
+impl TryFrom<AssetTransferTransactionFields> for algo_models::AssetTransferTransactionFields {
+    type Error = MsgPackError;
+
+    fn try_from(tx: AssetTransferTransactionFields) -> Result<Self, MsgPackError> {
+        Ok(Self {
+            header: tx.header.try_into()?,
             asset_id: tx.asset_id,
             amount: tx.amount,
-            receiver: tx
-                .receiver
-                .to_vec()
-                .try_into()
-                .expect("receiver should be 32 bytes"),
-            asset_sender: tx.asset_sender.map(|b| {
-                b.to_vec()
-                    .try_into()
-                    .expect("asset_sender should be 32 bytes")
-            }),
-            close_remainder_to: tx.close_remainder_to.map(|b| {
-                b.to_vec()
-                    .try_into()
-                    .expect("close_remainder_to should be 32 bytes")
-            }),
-        }
+            receiver: tx.receiver.to_vec().try_into().map_err(|_| {
+                MsgPackError::EncodingError("receiver should be 32 byte public key".to_string())
+            })?,
+            asset_sender: tx
+                .asset_sender
+                .map(|b| {
+                    b.to_vec().try_into().map_err(|_| {
+                        MsgPackError::EncodingError(
+                            "close remainder to should be 32 byte public key".to_string(),
+                        )
+                    })
+                })
+                .transpose()?,
+            close_remainder_to: tx
+                .close_remainder_to
+                .map(|b| {
+                    b.to_vec().try_into().map_err(|_| {
+                        MsgPackError::EncodingError(
+                            "close remainder to should be 32 byte public key".to_string(),
+                        )
+                    })
+                })
+                .transpose()?,
+        })
     }
 }
 
@@ -346,7 +383,7 @@ pub fn get_encoded_transaction_type(bytes: &[u8]) -> Result<TransactionType, Msg
 #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = "encodePayment"))]
 #[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
 pub fn encode_payment(tx: PayTransactionFields) -> Result<Vec<u8>, MsgPackError> {
-    let ctx: algo_models::PayTransactionFields = tx.into();
+    let ctx: algo_models::PayTransactionFields = tx.try_into()?;
     Ok(ctx.encode()?)
 }
 
@@ -360,7 +397,7 @@ pub fn decode_payment(bytes: &[u8]) -> Result<PayTransactionFields, MsgPackError
 #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = "encodeAssetTransfer"))]
 #[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
 pub fn encode_asset_transfer(tx: AssetTransferTransactionFields) -> Result<Vec<u8>, MsgPackError> {
-    let ctx: algo_models::AssetTransferTransactionFields = tx.into();
+    let ctx: algo_models::AssetTransferTransactionFields = tx.try_into()?;
     Ok(ctx.encode()?)
 }
 
