@@ -194,8 +194,6 @@ impl From<TransactionType> for algo_models::TransactionType {
     }
 }
 
-// TODO: Impl TryFrom instead of using expect
-
 impl TryFrom<TransactionHeader> for algo_models::TransactionHeader {
     type Error = MsgPackError;
 
