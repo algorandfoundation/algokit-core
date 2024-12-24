@@ -194,20 +194,36 @@ impl From<TransactionType> for algo_models::TransactionType {
     }
 }
 
+// TODO: Impl TryFrom instead of using expect
+
 impl From<TransactionHeader> for algo_models::TransactionHeader {
     fn from(tx: TransactionHeader) -> Self {
         Self {
             transaction_type: tx.transaction_type.into(),
-            sender: tx.sender,
+            sender: tx
+                .sender
+                .to_vec()
+                .try_into()
+                .expect("sender should be 32 bytes"),
             fee: tx.fee,
             first_valid: tx.first_valid,
             last_valid: tx.last_valid,
             genesis_id: tx.genesis_id,
-            genesis_hash: tx.genesis_hash,
-            note: tx.note,
-            rekey_to: tx.rekey_to,
-            lease: tx.lease,
-            group: tx.group,
+            genesis_hash: tx.genesis_hash.map(|b| {
+                b.to_vec()
+                    .try_into()
+                    .expect("genesis_hash should be 32 bytes")
+            }),
+            note: tx.note.map(|b| b.to_vec()),
+            rekey_to: tx
+                .rekey_to
+                .map(|b| b.to_vec().try_into().expect("rekey_to should be 32 bytes")),
+            lease: tx
+                .lease
+                .map(|b| b.to_vec().try_into().expect("lease should be 32 bytes")),
+            group: tx
+                .group
+                .map(|b| b.to_vec().try_into().expect("group should be 32 bytes")),
         }
     }
 }
@@ -216,9 +232,17 @@ impl From<PayTransactionFields> for algo_models::PayTransactionFields {
     fn from(tx: PayTransactionFields) -> Self {
         Self {
             header: tx.header.into(),
-            receiver: tx.receiver,
+            receiver: tx
+                .receiver
+                .to_vec()
+                .try_into()
+                .expect("receiver should be 32 bytes"),
             amount: tx.amount,
-            close_remainder_to: tx.close_remainder_to,
+            close_remainder_to: tx.close_remainder_to.map(|b| {
+                b.to_vec()
+                    .try_into()
+                    .expect("close_remainder_to should be 32 bytes")
+            }),
         }
     }
 }
@@ -229,9 +253,21 @@ impl From<AssetTransferTransactionFields> for algo_models::AssetTransferTransact
             header: tx.header.into(),
             asset_id: tx.asset_id,
             amount: tx.amount,
-            receiver: tx.receiver,
-            asset_sender: tx.asset_sender,
-            close_remainder_to: tx.close_remainder_to,
+            receiver: tx
+                .receiver
+                .to_vec()
+                .try_into()
+                .expect("receiver should be 32 bytes"),
+            asset_sender: tx.asset_sender.map(|b| {
+                b.to_vec()
+                    .try_into()
+                    .expect("asset_sender should be 32 bytes")
+            }),
+            close_remainder_to: tx.close_remainder_to.map(|b| {
+                b.to_vec()
+                    .try_into()
+                    .expect("close_remainder_to should be 32 bytes")
+            }),
         }
     }
 }
@@ -245,11 +281,11 @@ impl From<algo_models::TransactionHeader> for TransactionHeader {
             first_valid: tx.first_valid,
             last_valid: tx.last_valid,
             genesis_id: tx.genesis_id,
-            genesis_hash: tx.genesis_hash,
-            note: tx.note,
-            rekey_to: tx.rekey_to,
-            lease: tx.lease,
-            group: tx.group,
+            genesis_hash: tx.genesis_hash.map(|b| ByteBuf::from(b.to_vec())),
+            note: tx.note.map(|b| ByteBuf::from(b.to_vec())),
+            rekey_to: tx.rekey_to.map(|b| ByteBuf::from(b.to_vec())),
+            lease: tx.lease.map(|b| ByteBuf::from(b.to_vec())),
+            group: tx.group.map(|b| ByteBuf::from(b.to_vec())),
         }
     }
 }
@@ -260,7 +296,7 @@ impl From<algo_models::PayTransactionFields> for PayTransactionFields {
             header: tx.header.into(),
             receiver: ByteBuf::from(tx.receiver.to_vec()),
             amount: tx.amount,
-            close_remainder_to: tx.close_remainder_to,
+            close_remainder_to: tx.close_remainder_to.map(|b| ByteBuf::from(b.to_vec())),
         }
     }
 }
@@ -272,8 +308,8 @@ impl From<algo_models::AssetTransferTransactionFields> for AssetTransferTransact
             asset_id: tx.asset_id,
             amount: tx.amount,
             receiver: ByteBuf::from(tx.receiver.to_vec()),
-            asset_sender: tx.asset_sender,
-            close_remainder_to: tx.close_remainder_to,
+            asset_sender: tx.asset_sender.map(|b| ByteBuf::from(b.to_vec())),
+            close_remainder_to: tx.close_remainder_to.map(|b| ByteBuf::from(b.to_vec())),
         }
     }
 }
@@ -341,7 +377,7 @@ pub fn attach_signature(encoded_tx: &[u8], signature: &[u8]) -> Result<Vec<u8>, 
     let encoded_tx = algo_models::Transaction::decode(encoded_tx)?;
     let signed_tx = algo_models::SignedTransaction {
         transaction: encoded_tx,
-        signature: ByteBuf::from(signature.to_vec()),
+        signature: signature.try_into().expect("signature should be 64 bytes"),
     };
     Ok(signed_tx.encode()?)
 }
