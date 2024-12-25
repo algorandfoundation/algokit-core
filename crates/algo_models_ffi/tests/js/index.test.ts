@@ -90,6 +90,33 @@ describe("algo_models WASM", async () => {
       expect(getEncodedTransactionType(bytesForSigning)).toBe("Payment");
     });
 
-    // TODO: Test exceptions
+    // TODO: Decide if this is the behavior we want or if there should be input validation on encode
+    test("encode/decode with extra field", () => {
+      const extraField = { ...fields, foo: "bar" };
+      const encoded = encodePayment(extraField);
+      expect(decodePayment(encoded)).not.toContainKey("foo");
+    });
+
+    test("DecodingError: 0 bytes", () => {
+      expect(() => decodePayment(new Uint8Array(0))).toThrow(
+        "DecodingError: attempted to decode 0 bytes"
+      );
+    });
+
+    test("DecodingError: malformed bytes", () => {
+      const badBytes = bytesForSigning.slice();
+      badBytes[13] = 37;
+      expect(() => decodePayment(badBytes)).toThrow(
+        "DecodingError: Error ocurred during decoding: missing field `fee`"
+      );
+    });
+
+    test("Error: invalid type", () => {
+      const badFields = { ...fields, header: { fee: "foo" } };
+      // @ts-expect-error known bad type for testing purposes
+      expect(() => encodePayment(badFields)).toThrow(
+        'Error: invalid type: string "foo", expected u64'
+      );
+    });
   });
 });

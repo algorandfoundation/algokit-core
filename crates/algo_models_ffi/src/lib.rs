@@ -38,6 +38,7 @@ impl From<algo_models::MsgPackError> for MsgPackError {
             algo_models::MsgPackError::UnknownTransactionType => {
                 MsgPackError::DecodingError(e.to_string())
             }
+            algo_models::MsgPackError::InputError(e) => MsgPackError::DecodingError(e.to_string()),
         }
     }
 }
