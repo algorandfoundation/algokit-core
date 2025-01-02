@@ -22,6 +22,9 @@ pub enum MsgPackError {
 
     #[error("Unknown transaction type")]
     UnknownTransactionType,
+
+    #[error("Invalid input: {0}")]
+    InputError(String),
 }
 
 pub trait AlgorandMsgpack: Serialize + for<'de> Deserialize<'de> {
@@ -49,7 +52,13 @@ pub trait AlgorandMsgpack: Serialize + for<'de> Deserialize<'de> {
 
     /// Decode the bytes into Self. "TX" prefix is ignored if present
     fn decode(bytes: &[u8]) -> Result<Self, MsgPackError> {
-        if bytes[0] == b'T' && bytes[1] == b'X' {
+        if bytes.is_empty() {
+            return Err(MsgPackError::InputError(
+                "attempted to decode 0 bytes".to_string(),
+            ));
+        }
+
+        if bytes.len() > 2 && bytes[0] == b'T' && bytes[1] == b'X' {
             let without_prefix = bytes[2..].to_vec();
             Ok(rmp_serde::from_slice(&without_prefix)?)
         } else {
