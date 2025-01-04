@@ -4,11 +4,17 @@ import init, {
   attachSignature,
 } from "./pkg/algo_models";
 
+import {AlgodClient} from "@awesome-algorand/algod-fetch";
+
 let { AlgorandTransactionCrafter } = require("@algorandfoundation/algo-models");
 import * as ed from "@noble/ed25519";
 
 import * as msgpack from "algo-msgpack-with-bigint";
 
+const client = new AlgodClient({BASE: "https://testnet-api.algonode.cloud"})
+
+const data = await client.public.getBlock({round: 400})
+console.log(data)
 async function main() {
   // Generate a ed25519 keypair
   const privKey = ed.utils.randomPrivateKey();

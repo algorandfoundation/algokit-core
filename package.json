@@ -1,0 +1,7 @@
+{
+  "name": "ffi-testing",
+  "workspaces": [
+    "./examples/next.js",
+    "./crates/algo_models/tests/js"
+  ]
+}

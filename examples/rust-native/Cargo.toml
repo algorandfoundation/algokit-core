@@ -1,0 +1,9 @@
+[package]
+name = "rust-native"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+algo_fetch = {path = "../../crates/algo_fetch"}
+algo_models = {path = "../../crates/algo_models"}
+tokio = { version = "1.42.0", features = ["rt", "rt-multi-thread", "macros"] }
