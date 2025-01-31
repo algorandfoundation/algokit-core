@@ -3,11 +3,7 @@
 #
 #    maturin generate-ci github --pytest --output ../../.github/workflows/maturin.yml
 #
-name: CI
-
-defaults:
-  run:
-    working-directory: ./crates/algo_models_ffi
+name: Maturin CI
 
 on:
   push:
@@ -27,6 +23,9 @@ on:
 
 permissions:
   contents: read
+
+env:
+  CRATE_PATH: crates/algo_models_ffi
 
 jobs:
   linux:
@@ -55,22 +54,24 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --find-interpreter
+          args: --release --out ${{ env.CRATE_PATH }}/dist --find-interpreter
           sccache: 'true'
           manylinux: auto
+          working-directory: ${{ env.CRATE_PATH }} 
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
           name: wheels-linux-${{ matrix.platform.target }}
-          path: dist
+          path: ${{ env.CRATE_PATH }}/dist
       - name: pytest
         if: ${{ startsWith(matrix.platform.target, 'x86_64') }}
         shell: bash
         run: |
           set -e
+          cd ${{ env.CRATE_PATH }}
           python3 -m venv .venv
           source .venv/bin/activate
-          pip install algo_models --find-links dist --force-reinstall
+          pip install algo_models --find-links ${{ env.CRATE_PATH }}/dist --force-reinstall
           pip install pytest && pip install -r tests/python/requirements.txt
           pytest
       - name: pytest
@@ -86,7 +87,9 @@ jobs:
             pip3 install -U pip pytest
           run: |
             set -e
-            pip3 install algo_models --find-links dist --force-reinstall
+            cd ${{ env.CRATE_PATH }}
+            pip3 install algo_models --find-links ${{ env.CRATE_PATH }}/dist --force-reinstall
+            pip3 install tests/python/requirements.txt
             pytest
 
   musllinux:
@@ -111,14 +114,15 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --find-interpreter
+          args: --release --out ${{ env.CRATE_PATH }}/dist --find-interpreter
           sccache: 'true'
           manylinux: musllinux_1_2
+          working-directory: ${{ env.CRATE_PATH }} 
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
           name: wheels-musllinux-${{ matrix.platform.target }}
-          path: dist
+          path: ${{ env.CRATE_PATH }}/dist
       - name: pytest
         if: ${{ startsWith(matrix.platform.target, 'x86_64') }}
         uses: addnab/docker-run-action@v3
@@ -127,10 +131,11 @@ jobs:
           options: -v ${{ github.workspace }}:/io -w /io
           run: |
             set -e
+            cd ${{ env.CRATE_PATH }}
             apk add py3-pip py3-virtualenv
             python3 -m virtualenv .venv
             source .venv/bin/activate
-            pip install algo_models --no-index --find-links dist --force-reinstall
+            pip install algo_models --no-index --find-links ${{ env.CRATE_PATH }}/dist --force-reinstall
             pip install pytest && pip install -r tests/python/requirements.txt
             pytest
       - name: pytest
@@ -144,10 +149,11 @@ jobs:
             apk add py3-virtualenv
           run: |
             set -e
+            cd ${{ env.CRATE_PATH }}
             python3 -m virtualenv .venv
             source .venv/bin/activate
             pip install pytest && pip install -r tests/python/requirements.txt
-            pip install algo_models --find-links dist --force-reinstall
+            pip install algo_models --find-links ${{ env.CRATE_PATH }}/dist --force-reinstall
             pytest
 
   windows:
@@ -169,21 +175,23 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --find-interpreter
+          args: --release --out ${{ env.CRATE_PATH }}/dist --find-interpreter
           sccache: 'true'
+          working-directory: ${{ env.CRATE_PATH }} 
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
           name: wheels-windows-${{ matrix.platform.target }}
-          path: dist
+          path: ${{ env.CRATE_PATH }}/dist
       - name: pytest
         if: ${{ !startsWith(matrix.platform.target, 'aarch64') }}
         shell: bash
         run: |
           set -e
+          cd ${{ env.CRATE_PATH }}
           python3 -m venv .venv
           source .venv/Scripts/activate
-          pip install algo_models --find-links dist --force-reinstall
+          pip install algo_models --find-links ${{ env.CRATE_PATH }}/dist --force-reinstall
           pip install pytest && pip install -r tests/python/requirements.txt
           pytest
 
@@ -205,19 +213,21 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --find-interpreter
+          args: --release --out ${{ env.CRATE_PATH }}/dist --find-interpreter
           sccache: 'true'
+          working-directory: ${{ env.CRATE_PATH }} 
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
           name: wheels-macos-${{ matrix.platform.target }}
-          path: dist
+          path: ${{ env.CRATE_PATH }}/dist
       - name: pytest
         run: |
           set -e
+          cd ${{ env.CRATE_PATH }}
           python3 -m venv .venv
           source .venv/bin/activate
-          pip install algo_models --find-links dist --force-reinstall
+          pip install algo_models --find-links ${{ env.CRATE_PATH }}/dist --force-reinstall
           pip install pytest && pip install -r tests/python/requirements.txt
           pytest
 
@@ -234,7 +244,7 @@ jobs:
   #       uses: actions/upload-artifact@v4
   #       with:
   #         name: wheels-sdist
-  #         path: dist
+  #         path: ${{ env.CRATE_PATH }}/dist
   #
   # release:
   #   name: Release
