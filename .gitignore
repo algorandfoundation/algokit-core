@@ -2,3 +2,4 @@
 .vscode/
 .zed/
 .venv/
+dist/
