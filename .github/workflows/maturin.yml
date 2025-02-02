@@ -54,7 +54,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out ${{ env.CRATE_PATH }}/dist --find-interpreter
+          args: -vv --release --out ${{ env.CRATE_PATH }}/dist --find-interpreter
           sccache: 'true'
           manylinux: auto
           working-directory: ${{ env.CRATE_PATH }} 
@@ -114,7 +114,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out ${{ env.CRATE_PATH }}/dist --find-interpreter
+          args: -vv --release --out ${{ env.CRATE_PATH }}/dist --find-interpreter
           sccache: 'true'
           manylinux: musllinux_1_2
           working-directory: ${{ env.CRATE_PATH }} 
@@ -175,7 +175,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out ${{ env.CRATE_PATH }}/dist --find-interpreter
+          args: -vv --release --out ${{ env.CRATE_PATH }}/dist --find-interpreter
           sccache: 'true'
           working-directory: ${{ env.CRATE_PATH }} 
       - name: Upload wheels
@@ -213,7 +213,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out ${{ env.CRATE_PATH }}/dist --find-interpreter
+          args: -vv --release --out ${{ env.CRATE_PATH }}/dist --find-interpreter
           sccache: 'true'
           working-directory: ${{ env.CRATE_PATH }} 
       - name: Upload wheels
