@@ -90,5 +90,5 @@ jobs:
 
       - name: maturin build
         env:
-          SCRIPT: mise x -- maturin build --release --target ${{ matrix.target.name }}
+          SCRIPT: cd /workspace/${{ env.CRATE_PATH }} && mise x -- maturin build --release --target ${{ matrix.target.name }}
         run: docker exec build-container bash -c "$SCRIPT"
