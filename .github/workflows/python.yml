@@ -29,7 +29,7 @@ jobs:
         shell: bash
     runs-on: ${{ matrix.target.runner }}
     container: 
-      image: ${{ matrix.target.container }}
+      # image: ${{ matrix.target.container }}
       env:
         MISE_DATA_DIR: /mise
         MISE_CONFIG_DIR: /mise
@@ -48,20 +48,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Start Container
+        run: | 
+          set -e
+          docker pull ${{ matrix.target.container }}
+          docker run --name build-container ${{ matrix.target.container }} -d -v ${{ github.workspace }}:/workspace tail -f /dev/null
+
       - name: Install Rustup
-        run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
+        env:
+          SCRIPT: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
+        run: docker exec build-container bash -c "$SCRIPT"
 
-      - name: rustup target add
-        run: rustup target add ${{ matrix.target.name }}
-      
-      - name: Install mise
-        run: curl https://mise.run | sh
-
-      - name: Install python (mise)
-        run: mise settings set python.compile false && mise use -g python
-
-      - name: Install maturin
-        run: mise x -- pip install maturin[patchelf]
-      
-      - name: maturin build
-        run: cd ${{ env.CRATE_PATH }} && mise x -- maturin build --release --target ${{ matrix.target.name }}
+      # - name: rustup target add
+      #   run: rustup target add ${{ matrix.target.name }}
+      #
+      # - name: Install mise
+      #   run: curl https://mise.run | sh
+      #
+      # - name: Install python (mise)
+      #   run: mise settings set python.compile false && mise use -g python
+      #
+      # - name: Install maturin
+      #   run: mise x -- pip install maturin[patchelf]
+      #
+      # - name: maturin build
+      #   run: cd ${{ env.CRATE_PATH }} && mise x -- maturin build --release --target ${{ matrix.target.name }}
