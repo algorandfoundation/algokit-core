@@ -28,14 +28,14 @@ jobs:
       run:
         shell: bash
     runs-on: ${{ matrix.target.runner }}
-    container: 
-      # image: ${{ matrix.target.container }}
-      env:
-        MISE_DATA_DIR: /mise
-        MISE_CONFIG_DIR: /mise
-        MISE_CACHE_DIR: /mise/cache
-        MISE_INSTALL_PATH: /usr/local/bin/mise
-        CARGO_HOME: /usr/local
+    # container: 
+    #   image: ${{ matrix.target.container }}
+    #   env:
+    #     MISE_DATA_DIR: /mise
+    #     MISE_CONFIG_DIR: /mise
+    #     MISE_CACHE_DIR: /mise/cache
+    #     MISE_INSTALL_PATH: /usr/local/bin/mise
+    #     CARGO_HOME: /usr/local
     strategy:
       matrix:
         target:
@@ -52,7 +52,15 @@ jobs:
         run: | 
           set -e
           docker pull ${{ matrix.target.container }}
-          docker run --name build-container ${{ matrix.target.container }} -d -v ${{ github.workspace }}:/workspace tail -f /dev/null
+          docker run --name build-container ${{ matrix.target.container }} \
+          -d \
+          -v ${{ github.workspace }}:/workspace \
+          -e MISE_DATA_DIR="/mise" \
+          -e MISE_CONFIG_DIR="/mise" \
+          -e MISE_CACHE_DIR="/mise/cache" \
+          -e MISE_INSTALL_PATH="/usr/local/bin/mise" \
+          -e CARGO_HOME="/usr/local" \
+          tail -f /dev/null
 
       - name: Install Rustup
         env:
