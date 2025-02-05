@@ -52,7 +52,7 @@ jobs:
         run: | 
           set -e
           docker pull ${{ matrix.target.container }}
-          docker run --name build-container ${{ matrix.target.container }} \
+          docker run --name build-container \
           -d \
           -v ${{ github.workspace }}:/workspace \
           -e MISE_DATA_DIR="/mise" \
@@ -60,6 +60,7 @@ jobs:
           -e MISE_CACHE_DIR="/mise/cache" \
           -e MISE_INSTALL_PATH="/usr/local/bin/mise" \
           -e CARGO_HOME="/usr/local" \
+          ${{ matrix.target.container }} \
           tail -f /dev/null
 
       - name: Install Rustup
