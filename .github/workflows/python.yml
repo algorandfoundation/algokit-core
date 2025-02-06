@@ -144,7 +144,7 @@ jobs:
             mise settings set python.compile false && mise use -g python
 
           run: |
-            mise x -- pip install target/*.whl
+            mise x -- pip install target/wheels/*.whl
             cd ${{ env.CRATE_PATH }}
             mise x -- pip install -r tests/py/requirements.txt
             mise x -- pytest
