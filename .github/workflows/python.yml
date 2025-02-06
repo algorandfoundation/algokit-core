@@ -88,40 +88,26 @@ jobs:
           SCRIPT: cd /workspace/${{ env.CRATE_PATH }} && mise x -- maturin build --release --target ${{ matrix.target.name }}
         run: docker exec build-container bash -c "$SCRIPT"
 
-      - name: Pytest
+      - name: Pytest (alpine)
+        if: matrix.target.distro == 'alpine_latest'
         uses: uraimo/run-on-arch-action@v2
         with:
           arch: ${{ matrix.target.arch }}
           distro: ${{ matrix.target.distro }}
-          env: |
-            MISE_DATA_DIR: /mise
-            MISE_CONFIG_DIR: /mise
-            MISE_CACHE_DIR: /mise/cache
-            MISE_INSTALL_PATH: /usr/local/bin/mise
-          
+
           # Install some dependencies in the container. This speeds up builds if
           # you are also using githubToken. Any dependencies installed here will
           # be part of the container image that gets cached, so subsequent
           # builds don't have to re-install them. The image layer is cached
           # publicly in your project's package repository, so it is vital that
           # no secrets are present in the container state or logs.
-          #
-          # TODO: Only run apk add bash if distro is alpine_latest
           install: |
-            apk add --no-cache bash
-            mkdir -p /mise/cache/python/pyenv
-            export MISE_DATA_DIR="/mise"
-            export MISE_CONFIG_DIR="/mise"
-            export MISE_CACHE_DIR="/mise/cache"
-            export MISE_INSTALL_PATH="/usr/local/bin/mise"
-            export MISE_VERSION="v2025.1.14"
-            wget --output-document - https://mise.run | sh
-            mise -vv use -g python
+            apk add --no-cache python3 py3-pip
 
           run: |
-            mise x -- pip install target/*.whl
+            pip install target/*.whl
             cd ${{ env.CRATE_PATH }}
-            mise x -- pip install -r tests/py/requirements.txt
-            mise x -- pytest
+            pip install -r tests/py/requirements.txt
+            pytest
 
 
