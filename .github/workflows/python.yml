@@ -35,12 +35,12 @@ jobs:
           # runner: The GitHub runner to use
           - name: x86_64-pc-windows-msvc
             runner: windows-latest
-          # - name: x86_64-apple-darwin-cross
-          #   runner: macos-13
-          # - name: aarch64-apple-darwin-cross
-          #   runner: macos-latest
-          # - name: x86_64-unknown-linux-gnu
-          #   runner: ubuntu-latest
+          - name: x86_64-apple-darwin-cross
+            runner: macos-13
+          - name: aarch64-apple-darwin-cross
+            runner: macos-latest
+          - name: x86_64-unknown-linux-gnu
+            runner: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
