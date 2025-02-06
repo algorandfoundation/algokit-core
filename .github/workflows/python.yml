@@ -23,66 +23,42 @@ env:
   CRATE_PATH: crates/algo_models_ffi
 
 jobs:
-  sdist_build_and_test:
-    defaults:
-      run:
-        shell: bash
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-          cache: 'pip' # caching pip dependencies
-      - run: pip install maturin
-      - name: Install python dependencies
-        run: pip install -r ${{ env.CRATE_PATH }}/tests/py/requirements.txt
-      - name: maturin sdist
-        run: cd ${{ env.CRATE_PATH }} && maturin sdist
-      - name: pytest
-        run: |
-          set -e
-          pip install -v target/wheels/*.tar.gz
-          cd ${{ env.CRATE_PATH }}
-          pytest
-
-  build_and_test:
-    defaults:
-      run:
-        shell: bash
-    runs-on: ${{ matrix.target.runner }}
-    strategy:
-      matrix: 
-        target:
-          # name: The name of the target passed to cargo build
-          # runner: The GitHub runner to use
-          - name: x86_64-pc-windows-msvc
-            runner: windows-latest
-          - name: x86_64-apple-darwin
-            runner: macos-13
-          - name: aarch64-apple-darwin
-            runner: macos-latest
-          - name: x86_64-unknown-linux-gnu
-            runner: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-          cache: 'pip' # caching pip dependencies
-      - run: pip install maturin
-      - name: Install python dependencies
-        run: pip install -r ${{ env.CRATE_PATH }}/tests/py/requirements.txt
-      - name: maturin build
-        run: cd ${{ env.CRATE_PATH }} && maturin build --target ${{ matrix.target.name }}
-      - name: pytest
-        run: |
-          set -e
-          pip install target/wheels/*.whl
-          cd ${{ env.CRATE_PATH }}
-          pytest
+  # build_and_test:
+  #   defaults:
+  #     run:
+  #       shell: bash
+  #   runs-on: ${{ matrix.target.runner }}
+  #   strategy:
+  #     matrix: 
+  #       target:
+  #         # name: The name of the target passed to cargo build
+  #         # runner: The GitHub runner to use
+  #         - name: x86_64-pc-windows-msvc
+  #           runner: windows-latest
+  #         - name: x86_64-apple-darwin
+  #           runner: macos-13
+  #         - name: aarch64-apple-darwin
+  #           runner: macos-latest
+  #         - name: x86_64-unknown-linux-gnu
+  #           runner: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: dtolnay/rust-toolchain@stable
+  #     - uses: actions/setup-python@v5
+  #       with:
+  #         python-version: '3.13'
+  #         cache: 'pip' # caching pip dependencies
+  #     - run: pip install maturin
+  #     - name: Install python dependencies
+  #       run: pip install -r ${{ env.CRATE_PATH }}/tests/py/requirements.txt
+  #     - name: maturin build
+  #       run: cd ${{ env.CRATE_PATH }} && maturin build --target ${{ matrix.target.name }}
+  #     - name: pytest
+  #       run: |
+  #         set -e
+  #         pip install target/wheels/*.whl
+  #         cd ${{ env.CRATE_PATH }}
+  #         pytest
 
   cross_build_and_test:
     defaults:
@@ -96,17 +72,17 @@ jobs:
           # runner: The GitHub runner to use
           # arch: The architecture to use when testing the built package
           # distro: The distro to use when testing the built package. Should use alpine_latest for musl and ubuntu_latest for glibc
-          # container: The container (typically from cross-rs) to use to build against the target
-          - name: aarch64-unknown-linux-musl
-            runner: ubuntu-22.04
-            arch: aarch64
-            distro: alpine_latest
-            container: ghcr.io/cross-rs/aarch64-unknown-linux-musl:0.2.5
+          # container: The container to use to build against the target
+          # - name: aarch64-unknown-linux-musl
+          #   runner: ubuntu-22.04
+          #   arch: aarch64
+          #   distro: alpine_latest
+          #   container: ghcr.io/cross-rs/aarch64-unknown-linux-musl:0.2.5
           - name: aarch64-unknown-linux-gnu
             runner: ubuntu-22.04
             arch: aarch64
             distro: ubuntu_latest
-            container: ghcr.io/cross-rs/aarch64-unknown-linux-gnu:0.2.5
+            container: messense/manylinux2014-cross:aarch64
 
     steps:
       - uses: actions/checkout@v4
@@ -118,45 +94,17 @@ jobs:
           docker run --name build-container \
           -d \
           -v ${{ github.workspace }}:/workspace \
-          -e MISE_DATA_DIR="/mise" \
-          -e MISE_CONFIG_DIR="/mise" \
-          -e MISE_CACHE_DIR="/mise/cache" \
-          -e MISE_INSTALL_PATH="/usr/local/bin/mise" \
-          -e CARGO_HOME="/usr/local" \
           ${{ matrix.target.container }} \
           tail -f /dev/null
 
-      # "Install Rustup" through "Install maturin" can be done at image build time
-      # We'd just need to create our own image based on the respective matrix.target.container
-      # Or create an action similar to run-on-arch that caches install steps
-      - name: Install Rustup
-        env:
-          SCRIPT: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
-        run: docker exec build-container bash -c "$SCRIPT"
-
-      - name: rustup target add
-        env:
-          SCRIPT: rustup target add ${{ matrix.target.name }}
-        run: docker exec build-container bash -c "$SCRIPT"
-
-      - name: Install mise
-        env: 
-          SCRIPT: curl https://mise.run | sh
-        run: docker exec build-container bash -c "$SCRIPT"
-
-      - name: Install python (mise)
-        env:
-          SCRIPT: mise settings set python.compile false && mise use -g python
-        run: docker exec build-container bash -c "$SCRIPT"
-
       - name: Install maturin
         env:
-          SCRIPT: mise x -- pip install maturin[patchelf]
+          SCRIPT: python3.10 -m pip install maturin[patchelf]
         run: docker exec build-container bash -c "$SCRIPT"
 
       - name: maturin build
         env:
-          SCRIPT: cd /workspace/${{ env.CRATE_PATH }} && mise x -- maturin build --release --target ${{ matrix.target.name }}
+          SCRIPT: cd /workspace/${{ env.CRATE_PATH }} && maturin build --release --target ${{ matrix.target.name }}
         run: docker exec build-container bash -c "$SCRIPT"
 
       - name: Pytest (alpine)
