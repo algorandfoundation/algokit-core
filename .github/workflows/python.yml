@@ -54,7 +54,7 @@ jobs:
       - name: maturin build
         run: |
           cd ${{ env.CRATE_PATH }} 
-          maturin build --release --target ${{ matrix.target.name }} ${{ runner.os == 'Linux' && '--zig --compatibility manylinux_2_26' || '' }}
+          maturin build --release --target ${{ matrix.target.name }} ${{ runner.os == 'Linux' && '--zig --compatibility manylinux_2_27' || '' }}
       - name: pytest
         run: |
           set -e
