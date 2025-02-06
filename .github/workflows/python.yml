@@ -105,7 +105,10 @@ jobs:
           # builds don't have to re-install them. The image layer is cached
           # publicly in your project's package repository, so it is vital that
           # no secrets are present in the container state or logs.
+          #
+          # TODO: Only run apk add bash if distro is alpine_latest
           install: |
+            apk add --no-cache bash
             export MISE_DATA_DIR="/mise"
             export MISE_CONFIG_DIR="/mise"
             export MISE_CACHE_DIR="/mise/cache"
