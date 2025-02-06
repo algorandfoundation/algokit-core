@@ -106,6 +106,10 @@ jobs:
           # publicly in your project's package repository, so it is vital that
           # no secrets are present in the container state or logs.
           install: |
+            export MISE_DATA_DIR="/mise"
+            export MISE_CONFIG_DIR="/mise"
+            export MISE_CACHE_DIR="/mise/cache"
+            export MISE_INSTALL_PATH="/usr/local/bin/mise"
             wget --output-document - https://mise.run | sh
             mise settings set python.compile false && mise use -g python
 
