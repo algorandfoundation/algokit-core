@@ -36,6 +36,11 @@ jobs:
             arch: aarch64
             distro: alpine_latest
             container: ghcr.io/cross-rs/aarch64-unknown-linux-musl:0.2.5
+          - name: aarch64-unknown-linux-gnu
+            runner: ubuntu-22.04
+            arch: aarch64
+            distro: ubuntu_latest
+            container: ghcr.io/cross-rs/aarch64-unknown-linux-gnu:0.2.5
 
     steps:
       - uses: actions/checkout@v4
@@ -110,4 +115,35 @@ jobs:
             pip install --break-system-packages -r tests/py/requirements.txt
             pytest
 
+      - name: Pytest
+        if: matrix.target.distro != 'alpine_latest'
+        uses: uraimo/run-on-arch-action@v2
+        with:
+          arch: ${{ matrix.target.arch }}
+          distro: ${{ matrix.target.distro }}
+          env: |
+            MISE_DATA_DIR: /mise
+            MISE_CONFIG_DIR: /mise
+            MISE_CACHE_DIR: /mise/cache
+            MISE_INSTALL_PATH: /usr/local/bin/mise
+          
+          # Install some dependencies in the container. This speeds up builds if
+          # you are also using githubToken. Any dependencies installed here will
+          # be part of the container image that gets cached, so subsequent
+          # builds don't have to re-install them. The image layer is cached
+          # publicly in your project's package repository, so it is vital that
+          # no secrets are present in the container state or logs.
+          install: |
+            export MISE_DATA_DIR="/mise"
+            export MISE_CONFIG_DIR="/mise"
+            export MISE_CACHE_DIR="/mise/cache"
+            export MISE_INSTALL_PATH="/usr/local/bin/mise"
+            export MISE_VERSION="v2025.1.14"
+            wget --output-document - https://mise.run | sh
+            mise settings set python.compile false && mise use -g python
 
+          run: |
+            mise x -- pip install target/*.whl
+            cd ${{ env.CRATE_PATH }}
+            mise x -- pip install -r tests/py/requirements.txt
+            mise x -- pytest
