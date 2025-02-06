@@ -23,7 +23,7 @@ env:
   CRATE_PATH: crates/algo_models_ffi
 
 jobs:
-  build:
+  cross_build_and_test:
     defaults:
       run:
         shell: bash
@@ -31,6 +31,11 @@ jobs:
     strategy:
       matrix:
         target:
+          # name: The name of the target passed to cargo build
+          # runner: The GitHub runner to use
+          # arch: The architecture to use when testing the built package
+          # distro: The distro to use when testing the built package. Should use alpine_latest for musl and ubuntu_latest for glibc
+          # container: The container (typically from cross-rs) to use to build against the target
           - name: aarch64-unknown-linux-musl
             runner: ubuntu-22.04
             arch: aarch64
