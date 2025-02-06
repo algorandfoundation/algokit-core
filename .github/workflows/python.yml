@@ -52,7 +52,9 @@ jobs:
       - name: Install python dependencies
         run: pip install -r ${{ env.CRATE_PATH }}/tests/py/requirements.txt
       - name: maturin build
-        run: cd ${{ env.CRATE_PATH }} && maturin build --target ${{ matrix.target.name }}
+        run: |
+          cd ${{ env.CRATE_PATH }} 
+          maturin build --release --target ${{ matrix.target.name }} ${{ runner.os == 'Linux' && '--compatibility manylinux_2_17' || '' }}
       - name: pytest
         run: |
           set -e
@@ -130,7 +132,9 @@ jobs:
 
       - name: maturin build
         env:
-          SCRIPT: cd /workspace/${{ env.CRATE_PATH }} && mise x -- maturin build --release --target ${{ matrix.target.name }}
+          SCRIPT: |
+            cd /workspace/${{ env.CRATE_PATH }}
+            mise x -- maturin build --release --target ${{ matrix.target.name }} ${{ matrix.target.distro == 'ubuntu_latest' && '--compatibility manylinux_2_17' || '' }}
         run: docker exec build-container bash -c "$SCRIPT"
 
       - name: Pytest (alpine)
