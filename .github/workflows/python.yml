@@ -28,21 +28,13 @@ jobs:
       run:
         shell: bash
     runs-on: ${{ matrix.target.runner }}
-    # container: 
-    #   image: ${{ matrix.target.container }}
-    #   env:
-    #     MISE_DATA_DIR: /mise
-    #     MISE_CONFIG_DIR: /mise
-    #     MISE_CACHE_DIR: /mise/cache
-    #     MISE_INSTALL_PATH: /usr/local/bin/mise
-    #     CARGO_HOME: /usr/local
     strategy:
       matrix:
         target:
           - name: aarch64-unknown-linux-musl
             runner: ubuntu-22.04
             arch: aarch64
-            distro: ubuntu22.04
+            distro: alpine_latest
             container: ghcr.io/cross-rs/aarch64-unknown-linux-musl:0.2.5
 
     steps:
@@ -63,6 +55,9 @@ jobs:
           ${{ matrix.target.container }} \
           tail -f /dev/null
 
+      # "Install Rustup" through "Install maturin" can be done at image build time
+      # We'd just need to create our own image based on the respective matrix.target.container
+      # Or create an action similar to run-on-arch that caches install steps
       - name: Install Rustup
         env:
           SCRIPT: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
@@ -92,3 +87,32 @@ jobs:
         env:
           SCRIPT: cd /workspace/${{ env.CRATE_PATH }} && mise x -- maturin build --release --target ${{ matrix.target.name }}
         run: docker exec build-container bash -c "$SCRIPT"
+
+      - name: Pytest
+        uses: uraimo/run-on-arch-action@v2
+        with:
+          arch: ${{ matrix.target.arch }}
+          distro: ${{ matrix.target.distro }}
+          env: |
+            MISE_DATA_DIR: /mise
+            MISE_CONFIG_DIR: /mise
+            MISE_CACHE_DIR: /mise/cache
+            MISE_INSTALL_PATH: /usr/local/bin/mise
+          
+          # Install some dependencies in the container. This speeds up builds if
+          # you are also using githubToken. Any dependencies installed here will
+          # be part of the container image that gets cached, so subsequent
+          # builds don't have to re-install them. The image layer is cached
+          # publicly in your project's package repository, so it is vital that
+          # no secrets are present in the container state or logs.
+          install: |
+            wget --output-document - https://mise.run | sh
+            mise settings set python.compile false && mise use -g python
+
+          run: |
+            mise x -- pip install target/*.whl
+            cd ${{ env.CRATE_PATH }}
+            mise x -- pip install -r tests/py/requirements.txt
+            mise x -- pytest
+
+
