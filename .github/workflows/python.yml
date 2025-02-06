@@ -111,7 +111,7 @@ jobs:
             export MISE_CACHE_DIR="/mise/cache"
             export MISE_INSTALL_PATH="/usr/local/bin/mise"
             wget --output-document - https://mise.run | sh
-            mise settings set python.compile false && mise use -g python
+            mise use -g python
 
           run: |
             mise x -- pip install target/*.whl
