@@ -60,133 +60,133 @@ jobs:
           cd ${{ env.CRATE_PATH }}
           pytest
 
-  # cross_build_and_test:
-  #   defaults:
-  #     run:
-  #       shell: bash
-  #   runs-on: ${{ matrix.target.runner }}
-  #   strategy:
-  #     matrix:
-  #       target:
-  #         # name: The name of the target passed to cargo build
-  #         # runner: The GitHub runner to use
-  #         # arch: The architecture to use when testing the built package
-  #         # distro: The distro to use when testing the built package. Should use alpine_latest for musl and ubuntu_latest for glibc
-  #         # container: The container (typically from cross-rs) to use to build against the target
-  #         - name: aarch64-unknown-linux-musl
-  #           runner: ubuntu-22.04
-  #           arch: aarch64
-  #           distro: alpine_latest
-  #           container: ghcr.io/cross-rs/aarch64-unknown-linux-musl:0.2.5
-  #         - name: aarch64-unknown-linux-gnu
-  #           runner: ubuntu-22.04
-  #           arch: aarch64
-  #           distro: ubuntu_latest
-  #           container: ghcr.io/cross-rs/aarch64-unknown-linux-gnu:0.2.5
-  #
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #
-  #     - name: Start Container
-  #       run: | 
-  #         set -e
-  #         docker pull ${{ matrix.target.container }}
-  #         docker run --name build-container \
-  #         -d \
-  #         -v ${{ github.workspace }}:/workspace \
-  #         -e MISE_DATA_DIR="/mise" \
-  #         -e MISE_CONFIG_DIR="/mise" \
-  #         -e MISE_CACHE_DIR="/mise/cache" \
-  #         -e MISE_INSTALL_PATH="/usr/local/bin/mise" \
-  #         -e CARGO_HOME="/usr/local" \
-  #         ${{ matrix.target.container }} \
-  #         tail -f /dev/null
-  #
-  #     # "Install Rustup" through "Install maturin" can be done at image build time
-  #     # We'd just need to create our own image based on the respective matrix.target.container
-  #     # Or create an action similar to run-on-arch that caches install steps
-  #     - name: Install Rustup
-  #       env:
-  #         SCRIPT: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
-  #       run: docker exec build-container bash -c "$SCRIPT"
-  #
-  #     - name: rustup target add
-  #       env:
-  #         SCRIPT: rustup target add ${{ matrix.target.name }}
-  #       run: docker exec build-container bash -c "$SCRIPT"
-  #
-  #     - name: Install mise
-  #       env: 
-  #         SCRIPT: curl https://mise.run | sh
-  #       run: docker exec build-container bash -c "$SCRIPT"
-  #
-  #     - name: Install python (mise)
-  #       env:
-  #         SCRIPT: mise settings set python.compile false && mise use -g python
-  #       run: docker exec build-container bash -c "$SCRIPT"
-  #
-  #     - name: Install maturin
-  #       env:
-  #         SCRIPT: mise x -- pip install maturin[patchelf]
-  #       run: docker exec build-container bash -c "$SCRIPT"
-  #
-  #     - name: maturin build
-  #       env:
-  #         SCRIPT: cd /workspace/${{ env.CRATE_PATH }} && mise x -- maturin build --release --target ${{ matrix.target.name }}
-  #       run: docker exec build-container bash -c "$SCRIPT"
-  #
-  #     - name: Pytest (alpine)
-  #       if: matrix.target.distro == 'alpine_latest'
-  #       uses: uraimo/run-on-arch-action@v2
-  #       with:
-  #         arch: ${{ matrix.target.arch }}
-  #         distro: ${{ matrix.target.distro }}
-  #
-  #         # Install some dependencies in the container. This speeds up builds if
-  #         # you are also using githubToken. Any dependencies installed here will
-  #         # be part of the container image that gets cached, so subsequent
-  #         # builds don't have to re-install them. The image layer is cached
-  #         # publicly in your project's package repository, so it is vital that
-  #         # no secrets are present in the container state or logs.
-  #         install: |
-  #           apk add --no-cache python3 py3-pip
-  #
-  #         run: |
-  #           pip install --break-system-packages target/wheels/*.whl
-  #           cd ${{ env.CRATE_PATH }}
-  #           pip install --break-system-packages -r tests/py/requirements.txt
-  #           pytest
-  #
-  #     - name: Pytest
-  #       if: matrix.target.distro != 'alpine_latest'
-  #       uses: uraimo/run-on-arch-action@v2
-  #       with:
-  #         arch: ${{ matrix.target.arch }}
-  #         distro: ${{ matrix.target.distro }}
-  #         env: |
-  #           MISE_DATA_DIR: /mise
-  #           MISE_CONFIG_DIR: /mise
-  #           MISE_CACHE_DIR: /mise/cache
-  #           MISE_INSTALL_PATH: /usr/local/bin/mise
-  #
-  #         # Install some dependencies in the container. This speeds up builds if
-  #         # you are also using githubToken. Any dependencies installed here will
-  #         # be part of the container image that gets cached, so subsequent
-  #         # builds don't have to re-install them. The image layer is cached
-  #         # publicly in your project's package repository, so it is vital that
-  #         # no secrets are present in the container state or logs.
-  #         install: |
-  #           apt-get -y update && apt-get -y install curl
-  #           export MISE_DATA_DIR="/mise"
-  #           export MISE_CONFIG_DIR="/mise"
-  #           export MISE_CACHE_DIR="/mise/cache"
-  #           export MISE_INSTALL_PATH="/usr/local/bin/mise"
-  #           export MISE_VERSION="v2025.1.14"
-  #           curl https://mise.run | sh
-  #           mise settings set python.compile false && mise use -g python
-  #
-  #         run: |
-  #           mise x -- pip install target/wheels/*.whl
-  #           cd ${{ env.CRATE_PATH }}
-  #           mise x -- pip install -r tests/py/requirements.txt
-  #           mise x -- pytest
+  cross_build_and_test:
+    defaults:
+      run:
+        shell: bash
+    runs-on: ${{ matrix.target.runner }}
+    strategy:
+      matrix:
+        target:
+          # name: The name of the target passed to cargo build
+          # runner: The GitHub runner to use
+          # arch: The architecture to use when testing the built package
+          # distro: The distro to use when testing the built package. Should use alpine_latest for musl and ubuntu_latest for glibc
+          # container: The container (typically from cross-rs) to use to build against the target
+          - name: aarch64-unknown-linux-musl
+            runner: ubuntu-22.04
+            arch: aarch64
+            distro: alpine_latest
+            container: ghcr.io/cross-rs/aarch64-unknown-linux-musl:0.2.5
+          - name: aarch64-unknown-linux-gnu
+            runner: ubuntu-22.04
+            arch: aarch64
+            distro: ubuntu_latest
+            container: ghcr.io/cross-rs/aarch64-unknown-linux-gnu:0.2.5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start Container
+        run: | 
+          set -e
+          docker pull ${{ matrix.target.container }}
+          docker run --name build-container \
+          -d \
+          -v ${{ github.workspace }}:/workspace \
+          -e MISE_DATA_DIR="/mise" \
+          -e MISE_CONFIG_DIR="/mise" \
+          -e MISE_CACHE_DIR="/mise/cache" \
+          -e MISE_INSTALL_PATH="/usr/local/bin/mise" \
+          -e CARGO_HOME="/usr/local" \
+          ${{ matrix.target.container }} \
+          tail -f /dev/null
+
+      # "Install Rustup" through "Install maturin" can be done at image build time
+      # We'd just need to create our own image based on the respective matrix.target.container
+      # Or create an action similar to run-on-arch that caches install steps
+      - name: Install Rustup
+        env:
+          SCRIPT: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
+        run: docker exec build-container bash -c "$SCRIPT"
+
+      - name: rustup target add
+        env:
+          SCRIPT: rustup target add ${{ matrix.target.name }}
+        run: docker exec build-container bash -c "$SCRIPT"
+
+      - name: Install mise
+        env: 
+          SCRIPT: curl https://mise.run | sh
+        run: docker exec build-container bash -c "$SCRIPT"
+
+      - name: Install python (mise)
+        env:
+          SCRIPT: mise settings set python.compile false && mise use -g python
+        run: docker exec build-container bash -c "$SCRIPT"
+
+      - name: Install maturin
+        env:
+          SCRIPT: mise x -- pip install maturin[patchelf]
+        run: docker exec build-container bash -c "$SCRIPT"
+
+      - name: maturin build
+        env:
+          SCRIPT: cd /workspace/${{ env.CRATE_PATH }} && mise x -- maturin build --release --target ${{ matrix.target.name }}
+        run: docker exec build-container bash -c "$SCRIPT"
+
+      - name: Pytest (alpine)
+        if: matrix.target.distro == 'alpine_latest'
+        uses: uraimo/run-on-arch-action@v2
+        with:
+          arch: ${{ matrix.target.arch }}
+          distro: ${{ matrix.target.distro }}
+
+          # Install some dependencies in the container. This speeds up builds if
+          # you are also using githubToken. Any dependencies installed here will
+          # be part of the container image that gets cached, so subsequent
+          # builds don't have to re-install them. The image layer is cached
+          # publicly in your project's package repository, so it is vital that
+          # no secrets are present in the container state or logs.
+          install: |
+            apk add --no-cache python3 py3-pip
+
+          run: |
+            pip install --break-system-packages target/wheels/*.whl
+            cd ${{ env.CRATE_PATH }}
+            pip install --break-system-packages -r tests/py/requirements.txt
+            pytest
+
+      - name: Pytest
+        if: matrix.target.distro != 'alpine_latest'
+        uses: uraimo/run-on-arch-action@v2
+        with:
+          arch: ${{ matrix.target.arch }}
+          distro: ${{ matrix.target.distro }}
+          env: |
+            MISE_DATA_DIR: /mise
+            MISE_CONFIG_DIR: /mise
+            MISE_CACHE_DIR: /mise/cache
+            MISE_INSTALL_PATH: /usr/local/bin/mise
+
+          # Install some dependencies in the container. This speeds up builds if
+          # you are also using githubToken. Any dependencies installed here will
+          # be part of the container image that gets cached, so subsequent
+          # builds don't have to re-install them. The image layer is cached
+          # publicly in your project's package repository, so it is vital that
+          # no secrets are present in the container state or logs.
+          install: |
+            apt-get -y update && apt-get -y install curl
+            export MISE_DATA_DIR="/mise"
+            export MISE_CONFIG_DIR="/mise"
+            export MISE_CACHE_DIR="/mise/cache"
+            export MISE_INSTALL_PATH="/usr/local/bin/mise"
+            export MISE_VERSION="v2025.1.14"
+            curl https://mise.run | sh
+            mise settings set python.compile false && mise use -g python
+
+          run: |
+            mise x -- pip install target/wheels/*.whl
+            cd ${{ env.CRATE_PATH }}
+            mise x -- pip install -r tests/py/requirements.txt
+            mise x -- pytest
