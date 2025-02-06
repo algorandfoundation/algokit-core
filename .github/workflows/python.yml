@@ -105,9 +105,9 @@ jobs:
             apk add --no-cache python3 py3-pip
 
           run: |
-            pip install target/*.whl
+            pip install --break-system-packages target/wheels/*.whl
             cd ${{ env.CRATE_PATH }}
-            pip install -r tests/py/requirements.txt
+            pip install --break-system-packages -r tests/py/requirements.txt
             pytest
 
 
