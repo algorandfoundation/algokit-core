@@ -97,6 +97,16 @@ jobs:
           ${{ matrix.target.container }} \
           tail -f /dev/null
 
+      - name: Install Rustup
+        env:
+          SCRIPT: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
+        run: docker exec build-container bash -c "$SCRIPT"
+
+      - name: rustup target add
+        env:
+          SCRIPT: rustup target add ${{ matrix.target.name }}
+        run: docker exec build-container bash -c "$SCRIPT"
+
       - name: Install maturin
         env:
           SCRIPT: python3.10 -m pip install maturin[patchelf]
