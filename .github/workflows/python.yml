@@ -94,6 +94,7 @@ jobs:
           docker run --name build-container \
           -d \
           -v ${{ github.workspace }}:/workspace \
+          -e CARGO_HOME="/usr/local" \
           ${{ matrix.target.container }} \
           tail -f /dev/null
 
