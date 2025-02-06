@@ -23,6 +23,30 @@ env:
   CRATE_PATH: crates/algo_models_ffi
 
 jobs:
+  sdist_build_and_test:
+    defaults:
+      run:
+        shell: bash
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip' # caching pip dependencies
+      - run: pip install maturin
+      - name: Install python dependencies
+        run: pip install -r ${{ env.CRATE_PATH }}/tests/py/requirements.txt
+      - name: maturin sdist
+        run: cd ${{ env.CRATE_PATH }} && maturin sdist
+      - name: pytest
+        run: |
+          set -e
+          pip install -v target/wheels/*.tar.gz
+          cd ${{ env.CRATE_PATH }}
+          pytest
+
   build_and_test:
     defaults:
       run:
