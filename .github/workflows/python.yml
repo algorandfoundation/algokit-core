@@ -39,6 +39,8 @@ jobs:
             runner: macos-13
           - name: aarch64-apple-darwin
             runner: macos-latest
+          - name: x86_64-unknown-linux-gnu
+            runner: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -46,13 +48,13 @@ jobs:
         with:
           python-version: '3.13'
           cache: 'pip' # caching pip dependencies
-      - run: pip install maturin
+      - run: pip install maturin[zig]
       - name: Install python dependencies
         run: pip install -r ${{ env.CRATE_PATH }}/tests/py/requirements.txt
       - name: maturin build
         run: |
           cd ${{ env.CRATE_PATH }} 
-          maturin build --release --target ${{ matrix.target.name }}
+          maturin build --release --target ${{ matrix.target.name }} ${{ runner.os == 'Linux' && '--zig --compatibility manylinux_2_17' || '' }}
       - name: pytest
         run: |
           set -e
@@ -82,11 +84,6 @@ jobs:
             arch: aarch64
             distro: ubuntu_latest
             container: ghcr.io/cross-rs/aarch64-unknown-linux-gnu:0.2.5
-          - name: x86_64-unknown-linux-gnu
-            runner: ubuntu-22.04
-            arch: x86_64
-            distro: ubuntu_latest
-            container: quay.io/pypa/manylinux2014_x86_64
 
     steps:
       - uses: actions/checkout@v4
