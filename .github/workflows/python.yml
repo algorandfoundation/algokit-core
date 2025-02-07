@@ -117,26 +117,15 @@ jobs:
             python3.10 -m maturin build --release --target ${{ matrix.target.name }} --compatibility ${{ env.manylinux }}
         run: docker exec build-container bash -c "$SCRIPT"
 
-      - name: Pytest (alpine)
-        if: env.distro == 'alpine_latest'
-        uses: uraimo/run-on-arch-action@v2
-        with:
-          arch: ${{ env.arch }}
-          distro: ${{ env.distro }}
-
-          # Install some dependencies in the container. This speeds up builds if
-          # you are also using githubToken. Any dependencies installed here will
-          # be part of the container image that gets cached, so subsequent
-          # builds don't have to re-install them. The image layer is cached
-          # publicly in your project's package repository, so it is vital that
-          # no secrets are present in the container state or logs.
-          install: |
-            apk add --no-cache python3 py3-pip
-          run: |
-            pip install --break-system-packages target/wheels/*.whl
+      - name: Pytest (in build container)
+        if: env.distro != 'ubuntu_latest' || (env.arch != 'x86_64' && env.arch != 'aarch64')
+        env:
+          SCRIPT: |
+            python3.10 -m pip install target/wheels/*.whl
             cd ${{ env.CRATE_PATH }}
-            pip install --break-system-packages -r tests/py/requirements.txt
-            pytest
+            python3.10 -m pip install --break-system-packages -r tests/py/requirements.txt
+            python3.10 -m pytest
+        run: docker exec build-container bash -c "$SCRIPT"
  
       - uses: actions/setup-python@v5
         if: env.distro == 'ubuntu_latest' && (env.arch == 'x86_64' || env.arch == 'aarch64')
