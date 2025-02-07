@@ -107,7 +107,7 @@ jobs:
 
       - name: Install Rustup
         env:
-          SCRIPT: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
+          SCRIPT: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-host ${{ env.target }}
         run: docker exec build-container bash -c "$SCRIPT"
 
       - name: rustup target add
