@@ -85,6 +85,8 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start Container
+        env:
+          container: quay.io/pypa/${{ env.manylinux }}_${{ env.arch }}
         run: | 
           set -e
           docker pull ${{ env.container }}
@@ -92,7 +94,7 @@ jobs:
           -d \
           -v ${{ github.workspace }}:/workspace \
           -e CARGO_HOME="/usr/local" \
-          quay.io/pypa/${{ env.manylinux }}_${{ env.arch }}  \
+          ${{ env.container }}  \
           tail -f /dev/null
 
       - name: Install Rustup
