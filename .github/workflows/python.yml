@@ -77,7 +77,11 @@ jobs:
     runs-on: ubuntu-22.04${{ matrix.arch == 'aarch64' && '-arm' || '' }}
     strategy:
       matrix:
-        arch: [aarch64, x86_64, i686, ppc64le, s390x]
+        # i686, ppc64le, s390x are also supported but not running them for now to reduce CI time
+        # We might not ever need to support them, but we can make that decision later
+        # As a useful datapoint, PyNaCl only builds x86_64 and aarch64 wheels
+        # https://github.com/pyca/pynacl/blob/9ffa598e47242bf783aae23c20c31e876c438f1a/.github/workflows/wheel-builder.yml#L32-L41
+        arch: [aarch64, x86_64]
         libc: [gnu, musl]
         exclude:
           - arch: s390x
