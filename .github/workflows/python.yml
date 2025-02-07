@@ -74,7 +74,6 @@ jobs:
         libc: [gnu, musl]
 
     env:
-      PYTHON: python${{ env.PYTHON_VERSION }}
       MANYLINUX: ${{ matrix.libc == 'musl' && 'musllinux_1_2' || 'manylinux_2_28' }}
       TARGET: ${{ matrix.arch }}-unknown-linux-${{ matrix.libc }}
   
@@ -116,15 +115,15 @@ jobs:
         env:
           SCRIPT: |
             cd /workspace/${{ env.CRATE_PATH }}
-            ${{ env.PYTHON }} -m maturin build --release --target ${{ env.TARGET }} --compatibility ${{ env.MANYLINUX }}
+            python${{ env.PYTHON_VERSION }} -m maturin build --release --target ${{ env.TARGET }} --compatibility ${{ env.MANYLINUX }}
         run: docker exec build-container bash -c "$SCRIPT"
 
       - name: Pytest
         env:
           SCRIPT: |
             cd /workspace
-            ${{ env.PYTHON }} -m pip install target/wheels/*.whl
+            python${{ env.PYTHON_VERSION }} -m pip install target/wheels/*.whl
             cd ${{ env.CRATE_PATH }}
-            ${{ env.PYTHON }} -m pip install -r tests/py/requirements.txt
-            ${{ env.PYTHON }} -m pytest
+            python${{ env.PYTHON_VERSION }} -m pip install -r tests/py/requirements.txt
+            python${{ env.PYTHON_VERSION }} -m pytest
         run: docker exec build-container bash -c "$SCRIPT"
