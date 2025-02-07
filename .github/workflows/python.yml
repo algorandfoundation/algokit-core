@@ -75,7 +75,7 @@ jobs:
         exclude:
           - arch: s390x
             libc: musl
-          - arch: ppc64le
+          - arch: i686
             libc: musl
 
     env:
