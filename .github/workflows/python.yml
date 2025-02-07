@@ -83,7 +83,7 @@ jobs:
       # Generally it's good to try to support the glibc version from two RHEL releases ago (roughly within EOM period)
       # The current RHEL release (as of 2/7/2025) is 9 and the glibc version from RHEL 7 was 2.17 (aka manylinux2014)
       MANYLINUX: ${{ matrix.libc == 'musl' && 'musllinux_1_2' || 'manylinux2014' }}
-      TARGET: ${{ matrix.arch }}-unknown-linux-${{ matrix.libc }}
+      TARGET: ${{ matrix.arch == 'ppc64le' && 'powerpc64le' || matrix.arch }}-unknown-linux-${{ matrix.libc }}
   
     steps:
       - uses: actions/checkout@v4
