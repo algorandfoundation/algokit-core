@@ -21,6 +21,9 @@ permissions:
 
 env:
   CRATE_PATH: crates/algo_models_ffi
+  # Python >= 3.8 is needed to support manylinux_x_y tags (unless you want to manually update pip)
+  # Python 3.10 was chosen because it is currently the most popular according to https://mayeut.github.io/manylinux-timeline/
+  PYTHON_VERSION: '3.10'
 
 jobs:
   build_and_test:
@@ -44,7 +47,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip' # caching pip dependencies
       - run: pip install maturin[zig]
       - name: Install python dependencies
@@ -71,6 +74,7 @@ jobs:
         libc: [gnu, musl]
 
     env:
+      python: python${{ env.PYTHON_VERSION }}
       manylinux: ${{ matrix.libc == 'musl' && 'musllinux_1_2' || 'manylinux_2_28' }}
       target: ${{ matrix.arch }}-unknown-linux-${{ matrix.libc }}
   
@@ -105,22 +109,22 @@ jobs:
 
       - name: Install maturin
         env:
-          SCRIPT: python3.10 -m pip install maturin[patchelf]
+          SCRIPT: ${{ env.python }} -m pip install maturin[patchelf]
         run: docker exec build-container bash -c "$SCRIPT"
 
       - name: maturin build
         env:
           SCRIPT: |
             cd /workspace/${{ env.CRATE_PATH }}
-            python3.10 -m maturin build --release --target ${{ env.target }} --compatibility ${{ env.manylinux }}
+            ${{ env.python }} -m maturin build --release --target ${{ env.target }} --compatibility ${{ env.manylinux }}
         run: docker exec build-container bash -c "$SCRIPT"
 
       - name: Pytest
         env:
           SCRIPT: |
             cd /workspace
-            python3.10 -m pip install target/wheels/*.whl
+            ${{ env.python }} -m pip install target/wheels/*.whl
             cd ${{ env.CRATE_PATH }}
-            python3.10 -m pip install -r tests/py/requirements.txt
-            python3.10 -m pytest
+            ${{ env.python }} -m pip install -r tests/py/requirements.txt
+            ${{ env.python }} -m pytest
         run: docker exec build-container bash -c "$SCRIPT"
