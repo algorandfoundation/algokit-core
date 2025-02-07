@@ -98,10 +98,6 @@ jobs:
           docker run --name build-container \
           -d \
           -v ${{ github.workspace }}:/workspace \
-          -e MISE_DATA_DIR="/mise" \
-          -e MISE_CONFIG_DIR="/mise" \
-          -e MISE_CACHE_DIR="/mise/cache" \
-          -e MISE_INSTALL_PATH="/usr/local/bin/mise" \
           -e CARGO_HOME="/usr/local" \
           ${{ matrix.target.container }} \
           tail -f /dev/null
@@ -118,26 +114,16 @@ jobs:
           SCRIPT: rustup target add ${{ matrix.target.name }}
         run: docker exec build-container bash -c "$SCRIPT"
 
-      - name: Install mise
-        env: 
-          SCRIPT: curl https://mise.run | sh
-        run: docker exec build-container bash -c "$SCRIPT"
-
-      - name: Install python (mise)
-        env:
-          SCRIPT: mise settings set python.compile false && mise use -g python
-        run: docker exec build-container bash -c "$SCRIPT"
-
       - name: Install maturin
         env:
-          SCRIPT: mise x -- pip install maturin[patchelf]
+          SCRIPT: pip install maturin[patchelf]
         run: docker exec build-container bash -c "$SCRIPT"
 
       - name: maturin build
         env:
           SCRIPT: |
             cd /workspace/${{ env.CRATE_PATH }}
-            mise x -- maturin build --release --target ${{ matrix.target.name }} ${{ !contains(matrix.target.name, 'musl') && '--compatibility manylinux_2_28' || '' }}
+            maturin build --release --target ${{ matrix.target.name }} ${{ !contains(matrix.target.name, 'musl') && '--compatibility manylinux_2_28' || '' }}
         run: docker exec build-container bash -c "$SCRIPT"
 
       - name: Pytest (alpine)
