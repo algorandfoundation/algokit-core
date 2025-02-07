@@ -63,7 +63,7 @@ jobs:
     defaults:
       run:
         shell: bash
-    runs-on: ${{ matrix.target.runner }}
+    runs-on: ${{ env.runner }}
     strategy:
       matrix:
         target:
@@ -73,37 +73,30 @@ jobs:
           # distro: The distro to use when testing the built package. Should use alpine_latest for musl and ubuntu_latest for glibc
           # container: The container (typically from cross-rs) to use to build against the target
           - name: aarch64-unknown-linux-musl
-            runner: ubuntu-22.04-arm
-            arch: aarch64
-            distro: alpine_latest
-            container: quay.io/pypa/musllinux_1_2_aarch64
           - name: aarch64-unknown-linux-gnu
-            runner: ubuntu-22.04-arm
-            arch: aarch64
-            distro: ubuntu_latest
-            container: quay.io/pypa/manylinux_2_28_aarch64
           - name: x86_64-unknown-linux-gnu
-            runner: ubuntu-latest
-            arch: x86_64
-            distro: ubuntu_latest
-            container: quay.io/pypa/manylinux_2_28_x86_64
 
+    env:
+      distro: ${{ contains(matrix.target.name, 'musl') && 'alpine_latest' || 'ubuntu_latest' }}
+      arch: ${{ split(matrix.target.name, '-')[0] }}
+      runner: ubuntu-22.04${{ arch == 'aarch64' && '-arm' || '' }}
+      manylinux: ${{ contains(matrix.target.name, 'musl') && 'musllinux_1_2' || 'manylinux_2_28' }}
+      container: quay.io/pypa/${{ env.manylinux }}_${{ env.arch }} 
+    
     steps:
       - uses: actions/checkout@v4
 
       - name: Start Container
         run: | 
           set -e
-          docker pull ${{ matrix.target.container }}
+          docker pull ${{ env.container }}
           docker run --name build-container \
           -d \
           -v ${{ github.workspace }}:/workspace \
           -e CARGO_HOME="/usr/local" \
           ${{ matrix.target.container }} \
           tail -f /dev/null
-      # "Install Rustup" through "Install maturin" can be done at image build time
-      # We'd just need to create our own image based on the respective matrix.target.container
-      # Or create an action similar to run-on-arch that caches install steps
+
       - name: Install Rustup
         env:
           SCRIPT: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
@@ -123,15 +116,15 @@ jobs:
         env:
           SCRIPT: |
             cd /workspace/${{ env.CRATE_PATH }}
-            python3.10 -m maturin build --release --target ${{ matrix.target.name }} ${{ !contains(matrix.target.name, 'musl') && '--compatibility manylinux_2_28' || '' }}
+            python3.10 -m maturin build --release --target ${{ matrix.target.name }} --compatibility ${{ env.manylinux }}
         run: docker exec build-container bash -c "$SCRIPT"
 
       - name: Pytest (alpine)
-        if: matrix.target.distro == 'alpine_latest'
+        if: env.distro == 'alpine_latest'
         uses: uraimo/run-on-arch-action@v2
         with:
-          arch: ${{ matrix.target.arch }}
-          distro: ${{ matrix.target.distro }}
+          arch: ${{ env.arch }}
+          distro: ${{ env.distro }}
 
           # Install some dependencies in the container. This speeds up builds if
           # you are also using githubToken. Any dependencies installed here will
@@ -148,17 +141,17 @@ jobs:
             pytest
  
       - uses: actions/setup-python@v5
-        if: matrix.target.distro == 'ubuntu_latest' && (matrix.target.arch == 'x86_64' || matrix.target.arch == 'aarch64')
+        if: env.distro == 'ubuntu_latest' && (env.arch == 'x86_64' || env.arch == 'aarch64')
         with:
           python-version: '3.13'
           cache: 'pip' # caching pip dependencies
 
       - name: Install python dependencies
-        if: matrix.target.distro == 'ubuntu_latest' && (matrix.target.arch == 'x86_64' || matrix.target.arch == 'aarch64')
+        if: env.distro == 'ubuntu_latest' && (env.arch == 'x86_64' || env.arch == 'aarch64')
         run: pip install -r ${{ env.CRATE_PATH }}/tests/py/requirements.txt
 
       - name: Pytest
-        if: matrix.target.distro == 'ubuntu_latest' && (matrix.target.arch == 'x86_64' || matrix.target.arch == 'aarch64')
+        if: env.distro == 'ubuntu_latest' && (env.arch == 'x86_64' || env.arch == 'aarch64')
         run: |
           set -e
           pip install target/wheels/*.whl
@@ -169,8 +162,8 @@ jobs:
       #   if: matrix.target.distro != 'alpine_latest'
       #   uses: uraimo/run-on-arch-action@v2
       #   with:
-      #     arch: ${{ matrix.target.arch }}
-      #     distro: ${{ matrix.target.distro }}
+      #     arch: ${{ env.arch }}
+      #     distro: ${{ env.distro }}
       #     env: |
       #       MISE_DATA_DIR: /mise
       #       MISE_CONFIG_DIR: /mise
