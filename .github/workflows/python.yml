@@ -72,6 +72,9 @@ jobs:
       matrix:
         arch: [aarch64, x86_64, i686, ppc64le, s390x]
         libc: [gnu, musl]
+        exclude:
+          - arch: s390x
+            libc: musl
 
     env:
       # See https://github.com/pypa/manylinux for more information on manylinux
@@ -84,6 +87,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up QEMU
+        if: matrix.arch != 'aarch64' && matrix.arch != 'x86_64'
         uses: docker/setup-qemu-action@v3
 
       - name: Start Container
