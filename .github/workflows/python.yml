@@ -70,7 +70,7 @@ jobs:
     runs-on: ubuntu-22.04${{ matrix.arch == 'aarch64' && '-arm' || '' }}
     strategy:
       matrix:
-        arch: [aarch64, x86_64]
+        arch: [aarch64, x86_64, i686, ppc64le, s390x]
         libc: [gnu, musl]
 
     env:
