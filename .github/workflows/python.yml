@@ -73,10 +73,10 @@ jobs:
           # distro: The distro to use when testing the built package. Should use alpine_latest for musl and ubuntu_latest for glibc
           # container: The container (typically from cross-rs) to use to build against the target
           - name: aarch64-unknown-linux-musl
-            runner: ubuntu-22.04
+            runner: ubuntu-22.04-arm
             arch: aarch64
             distro: alpine_latest
-            container: ghcr.io/cross-rs/aarch64-unknown-linux-musl:0.2.5
+            container: quay.io/pypa/musllinux_1_2_aarch64
           - name: aarch64-unknown-linux-gnu
             runner: ubuntu-22.04-arm
             arch: aarch64
