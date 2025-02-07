@@ -121,9 +121,10 @@ jobs:
         if: env.distro != 'ubuntu_latest' || (env.arch != 'x86_64' && env.arch != 'aarch64')
         env:
           SCRIPT: |
+            cd /workspace
             python3.10 -m pip install target/wheels/*.whl
             cd ${{ env.CRATE_PATH }}
-            python3.10 -m pip install --break-system-packages -r tests/py/requirements.txt
+            python3.10 -m pip install -r tests/py/requirements.txt
             python3.10 -m pytest
         run: docker exec build-container bash -c "$SCRIPT"
  
