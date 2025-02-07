@@ -63,15 +63,12 @@ jobs:
     defaults:
       run:
         shell: bash
-    runs-on: ubuntu-22.04${{ startswith(matrix.target.name, 'aarch64') && '-arm' || '' }}
+    # Use the ubuntu runner for everything and use arm for aarch64 unless it's musl, in which case the testing will be done via run-on-arch
+    # which is a x86_64 image
+    runs-on: ubuntu-22.04${{ startswith(matrix.target.name, 'aarch64') && !contains(matrix.target.name, 'musl') && '-arm' || '' }}
     strategy:
       matrix:
         target:
-          # name: The name of the target passed to cargo build
-          # runner: The GitHub runner to use
-          # arch: The architecture to use when testing the built package
-          # distro: The distro to use when testing the built package. Should use alpine_latest for musl and ubuntu_latest for glibc
-          # container: The container (typically from cross-rs) to use to build against the target
           - name: aarch64-unknown-linux-musl
           - name: aarch64-unknown-linux-gnu
           - name: x86_64-unknown-linux-gnu
