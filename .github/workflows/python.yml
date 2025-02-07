@@ -68,11 +68,11 @@ jobs:
     strategy:
       matrix:
         arch: [aarch64, x86_64]
-        vendor_os: [unknown-linux-musl, unknown-linux-gnu]
+        libc: [gnu, musl]
 
     env:
-      manylinux: ${{ contains(matrix.vendor_os, 'musl') && 'musllinux_1_2' || 'manylinux_2_28' }}
-      target: ${{ matrix.arch }}-${{ matrix.vendor_os }}
+      manylinux: ${{ matrix.libc == 'musl' && 'musllinux_1_2' || 'manylinux_2_28' }}
+      target: ${{ matrix.arch }}-unknown-linux-${{ matrix.libc }}
   
     steps:
       - uses: actions/checkout@v4
