@@ -38,6 +38,8 @@ jobs:
           # runner: The GitHub runner to use
           - name: x86_64-pc-windows-msvc
             runner: windows-latest
+          - name: aarch64-pc-windows-msvc
+            runner: windows-latest
           - name: x86_64-apple-darwin
             runner: macos-13
           - name: aarch64-apple-darwin
@@ -45,6 +47,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+        targets: ${{ matrix.target.name }}
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
