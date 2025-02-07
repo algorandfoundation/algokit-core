@@ -109,7 +109,7 @@ jobs:
           SCRIPT: rustup target add ${{ env.TARGET }}
         run: docker exec build-container bash -c "$SCRIPT"
 
-      - name: Install maturin
+      - name: pip install maturin[patchelf]
         env:
           SCRIPT: python${{ env.PYTHON_VERSION }} -m pip install maturin[patchelf]
         run: docker exec build-container bash -c "$SCRIPT"
@@ -121,12 +121,19 @@ jobs:
             python${{ env.PYTHON_VERSION }} -m maturin build --release --target ${{ env.TARGET }} --compatibility ${{ env.MANYLINUX }}
         run: docker exec build-container bash -c "$SCRIPT"
 
-      - name: Pytest
+      - name: pip install wheel
+        env:
+          SCRIPT: python${{ env.PYTHON_VERSION }} -m pip install /workspace/target/wheels/*.whl
+        run: docker exec build-container bash -c "$SCRIPT"
+
+      - name: pip install test requirements
+        env:
+          SCRIPT: python${{ env.PYTHON_VERSION }} -m pip install -r /workspace/${{ env.CRATE_PATH }}/tests/py/requirements.txt
+        run: docker exec build-container bash -c "$SCRIPT"
+      
+      - name: pytest
         env:
           SCRIPT: |
-            cd /workspace
-            python${{ env.PYTHON_VERSION }} -m pip install target/wheels/*.whl
-            cd ${{ env.CRATE_PATH }}
-            python${{ env.PYTHON_VERSION }} -m pip install -r tests/py/requirements.txt
+            cd /workspace/${{ env.CRATE_PATH }}
             python${{ env.PYTHON_VERSION }} -m pytest
         run: docker exec build-container bash -c "$SCRIPT"
