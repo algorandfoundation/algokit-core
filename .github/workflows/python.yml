@@ -63,9 +63,7 @@ jobs:
     defaults:
       run:
         shell: bash
-    # Use the ubuntu runner for everything and use arm for aarch64 unless it's musl, in which case the testing will be done via run-on-arch
-    # which is a x86_64 image
-    runs-on: ubuntu-22.04${{ startswith(matrix.target.name, 'aarch64') && !contains(matrix.target.name, 'musl') && '-arm' || '' }}
+    runs-on: ubuntu-22.04${{ startswith(matrix.target.name, 'aarch64') && '-arm' || '' }}
     strategy:
       matrix:
         target:
@@ -80,6 +78,9 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
       - name: Start Container
         env:
