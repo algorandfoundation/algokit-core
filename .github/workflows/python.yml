@@ -49,7 +49,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip' # caching pip dependencies
-      - run: pip install maturin[zig]
+      - run: pip install maturin
       - name: Install python dependencies
         run: pip install -r ${{ env.CRATE_PATH }}/tests/py/requirements.txt
       - name: maturin build
