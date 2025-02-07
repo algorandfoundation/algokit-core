@@ -59,6 +59,7 @@ jobs:
           pip install target/wheels/*.whl
           cd ${{ env.CRATE_PATH }}
           pytest
+
   linux_build_and_test:
     defaults:
       run:
@@ -70,6 +71,7 @@ jobs:
           - name: aarch64-unknown-linux-musl
           - name: aarch64-unknown-linux-gnu
           - name: x86_64-unknown-linux-gnu
+          - name: s390x-unknown-linux-gnu
 
     env:
       distro: ${{ contains(matrix.target.name, 'musl') && 'alpine_latest' || 'ubuntu_latest' }}
