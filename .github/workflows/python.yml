@@ -77,6 +77,8 @@ jobs:
             libc: musl
           - arch: i686
             libc: musl
+          - arch: ppc64le
+            libc: musl
 
     env:
       # See https://github.com/pypa/manylinux for more information on manylinux
