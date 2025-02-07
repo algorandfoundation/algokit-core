@@ -123,7 +123,7 @@ jobs:
         env:
           SCRIPT: |
             cd /workspace/${{ env.CRATE_PATH }}
-            maturin build --release --target ${{ matrix.target.name }} ${{ !contains(matrix.target.name, 'musl') && '--compatibility manylinux_2_28' || '' }}
+            python3.10 -m maturin build --release --target ${{ matrix.target.name }} ${{ !contains(matrix.target.name, 'musl') && '--compatibility manylinux_2_28' || '' }}
         run: docker exec build-container bash -c "$SCRIPT"
 
       - name: Pytest (alpine)
