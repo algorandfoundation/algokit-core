@@ -83,9 +83,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
       - name: Start Container
         env:
           container: quay.io/pypa/${{ env.MANYLINUX }}_${{ matrix.arch }}
