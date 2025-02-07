@@ -61,7 +61,8 @@ jobs:
           cd ${{ env.CRATE_PATH }} 
           maturin build --release --target ${{ matrix.target.name }}
       - name: pytest
-        # Until GitHub makes windows arm64 runners publicly available, there is not a simple way to test against it
+        # Until GitHub makes windows arm64 runners publicly available, there is not a simple way to test aarch64-pc-windows-msvc
+        # GitHub is currently working on making them available but no ETA: https://github.com/actions/runner-images/issues/10820
         if: matrix.target.name != 'aarch64-pc-windows-msvc'
         run: |
           set -e
