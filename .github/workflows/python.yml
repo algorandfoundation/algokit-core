@@ -55,7 +55,7 @@ jobs:
       - name: maturin build
         run: |
           cd ${{ env.CRATE_PATH }} 
-          maturin build --release --target ${{ matrix.target.name }} ${{ runner.os == 'Linux' && '--zig --compatibility manylinux_2_27' || '' }}
+          maturin build --release --target ${{ matrix.target.name }}
       - name: pytest
         run: |
           set -e
@@ -74,7 +74,7 @@ jobs:
         libc: [gnu, musl]
 
     env:
-      MANYLINUX: ${{ matrix.libc == 'musl' && 'musllinux_1_2' || 'manylinux_2_28' }}
+      MANYLINUX: ${{ matrix.libc == 'musl' && 'musllinux_1_2' || 'manylinux2014' }}
       TARGET: ${{ matrix.arch }}-unknown-linux-${{ matrix.libc }}
   
     steps:
