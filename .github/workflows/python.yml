@@ -116,7 +116,7 @@ jobs:
 
       - name: Install maturin
         env:
-          SCRIPT: pip install maturin[patchelf]
+          SCRIPT: python3.10 -m pip install maturin[patchelf]
         run: docker exec build-container bash -c "$SCRIPT"
 
       - name: maturin build
