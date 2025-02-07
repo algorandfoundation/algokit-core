@@ -63,7 +63,7 @@ jobs:
     defaults:
       run:
         shell: bash
-    runs-on: ${{ env.runner }}
+    runs-on: ubuntu-22.04${{ startswith(matrix.target.name, 'aarch64') && '-arm' || '' }}
     strategy:
       matrix:
         target:
@@ -78,10 +78,8 @@ jobs:
 
     env:
       distro: ${{ contains(matrix.target.name, 'musl') && 'alpine_latest' || 'ubuntu_latest' }}
-      arch: ${{ split(matrix.target.name, '-')[0] }}
-      runner: ubuntu-22.04${{ arch == 'aarch64' && '-arm' || '' }}
+      arch: ${{ (startswith(matrix.target.name, 'aarch64') && 'aarch64') || (startswith(matrix.target.name, 'x86_64') && 'x86_64') }}
       manylinux: ${{ contains(matrix.target.name, 'musl') && 'musllinux_1_2' || 'manylinux_2_28' }}
-      container: quay.io/pypa/${{ env.manylinux }}_${{ env.arch }} 
     
     steps:
       - uses: actions/checkout@v4
@@ -94,7 +92,7 @@ jobs:
           -d \
           -v ${{ github.workspace }}:/workspace \
           -e CARGO_HOME="/usr/local" \
-          ${{ matrix.target.container }} \
+          quay.io/pypa/${{ env.manylinux }}_${{ env.arch }}  \
           tail -f /dev/null
 
       - name: Install Rustup
