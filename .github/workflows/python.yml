@@ -75,6 +75,8 @@ jobs:
         exclude:
           - arch: s390x
             libc: musl
+          - arch: ppc64le
+            libc: musl
 
     env:
       # See https://github.com/pypa/manylinux for more information on manylinux
