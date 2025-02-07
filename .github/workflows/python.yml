@@ -75,7 +75,7 @@ jobs:
 
     env:
       distro: ${{ contains(matrix.target.name, 'musl') && 'alpine_latest' || 'ubuntu_latest' }}
-      arch: ${{ (startswith(matrix.target.name, 'aarch64') && 'aarch64') || (startswith(matrix.target.name, 'x86_64') && 'x86_64') }}
+      arch: ${{ (startswith(matrix.target.name, 'aarch64') && 'aarch64') || (startswith(matrix.target.name, 'x86_64') && 'x86_64') || (startswith(matrix.target.name, 's390x') && 's390x') }}
       manylinux: ${{ contains(matrix.target.name, 'musl') && 'musllinux_1_2' || 'manylinux_2_28' }}
     
     steps:
