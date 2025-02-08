@@ -1,6 +1,6 @@
 from pathlib import Path
 import json
-from algo_models_ffi import (
+from algo_models import (
     TransactionHeader,
     PayTransactionFields,
     encode_payment,
