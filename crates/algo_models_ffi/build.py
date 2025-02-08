@@ -3,11 +3,10 @@
 import subprocess
 import select
 import sys
-import shutil
 import os
 
 
-def run(command):
+def run(command: str):
     """
     Run a subprocess and print stdout and stderr in real-time
 
@@ -58,29 +57,7 @@ if build_mode == "wasm":
     # Remove the generated .gitignore file from the pkg directory
     if os.path.exists("tests/js/pkg/.gitignore"):
         os.remove("tests/js/pkg/.gitignore")
+elif build_mode == "py":
+    run("maturin build")
 else:
-    run("cargo --color always build --release --features ffi_uniffi")
-
-if build_mode == "py":
-    run(
-        "cargo --color always run -p uniffi-bindgen generate --library ../../target/release/libalgo_models_ffi.dylib --language python --out-dir tests/py"
-    )
-
-    extension = None
-
-    # Determine what the extension of the library is
-    extensions = ("dylib", "so", "dll")
-    for ext in extensions:
-        if os.path.exists(f"../../target/release/libalgo_models_ffi.{ext}"):
-            extension = ext
-            break
-
-    copy_args = [
-        f"../../target/release/libalgo_models_ffi.{extension}",
-        f"tests/py/libalgo_models_ffi.{extension}",
-    ]
-
-    # Copy the library file using Python's shutil
-    shutil.copy2(*copy_args)
-
-    print(f"Copied {copy_args[0]} to {copy_args[1]}")
+    run("cargo --color always build --features ffi_uniffi")
