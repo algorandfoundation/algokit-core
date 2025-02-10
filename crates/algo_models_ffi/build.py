@@ -66,12 +66,29 @@ if build_mode == "swift":
         "cargo --color always run -p uniffi-bindgen generate --no-format --library ../../target/debug/libalgo_models_ffi.dylib --language swift --out-dir ../../target/debug/swift/algo_models"
     )
 
+    run_cmd = (
+        "xcodebuild -create-xcframework -library target/debug/libalgo_models_ffi.dylib"
+    )
+
+    targets = [
+        "aarch64-apple-ios-sim",
+        "aarch64-apple-ios",
+        "aarch64-apple-ios-macabi",
+        # "x86_64-apple-ios",
+        # "x86_64-apple-ios-macabi",
+    ]
+    for target in targets:
+        run(f"rustup target add {target}")
+        run(f"cargo --color always build --features ffi_uniffi --target {target}")
+        run_cmd += f" -library target/{target}/debug/libalgo_models_ffi.dylib"
+
+    run_cmd += " -headers target/debug/swift/algo_models/ -output target/debug/algo_models.xcframework"
     os.rename(
         "../../target/debug/swift/algo_models/algo_modelsFFI.modulemap",
         "../../target/debug/swift/algo_models/module.modulemap",
     )
 
-    shutil.rmtree("../../target/debug/algo_models.xcframework")
+    if os.path.exists("../../target/debug/algo_models.xcframework"):
+        shutil.rmtree("../../target/debug")
 
-    run_cmd = "xcodebuild -create-xcframework -library libalgo_models_ffi.dylib -headers swift/algo_models/ -output algo_models.xcframework"
-    run(run_cmd, cwd="../../target/debug")
+    run(run_cmd, cwd="../../")
