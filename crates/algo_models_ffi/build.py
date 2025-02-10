@@ -66,21 +66,46 @@ if build_mode == "swift":
         "cargo --color always run -p uniffi-bindgen generate --no-format --library ../../target/debug/libalgo_models_ffi.dylib --language swift --out-dir ../../target/debug/swift/algo_models"
     )
 
-    run_cmd = (
-        "xcodebuild -create-xcframework -library target/debug/libalgo_models_ffi.dylib"
-    )
+    run_cmd = "xcodebuild -create-xcframework"
 
-    targets = [
-        "aarch64-apple-ios-sim",
-        "aarch64-apple-ios",
-        "aarch64-apple-ios-macabi",
-        # "x86_64-apple-ios",
-        # "x86_64-apple-ios-macabi",
-    ]
+    # For now just support Tier 1 & 2 targets: https://doc.rust-lang.org/nightly/rustc/platform-support.html
+    #
+    # For some targets we need to combine binaries, thus we have targets and target_pairs
+    # See https://developer.apple.com/forums/thread/666335
+    targets = ["aarch64-apple-ios"]
+
+    target_pairs = {
+        "ios-sim": [
+            "x86_64-apple-ios",
+            "aarch64-apple-ios-sim",
+        ],
+        "catalyst": [
+            "x86_64-apple-ios-macabi",
+            "aarch64-apple-ios-macabi",
+        ],
+        "macos": [
+            "x86_64-apple-darwin",
+            "aarch64-apple-darwin",
+        ],
+    }
+
     for target in targets:
         run(f"rustup target add {target}")
         run(f"cargo --color always build --features ffi_uniffi --target {target}")
         run_cmd += f" -library target/{target}/debug/libalgo_models_ffi.dylib"
+
+    for pair_name in target_pairs:
+        lib_paths: list[str] = []
+        for target in target_pairs[pair_name]:
+            run(f"rustup target add {target}")
+            run(f"cargo --color always build --features ffi_uniffi --target {target}")
+            lib_paths.append(f"target/{target}/debug/libalgo_models_ffi.dylib")
+
+        run(
+            f"lipo -create {' '.join(lib_paths)} -output target/debug/libalgo_models_ffi-{pair_name}.dylib",
+            cwd="../../",
+        )
+        run_cmd += f" -library target/debug/libalgo_models_ffi-{pair_name}.dylib"
 
     run_cmd += " -headers target/debug/swift/algo_models/ -output target/debug/algo_models.xcframework"
     os.rename(
@@ -89,6 +114,6 @@ if build_mode == "swift":
     )
 
     if os.path.exists("../../target/debug/algo_models.xcframework"):
-        shutil.rmtree("../../target/debug")
+        shutil.rmtree("../../target/debug/algo_models.xcframework")
 
     run(run_cmd, cwd="../../")
