@@ -64,11 +64,11 @@ elif build_mode == "swift":
 
     # For now just support Tier 1 & 2 targets: https://doc.rust-lang.org/nightly/rustc/platform-support.html
     #
-    # For some targets we need to combine binaries, thus we have targets and target_pairs
+    # For some targets we need to combine binaries, thus we have targets and fat_targets
     # See https://developer.apple.com/forums/thread/666335
     targets = ["aarch64-apple-ios"]
 
-    target_pairs = {
+    fat_targets = {
         "ios-sim": [
             "x86_64-apple-ios",
             "aarch64-apple-ios-sim",
@@ -85,7 +85,7 @@ elif build_mode == "swift":
 
     cargo_build_cmd = "cargo --color always build --features ffi_uniffi"
 
-    all_targets = list(itertools.chain.from_iterable(target_pairs.values())) + targets
+    all_targets = list(itertools.chain.from_iterable(fat_targets.values())) + targets
     for target in all_targets:
         run(f"rustup target add {target}")
         cargo_build_cmd += f" --target {target}"
@@ -98,9 +98,9 @@ elif build_mode == "swift":
     for target in targets:
         create_xcf_cmd += f" -library target/{target}/debug/libalgo_models_ffi.dylib"
 
-    for pair_name in target_pairs:
+    for pair_name in fat_targets:
         lib_paths: list[str] = []
-        for target in target_pairs[pair_name]:
+        for target in fat_targets[pair_name]:
             lib_paths.append(f"target/{target}/debug/libalgo_models_ffi.dylib")
 
         run(
