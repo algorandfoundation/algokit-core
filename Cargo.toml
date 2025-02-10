@@ -1,3 +1,8 @@
 [workspace]
 resolver = "2"
-members = ["crates/algo_models", "crates/algo_models_ffi", "crates/uniffi-bindgen"]
+members = [
+	"crates/algo_models",
+	"crates/algo_models_ffi",
+	"crates/uniffi-bindgen",
+	"crates/uniffi-bindgen-swift",
+]
