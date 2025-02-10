@@ -60,8 +60,6 @@ if build_mode == "wasm":
 elif build_mode == "py":
     run("maturin build")
 elif build_mode == "swift":
-    create_xcf_cmd = "xcodebuild -create-xcframework"
-
     # For now just support Tier 1 & 2 targets: https://doc.rust-lang.org/nightly/rustc/platform-support.html
     #
     # For some targets we need to combine binaries, thus we have targets and fat_targets
@@ -95,19 +93,22 @@ elif build_mode == "swift":
         "cargo --color always run -p uniffi-bindgen generate --no-format --library ../../target/aarch64-apple-darwin/debug/libalgo_models_ffi.dylib --language swift --out-dir ../../target/debug/swift/algo_models"
     )
 
+    create_xcf_cmd = "xcodebuild -create-xcframework"
     for target in targets:
         create_xcf_cmd += f" -library target/{target}/debug/libalgo_models_ffi.dylib"
 
-    for pair_name in fat_targets:
+    for fat_target_name in fat_targets:
         lib_paths: list[str] = []
-        for target in fat_targets[pair_name]:
+        for target in fat_targets[fat_target_name]:
             lib_paths.append(f"target/{target}/debug/libalgo_models_ffi.dylib")
 
         run(
-            f"lipo -create {' '.join(lib_paths)} -output target/debug/libalgo_models_ffi-{pair_name}.dylib",
+            f"lipo -create {' '.join(lib_paths)} -output target/debug/libalgo_models_ffi-{fat_target_name}.dylib",
             cwd="../../",
         )
-        create_xcf_cmd += f" -library target/debug/libalgo_models_ffi-{pair_name}.dylib"
+        create_xcf_cmd += (
+            f" -library target/debug/libalgo_models_ffi-{fat_target_name}.dylib"
+        )
 
     create_xcf_cmd += " -headers target/debug/swift/algo_models/ -output target/debug/algo_models.xcframework"
 
