@@ -4,9 +4,10 @@ import subprocess
 import select
 import sys
 import os
+import shutil
 
 
-def run(command: str):
+def run(command: str, *, cwd: str | None = None):
     """
     Run a subprocess and print stdout and stderr in real-time
 
@@ -15,9 +16,7 @@ def run(command: str):
     """
     print(f"Running '{command}'")
     process = subprocess.Popen(
-        command.split(" "),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        command.split(" "), stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd
     )
 
     # Use select to read from stdout and stderr without blocking
@@ -61,3 +60,18 @@ elif build_mode == "py":
     run("maturin build")
 else:
     run("cargo --color always build --features ffi_uniffi")
+
+if build_mode == "swift":
+    run(
+        "cargo --color always run -p uniffi-bindgen generate --no-format --library ../../target/debug/libalgo_models_ffi.dylib --language swift --out-dir ../../target/debug/swift/algo_models"
+    )
+
+    os.rename(
+        "../../target/debug/swift/algo_models/algo_modelsFFI.modulemap",
+        "../../target/debug/swift/algo_models/module.modulemap",
+    )
+
+    shutil.rmtree("../../target/debug/algo_models.xcframework")
+
+    run_cmd = "xcodebuild -create-xcframework -library libalgo_models_ffi.dylib -headers swift/algo_models/ -output algo_models.xcframework"
+    run(run_cmd, cwd="../../target/debug")

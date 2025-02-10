@@ -1,2 +1,5 @@
 [bindings.python]
 cdylib_name = "algo_models"
+
+[bindings.swift]
+module_name = "algo_models"
