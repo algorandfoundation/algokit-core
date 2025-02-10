@@ -66,7 +66,7 @@ if build_mode == "swift":
         "cargo --color always run -p uniffi-bindgen generate --no-format --library ../../target/debug/libalgo_models_ffi.dylib --language swift --out-dir ../../target/debug/swift/algo_models"
     )
 
-    run_cmd = "xcodebuild -create-xcframework"
+    create_xcf_cmd = "xcodebuild -create-xcframework"
 
     # For now just support Tier 1 & 2 targets: https://doc.rust-lang.org/nightly/rustc/platform-support.html
     #
@@ -92,7 +92,7 @@ if build_mode == "swift":
     for target in targets:
         run(f"rustup target add {target}")
         run(f"cargo --color always build --features ffi_uniffi --target {target}")
-        run_cmd += f" -library target/{target}/debug/libalgo_models_ffi.dylib"
+        create_xcf_cmd += f" -library target/{target}/debug/libalgo_models_ffi.dylib"
 
     for pair_name in target_pairs:
         lib_paths: list[str] = []
@@ -105,15 +105,17 @@ if build_mode == "swift":
             f"lipo -create {' '.join(lib_paths)} -output target/debug/libalgo_models_ffi-{pair_name}.dylib",
             cwd="../../",
         )
-        run_cmd += f" -library target/debug/libalgo_models_ffi-{pair_name}.dylib"
+        create_xcf_cmd += f" -library target/debug/libalgo_models_ffi-{pair_name}.dylib"
 
-    run_cmd += " -headers target/debug/swift/algo_models/ -output target/debug/algo_models.xcframework"
+    create_xcf_cmd += " -headers target/debug/swift/algo_models/ -output target/debug/algo_models.xcframework"
+
+    if os.path.exists("../../target/debug/algo_models.xcframework"):
+        shutil.rmtree("../../target/debug/algo_models.xcframework")
+
+    # xcframework needs the modulemap to be named module.modulemap
     os.rename(
         "../../target/debug/swift/algo_models/algo_modelsFFI.modulemap",
         "../../target/debug/swift/algo_models/module.modulemap",
     )
 
-    if os.path.exists("../../target/debug/algo_models.xcframework"):
-        shutil.rmtree("../../target/debug/algo_models.xcframework")
-
-    run(run_cmd, cwd="../../")
+    run(create_xcf_cmd, cwd="../../")
