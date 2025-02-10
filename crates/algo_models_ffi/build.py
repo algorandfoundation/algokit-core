@@ -5,6 +5,7 @@ import select
 import sys
 import os
 import shutil
+import itertools
 
 
 def run(command: str, *, cwd: str | None = None):
@@ -58,14 +59,7 @@ if build_mode == "wasm":
         os.remove("tests/js/pkg/.gitignore")
 elif build_mode == "py":
     run("maturin build")
-else:
-    run("cargo --color always build --features ffi_uniffi")
-
-if build_mode == "swift":
-    run(
-        "cargo --color always run -p uniffi-bindgen generate --no-format --library ../../target/debug/libalgo_models_ffi.dylib --language swift --out-dir ../../target/debug/swift/algo_models"
-    )
-
+elif build_mode == "swift":
     create_xcf_cmd = "xcodebuild -create-xcframework"
 
     # For now just support Tier 1 & 2 targets: https://doc.rust-lang.org/nightly/rustc/platform-support.html
@@ -89,16 +83,24 @@ if build_mode == "swift":
         ],
     }
 
-    for target in targets:
+    cargo_build_cmd = "cargo --color always build --features ffi_uniffi"
+
+    all_targets = list(itertools.chain.from_iterable(target_pairs.values())) + targets
+    for target in all_targets:
         run(f"rustup target add {target}")
-        run(f"cargo --color always build --features ffi_uniffi --target {target}")
+        cargo_build_cmd += f" --target {target}"
+
+    run(cargo_build_cmd)
+    run(
+        "cargo --color always run -p uniffi-bindgen generate --no-format --library ../../target/aarch64-apple-darwin/debug/libalgo_models_ffi.dylib --language swift --out-dir ../../target/debug/swift/algo_models"
+    )
+
+    for target in targets:
         create_xcf_cmd += f" -library target/{target}/debug/libalgo_models_ffi.dylib"
 
     for pair_name in target_pairs:
         lib_paths: list[str] = []
         for target in target_pairs[pair_name]:
-            run(f"rustup target add {target}")
-            run(f"cargo --color always build --features ffi_uniffi --target {target}")
             lib_paths.append(f"target/{target}/debug/libalgo_models_ffi.dylib")
 
         run(
@@ -119,3 +121,5 @@ if build_mode == "swift":
     )
 
     run(create_xcf_cmd, cwd="../../")
+else:
+    run("cargo --color always build --features ffi_uniffi")
