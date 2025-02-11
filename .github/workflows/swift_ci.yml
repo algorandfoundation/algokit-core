@@ -44,4 +44,4 @@ jobs:
       - name: Build Swift
         run: python -m build.swift
       - name: Test Swift
-        run: build/swift/AlgoModels && swift test
+        run: cd build/swift/AlgoModels && swift test
