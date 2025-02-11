@@ -6,7 +6,7 @@ on:
       - crates/algo_models_ffi/**
       - crates/algo_models/**
       - build/swift/**
-      - !*.md
+      - "!*.md"
     branches:
       - main
       - master
@@ -17,7 +17,7 @@ on:
       - crates/algo_models_ffi/**
       - crates/algo_models/**
       - build/swift/**
-      - !*.md
+      - "!*.md"
   workflow_dispatch:
 
 permissions:
