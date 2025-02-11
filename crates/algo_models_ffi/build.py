@@ -121,6 +121,23 @@ elif build_mode == "swift":
         "../../target/debug/swift/algo_models/module.modulemap",
     )
 
+    # replace var with let to resolve swift concurrency issues
+    # I believe this is fixed in https://github.com/mozilla/uniffi-rs/pull/2294
+    # The above PR is available in uniffi-rs 0.29.0, but we won't be updating until
+    # Nord generators (i.e. Golang) are updated to use 0.29.0
+    with open("../../target/debug/swift/algo_models/algo_models.swift", "r") as file:
+        content = file.read()
+
+    content = content.replace("private var initializationResult", "private let initializationResult")
+
+    with open("../../target/debug/swift/algo_models/algo_models.swift", "w") as file:
+        file.write(content)
+
+    shutil.move(
+        "../../target/debug/swift/algo_models/algo_models.swift",
+        "build/swift/AlgoModels/Sources/AlgoModels/AlgoModels.swift",
+    )
+
     run(create_xcf_cmd, cwd="../../")
 else:
     run("cargo --color always build --features ffi_uniffi")

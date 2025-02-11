@@ -4,21 +4,28 @@
 import PackageDescription
 
 let package = Package(
-    name: "SwiftTests",
+    name: "AlgoModels",
+    products: [
+        // Products define the executables and libraries a package produces, making them visible to other packages.
+        .library(
+            name: "AlgoModels",
+            targets: ["AlgoModels"])
+    ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .binaryTarget(
             name: "algo_modelsFFI",
-            path: "../../../../target/debug/algo_models.xcframework"
+            path: "../../../../../target/debug/algo_models.xcframework"
         ),
         .target(
-            name: "algo_models",
+            name: "AlgoModels",
             dependencies: ["algo_modelsFFI"],
-            path: "Sources/algo_models"
+            path: "Sources/AlgoModels"
         ),
-        .executableTarget(
-            name: "SwiftTests",
-            dependencies: ["algo_models"]),
+        .testTarget(
+            name: "AlgoModelsTests",
+            dependencies: ["AlgoModels"]
+        ),
     ]
 )
