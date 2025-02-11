@@ -43,6 +43,6 @@ jobs:
         with:
           swift-version: "6"
       - name: Build Swift
-        run: python -m build.swift ${{ env.CRATE }}
+        run: python -m dist.swift ${{ env.CRATE }}
       - name: Test Swift
         run: cd dist/swift/${{ env.PACKAGE }} && swift test
