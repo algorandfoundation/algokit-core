@@ -2,6 +2,14 @@ import subprocess
 import select
 import sys
 
+if len(sys.argv) != 2:
+    print("Crate must be specified as the argument")
+    sys.exit(1)
+
+crate = sys.argv[1].replace("_ffi", "")
+
+def to_pascal_case(string):
+    return string.title().replace(" ", "").replace("_", "")
 
 def run(command: str, *, cwd: str | None = None):
     """

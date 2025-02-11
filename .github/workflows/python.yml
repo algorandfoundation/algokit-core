@@ -24,7 +24,7 @@ permissions:
   contents: read
 
 env:
-  CRATE_PATH: crates/algo_models_ffi
+  CRATE: algo_models
   # Python >= 3.8 is needed to support manylinux_x_y tags (unless you want to manually update pip)
   # Python 3.10 was chosen because it is currently the most popular according to https://mayeut.github.io/manylinux-timeline/
   PYTHON_VERSION: "3.10"
@@ -59,10 +59,10 @@ jobs:
           cache: "pip" # caching pip dependencies
       - run: pip install maturin
       - name: Install python dependencies
-        run: pip install -r ${{ env.CRATE_PATH }}/tests/py/requirements.txt
+        run: pip install -r crates/${{ env.CRATE }}_ffi/tests/py/requirements.txt
       - name: maturin build
         run: |
-          cd ${{ env.CRATE_PATH }} 
+          cd crates/${{ env.CRATE }}_ffi 
           maturin build --release --target ${{ matrix.target.name }}
       - name: pytest
         # Until GitHub makes windows arm64 runners publicly available, there is not a simple way to test aarch64-pc-windows-msvc
@@ -71,7 +71,7 @@ jobs:
         run: |
           set -e
           pip install target/wheels/*.whl
-          cd ${{ env.CRATE_PATH }}
+          cd crates/${{ env.CRATE }}_ffi
           pytest
 
   linux_build_and_test:
@@ -140,7 +140,7 @@ jobs:
       - name: maturin build
         env:
           RUN: |
-            cd /workspace/${{ env.CRATE_PATH }}
+            cd /workspace/crates/${{ env.CRATE }}_ffi
             python${{ env.PYTHON_VERSION }} -m maturin build --release --target ${{ env.TARGET }} --compatibility ${{ env.MANYLINUX }}
         run: docker exec build-container bash -c "$RUN"
 
@@ -151,12 +151,12 @@ jobs:
 
       - name: pip install test requirements
         env:
-          RUN: python${{ env.PYTHON_VERSION }} -m pip install -r /workspace/${{ env.CRATE_PATH }}/tests/py/requirements.txt
+          RUN: python${{ env.PYTHON_VERSION }} -m pip install -r /workspace/crates/${{ env.CRATE }}_ffi/tests/py/requirements.txt
         run: docker exec build-container bash -c "$RUN"
 
       - name: pytest
         env:
           RUN: |
-            cd /workspace/${{ env.CRATE_PATH }}
+            cd /workspace/crates/${{ env.CRATE }}_ffi
             python${{ env.PYTHON_VERSION }} -m pytest
         run: docker exec build-container bash -c "$RUN"
