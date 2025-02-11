@@ -6,7 +6,7 @@ import init, {
   attachSignature,
   decodePayment,
   getEncodedTransactionType,
-} from "./pkg/algo_models_ffi";
+} from "../../../../dist/typescript/algo_models";
 import path from "path";
 
 describe("algo_models WASM", async () => {

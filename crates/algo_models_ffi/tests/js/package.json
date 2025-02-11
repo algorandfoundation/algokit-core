@@ -1,20 +1,8 @@
 {
-  "name": "algo_models",
-  "type": "module",
-  "version": "0.1.0",
-  "files": [
-    "algo_models_bg.wasm",
-    "algo_models.js",
-    "algo_models.d.ts"
-  ],
-  "main": "algo_models.js",
-  "types": "algo_models.d.ts",
   "dependencies": {
-    "@algorandfoundation/algo-models": "^0.0.2",
-    "@noble/ed25519": "^2.1.0",
-    "algo-msgpack-with-bigint": "^2.1.1"
+    "@noble/ed25519": "^2.2.3"
   },
   "devDependencies": {
-    "@types/bun": "^1.1.14"
+    "@types/bun": "^1.2.2"
   }
 }

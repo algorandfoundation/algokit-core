@@ -2,4 +2,6 @@
 .vscode/
 .zed/
 .venv/
-dist/
+crates/**/dist/
+__pycache__/
+node_modules/

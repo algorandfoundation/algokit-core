@@ -5,6 +5,8 @@ on:
     paths:
       - crates/algo_models_ffi/**
       - crates/algo_models/**
+      - dist/swift/**
+      - "!*.md"
     branches:
       - main
       - master
@@ -14,13 +16,16 @@ on:
     paths:
       - crates/algo_models_ffi/**
       - crates/algo_models/**
+      - dist/swift/**
+      - "!*.md"
   workflow_dispatch:
 
 permissions:
   contents: read
 
 env:
-  CRATE_PATH: crates/algo_models_ffi
+  CRATE: algo_models
+  PACKAGE: AlgoModels
 
 jobs:
   build_and_test:
@@ -38,6 +43,6 @@ jobs:
         with:
           swift-version: "6"
       - name: Build Swift
-        run: cd ${{ env.CRATE_PATH }} && python build.py swift
+        run: python -m dist.swift ${{ env.CRATE }}
       - name: Test Swift
-        run: cd ${{ env.CRATE_PATH }}/build/swift/AlgoModels && swift test
+        run: cd dist/swift/${{ env.PACKAGE }} && swift test
