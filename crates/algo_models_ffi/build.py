@@ -90,8 +90,7 @@ elif build_mode == "swift":
 
     run(cargo_build_cmd)
     run(
-        "cargo run -p uniffi-bindgen-swift -- target/aarch64-apple-darwin/debug/libalgo_models_ffi.dylib target/debug/swift/ --xcframework --modulemap --modulemap-filename module.modulemap",
-        cwd="../../",
+        "cargo --color always run -p uniffi-bindgen generate --no-format --library ../../target/aarch64-apple-darwin/debug/libalgo_models_ffi.dylib --language swift --out-dir ../../target/debug/swift/algo_models"
     )
 
     create_xcf_cmd = "xcodebuild -create-xcframework"
@@ -115,6 +114,12 @@ elif build_mode == "swift":
 
     if os.path.exists("../../target/debug/algo_models.xcframework"):
         shutil.rmtree("../../target/debug/algo_models.xcframework")
+
+    # xcframework needs the modulemap to be named module.modulemap
+    os.rename(
+        "../../target/debug/swift/algo_models/algo_modelsFFI.modulemap",
+        "../../target/debug/swift/algo_models/module.modulemap",
+    )
 
     run(create_xcf_cmd, cwd="../../")
 else:
