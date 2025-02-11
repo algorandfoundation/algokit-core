@@ -5,6 +5,8 @@ on:
     paths:
       - crates/algo_models_ffi/**
       - crates/algo_models/**
+      - build/swift/**
+      - !*.md
     branches:
       - main
       - master
@@ -14,6 +16,8 @@ on:
     paths:
       - crates/algo_models_ffi/**
       - crates/algo_models/**
+      - build/swift/**
+      - !*.md
   workflow_dispatch:
 
 permissions:
@@ -38,6 +42,6 @@ jobs:
         with:
           swift-version: "6"
       - name: Build Swift
-        run: cd ${{ env.CRATE_PATH }} && python build.py swift
+        run: python -m build.swift
       - name: Test Swift
-        run: cd ${{ env.CRATE_PATH }}/build/swift/AlgoModels && swift test
+        run: build/swift/AlgoModels && swift test

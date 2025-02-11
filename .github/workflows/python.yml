@@ -4,16 +4,20 @@ on:
   push:
     paths:
       - crates/algo_models_ffi/**
-      - creates/algo_models/**
+      - crates/algo_models/**
+      - build/python/**
+      - !*.md
     branches:
       - main
       - master
     tags:
-      - '*'
+      - "*"
   pull_request:
     paths:
       - crates/algo_models_ffi/**
       - creates/algo_models/**
+      - build/python/**
+      - !*.md
   workflow_dispatch:
 
 permissions:
@@ -23,7 +27,7 @@ env:
   CRATE_PATH: crates/algo_models_ffi
   # Python >= 3.8 is needed to support manylinux_x_y tags (unless you want to manually update pip)
   # Python 3.10 was chosen because it is currently the most popular according to https://mayeut.github.io/manylinux-timeline/
-  PYTHON_VERSION: '3.10'
+  PYTHON_VERSION: "3.10"
 
 jobs:
   build_and_test:
@@ -32,7 +36,7 @@ jobs:
         shell: bash
     runs-on: ${{ matrix.target.runner }}
     strategy:
-      matrix: 
+      matrix:
         target:
           # name: The name of the target passed to cargo build
           # runner: The GitHub runner to use
@@ -52,7 +56,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip' # caching pip dependencies
+          cache: "pip" # caching pip dependencies
       - run: pip install maturin
       - name: Install python dependencies
         run: pip install -r ${{ env.CRATE_PATH }}/tests/py/requirements.txt
@@ -97,7 +101,7 @@ jobs:
       # The current RHEL release (as of 2/7/2025) is 9 and the glibc version from RHEL 7 was 2.17 (aka manylinux2014)
       MANYLINUX: ${{ matrix.libc == 'musl' && 'musllinux_1_2' || 'manylinux2014' }}
       TARGET: ${{ matrix.arch == 'ppc64le' && 'powerpc64le' || matrix.arch }}-unknown-linux-${{ matrix.libc }}
-  
+
     steps:
       - uses: actions/checkout@v4
 
@@ -108,7 +112,7 @@ jobs:
       - name: Start Container
         env:
           container: quay.io/pypa/${{ env.MANYLINUX }}_${{ matrix.arch }}
-        run: | 
+        run: |
           set -e
           docker pull ${{ env.container }}
           docker run --name build-container \
@@ -149,7 +153,7 @@ jobs:
         env:
           RUN: python${{ env.PYTHON_VERSION }} -m pip install -r /workspace/${{ env.CRATE_PATH }}/tests/py/requirements.txt
         run: docker exec build-container bash -c "$RUN"
-      
+
       - name: pytest
         env:
           RUN: |
