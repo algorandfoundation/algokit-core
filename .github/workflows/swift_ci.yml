@@ -7,6 +7,7 @@ on:
       - crates/algo_models/**
       - dist/swift/**
       - "!*.md"
+      - .github/workflows/swift_ci.yml
     branches:
       - main
       - master
@@ -18,6 +19,7 @@ on:
       - crates/algo_models/**
       - dist/swift/**
       - "!*.md"
+      - .github/workflows/swift_ci.yml
   workflow_dispatch:
 
 permissions:
@@ -39,10 +41,16 @@ jobs:
         with:
           targets: aarch64-apple-ios, x86_64-apple-ios, aarch64-apple-ios-sim, x86_64-apple-ios, aarch64-apple-ios-macabi, x86_64-apple-ios-macabi, aarch64-apple-darwin, x86_64-apple-darwin
       - uses: actions/setup-python@v5
-      - uses: swift-actions/setup-swift@v2
+      - uses: mxcl/xcodebuild@v3
         with:
-          swift-version: "6"
+          swift: ^6
+          action: none
       - name: Build Swift
         run: python -m dist.swift ${{ env.CRATE }}
-      - name: Test Swift
-        run: cd dist/swift/${{ env.PACKAGE }} && swift test
+      # Ideally we'd use a matrix for the platforms, but due to the limitations of Mac runners on GitHub it's probably better to just have a single job with multiple steps
+      - name: Test (macOS)
+        run: cd dist/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=macOS"
+      - name: Test (iOS)
+        run: cd dist/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=iOS Simulator,name=iPhone 16,OS=latest"
+      - name: Test (Catalyst)
+        run: cd dist/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=macOS,variant=Mac Catalyst"
