@@ -37,7 +37,6 @@ jobs:
     runs-on: mac
     strategy:
       matrix:
-        action: test
         platform:
           - macOS
           # - watchOS
