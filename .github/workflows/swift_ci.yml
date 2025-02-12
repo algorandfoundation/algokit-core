@@ -55,12 +55,12 @@ jobs:
           platform: macOS
           working-directory: dist/swift/${{ env.PACKAGE }}
       - run: rm -rf dist/swift/${{ env.PACKAGE }}/test.xcresult
-      - name: Test (iOS)
+      - name: Test (iOS Simulator)
         uses: mxcl/xcodebuild@v3
         with:
           swift: ^6
           action: test
-          platform: iOS
+          platform: iOS Simulator
           working-directory: dist/swift/${{ env.PACKAGE }}
       - run: rm -rf dist/swift/${{ env.PACKAGE }}/test.xcresult
       - name: Test (Catalyst)
