@@ -48,8 +48,8 @@ jobs:
         run: python -m dist.swift ${{ env.CRATE }}
       # Ideally we'd use a matrix for the platforms, but due to the limitations of Mac runners on GitHub it's probably better to just have a single job with multiple steps
       - name: Test (macOS)
-        run: cd dist/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=macOS"
+        run: cd dist/swift/${{ env.PACKAGE }} && xcrun --toolchain "swift 6" --run xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=macOS"
       - name: Test (iOS)
-        run: cd dist/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=iOS Simulator,name=iPhone 16,OS=latest"
+        run: cd dist/swift/${{ env.PACKAGE }} && xcrun --toolchain "swift 6" --run xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=iOS Simulator,name=iPhone 16,OS=latest"
       - name: Test (Catalyst)
-        run: cd dist/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=macOS,variant=Mac Catalyst"
+        run: cd dist/swift/${{ env.PACKAGE }} && xcrun --toolchain "swift 6" --run codebuild -scheme ${{ env.PACKAGE }} test -destination "platform=macOS,variant=Mac Catalyst"
