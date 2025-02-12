@@ -34,16 +34,7 @@ jobs:
     defaults:
       run:
         shell: bash
-    runs-on: mac
-    strategy:
-      matrix:
-        platform:
-          - macOS
-          # - watchOS
-          # - tvOS
-          - iOS
-          - mac-catalyst
-          # - visionOSos-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -55,9 +46,25 @@ jobs:
           swift-version: "6"
       - name: Build Swift
         run: python -m dist.swift ${{ env.CRATE }}
-      - uses: mxcl/xcodebuild@v3
+      # Ideally we'd use a matrix for the platforms, but due to the limitations of Mac runners on GitHub it's probably better to just have a single job with multiple steps
+      - name: Test (macOS)
+        uses: mxcl/xcodebuild@v3
         with:
           swift: ^6
           action: test
-          platform: ${{ matrix.platform }}
+          platform: macOS
+          working-directory: dist/swift/${{ env.PACKAGE }}
+      - name: Test (iOS)
+        uses: mxcl/xcodebuild@v3
+        with:
+          swift: ^6
+          action: test
+          platform: iOS
+          working-directory: dist/swift/${{ env.PACKAGE }}
+      - name: Test (Catalyst)
+        uses: mxcl/xcodebuild@v3
+        with:
+          swift: ^6
+          action: test
+          platform: mac-catalyst
           working-directory: dist/swift/${{ env.PACKAGE }}
