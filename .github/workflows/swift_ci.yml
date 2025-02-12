@@ -7,6 +7,7 @@ on:
       - crates/algo_models/**
       - dist/swift/**
       - "!*.md"
+      - .github/workflows/swift_ci.yml
     branches:
       - main
       - master
@@ -18,6 +19,7 @@ on:
       - crates/algo_models/**
       - dist/swift/**
       - "!*.md"
+      - .github/workflows/swift_ci.yml
   workflow_dispatch:
 
 permissions:
@@ -32,7 +34,17 @@ jobs:
     defaults:
       run:
         shell: bash
-    runs-on: macos-latest
+    runs-on: mac
+    strategy:
+      matrix:
+        action: test
+        platform:
+          - macOS
+          # - watchOS
+          # - tvOS
+          - iOS
+          - mac-catalyst
+          # - visionOSos-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -44,5 +56,9 @@ jobs:
           swift-version: "6"
       - name: Build Swift
         run: python -m dist.swift ${{ env.CRATE }}
-      - name: Test Swift
-        run: cd dist/swift/${{ env.PACKAGE }} && swift test
+      - uses: mxcl/xcodebuild@v3
+        with:
+          swift: ^6
+          action: test
+          platform: ${{ matrix.platform }}
+          working-directory: dist/swift/${{ env.PACKAGE }}
