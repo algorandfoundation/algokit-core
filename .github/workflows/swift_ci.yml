@@ -54,6 +54,7 @@ jobs:
           action: test
           platform: macOS
           working-directory: dist/swift/${{ env.PACKAGE }}
+      - run: rm -rf dist/swift/${{ env.PACKAGE }}/test.xcresult
       - name: Test (iOS)
         uses: mxcl/xcodebuild@v3
         with:
@@ -61,6 +62,7 @@ jobs:
           action: test
           platform: iOS
           working-directory: dist/swift/${{ env.PACKAGE }}
+      - run: rm -rf dist/swift/${{ env.PACKAGE }}/test.xcresult
       - name: Test (Catalyst)
         uses: mxcl/xcodebuild@v3
         with:
@@ -68,3 +70,4 @@ jobs:
           action: test
           platform: mac-catalyst
           working-directory: dist/swift/${{ env.PACKAGE }}
+      - run: rm -rf dist/swift/${{ env.PACKAGE }}/test.xcresult
