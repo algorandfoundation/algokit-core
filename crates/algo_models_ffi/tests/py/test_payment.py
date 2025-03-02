@@ -2,13 +2,14 @@ from pathlib import Path
 import json
 from algo_models import (
     TransactionHeader,
+    encode_transaction,
     PayTransactionFields,
-    encode_payment,
     TransactionType,
     attach_signature,
-    decode_payment,
+    decode_transaction,
     get_encoded_transaction_type,
     MsgPackError,
+    Transaction
 )
 from nacl.signing import SigningKey
 import pytest
@@ -54,13 +55,13 @@ def load_test_data():
     data = convert_case_recursive(data)
     data = convert_lists_to_bytes(data)
 
-    data["fields"]["header"]["transaction_type"] = TransactionType.PAYMENT
+    data["transaction"]["header"]["transaction_type"] = TransactionType.PAYMENT
 
-    data["fields"]["header"] = TransactionHeader(
-        **data["fields"]["header"], note=None, rekey_to=None, lease=None, group=None
+    data["transaction"]["header"] = TransactionHeader(
+        **data["transaction"]["header"], note=None, rekey_to=None, lease=None, group=None
     )
 
-    data["fields"] = PayTransactionFields(**data["fields"], close_remainder_to=None)
+    data["transaction"] = Transaction(header=data["transaction"]["header"], pay_fields=PayTransactionFields(**data["transaction"]["pay_fields"], close_remainder_to=None), asset_transfer_fields=None)
 
     return data
 
@@ -71,7 +72,7 @@ PRIV_KEY = SigningKey(TEST_DATA["priv_key"])
 
 def test_encode():
     assert (
-        encode_payment(TEST_DATA["fields"]) == TEST_DATA["expected_bytes_for_signing"]
+        encode_transaction(TEST_DATA["transaction"]) == TEST_DATA["expected_bytes_for_signing"]
     )
 
 
@@ -84,14 +85,14 @@ def test_encode_with_signature():
 
 def test_decode_with_tx_prefix():
     assert (
-        decode_payment(TEST_DATA["expected_bytes_for_signing"]) == TEST_DATA["fields"]
+        decode_transaction(TEST_DATA["expected_bytes_for_signing"]) == TEST_DATA["transaction"]
     )
 
 
 def test_decode_without_tx_prefix():
     assert (
-        decode_payment(TEST_DATA["expected_bytes_for_signing"][2:])
-        == TEST_DATA["fields"]
+        decode_transaction(TEST_DATA["expected_bytes_for_signing"][2:])
+        == TEST_DATA["transaction"]
     )
 
 
@@ -104,7 +105,7 @@ def test_get_encoded_transaction_type():
 
 def test_decoding_error_0_bytes():
     with pytest.raises(MsgPackError.DecodingError, match="attempted to decode 0 bytes"):
-        decode_payment(bytes())
+        decode_transaction(bytes())
 
 
 def test_decoding_error_malformed_bytes():
@@ -114,14 +115,14 @@ def test_decoding_error_malformed_bytes():
         MsgPackError.DecodingError,
         match="Error ocurred during decoding: missing field `fee`",
     ):
-        decode_payment(bad_bytes)
+        decode_transaction(bad_bytes)
 
 
 def test_error_invalid_type():
-    bad_fields: PayTransactionFields = deepcopy(TEST_DATA["fields"])
+    bad_fields: PayTransactionFields = deepcopy(TEST_DATA["transaction"])
     bad_fields.header.fee = "foo"
     with pytest.raises(
         TypeError,
         match="'str' object cannot be interpreted as an integer",
     ):
-        encode_payment(bad_fields)
+        encode_transaction(bad_fields)
