@@ -233,8 +233,8 @@ impl AlgorandMsgpack for Transaction {}
 impl Transaction {
     pub fn encode(&self) -> Result<Vec<u8>, MsgPackError> {
         match self {
-            Transaction::Payment(tx) => tx.encode_raw(),
-            Transaction::AssetTransfer(tx) => tx.encode_raw(),
+            Transaction::Payment(tx) => tx.encode(),
+            Transaction::AssetTransfer(tx) => tx.encode(),
         }
     }
 
