@@ -58,10 +58,10 @@ def load_test_data():
     data["transaction"]["header"]["transaction_type"] = TransactionType.PAYMENT
 
     data["transaction"]["header"] = TransactionHeader(
-        **data["transaction"]["header"], note=None, rekey_to=None, lease=None, group=None
+        **data["transaction"]["header"]
     )
 
-    data["transaction"] = Transaction(header=data["transaction"]["header"], pay_fields=PayTransactionFields(**data["transaction"]["pay_fields"], close_remainder_to=None), asset_transfer_fields=None)
+    data["transaction"] = Transaction(header=data["transaction"]["header"], pay_fields=PayTransactionFields(**data["transaction"]["pay_fields"]))
 
     return data
 

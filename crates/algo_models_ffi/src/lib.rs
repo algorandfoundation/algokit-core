@@ -125,15 +125,19 @@ pub struct TransactionHeader {
     genesis_id: Option<String>,
 
     #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
+    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
     note: Option<ByteBuf>,
 
     #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
+    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
     rekey_to: Option<ByteBuf>,
 
     #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
+    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
     lease: Option<ByteBuf>,
 
     #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
+    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
     group: Option<ByteBuf>,
 }
 
@@ -151,6 +155,7 @@ pub struct PayTransactionFields {
     amount: u64,
 
     #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
+    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
     close_remainder_to: Option<ByteBuf>,
 }
 
@@ -170,9 +175,11 @@ pub struct AssetTransferTransactionFields {
     receiver: ByteBuf,
 
     #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
+    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
     asset_sender: Option<ByteBuf>,
 
     #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
+    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
     close_remainder_to: Option<ByteBuf>,
 }
 
@@ -188,9 +195,11 @@ pub struct Transaction {
     header: TransactionHeader,
 
     #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
+    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
     pay_fields: Option<PayTransactionFields>,
 
     #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
+    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
     asset_transfer_fields: Option<AssetTransferTransactionFields>,
 }
 
