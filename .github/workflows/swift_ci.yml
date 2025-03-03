@@ -6,6 +6,8 @@ on:
       - crates/algo_models_ffi/**
       - crates/algo_models/**
       - packages/swift/**
+      - scripts/build/swift.ts
+      - scripts/build/index.ts
       - "!*.md"
       - .github/workflows/swift_ci.yml
     branches:
@@ -18,6 +20,8 @@ on:
       - crates/algo_models_ffi/**
       - crates/algo_models/**
       - packages/swift/**
+      - scripts/build/swift.ts
+      - scripts/build/index.ts
       - "!*.md"
       - .github/workflows/swift_ci.yml
   workflow_dispatch:

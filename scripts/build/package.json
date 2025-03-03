@@ -1,5 +1,5 @@
 {
-  "name": "scripts",
+  "name": "build",
   "module": "index.ts",
   "type": "module",
   "private": true,
