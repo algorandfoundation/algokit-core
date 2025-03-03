@@ -50,7 +50,7 @@ jobs:
       - name: Install iOS Simulator
         run: xcodebuild -downloadPlatform iOS 
       - name: Build
-        run: python -m packages.swift ${{ env.CRATE }}
+        run: python -m scripts.build.swift ${{ env.CRATE }}
       # Ideally we'd use a matrix for the platforms, but due to the limitations of Mac runners on GitHub it's probably better to just have a single job with multiple steps
       - name: Test (macOS)
         run: cd packages/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=macOS"
