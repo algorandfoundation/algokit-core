@@ -5,7 +5,7 @@ on:
     paths:
       - crates/algo_models_ffi/**
       - crates/algo_models/**
-      - dist/python/**
+      - packages/python/**
       - "!*.md"
     branches:
       - main
@@ -16,7 +16,7 @@ on:
     paths:
       - crates/algo_models_ffi/**
       - creates/algo_models/**
-      - dist/python/**
+      - packages/python/**
       - "!*.md"
   workflow_dispatch:
 

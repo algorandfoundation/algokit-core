@@ -7,7 +7,7 @@ import init, {
   decodeTransaction,
   getEncodedTransactionType,
   Transaction,
-} from "../../../../dist/typescript/algo_models";
+} from "../../../../packages/typescript/algo_models";
 import path from "path";
 
 describe("algo_models WASM", async () => {

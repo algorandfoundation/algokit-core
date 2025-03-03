@@ -5,7 +5,7 @@ on:
     paths:
       - crates/algo_models_ffi/**
       - crates/algo_models/**
-      - dist/swift/**
+      - packages/swift/**
       - "!*.md"
       - .github/workflows/swift_ci.yml
     branches:
@@ -17,7 +17,7 @@ on:
     paths:
       - crates/algo_models_ffi/**
       - crates/algo_models/**
-      - dist/swift/**
+      - packages/swift/**
       - "!*.md"
       - .github/workflows/swift_ci.yml
   workflow_dispatch:
@@ -50,14 +50,14 @@ jobs:
       - name: Install iOS Simulator
         run: xcodebuild -downloadPlatform iOS 
       - name: Build
-        run: python -m dist.swift ${{ env.CRATE }}
+        run: python -m packages.swift ${{ env.CRATE }}
       # Ideally we'd use a matrix for the platforms, but due to the limitations of Mac runners on GitHub it's probably better to just have a single job with multiple steps
       - name: Test (macOS)
-        run: cd dist/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=macOS"
+        run: cd packages/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=macOS"
       - name: Test (iOS)
-        run: cd dist/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=iOS Simulator,name=iPhone 16,OS=latest"
+        run: cd packages/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=iOS Simulator,name=iPhone 16,OS=latest"
       - name: Test (Catalyst)
-        run: cd dist/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=macOS,variant=Mac Catalyst"
+        run: cd packages/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=macOS,variant=Mac Catalyst"
       - name: Commit Package
         uses: stefanzweifel/git-auto-commit-action@v5
         if: github.event_name == 'push'

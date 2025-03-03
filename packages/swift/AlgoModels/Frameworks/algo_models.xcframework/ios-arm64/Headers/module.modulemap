@@ -1,0 +1,4 @@
+module algo_modelsFFI {
+    header "algo_modelsFFI.h"
+    export *
+}
