@@ -60,5 +60,6 @@ jobs:
         run: cd dist/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=macOS,variant=Mac Catalyst"
       - name: Commit Package
         uses: stefanzweifel/git-auto-commit-action@v5
+        if: github.event_name == 'push'
         with:
           commit_message: "Swift CI ${{ env.PACKAGE }} package"
