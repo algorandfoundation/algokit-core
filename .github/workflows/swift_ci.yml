@@ -41,18 +41,6 @@ jobs:
         with:
           targets: aarch64-apple-ios, x86_64-apple-ios, aarch64-apple-ios-sim, x86_64-apple-ios, aarch64-apple-ios-macabi, x86_64-apple-ios-macabi, aarch64-apple-darwin, x86_64-apple-darwin
       - uses: actions/setup-python@v5
-      # - name: Cache Homebrew Bundler RubyGems
-      #   id: cache
-      #   uses: actions/cache@v3
-      #   with:
-      #     path: ${{ steps.set-up-homebrew.outputs.gems-path }}
-      #     key: ${{ runner.os }}-rubygems-${{ steps.set-up-homebrew.outputs.gems-hash }}
-      #     restore-keys: ${{ runner.os }}-rubygems-
-      # - name: Install Homebrew Bundler RubyGems
-      #   if: steps.cache.outputs.cache-hit != 'true'
-      #   run: brew install-bundler-gems
-      # - name: Install brew packages
-      #   run: brew install aria2 xcodesorg/made/xcodes
       - name: Setup Xcode
         uses: mxcl/xcodebuild@v3
         with:
@@ -72,5 +60,6 @@ jobs:
         run: cd dist/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=macOS,variant=Mac Catalyst"
       - name: Commit Package
         uses: stefanzweifel/git-auto-commit-action@v5
+        if: github.event_name == 'push'
         with:
           commit_message: "Swift CI ${{ env.PACKAGE }} package"
