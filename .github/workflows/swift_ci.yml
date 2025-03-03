@@ -41,10 +41,26 @@ jobs:
         with:
           targets: aarch64-apple-ios, x86_64-apple-ios, aarch64-apple-ios-sim, x86_64-apple-ios, aarch64-apple-ios-macabi, x86_64-apple-ios-macabi, aarch64-apple-darwin, x86_64-apple-darwin
       - uses: actions/setup-python@v5
-      - uses: mxcl/xcodebuild@v3
+      # - name: Cache Homebrew Bundler RubyGems
+      #   id: cache
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: ${{ steps.set-up-homebrew.outputs.gems-path }}
+      #     key: ${{ runner.os }}-rubygems-${{ steps.set-up-homebrew.outputs.gems-hash }}
+      #     restore-keys: ${{ runner.os }}-rubygems-
+      # - name: Install Homebrew Bundler RubyGems
+      #   if: steps.cache.outputs.cache-hit != 'true'
+      #   run: brew install-bundler-gems
+      # - name: Install brew packages
+      #   run: brew install aria2 xcodesorg/made/xcodes
+      - name: Setup Xcode
+        uses: mxcl/xcodebuild@v3
         with:
           swift: ^6
           action: none
+          platform: macOS
+      - name: Install iOS Simulator
+        run: xcodebuild -downloadPlatform iOS 
       - name: Build
         run: python -m dist.swift ${{ env.CRATE }}
       # Ideally we'd use a matrix for the platforms, but due to the limitations of Mac runners on GitHub it's probably better to just have a single job with multiple steps
