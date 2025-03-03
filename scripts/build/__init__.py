@@ -1,5 +1,5 @@
 # pyright: reportUnusedCallResult=false
-
+from pathlib import Path
 import subprocess
 import select
 import sys
@@ -22,7 +22,7 @@ def run(command: str, *, cwd: str | None = None):
     """
     print(f"Running '{command}'")
     process = subprocess.Popen(
-        command.split(" "), stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd
+        command.split(" "), stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd or Path(__file__).parents[2]
     )
 
     # Use select to read from stdout and stderr without blocking
