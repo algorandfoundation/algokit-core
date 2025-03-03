@@ -1,3 +1,5 @@
+# pyright: reportUnusedCallResult=false
+from pathlib import Path
 import subprocess
 import select
 import sys
@@ -8,7 +10,7 @@ if len(sys.argv) != 2:
 
 crate = sys.argv[1].replace("_ffi", "")
 
-def to_pascal_case(string):
+def to_pascal_case(string: str) -> str:
     return string.title().replace(" ", "").replace("_", "")
 
 def run(command: str, *, cwd: str | None = None):
@@ -20,13 +22,15 @@ def run(command: str, *, cwd: str | None = None):
     """
     print(f"Running '{command}'")
     process = subprocess.Popen(
-        command.split(" "), stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd
+        command.split(" "), stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd or Path(__file__).parents[2]
     )
 
     # Use select to read from stdout and stderr without blocking
     while True:
+        assert process.stdout is not None
+        assert process.stderr is not None
         reads = [process.stdout.fileno(), process.stderr.fileno()]
-        ret = select.select(reads, [], [])
+        ret: tuple[list[int], list[int], list[int]] = select.select(reads, [], [])
 
         for fd in ret[0]:
             if fd == process.stdout.fileno():

@@ -1,3 +1,4 @@
+# pyright: reportUnusedCallResult=false
 from .. import run, crate, to_pascal_case
 
 import itertools
