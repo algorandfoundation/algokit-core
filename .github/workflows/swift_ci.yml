@@ -6,7 +6,7 @@ on:
       - crates/algo_models_ffi/**
       - crates/algo_models/**
       - packages/swift/AlgoModels/**
-      - scripts/build/swift.ts
+      - scripts/build/languages/swift.ts
       - scripts/build/index.ts
       - "!*.md"
       - .github/workflows/swift_ci.yml
@@ -20,7 +20,7 @@ on:
       - crates/algo_models_ffi/**
       - crates/algo_models/**
       - packages/swift/AlgoModels/**
-      - scripts/build/swift.ts
+      - scripts/build/languages/swift.ts
       - scripts/build/index.ts
       - "!*.md"
       - .github/workflows/swift_ci.yml
@@ -30,7 +30,7 @@ permissions:
   contents: write
 
 env:
-  CRATE: algo_models_ffi
+  CRATE: algo_models
   PACKAGE: AlgoModels
 
 jobs:
@@ -56,14 +56,14 @@ jobs:
       - name: Install iOS Simulator
         run: xcodebuild -downloadPlatform iOS 
       - name: Build
-        run: bun scripts/build/swift.ts ${{ env.CRATE }}
+        run: bun scripts/build ${{ env.CRATE }} swift
       # Ideally we'd use a matrix for the platforms, but due to the limitations of Mac runners on GitHub it's probably better to just have a single job with multiple steps
       - name: Test (macOS)
-        run: cd crates/${{ env.CRATE}}/tests/swift/ && xcodebuild -scheme ${{ env.PACKAGE }}Tests-Package test -destination "platform=macOS"
+        run: cd crates/${{ env.CRATE}}_ffi/tests/swift/ && xcodebuild -scheme ${{ env.PACKAGE }}Tests-Package test -destination "platform=macOS"
       - name: Test (iOS)
-        run: cd crates/${{ env.CRATE}}/tests/swift/ && xcodebuild -scheme ${{ env.PACKAGE }}Tests-Package test -destination "platform=iOS Simulator,name=iPhone 16,OS=latest"
+        run: cd crates/${{ env.CRATE}}_ffi/tests/swift/ && xcodebuild -scheme ${{ env.PACKAGE }}Tests-Package test -destination "platform=iOS Simulator,name=iPhone 16,OS=latest"
       - name: Test (Catalyst)
-        run: cd crates/${{ env.CRATE}}/tests/swift/ && xcodebuild -scheme ${{ env.PACKAGE }}Tests-Package test -destination "platform=macOS,variant=Mac Catalyst"
+        run: cd crates/${{ env.CRATE}}_ffi/tests/swift/ && xcodebuild -scheme ${{ env.PACKAGE }}Tests-Package test -destination "platform=macOS,variant=Mac Catalyst"
       - name: Commit Package
         uses: stefanzweifel/git-auto-commit-action@v5
         if: github.event_name == 'push'

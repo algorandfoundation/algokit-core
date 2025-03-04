@@ -1,24 +1,19 @@
 import path from "path";
 import { spawn } from "child_process";
 import { resolve } from "path";
+import { buildPython } from "./languages/python.ts";
+import { buildSwift } from "./languages/swift.ts";
+import { buildTypescript } from "./languages/typescript.ts";
 
 export const REPO_ROOT = path.resolve(__dirname, "../../");
-
 process.chdir(REPO_ROOT);
+
 export function toPascalCase(string: string): string {
   return string
     .replaceAll("_", " ")
     .split(" ")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join("");
-}
-
-export function getCrateNanme(): string {
-  if (process.argv[2] == undefined) {
-    throw new Error("Crate must be specified as the argument");
-  }
-
-  return process.argv[2].replace("_ffi", "");
 }
 
 export function run(command: string, cwd: string | null = null): Promise<void> {
@@ -51,4 +46,39 @@ export function run(command: string, cwd: string | null = null): Promise<void> {
       resolvePromise();
     });
   });
+}
+
+const languages = {
+  python: buildPython,
+  swift: buildSwift,
+  typescript: buildTypescript,
+};
+
+const crates = ["algo_models"];
+
+if (process.argv.length !== 4) {
+  throw new Error("Usage: bun scripts/build <crate> <language>");
+}
+
+const crate = process.argv[2];
+const language = process.argv[3];
+
+if (language !== "all" && !Object.keys(languages).includes(language)) {
+  throw new Error(
+    "Language must be one of: all, " + Object.keys(languages).join(", "),
+  );
+}
+
+if (!crates.includes(crate)) {
+  throw new Error("Crate must be one of: " + crates.join(", "));
+}
+
+if (language === "all") {
+  await Promise.all(
+    Object.keys(languages).map(async (language) => {
+      await languages[language](crate);
+    }),
+  );
+} else {
+  await languages[language](crate);
 }
