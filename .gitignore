@@ -6,3 +6,4 @@ crates/**/dist/
 __pycache__/
 node_modules/
 .dmypy.json
+.build
