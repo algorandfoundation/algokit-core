@@ -23,5 +23,9 @@ let package = Package(
             dependencies: ["algo_modelsFFI"],
             path: "Sources/AlgoModels"
         ),
+        .testTarget(
+            name: "AlgoModelsTests",
+            dependencies: ["AlgoModels"]
+        ),
     ]
 )
