@@ -1,18 +1,16 @@
 import { expect, test, describe } from "bun:test";
 import * as ed from "@noble/ed25519";
-import init, {
+import {
   type PayTransactionFields,
   encodeTransaction,
   attachSignature,
   decodeTransaction,
   getEncodedTransactionType,
   Transaction,
-} from "..";
+} from "../src/index";
 import path from "path";
 
 describe("algo_models WASM", async () => {
-  await init();
-
   const jsonString = await Bun.file(
     path.join(__dirname, "../../../../crates/algo_models_ffi/test_data.json"),
   ).text();
