@@ -7,14 +7,14 @@ import init, {
   decodeTransaction,
   getEncodedTransactionType,
   Transaction,
-} from "../../../../packages/typescript/algo_models";
+} from "..";
 import path from "path";
 
 describe("algo_models WASM", async () => {
   await init();
 
   const jsonString = await Bun.file(
-    path.join(__dirname, "../test_data.json")
+    path.join(__dirname, "../../../../crates/algo_models_ffi/test_data.json"),
   ).text();
 
   const testData = JSON.parse(jsonString, (_, value) => {
@@ -54,12 +54,14 @@ describe("algo_models WASM", async () => {
     });
 
     test("decode (without TX prefix)", () => {
-      expect(decodeTransaction(expectedBytesForSigning.slice(2))).toEqual(transaction);
+      expect(decodeTransaction(expectedBytesForSigning.slice(2))).toEqual(
+        transaction,
+      );
     });
 
     test("getEncodedTransactionType", () => {
       expect(getEncodedTransactionType(expectedBytesForSigning)).toBe(
-        "Payment"
+        "Payment",
       );
     });
 
@@ -72,7 +74,7 @@ describe("algo_models WASM", async () => {
 
     test("DecodingError: 0 bytes", () => {
       expect(() => decodeTransaction(new Uint8Array(0))).toThrow(
-        "DecodingError: attempted to decode 0 bytes"
+        "DecodingError: attempted to decode 0 bytes",
       );
     });
 
@@ -80,7 +82,7 @@ describe("algo_models WASM", async () => {
       const badBytes = expectedBytesForSigning.slice();
       badBytes[13] = 37;
       expect(() => decodeTransaction(badBytes)).toThrow(
-        "DecodingError: Error ocurred during decoding: missing field `fee`"
+        "DecodingError: Error ocurred during decoding: missing field `fee`",
       );
     });
 
@@ -88,7 +90,7 @@ describe("algo_models WASM", async () => {
       const badFields = { ...transaction, header: { fee: "foo" } };
       // @ts-expect-error known bad type for testing purposes
       expect(() => encodeTransaction(badFields)).toThrow(
-        'Error: invalid type: string "foo", expected u64'
+        'Error: invalid type: string "foo", expected u64',
       );
     });
   });

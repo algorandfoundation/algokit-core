@@ -46,8 +46,7 @@ def convert_case_recursive(obj):
 
 def load_test_data():
     # Get the path to test_data.json relative to this test file
-    current_dir = Path(__file__).parent.parent
-    test_data_path = current_dir / "test_data.json"
+    test_data_path = Path(__file__).parent.parent.parent.parent.parent / "crates" / "algo_models_ffi" / "test_data.json"
 
     with open(test_data_path) as f:
         data = json.load(f)

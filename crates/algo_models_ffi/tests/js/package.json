@@ -1,8 +1,0 @@
-{
-  "dependencies": {
-    "@noble/ed25519": "^2.2.3"
-  },
-  "devDependencies": {
-    "@types/bun": "^1.2.2"
-  }
-}

@@ -5,6 +5,7 @@ on:
     paths:
       - crates/algo_models_ffi/**
       - crates/algo_models/**
+      - packages/python/algo_models/**/*
       - "!*.md"
     branches:
       - main
@@ -15,7 +16,7 @@ on:
     paths:
       - crates/algo_models_ffi/**
       - creates/algo_models/**
-      - packages/python/**
+      - packages/python/algo_models/**/*
       - "!*.md"
   workflow_dispatch:
 
@@ -56,21 +57,18 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: "pip" # caching pip dependencies
-      - run: pip install maturin
-      - name: Install python dependencies
-        run: pip install -r crates/${{ env.CRATE }}_ffi/tests/py/requirements.txt
-      - name: maturin build
+
+      - name: pip install 
         run: |
-          cd crates/${{ env.CRATE }}_ffi 
-          maturin build --release --target ${{ matrix.target.name }}
+          cd packages/python/${{ env.CRATE }}
+          pip install ".[dev]"
+
       - name: pytest
         # Until GitHub makes windows arm64 runners publicly available, there is not a simple way to test aarch64-pc-windows-msvc
         # GitHub is currently working on making them available but no ETA: https://github.com/actions/runner-images/issues/10820
         if: matrix.target.name != 'aarch64-pc-windows-msvc'
         run: |
-          set -e
-          pip install target/wheels/*.whl
-          cd crates/${{ env.CRATE }}_ffi
+          cd packages/python/${{ env.CRATE }}
           pytest
 
   linux_build_and_test:
@@ -131,15 +129,24 @@ jobs:
           RUN: rustup target add ${{ env.TARGET }}
         run: docker exec build-container bash -c "$RUN"
 
-      - name: pip install maturin[patchelf]
+      - name: Install pip-tools
         env:
-          RUN: python${{ env.PYTHON_VERSION }} -m pip install maturin[patchelf]
+          RUN: python${{ env.PYTHON_VERSION }} -m pip install pip-tools 
+        run: docker exec build-container bash -c "$RUN"
+
+      - name: Install dependencies
+        env:
+          RUN: |
+            set -e
+            cd /workspace/packages/python/${{ env.CRATE }}
+            python${{ env.PYTHON_VERSION }} -m piptools compile pyproject.toml --extra dev -o requirements.txt
+            python${{ env.PYTHON_VERSION }} -m pip install -r requirements.txt
         run: docker exec build-container bash -c "$RUN"
 
       - name: maturin build
         env:
           RUN: |
-            cd /workspace/crates/${{ env.CRATE }}_ffi
+            cd /workspace/packages/python/${{ env.CRATE }}
             python${{ env.PYTHON_VERSION }} -m maturin build --release --target ${{ env.TARGET }} --compatibility ${{ env.MANYLINUX }}
         run: docker exec build-container bash -c "$RUN"
 
@@ -148,14 +155,9 @@ jobs:
           RUN: python${{ env.PYTHON_VERSION }} -m pip install /workspace/target/wheels/*.whl
         run: docker exec build-container bash -c "$RUN"
 
-      - name: pip install test requirements
-        env:
-          RUN: python${{ env.PYTHON_VERSION }} -m pip install -r /workspace/crates/${{ env.CRATE }}_ffi/tests/py/requirements.txt
-        run: docker exec build-container bash -c "$RUN"
-
       - name: pytest
         env:
           RUN: |
-            cd /workspace/crates/${{ env.CRATE }}_ffi
+            cd /workspace/packages/python/${{ env.CRATE }}
             python${{ env.PYTHON_VERSION }} -m pytest
         run: docker exec build-container bash -c "$RUN"
