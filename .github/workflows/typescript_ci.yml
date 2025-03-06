@@ -1,0 +1,50 @@
+name: TypeScript CI
+
+on:
+  push:
+    paths:
+      - crates/algo_models_ffi/**
+      - crates/algo_models/**
+      - packages/typescript/algo_models/**
+      - scripts/build/languages/typescript.ts
+      - scripts/build/index.ts
+      - "!*.md"
+      - .github/workflows/typescript_ci.yml
+    branches:
+      - main
+      - master
+    tags:
+      - "*"
+  pull_request:
+    paths:
+      - crates/algo_models_ffi/**
+      - crates/algo_models/**
+      - packages/typescript/algo_models/**
+      - scripts/build/languages/typescript.ts
+      - scripts/build/index.ts
+      - "!*.md"
+      - .github/workflows/typescript_ci.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  CRATE: algo_models
+
+jobs:
+  build_and_test:
+    defaults:
+      run:
+        shell: bash
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Build
+        run: bun scripts/build ${{ env.CRATE }} typescript
+      - name: Test
+        run: cd packages/typescript/${{ env.CRATE }} && bun test
