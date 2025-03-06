@@ -11,5 +11,12 @@
   "types": "algo_models_ffi.d.ts",
   "sideEffects": [
     "./snippets/*"
-  ]
+  ],
+  "devDependencies": {
+    "@noble/ed25519": "^2.2.3",
+    "@types/bun": "^1.2.4",
+    "@types/node": "^22.13.9",
+    "bun": "^1.2.4",
+    "prettier": "^3.5.3"
+  }
 }
