@@ -61,9 +61,9 @@ jobs:
       - name: Test (macOS)
         run: cd packages/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=macOS"
       - name: Test (iOS)
-        run: cd packages/swift/${{ env.PACKAGE } && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=iOS Simulator,name=iPhone 16,OS=latest"
+        run: cd packages/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=iOS Simulator,name=iPhone 16,OS=latest"
       - name: Test (Catalyst)
-        run: cd packages/swift/${{ env.PACKAGE } && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=macOS,variant=Mac Catalyst"
+        run: cd packages/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=macOS,variant=Mac Catalyst"
       - name: Commit Package
         uses: stefanzweifel/git-auto-commit-action@v5
         if: github.event_name == 'push'
