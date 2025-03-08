@@ -19,6 +19,12 @@ function requireAlgo_models_ffi () {
 		let wasm;
 		const { TextEncoder, TextDecoder } = require$$0;
 
+		const heap = new Array(128).fill(undefined);
+
+		heap.push(undefined, null, true, false);
+
+		function getObject(idx) { return heap[idx]; }
+
 		let WASM_VECTOR_LEN = 0;
 
 		let cachedUint8ArrayMemory0 = null;
@@ -91,6 +97,29 @@ function requireAlgo_models_ffi () {
 		        cachedDataViewMemory0 = new DataView(wasm.memory.buffer);
 		    }
 		    return cachedDataViewMemory0;
+		}
+
+		let heap_next = heap.length;
+
+		function addHeapObject(obj) {
+		    if (heap_next === heap.length) heap.push(heap.length + 1);
+		    const idx = heap_next;
+		    heap_next = heap[idx];
+
+		    heap[idx] = obj;
+		    return idx;
+		}
+
+		function dropObject(idx) {
+		    if (idx < 132) return;
+		    heap[idx] = heap_next;
+		    heap_next = idx;
+		}
+
+		function takeObject(idx) {
+		    const ret = getObject(idx);
+		    dropObject(idx);
+		    return ret;
 		}
 
 		function isLikeNone(x) {
@@ -177,12 +206,6 @@ function requireAlgo_models_ffi () {
 		    WASM_VECTOR_LEN = arg.length;
 		    return ptr;
 		}
-
-		function takeFromExternrefTable0(idx) {
-		    const value = wasm.__wbindgen_export_2.get(idx);
-		    wasm.__externref_table_dealloc(idx);
-		    return value;
-		}
 		/**
 		 * Get the transaction type from the encoded transaction.
 		 * This is particularly useful when decoding a transaction that has a unknow type
@@ -190,13 +213,21 @@ function requireAlgo_models_ffi () {
 		 * @returns {TransactionType}
 		 */
 		module.exports.getEncodedTransactionType = function(bytes) {
-		    const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_malloc);
-		    const len0 = WASM_VECTOR_LEN;
-		    const ret = wasm.getEncodedTransactionType(ptr0, len0);
-		    if (ret[2]) {
-		        throw takeFromExternrefTable0(ret[1]);
+		    try {
+		        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+		        const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_export_0);
+		        const len0 = WASM_VECTOR_LEN;
+		        wasm.getEncodedTransactionType(retptr, ptr0, len0);
+		        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+		        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+		        var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+		        if (r2) {
+		            throw takeObject(r1);
+		        }
+		        return takeObject(r0);
+		    } finally {
+		        wasm.__wbindgen_add_to_stack_pointer(16);
 		    }
-		    return takeFromExternrefTable0(ret[0]);
 		};
 
 		function getArrayU8FromWasm0(ptr, len) {
@@ -208,13 +239,22 @@ function requireAlgo_models_ffi () {
 		 * @returns {Uint8Array}
 		 */
 		module.exports.encodeTransaction = function(tx) {
-		    const ret = wasm.encodeTransaction(tx);
-		    if (ret[3]) {
-		        throw takeFromExternrefTable0(ret[2]);
+		    try {
+		        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+		        wasm.encodeTransaction(retptr, addHeapObject(tx));
+		        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+		        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+		        var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+		        var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
+		        if (r3) {
+		            throw takeObject(r2);
+		        }
+		        var v1 = getArrayU8FromWasm0(r0, r1).slice();
+		        wasm.__wbindgen_export_2(r0, r1 * 1, 1);
+		        return v1;
+		    } finally {
+		        wasm.__wbindgen_add_to_stack_pointer(16);
 		    }
-		    var v1 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
-		    wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
-		    return v1;
 		};
 
 		/**
@@ -222,13 +262,21 @@ function requireAlgo_models_ffi () {
 		 * @returns {Transaction}
 		 */
 		module.exports.decodeTransaction = function(bytes) {
-		    const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_malloc);
-		    const len0 = WASM_VECTOR_LEN;
-		    const ret = wasm.decodeTransaction(ptr0, len0);
-		    if (ret[2]) {
-		        throw takeFromExternrefTable0(ret[1]);
+		    try {
+		        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+		        const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_export_0);
+		        const len0 = WASM_VECTOR_LEN;
+		        wasm.decodeTransaction(retptr, ptr0, len0);
+		        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+		        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+		        var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+		        if (r2) {
+		            throw takeObject(r1);
+		        }
+		        return takeObject(r0);
+		    } finally {
+		        wasm.__wbindgen_add_to_stack_pointer(16);
 		    }
-		    return takeFromExternrefTable0(ret[0]);
 		};
 
 		/**
@@ -237,56 +285,65 @@ function requireAlgo_models_ffi () {
 		 * @returns {Uint8Array}
 		 */
 		module.exports.attachSignature = function(encoded_tx, signature) {
-		    const ptr0 = passArray8ToWasm0(encoded_tx, wasm.__wbindgen_malloc);
-		    const len0 = WASM_VECTOR_LEN;
-		    const ptr1 = passArray8ToWasm0(signature, wasm.__wbindgen_malloc);
-		    const len1 = WASM_VECTOR_LEN;
-		    const ret = wasm.attachSignature(ptr0, len0, ptr1, len1);
-		    if (ret[3]) {
-		        throw takeFromExternrefTable0(ret[2]);
+		    try {
+		        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+		        const ptr0 = passArray8ToWasm0(encoded_tx, wasm.__wbindgen_export_0);
+		        const len0 = WASM_VECTOR_LEN;
+		        const ptr1 = passArray8ToWasm0(signature, wasm.__wbindgen_export_0);
+		        const len1 = WASM_VECTOR_LEN;
+		        wasm.attachSignature(retptr, ptr0, len0, ptr1, len1);
+		        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+		        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+		        var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+		        var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
+		        if (r3) {
+		            throw takeObject(r2);
+		        }
+		        var v3 = getArrayU8FromWasm0(r0, r1).slice();
+		        wasm.__wbindgen_export_2(r0, r1 * 1, 1);
+		        return v3;
+		    } finally {
+		        wasm.__wbindgen_add_to_stack_pointer(16);
 		    }
-		    var v3 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
-		    wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
-		    return v3;
 		};
 
 		module.exports.__wbg_String_8f0eb39a4a4c2f66 = function(arg0, arg1) {
-		    const ret = String(arg1);
-		    const ptr1 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+		    const ret = String(getObject(arg1));
+		    const ptr1 = passStringToWasm0(ret, wasm.__wbindgen_export_0, wasm.__wbindgen_export_1);
 		    const len1 = WASM_VECTOR_LEN;
 		    getDataViewMemory0().setInt32(arg0 + 4 * 1, len1, true);
 		    getDataViewMemory0().setInt32(arg0 + 4 * 0, ptr1, true);
 		};
 
 		module.exports.__wbg_buffer_61b7ce01341d7f88 = function(arg0) {
-		    const ret = arg0.buffer;
-		    return ret;
+		    const ret = getObject(arg0).buffer;
+		    return addHeapObject(ret);
 		};
 
 		module.exports.__wbg_entries_4f2bb9b0d701c0f6 = function(arg0) {
-		    const ret = Object.entries(arg0);
-		    return ret;
+		    const ret = Object.entries(getObject(arg0));
+		    return addHeapObject(ret);
 		};
 
 		module.exports.__wbg_from_d68eaa96dba25449 = function(arg0) {
-		    const ret = Array.from(arg0);
-		    return ret;
+		    const ret = Array.from(getObject(arg0));
+		    return addHeapObject(ret);
 		};
 
 		module.exports.__wbg_get_9aa3dff3f0266054 = function(arg0, arg1) {
-		    const ret = arg0[arg1 >>> 0];
-		    return ret;
+		    const ret = getObject(arg0)[arg1 >>> 0];
+		    return addHeapObject(ret);
 		};
 
 		module.exports.__wbg_getwithrefkey_1dc361bd10053bfe = function(arg0, arg1) {
-		    const ret = arg0[arg1];
-		    return ret;
+		    const ret = getObject(arg0)[getObject(arg1)];
+		    return addHeapObject(ret);
 		};
 
 		module.exports.__wbg_instanceof_ArrayBuffer_670ddde44cdb2602 = function(arg0) {
 		    let result;
 		    try {
-		        result = arg0 instanceof ArrayBuffer;
+		        result = getObject(arg0) instanceof ArrayBuffer;
 		    } catch (_) {
 		        result = false;
 		    }
@@ -297,7 +354,7 @@ function requireAlgo_models_ffi () {
 		module.exports.__wbg_instanceof_Uint8Array_28af5bc19d6acad8 = function(arg0) {
 		    let result;
 		    try {
-		        result = arg0 instanceof Uint8Array;
+		        result = getObject(arg0) instanceof Uint8Array;
 		    } catch (_) {
 		        result = false;
 		    }
@@ -306,74 +363,74 @@ function requireAlgo_models_ffi () {
 		};
 
 		module.exports.__wbg_isArray_1ba11a930108ec51 = function(arg0) {
-		    const ret = Array.isArray(arg0);
+		    const ret = Array.isArray(getObject(arg0));
 		    return ret;
 		};
 
 		module.exports.__wbg_isSafeInteger_12f5549b2fca23f4 = function(arg0) {
-		    const ret = Number.isSafeInteger(arg0);
+		    const ret = Number.isSafeInteger(getObject(arg0));
 		    return ret;
 		};
 
 		module.exports.__wbg_length_65d1cd11729ced11 = function(arg0) {
-		    const ret = arg0.length;
+		    const ret = getObject(arg0).length;
 		    return ret;
 		};
 
 		module.exports.__wbg_length_d65cf0786bfc5739 = function(arg0) {
-		    const ret = arg0.length;
+		    const ret = getObject(arg0).length;
 		    return ret;
 		};
 
 		module.exports.__wbg_new_3ff5b33b1ce712df = function(arg0) {
-		    const ret = new Uint8Array(arg0);
-		    return ret;
+		    const ret = new Uint8Array(getObject(arg0));
+		    return addHeapObject(ret);
 		};
 
 		module.exports.__wbg_new_688846f374351c92 = function() {
 		    const ret = new Object();
-		    return ret;
+		    return addHeapObject(ret);
 		};
 
 		module.exports.__wbg_newwithbyteoffsetandlength_ba35896968751d91 = function(arg0, arg1, arg2) {
-		    const ret = new Uint8Array(arg0, arg1 >>> 0, arg2 >>> 0);
-		    return ret;
+		    const ret = new Uint8Array(getObject(arg0), arg1 >>> 0, arg2 >>> 0);
+		    return addHeapObject(ret);
 		};
 
 		module.exports.__wbg_set_23d69db4e5c66a6e = function(arg0, arg1, arg2) {
-		    arg0.set(arg1, arg2 >>> 0);
+		    getObject(arg0).set(getObject(arg1), arg2 >>> 0);
 		};
 
 		module.exports.__wbg_set_3f1d0b984ed272ed = function(arg0, arg1, arg2) {
-		    arg0[arg1] = arg2;
+		    getObject(arg0)[takeObject(arg1)] = takeObject(arg2);
 		};
 
 		module.exports.__wbindgen_as_number = function(arg0) {
-		    const ret = +arg0;
+		    const ret = +getObject(arg0);
 		    return ret;
 		};
 
 		module.exports.__wbindgen_bigint_from_u64 = function(arg0) {
 		    const ret = BigInt.asUintN(64, arg0);
-		    return ret;
+		    return addHeapObject(ret);
 		};
 
 		module.exports.__wbindgen_bigint_get_as_i64 = function(arg0, arg1) {
-		    const v = arg1;
+		    const v = getObject(arg1);
 		    const ret = typeof(v) === 'bigint' ? v : undefined;
 		    getDataViewMemory0().setBigInt64(arg0 + 8 * 1, isLikeNone(ret) ? BigInt(0) : ret, true);
 		    getDataViewMemory0().setInt32(arg0 + 4 * 0, !isLikeNone(ret), true);
 		};
 
 		module.exports.__wbindgen_boolean_get = function(arg0) {
-		    const v = arg0;
+		    const v = getObject(arg0);
 		    const ret = typeof(v) === 'boolean' ? (v ? 1 : 0) : 2;
 		    return ret;
 		};
 
 		module.exports.__wbindgen_debug_string = function(arg0, arg1) {
-		    const ret = debugString(arg1);
-		    const ptr1 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+		    const ret = debugString(getObject(arg1));
+		    const ptr1 = passStringToWasm0(ret, wasm.__wbindgen_export_0, wasm.__wbindgen_export_1);
 		    const len1 = WASM_VECTOR_LEN;
 		    getDataViewMemory0().setInt32(arg0 + 4 * 1, len1, true);
 		    getDataViewMemory0().setInt32(arg0 + 4 * 0, ptr1, true);
@@ -381,62 +438,52 @@ function requireAlgo_models_ffi () {
 
 		module.exports.__wbindgen_error_new = function(arg0, arg1) {
 		    const ret = new Error(getStringFromWasm0(arg0, arg1));
-		    return ret;
+		    return addHeapObject(ret);
 		};
 
 		module.exports.__wbindgen_in = function(arg0, arg1) {
-		    const ret = arg0 in arg1;
+		    const ret = getObject(arg0) in getObject(arg1);
 		    return ret;
 		};
 
-		module.exports.__wbindgen_init_externref_table = function() {
-		    const table = wasm.__wbindgen_export_2;
-		    const offset = table.grow(4);
-		    table.set(0, undefined);
-		    table.set(offset + 0, undefined);
-		    table.set(offset + 1, null);
-		    table.set(offset + 2, true);
-		    table.set(offset + 3, false);
-		};
-
 		module.exports.__wbindgen_is_bigint = function(arg0) {
-		    const ret = typeof(arg0) === 'bigint';
+		    const ret = typeof(getObject(arg0)) === 'bigint';
 		    return ret;
 		};
 
 		module.exports.__wbindgen_is_object = function(arg0) {
-		    const val = arg0;
+		    const val = getObject(arg0);
 		    const ret = typeof(val) === 'object' && val !== null;
 		    return ret;
 		};
 
 		module.exports.__wbindgen_is_string = function(arg0) {
-		    const ret = typeof(arg0) === 'string';
+		    const ret = typeof(getObject(arg0)) === 'string';
 		    return ret;
 		};
 
 		module.exports.__wbindgen_is_undefined = function(arg0) {
-		    const ret = arg0 === undefined;
+		    const ret = getObject(arg0) === undefined;
 		    return ret;
 		};
 
 		module.exports.__wbindgen_jsval_eq = function(arg0, arg1) {
-		    const ret = arg0 === arg1;
+		    const ret = getObject(arg0) === getObject(arg1);
 		    return ret;
 		};
 
 		module.exports.__wbindgen_jsval_loose_eq = function(arg0, arg1) {
-		    const ret = arg0 == arg1;
+		    const ret = getObject(arg0) == getObject(arg1);
 		    return ret;
 		};
 
 		module.exports.__wbindgen_memory = function() {
 		    const ret = wasm.memory;
-		    return ret;
+		    return addHeapObject(ret);
 		};
 
 		module.exports.__wbindgen_number_get = function(arg0, arg1) {
-		    const obj = arg1;
+		    const obj = getObject(arg1);
 		    const ret = typeof(obj) === 'number' ? obj : undefined;
 		    getDataViewMemory0().setFloat64(arg0 + 8 * 1, isLikeNone(ret) ? 0 : ret, true);
 		    getDataViewMemory0().setInt32(arg0 + 4 * 0, !isLikeNone(ret), true);
@@ -444,13 +491,22 @@ function requireAlgo_models_ffi () {
 
 		module.exports.__wbindgen_number_new = function(arg0) {
 		    const ret = arg0;
-		    return ret;
+		    return addHeapObject(ret);
+		};
+
+		module.exports.__wbindgen_object_clone_ref = function(arg0) {
+		    const ret = getObject(arg0);
+		    return addHeapObject(ret);
+		};
+
+		module.exports.__wbindgen_object_drop_ref = function(arg0) {
+		    takeObject(arg0);
 		};
 
 		module.exports.__wbindgen_string_get = function(arg0, arg1) {
-		    const obj = arg1;
+		    const obj = getObject(arg1);
 		    const ret = typeof(obj) === 'string' ? obj : undefined;
-		    var ptr1 = isLikeNone(ret) ? 0 : passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+		    var ptr1 = isLikeNone(ret) ? 0 : passStringToWasm0(ret, wasm.__wbindgen_export_0, wasm.__wbindgen_export_1);
 		    var len1 = WASM_VECTOR_LEN;
 		    getDataViewMemory0().setInt32(arg0 + 4 * 1, len1, true);
 		    getDataViewMemory0().setInt32(arg0 + 4 * 0, ptr1, true);
@@ -458,7 +514,7 @@ function requireAlgo_models_ffi () {
 
 		module.exports.__wbindgen_string_new = function(arg0, arg1) {
 		    const ret = getStringFromWasm0(arg0, arg1);
-		    return ret;
+		    return addHeapObject(ret);
 		};
 
 		module.exports.__wbindgen_throw = function(arg0, arg1) {
@@ -471,9 +527,7 @@ function requireAlgo_models_ffi () {
 		const wasmModule = new WebAssembly.Module(bytes);
 		const wasmInstance = new WebAssembly.Instance(wasmModule, imports);
 		wasm = wasmInstance.exports;
-		module.exports.__wasm = wasm;
-
-		wasm.__wbindgen_start(); 
+		module.exports.__wasm = wasm; 
 	} (algo_models_ffi));
 	return algo_models_ffi.exports;
 }

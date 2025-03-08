@@ -5,3 +5,10 @@ members = [
 	"crates/algo_models_ffi",
 	"crates/uniffi-bindgen",
 ]
+
+
+[profile.release]
+# Need for WASM due to Rust 1.82+ using LLVM with reference-types enabled by default, 
+# which makes the WASM binary incompatible with wasm2js
+# See https://github.com/WebAssembly/binaryen/issues/7358
+strip = "symbols"
