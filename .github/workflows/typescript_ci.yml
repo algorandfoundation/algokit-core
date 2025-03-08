@@ -2,28 +2,13 @@ name: TypeScript CI
 
 on:
   push:
-    paths:
-      - crates/algo_models_ffi/**
-      - crates/algo_models/**
-      - packages/typescript/algo_models/**
-      - scripts/build/languages/typescript.ts
-      - scripts/build/index.ts
-      - "!*.md"
-      - .github/workflows/typescript_ci.yml
     branches:
-      - main
       - master
     tags:
       - "*"
   pull_request:
-    paths:
-      - crates/algo_models_ffi/**
-      - crates/algo_models/**
-      - packages/typescript/algo_models/**
-      - scripts/build/languages/typescript.ts
-      - scripts/build/index.ts
-      - "!*.md"
-      - .github/workflows/typescript_ci.yml
+    branches:
+      - master
   workflow_dispatch:
 
 permissions:

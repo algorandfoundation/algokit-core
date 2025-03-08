@@ -2,22 +2,13 @@ name: Python CI
 
 on:
   push:
-    paths:
-      - crates/algo_models_ffi/**
-      - crates/algo_models/**
-      - packages/python/algo_models/**/*
-      - "!*.md"
     branches:
-      - main
       - master
     tags:
       - "*"
   pull_request:
-    paths:
-      - crates/algo_models_ffi/**
-      - creates/algo_models/**
-      - packages/python/algo_models/**/*
-      - "!*.md"
+    branches:
+      - master
   workflow_dispatch:
 
 permissions:

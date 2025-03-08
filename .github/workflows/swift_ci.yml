@@ -2,28 +2,13 @@ name: Swift CI
 
 on:
   push:
-    paths:
-      - crates/algo_models_ffi/**
-      - crates/algo_models/**
-      - packages/swift/AlgoModels/**
-      - scripts/build/languages/swift.ts
-      - scripts/build/index.ts
-      - "!*.md"
-      - .github/workflows/swift_ci.yml
     branches:
-      - main
       - master
     tags:
       - "*"
   pull_request:
-    paths:
-      - crates/algo_models_ffi/**
-      - crates/algo_models/**
-      - packages/swift/AlgoModels/**
-      - scripts/build/languages/swift.ts
-      - scripts/build/index.ts
-      - "!*.md"
-      - .github/workflows/swift_ci.yml
+    branches:
+      - master
   workflow_dispatch:
 
 permissions:
