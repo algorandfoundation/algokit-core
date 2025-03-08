@@ -1,5 +1,5 @@
 use algo_models::AlgorandMsgpack;
-use ffi_macros::ffi_func;
+use ffi_macros::{ffi_func, ffi_record};
 use serde::{Deserialize, Serialize};
 use serde_bytes::ByteBuf;
 
@@ -93,19 +93,9 @@ pub enum TransactionType {
 // In the crate, we need to use the msgpack names for the fields, but in the FFI
 // we need to use the camelCase names for the fields for TSify.
 
-// A Record in UniFFI becomes a native struct in the language bindings
-// and an interface in TS. Using `large_number_types_as_bigints` is essential
-// for tsify to correctly use bigint for uint64s
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "ffi_wasm", derive(Tsify))]
-#[cfg_attr(
-    feature = "ffi_wasm",
-    tsify(into_wasm_abi, from_wasm_abi, large_number_types_as_bigints)
-)]
-#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
-#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 /// The transaction header contains the fields that can be present in any transaction.
 /// "Header" only indicates that these are common fields, NOT that they are the first fields in the transaction.
+#[ffi_record]
 pub struct TransactionHeader {
     /// The type of transaction
     transaction_type: TransactionType,
@@ -119,55 +109,29 @@ pub struct TransactionHeader {
 
     last_valid: u64,
 
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
     genesis_hash: Option<ByteBuf>,
 
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
     genesis_id: Option<String>,
 
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
     note: Option<ByteBuf>,
 
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
     rekey_to: Option<ByteBuf>,
 
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
     lease: Option<ByteBuf>,
 
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
     group: Option<ByteBuf>,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "ffi_wasm", derive(Tsify))]
-#[cfg_attr(
-    feature = "ffi_wasm",
-    tsify(into_wasm_abi, from_wasm_abi, large_number_types_as_bigints)
-)]
-#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
-#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[ffi_record]
 pub struct PayTransactionFields {
     receiver: ByteBuf,
 
     amount: u64,
 
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
     close_remainder_to: Option<ByteBuf>,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "ffi_wasm", derive(Tsify))]
-#[cfg_attr(
-    feature = "ffi_wasm",
-    tsify(into_wasm_abi, from_wasm_abi, large_number_types_as_bigints)
-)]
-#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
-#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[ffi_record]
 pub struct AssetTransferTransactionFields {
     asset_id: u64,
 
@@ -175,32 +139,17 @@ pub struct AssetTransferTransactionFields {
 
     receiver: ByteBuf,
 
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
     asset_sender: Option<ByteBuf>,
 
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
     close_remainder_to: Option<ByteBuf>,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "ffi_wasm", derive(Tsify))]
-#[cfg_attr(
-    feature = "ffi_wasm",
-    tsify(into_wasm_abi, from_wasm_abi, large_number_types_as_bigints)
-)]
-#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
-#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[ffi_record]
 pub struct Transaction {
     header: TransactionHeader,
 
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
     pay_fields: Option<PayTransactionFields>,
 
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
     asset_transfer_fields: Option<AssetTransferTransactionFields>,
 }
 
