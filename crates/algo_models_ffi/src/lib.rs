@@ -1,4 +1,5 @@
 use algo_models::AlgorandMsgpack;
+use ffi_macros::ffi_func;
 use serde::{Deserialize, Serialize};
 use serde_bytes::ByteBuf;
 
@@ -533,13 +534,9 @@ impl From<algo_models::TransactionType> for TransactionType {
 // Each function need to be explicitly renamed for WASM
 // and exported for UniFFI
 
-#[cfg_attr(
-    feature = "ffi_wasm",
-    wasm_bindgen(js_name = "getEncodedTransactionType")
-)]
-#[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
 /// Get the transaction type from the encoded transaction.
 /// This is particularly useful when decoding a transaction that has a unknow type
+#[ffi_func]
 pub fn get_encoded_transaction_type(bytes: &[u8]) -> Result<TransactionType, MsgPackError> {
     let decoded = algo_models::Transaction::decode(bytes)?;
 
@@ -549,22 +546,19 @@ pub fn get_encoded_transaction_type(bytes: &[u8]) -> Result<TransactionType, Msg
     }
 }
 
-#[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = "encodeTransaction"))]
-#[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
+#[ffi_func]
 pub fn encode_transaction(tx: Transaction) -> Result<Vec<u8>, MsgPackError> {
     let ctx: algo_models::Transaction = tx.try_into()?;
     Ok(ctx.encode()?)
 }
 
-#[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = "decodeTransaction"))]
-#[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
+#[ffi_func]
 pub fn decode_transaction(bytes: &[u8]) -> Result<Transaction, MsgPackError> {
     let ctx: algo_models::Transaction = algo_models::Transaction::decode(bytes)?;
     Ok(ctx.try_into()?)
 }
 
-#[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = "attachSignature"))]
-#[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
+#[ffi_func]
 pub fn attach_signature(encoded_tx: &[u8], signature: &[u8]) -> Result<Vec<u8>, MsgPackError> {
     let encoded_tx = algo_models::Transaction::decode(encoded_tx)?;
     let signed_tx = algo_models::SignedTransaction {
