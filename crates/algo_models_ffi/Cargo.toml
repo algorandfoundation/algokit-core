@@ -13,6 +13,7 @@ ffi_uniffi = ["dep:uniffi"]
 
 [dependencies]
 algo_models = { path = "../algo_models" }
+ffi_macros = { path = "../ffi_macros" }
 
 thiserror = "2.0.7"
 rmp-serde = "1.3.0"

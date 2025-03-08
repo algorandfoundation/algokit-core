@@ -6,10 +6,13 @@ async function wasmPack(
   target: "web" | "nodejs" | "bundler",
   cwd: string,
 ) {
-  await run(
-    `npx wasm-pack build --out-dir ../../packages/typescript/algo_models/pkg --mode normal --release --target ${target} ../../../crates/${crate}_ffi --no-default-features --features ffi_wasm`,
-    cwd,
-  );
+  const cmd = `npx wasm-pack build --out-dir ../../packages/typescript/algo_models/pkg --mode normal --release --target ${target} ../../../crates/${crate}_ffi --no-default-features --features ffi_wasm`;
+
+  await run(cmd, cwd, {
+    // Needed due to Rust 1.82+ using LLVM with reference-types enabled by default, which makes the WASM binary incompatible with wasm2js
+    // See https://github.com/WebAssembly/binaryen/issues/7358
+    RUSTFLAGS: "-C strip=symbols",
+  });
 }
 
 async function build(

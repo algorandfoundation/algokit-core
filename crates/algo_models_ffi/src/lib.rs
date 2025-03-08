@@ -1,4 +1,5 @@
 use algo_models::AlgorandMsgpack;
+use ffi_macros::{ffi_func, ffi_record};
 use serde::{Deserialize, Serialize};
 use serde_bytes::ByteBuf;
 
@@ -92,19 +93,9 @@ pub enum TransactionType {
 // In the crate, we need to use the msgpack names for the fields, but in the FFI
 // we need to use the camelCase names for the fields for TSify.
 
-// A Record in UniFFI becomes a native struct in the language bindings
-// and an interface in TS. Using `large_number_types_as_bigints` is essential
-// for tsify to correctly use bigint for uint64s
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "ffi_wasm", derive(Tsify))]
-#[cfg_attr(
-    feature = "ffi_wasm",
-    tsify(into_wasm_abi, from_wasm_abi, large_number_types_as_bigints)
-)]
-#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
-#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 /// The transaction header contains the fields that can be present in any transaction.
 /// "Header" only indicates that these are common fields, NOT that they are the first fields in the transaction.
+#[ffi_record]
 pub struct TransactionHeader {
     /// The type of transaction
     transaction_type: TransactionType,
@@ -118,55 +109,29 @@ pub struct TransactionHeader {
 
     last_valid: u64,
 
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
     genesis_hash: Option<ByteBuf>,
 
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
     genesis_id: Option<String>,
 
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
     note: Option<ByteBuf>,
 
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
     rekey_to: Option<ByteBuf>,
 
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
     lease: Option<ByteBuf>,
 
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
     group: Option<ByteBuf>,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "ffi_wasm", derive(Tsify))]
-#[cfg_attr(
-    feature = "ffi_wasm",
-    tsify(into_wasm_abi, from_wasm_abi, large_number_types_as_bigints)
-)]
-#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
-#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[ffi_record]
 pub struct PayTransactionFields {
     receiver: ByteBuf,
 
     amount: u64,
 
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
     close_remainder_to: Option<ByteBuf>,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "ffi_wasm", derive(Tsify))]
-#[cfg_attr(
-    feature = "ffi_wasm",
-    tsify(into_wasm_abi, from_wasm_abi, large_number_types_as_bigints)
-)]
-#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
-#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[ffi_record]
 pub struct AssetTransferTransactionFields {
     asset_id: u64,
 
@@ -174,32 +139,17 @@ pub struct AssetTransferTransactionFields {
 
     receiver: ByteBuf,
 
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
     asset_sender: Option<ByteBuf>,
 
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
     close_remainder_to: Option<ByteBuf>,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "ffi_wasm", derive(Tsify))]
-#[cfg_attr(
-    feature = "ffi_wasm",
-    tsify(into_wasm_abi, from_wasm_abi, large_number_types_as_bigints)
-)]
-#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
-#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[ffi_record]
 pub struct Transaction {
     header: TransactionHeader,
 
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
     pay_fields: Option<PayTransactionFields>,
 
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
     asset_transfer_fields: Option<AssetTransferTransactionFields>,
 }
 
@@ -533,13 +483,9 @@ impl From<algo_models::TransactionType> for TransactionType {
 // Each function need to be explicitly renamed for WASM
 // and exported for UniFFI
 
-#[cfg_attr(
-    feature = "ffi_wasm",
-    wasm_bindgen(js_name = "getEncodedTransactionType")
-)]
-#[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
 /// Get the transaction type from the encoded transaction.
 /// This is particularly useful when decoding a transaction that has a unknow type
+#[ffi_func]
 pub fn get_encoded_transaction_type(bytes: &[u8]) -> Result<TransactionType, MsgPackError> {
     let decoded = algo_models::Transaction::decode(bytes)?;
 
@@ -549,22 +495,19 @@ pub fn get_encoded_transaction_type(bytes: &[u8]) -> Result<TransactionType, Msg
     }
 }
 
-#[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = "encodeTransaction"))]
-#[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
+#[ffi_func]
 pub fn encode_transaction(tx: Transaction) -> Result<Vec<u8>, MsgPackError> {
     let ctx: algo_models::Transaction = tx.try_into()?;
     Ok(ctx.encode()?)
 }
 
-#[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = "decodeTransaction"))]
-#[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
+#[ffi_func]
 pub fn decode_transaction(bytes: &[u8]) -> Result<Transaction, MsgPackError> {
     let ctx: algo_models::Transaction = algo_models::Transaction::decode(bytes)?;
     Ok(ctx.try_into()?)
 }
 
-#[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = "attachSignature"))]
-#[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
+#[ffi_func]
 pub fn attach_signature(encoded_tx: &[u8], signature: &[u8]) -> Result<Vec<u8>, MsgPackError> {
     let encoded_tx = algo_models::Transaction::decode(encoded_tx)?;
     let signed_tx = algo_models::SignedTransaction {

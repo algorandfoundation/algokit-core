@@ -16,7 +16,11 @@ export function toPascalCase(string: string): string {
     .join("");
 }
 
-export function run(command: string, cwd: string | null = null): Promise<void> {
+export function run(
+  command: string,
+  cwd: string | null = null,
+  env: Record<string, string> = {},
+): Promise<void> {
   return new Promise<void>((resolvePromise) => {
     console.log(`Running '${command}'`);
 
@@ -24,6 +28,7 @@ export function run(command: string, cwd: string | null = null): Promise<void> {
     const subProcess = spawn(args[0], args.slice(1), {
       cwd: cwd || resolve(__dirname, "../../"),
       stdio: ["ignore", "pipe", "pipe"],
+      env: { ...process.env, ...env },
     });
 
     if (subProcess.stdout) {
