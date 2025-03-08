@@ -13,12 +13,9 @@ export async function buildSwift(crate: string) {
 
   const allTargets = [...Object.values(fatTargets).flat(), ...targets];
 
-  await Promise.all(
-    allTargets.map(async (target) => {
-      await run(`rustup target add ${target}`);
-      cargoBuildCmd += ` --target ${target}`;
-    }),
-  );
+  allTargets.map((target) => {
+    cargoBuildCmd += ` --target ${target}`;
+  });
 
   await run(cargoBuildCmd);
 
