@@ -43,7 +43,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: 1.82.0
+          toolchain: 1.85.0
           targets: ${{ matrix.target.name }}
       - uses: actions/setup-python@v5
         with:
@@ -113,7 +113,7 @@ jobs:
 
       - name: Install Rustup
         env:
-          RUN: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-host ${{ env.TARGET }} --default-toolchain=1.82.0
+          RUN: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-host ${{ env.TARGET }} --default-toolchain=1.85.0
         run: docker exec build-container bash -c "$RUN"
 
       - name: rustup target add
