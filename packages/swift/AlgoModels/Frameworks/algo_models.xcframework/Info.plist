@@ -6,22 +6,6 @@
 	<array>
 		<dict>
 			<key>BinaryPath</key>
-			<string>libalgo_models_ffi.dylib</string>
-			<key>HeadersPath</key>
-			<string>Headers</string>
-			<key>LibraryIdentifier</key>
-			<string>ios-arm64</string>
-			<key>LibraryPath</key>
-			<string>libalgo_models_ffi.dylib</string>
-			<key>SupportedArchitectures</key>
-			<array>
-				<string>arm64</string>
-			</array>
-			<key>SupportedPlatform</key>
-			<string>ios</string>
-		</dict>
-		<dict>
-			<key>BinaryPath</key>
 			<string>libalgo_models_ffi-macos.dylib</string>
 			<key>HeadersPath</key>
 			<string>Headers</string>
@@ -39,22 +23,19 @@
 		</dict>
 		<dict>
 			<key>BinaryPath</key>
-			<string>libalgo_models_ffi-ios-sim.dylib</string>
+			<string>libalgo_models_ffi.dylib</string>
 			<key>HeadersPath</key>
 			<string>Headers</string>
 			<key>LibraryIdentifier</key>
-			<string>ios-arm64_x86_64-simulator</string>
+			<string>ios-arm64</string>
 			<key>LibraryPath</key>
-			<string>libalgo_models_ffi-ios-sim.dylib</string>
+			<string>libalgo_models_ffi.dylib</string>
 			<key>SupportedArchitectures</key>
 			<array>
 				<string>arm64</string>
-				<string>x86_64</string>
 			</array>
 			<key>SupportedPlatform</key>
 			<string>ios</string>
-			<key>SupportedPlatformVariant</key>
-			<string>simulator</string>
 		</dict>
 		<dict>
 			<key>BinaryPath</key>
@@ -74,6 +55,25 @@
 			<string>ios</string>
 			<key>SupportedPlatformVariant</key>
 			<string>maccatalyst</string>
+		</dict>
+		<dict>
+			<key>BinaryPath</key>
+			<string>libalgo_models_ffi-ios-sim.dylib</string>
+			<key>HeadersPath</key>
+			<string>Headers</string>
+			<key>LibraryIdentifier</key>
+			<string>ios-arm64_x86_64-simulator</string>
+			<key>LibraryPath</key>
+			<string>libalgo_models_ffi-ios-sim.dylib</string>
+			<key>SupportedArchitectures</key>
+			<array>
+				<string>arm64</string>
+				<string>x86_64</string>
+			</array>
+			<key>SupportedPlatform</key>
+			<string>ios</string>
+			<key>SupportedPlatformVariant</key>
+			<string>simulator</string>
 		</dict>
 	</array>
 	<key>CFBundlePackageType</key>
