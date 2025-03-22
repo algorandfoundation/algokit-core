@@ -9,6 +9,8 @@ use thiserror::Error;
 
 const HASH_BYTES_LENGTH: usize = 32;
 const ALGORAND_CHECKSUM_BYTE_LENGTH: usize = 4;
+const ALGORAND_ADDRESS_LENGTH: usize = 58;
+const ALGORAND_PUBLIC_KEY_BYTE_LENGTH: usize = 32;
 
 #[derive(Debug, Error)]
 pub enum MsgPackError {
@@ -132,6 +134,16 @@ pub enum TransactionType {
 
 type Byte32 = [u8; 32];
 
+fn pub_key_to_checksum(pub_key: &Byte32) -> [u8; ALGORAND_CHECKSUM_BYTE_LENGTH] {
+    let mut hasher = Sha512_256::new();
+    hasher.update(&pub_key);
+
+    let mut checksum = [0u8; ALGORAND_CHECKSUM_BYTE_LENGTH];
+    checksum
+        .copy_from_slice(&hasher.finalize()[(HASH_BYTES_LENGTH - ALGORAND_CHECKSUM_BYTE_LENGTH)..]);
+    checksum
+}
+
 #[serde_as]
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 #[serde(transparent)]
@@ -145,28 +157,49 @@ impl Address {
         Address { pub_key: *pub_key }
     }
 
-    pub fn checksum(&self) -> [u8; ALGORAND_CHECKSUM_BYTE_LENGTH] {
-        let mut hasher = Sha512_256::new();
-        hasher.update(&self.pub_key);
+    pub fn from_string(address: &str) -> Result<Self, MsgPackError> {
+        if address.len() != ALGORAND_ADDRESS_LENGTH {
+            return Err(MsgPackError::InputError(
+                "address length is not 58".to_string(),
+            ));
+        }
+        let decoded = base32::decode(base32::Alphabet::Rfc4648 { padding: false }, address)
+            .expect("decoded value should exist");
 
-        let mut checksum = [0u8; ALGORAND_CHECKSUM_BYTE_LENGTH];
-        checksum.copy_from_slice(
-            &hasher.finalize()[(HASH_BYTES_LENGTH - ALGORAND_CHECKSUM_BYTE_LENGTH)..],
-        );
-        checksum
+        let pub_key: [u8; 32] = decoded[..ALGORAND_PUBLIC_KEY_BYTE_LENGTH]
+            .try_into()
+            .map_err(|_| {
+                MsgPackError::InputError("could not decode address into public key".to_string())
+            })?;
+
+        let checksum: [u8; 4] = decoded[ALGORAND_PUBLIC_KEY_BYTE_LENGTH..]
+            .try_into()
+            .map_err(|_| {
+                MsgPackError::InputError("could not get checksum from decoded address".to_string())
+            })?;
+
+        let computed_checksum = pub_key_to_checksum(&pub_key);
+
+        if computed_checksum != checksum {
+            return Err(MsgPackError::InputError(
+                "address checksum is invalid".to_string(),
+            ));
+        }
+
+        Ok(Self { pub_key })
+    }
+
+    pub fn checksum(&self) -> [u8; ALGORAND_CHECKSUM_BYTE_LENGTH] {
+        pub_key_to_checksum(&self.pub_key)
     }
 
     pub fn address(&self) -> String {
         let mut address_bytes = [0u8; 36]; // 32 bytes pub_key + 4 bytes checksum
 
-        println!("pub_key len: {:?}", self.pub_key.len());
         address_bytes[..32].copy_from_slice(&self.pub_key);
 
         let checksum = self.checksum();
         address_bytes[32..].copy_from_slice(&checksum);
-
-        println!("addr_bytes: {:?}", address_bytes);
-        println!("addr_bytes len: {:?}", address_bytes.len());
 
         base32::encode(base32::Alphabet::Rfc4648 { padding: false }, &address_bytes)
     }
@@ -409,4 +442,7 @@ fn test_address() {
         addr.address(),
         "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
     );
+
+    let addr_from_str = Address::from_string(&addr.address()).unwrap();
+    assert_eq!(addr, addr_from_str);
 }

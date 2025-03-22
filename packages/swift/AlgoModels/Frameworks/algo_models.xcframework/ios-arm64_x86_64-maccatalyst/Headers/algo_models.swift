@@ -1249,6 +1249,20 @@ public func FfiConverterTypeByteBuf_lower(_ value: ByteBuf) -> RustBuffer {
     return FfiConverterTypeByteBuf.lower(value)
 }
 
+public func addressFromPubKey(pubKey: Data)throws  -> Address {
+    return try  FfiConverterTypeAddress.lift(try rustCallWithError(FfiConverterTypeMsgPackError.lift) {
+    uniffi_algo_models_ffi_fn_func_address_from_pub_key(
+        FfiConverterData.lower(pubKey),$0
+    )
+})
+}
+public func addressFromString(address: String)throws  -> Address {
+    return try  FfiConverterTypeAddress.lift(try rustCallWithError(FfiConverterTypeMsgPackError.lift) {
+    uniffi_algo_models_ffi_fn_func_address_from_string(
+        FfiConverterString.lower(address),$0
+    )
+})
+}
 public func attachSignature(encodedTx: Data, signature: Data)throws  -> Data {
     return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeMsgPackError.lift) {
     uniffi_algo_models_ffi_fn_func_attach_signature(
@@ -1297,6 +1311,12 @@ private let initializationResult: InitializationResult = {
     let scaffolding_contract_version = ffi_algo_models_ffi_uniffi_contract_version()
     if bindings_contract_version != scaffolding_contract_version {
         return InitializationResult.contractVersionMismatch
+    }
+    if (uniffi_algo_models_ffi_checksum_func_address_from_pub_key() != 36982) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_algo_models_ffi_checksum_func_address_from_string() != 27803) {
+        return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_algo_models_ffi_checksum_func_attach_signature() != 24223) {
         return InitializationResult.apiChecksumMismatch

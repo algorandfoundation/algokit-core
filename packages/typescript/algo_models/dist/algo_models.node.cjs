@@ -307,6 +307,50 @@ function requireAlgo_models_ffi () {
 		    }
 		};
 
+		/**
+		 * @param {Uint8Array} pub_key
+		 * @returns {Address}
+		 */
+		module.exports.addressFromPubKey = function(pub_key) {
+		    try {
+		        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+		        const ptr0 = passArray8ToWasm0(pub_key, wasm.__wbindgen_export_0);
+		        const len0 = WASM_VECTOR_LEN;
+		        wasm.addressFromPubKey(retptr, ptr0, len0);
+		        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+		        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+		        var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+		        if (r2) {
+		            throw takeObject(r1);
+		        }
+		        return takeObject(r0);
+		    } finally {
+		        wasm.__wbindgen_add_to_stack_pointer(16);
+		    }
+		};
+
+		/**
+		 * @param {string} address
+		 * @returns {Address}
+		 */
+		module.exports.addressFromString = function(address) {
+		    try {
+		        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+		        const ptr0 = passStringToWasm0(address, wasm.__wbindgen_export_0, wasm.__wbindgen_export_1);
+		        const len0 = WASM_VECTOR_LEN;
+		        wasm.addressFromString(retptr, ptr0, len0);
+		        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+		        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+		        var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+		        if (r2) {
+		            throw takeObject(r1);
+		        }
+		        return takeObject(r0);
+		    } finally {
+		        wasm.__wbindgen_add_to_stack_pointer(16);
+		    }
+		};
+
 		module.exports.__wbg_String_8f0eb39a4a4c2f66 = function(arg0, arg1) {
 		    const ret = String(getObject(arg1));
 		    const ptr1 = passStringToWasm0(ret, wasm.__wbindgen_export_0, wasm.__wbindgen_export_1);

@@ -8,6 +8,8 @@ export function getEncodedTransactionType(bytes: Uint8Array): TransactionType;
 export function encodeTransaction(tx: Transaction): Uint8Array;
 export function decodeTransaction(bytes: Uint8Array): Transaction;
 export function attachSignature(encoded_tx: Uint8Array, signature: Uint8Array): Uint8Array;
+export function addressFromPubKey(pub_key: Uint8Array): Address;
+export function addressFromString(address: string): Address;
 export type TransactionType = "Payment" | "AssetTransfer" | "AssetFreeze" | "AssetConfig" | "KeyRegistration" | "ApplicationCall";
 
 export interface Address {

@@ -467,6 +467,23 @@ pub fn attach_signature(encoded_tx: &[u8], signature: &[u8]) -> Result<Vec<u8>, 
     Ok(signed_tx.encode()?)
 }
 
+#[ffi_func]
+pub fn address_from_pub_key(pub_key: &[u8]) -> Result<Address, MsgPackError> {
+    Ok(algo_models::Address::from_pubkey(
+        pub_key.try_into().map_err(|_| {
+            MsgPackError::EncodingError("public key should be 32 bytes".to_string())
+        })?,
+    )
+    .into())
+}
+
+#[ffi_func]
+pub fn address_from_string(address: &str) -> Result<Address, MsgPackError> {
+    algo_models::Address::from_string(address)
+        .map(|a| a.into())
+        .map_err(|e| MsgPackError::EncodingError(e.to_string()))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -478,7 +495,7 @@ mod tests {
         // Create a minimal payment transaction
         let header = TransactionHeader {
             transaction_type: TransactionType::Payment,
-            sender: addr.clone().into(),
+            sender: address_from_string(&addr.address()).unwrap(),
             fee: 1000,
             first_valid: 1000,
             last_valid: 2000,
@@ -491,7 +508,7 @@ mod tests {
         };
 
         let pay_fields = PayTransactionFields {
-            receiver: addr.into(),
+            receiver: address_from_pub_key(&addr.pub_key).unwrap(),
             amount: 1000000,
             close_remainder_to: None,
         };
