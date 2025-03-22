@@ -1,3 +1,5 @@
+#[cfg(test)]
+use pretty_assertions::assert_eq;
 use serde::{Deserialize, Serialize};
 // Primary using serde_with for Bytes, which is better than serde_bytes
 // see https://docs.rs/serde_with/latest/serde_with/struct.Bytes.html
@@ -145,7 +147,7 @@ fn pub_key_to_checksum(pub_key: &Byte32) -> [u8; ALGORAND_CHECKSUM_BYTE_LENGTH] 
 }
 
 #[serde_as]
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Default)]
 #[serde(transparent)]
 pub struct Address {
     #[serde_as(as = "Bytes")]
@@ -205,6 +207,34 @@ impl Address {
     }
 }
 
+fn is_zero(n: &u64) -> bool {
+    *n == 0u64
+}
+
+fn is_zero_addr(addr: &Address) -> bool {
+    addr.pub_key == [0u8; 32]
+}
+
+fn is_zero_addr_opt(addr: &Option<Address>) -> bool {
+    addr.as_ref().map_or(true, is_zero_addr)
+}
+
+fn is_empty_bytes32(bytes: &Byte32) -> bool {
+    bytes == &[0u8; 32]
+}
+
+fn is_empty_bytes32_opt(bytes: &Option<Byte32>) -> bool {
+    bytes.as_ref().map_or(true, is_empty_bytes32)
+}
+
+fn is_empty_string_opt(string: &Option<String>) -> bool {
+    string.as_ref().map_or(true, String::is_empty)
+}
+
+fn is_empty_vec_opt<T>(vec: &Option<Vec<T>>) -> bool {
+    vec.as_ref().map_or(true, Vec::is_empty)
+}
+
 #[serde_as]
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
@@ -213,35 +243,55 @@ pub struct TransactionHeader {
     pub transaction_type: TransactionType,
 
     #[serde(rename = "snd")]
+    #[serde(skip_serializing_if = "is_zero_addr")]
+    #[serde(default)]
     pub sender: Address,
 
+    #[serde(skip_serializing_if = "is_zero")]
+    #[serde(default)]
     pub fee: u64,
 
     #[serde(rename = "fv")]
+    #[serde(skip_serializing_if = "is_zero")]
+    #[serde(default)]
     pub first_valid: u64,
 
     #[serde(rename = "lv")]
+    #[serde(skip_serializing_if = "is_zero")]
+    #[serde(default)]
     pub last_valid: u64,
 
     #[serde(rename = "gh")]
     #[serde_as(as = "Option<Bytes>")]
+    #[serde(skip_serializing_if = "is_empty_bytes32_opt")]
+    #[serde(default)]
     pub genesis_hash: Option<Byte32>,
 
     #[serde(rename = "gen")]
+    #[serde(skip_serializing_if = "is_empty_string_opt")]
+    #[serde(default)]
     pub genesis_id: Option<String>,
 
     #[serde_as(as = "Option<Bytes>")]
+    #[serde(skip_serializing_if = "is_empty_vec_opt")]
+    #[serde(default)]
     pub note: Option<Vec<u8>>,
 
     #[serde(rename = "rekey")]
+    #[serde(skip_serializing_if = "is_zero_addr_opt")]
+    #[serde(default)]
     pub rekey_to: Option<Address>,
 
     #[serde(rename = "lx")]
     #[serde_as(as = "Option<Bytes>")]
+    #[serde(skip_serializing_if = "is_empty_bytes32_opt")]
+    #[serde(default)]
     pub lease: Option<Byte32>,
 
     #[serde(rename = "grp")]
     #[serde_as(as = "Option<Bytes>")]
+    #[serde(skip_serializing_if = "is_empty_bytes32_opt")]
+    #[serde(default)]
     pub group: Option<Byte32>,
 }
 
@@ -255,12 +305,18 @@ pub struct PayTransactionFields {
     pub header: TransactionHeader,
 
     #[serde(rename = "rcv")]
+    #[serde(skip_serializing_if = "is_zero_addr")]
+    #[serde(default)]
     pub receiver: Address,
 
     #[serde(rename = "amt")]
+    #[serde(skip_serializing_if = "is_zero")]
+    #[serde(default)]
     pub amount: u64,
 
     #[serde(rename = "close")]
+    #[serde(skip_serializing_if = "is_zero_addr_opt")]
+    #[serde(default)]
     pub close_remainder_to: Option<Address>,
 }
 
@@ -274,18 +330,28 @@ pub struct AssetTransferTransactionFields {
     pub header: TransactionHeader,
 
     #[serde(rename = "xaid")]
+    #[serde(skip_serializing_if = "is_zero")]
+    #[serde(default)]
     pub asset_id: u64,
 
     #[serde(rename = "aamt")]
+    #[serde(skip_serializing_if = "is_zero")]
+    #[serde(default)]
     pub amount: u64,
 
     #[serde(rename = "arcv")]
+    #[serde(skip_serializing_if = "is_zero_addr")]
+    #[serde(default)]
     pub receiver: Address,
 
     #[serde(rename = "asnd")]
+    #[serde(skip_serializing_if = "is_zero_addr_opt")]
+    #[serde(default)]
     pub asset_sender: Option<Address>,
 
     #[serde(rename = "aclose")]
+    #[serde(skip_serializing_if = "is_zero_addr_opt")]
+    #[serde(default)]
     pub close_remainder_to: Option<Address>,
 }
 
@@ -337,6 +403,35 @@ impl AlgorandMsgpack for SignedTransaction {
     fn encode(&self) -> Result<Vec<u8>, MsgPackError> {
         self.encode_raw()
     }
+
+    // Since we provide default values for all transaction fields, serde will not know which
+    // transaction type the bytes actually correspond with. To fix this we need to manually
+    // decode the transaction using Transaction::decode (which does check the type) and
+    // then add it to the decoded struct
+    fn decode(bytes: &[u8]) -> Result<Self, MsgPackError> {
+        let value: rmpv::Value = rmp_serde::from_slice(bytes)?;
+
+        match value {
+            rmpv::Value::Map(map) => {
+                let txn_value = &map
+                    .iter()
+                    .find(|(k, _)| k.as_str() == Some("txn"))
+                    .unwrap()
+                    .1;
+
+                let mut txn_buf = Vec::new();
+                rmpv::encode::write_value(&mut txn_buf, &txn_value)?;
+
+                let txn = Transaction::decode(&txn_buf)?;
+                let mut stxn: SignedTransaction = rmp_serde::from_slice(bytes)?;
+
+                stxn.transaction = txn;
+
+                return Ok(stxn);
+            }
+            _ => panic!(),
+        }
+    }
 }
 
 #[test]
@@ -345,8 +440,8 @@ fn test_pay_transaction() {
         header: TransactionHeader {
             genesis_id: None,
             transaction_type: TransactionType::Payment,
-            sender: Address::from_pubkey(&[0; 32]),
-            fee: 1000,
+            sender: Address::from_pubkey(&[1; 32]),
+            fee: 0,
             first_valid: 1000,
             last_valid: 1000,
             genesis_hash: None,
@@ -355,7 +450,7 @@ fn test_pay_transaction() {
             lease: None,
             group: None,
         },
-        receiver: Address::from_pubkey(&[0; 32]),
+        receiver: Address::from_pubkey(&[1; 32]),
         amount: 1000,
         close_remainder_to: None,
     };
@@ -384,7 +479,7 @@ fn test_pay_transaction() {
     assert_eq!(prefix_encoded[1], b'X');
     assert_eq!(prefix_encoded.len(), encoded_struct.len() + 2);
     assert_eq!(prefix_encoded[2..], encoded_struct);
-    assert_eq!(encoded_struct.len(), 112);
+    assert_eq!(encoded_struct.len(), 105);
 }
 
 #[test]
@@ -393,8 +488,8 @@ fn test_asset_transfer_transaction() {
         header: TransactionHeader {
             genesis_id: None,
             transaction_type: TransactionType::AssetTransfer,
-            sender: Address::from_pubkey(&[0; 32]),
-            fee: 1000,
+            sender: Address::from_pubkey(&[1; 32]),
+            fee: 0,
             first_valid: 1000,
             last_valid: 1000,
             genesis_hash: None,
@@ -405,7 +500,7 @@ fn test_asset_transfer_transaction() {
         },
         asset_id: 1,
         amount: 1000,
-        receiver: Address::from_pubkey(&[0; 32]),
+        receiver: Address::from_pubkey(&[1; 32]),
         asset_sender: None,
         close_remainder_to: None,
     };

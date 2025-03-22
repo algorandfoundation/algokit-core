@@ -21,6 +21,7 @@ from copy import deepcopy
 def convert_values(obj):
     if isinstance(obj, dict):
         if "address" in obj and "pub_key" in obj:
+            pprint(Address(**obj))
             return Address(address=obj["address"], pub_key=bytes(obj["pub_key"]))
         return {key: convert_values(value) for key, value in obj.items()}
     elif isinstance(obj, list) and all(isinstance(x, int) for x in obj):
@@ -120,11 +121,9 @@ def test_decoding_error_0_bytes():
 
 
 def test_decoding_error_malformed_bytes():
-    bad_bytes = bytearray(TEST_DATA["expected_bytes_for_signing"])
-    bad_bytes[13] = 37
+    bad_bytes = bytearray(TEST_DATA["expected_bytes_for_signing"])[13:37]
     with pytest.raises(
         MsgPackError.DecodingError,
-        match="Error ocurred during decoding: missing field `fee`",
     ):
         decode_transaction(bad_bytes)
 

@@ -77,11 +77,8 @@ describe("algo_models WASM", async () => {
     });
 
     test("DecodingError: malformed bytes", () => {
-      const badBytes = expectedBytesForSigning.slice();
-      badBytes[13] = 37;
-      expect(() => decodeTransaction(badBytes)).toThrow(
-        "DecodingError: Error ocurred during decoding: missing field `fee`",
-      );
+      const badBytes = expectedBytesForSigning.slice(13, 37);
+      expect(() => decodeTransaction(badBytes)).toThrow("DecodingError");
     });
 
     test("Error: invalid type", () => {
