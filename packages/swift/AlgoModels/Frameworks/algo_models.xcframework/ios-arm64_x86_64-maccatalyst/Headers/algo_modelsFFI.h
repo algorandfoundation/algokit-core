@@ -251,6 +251,16 @@ typedef void (*UniffiForeignFutureCompleteVoid)(uint64_t, UniffiForeignFutureStr
     );
 
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ALGO_MODELS_FFI_FN_FUNC_ADDRESS_FROM_PUB_KEY
+#define UNIFFI_FFIDEF_UNIFFI_ALGO_MODELS_FFI_FN_FUNC_ADDRESS_FROM_PUB_KEY
+RustBuffer uniffi_algo_models_ffi_fn_func_address_from_pub_key(RustBuffer pub_key, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ALGO_MODELS_FFI_FN_FUNC_ADDRESS_FROM_STRING
+#define UNIFFI_FFIDEF_UNIFFI_ALGO_MODELS_FFI_FN_FUNC_ADDRESS_FROM_STRING
+RustBuffer uniffi_algo_models_ffi_fn_func_address_from_string(RustBuffer address, RustCallStatus *_Nonnull out_status
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ALGO_MODELS_FFI_FN_FUNC_ATTACH_SIGNATURE
 #define UNIFFI_FFIDEF_UNIFFI_ALGO_MODELS_FFI_FN_FUNC_ATTACH_SIGNATURE
 RustBuffer uniffi_algo_models_ffi_fn_func_attach_signature(RustBuffer encoded_tx, RustBuffer signature, RustCallStatus *_Nonnull out_status
@@ -549,6 +559,18 @@ void ffi_algo_models_ffi_rust_future_free_void(uint64_t handle
 #ifndef UNIFFI_FFIDEF_FFI_ALGO_MODELS_FFI_RUST_FUTURE_COMPLETE_VOID
 #define UNIFFI_FFIDEF_FFI_ALGO_MODELS_FFI_RUST_FUTURE_COMPLETE_VOID
 void ffi_algo_models_ffi_rust_future_complete_void(uint64_t handle, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ALGO_MODELS_FFI_CHECKSUM_FUNC_ADDRESS_FROM_PUB_KEY
+#define UNIFFI_FFIDEF_UNIFFI_ALGO_MODELS_FFI_CHECKSUM_FUNC_ADDRESS_FROM_PUB_KEY
+uint16_t uniffi_algo_models_ffi_checksum_func_address_from_pub_key(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_ALGO_MODELS_FFI_CHECKSUM_FUNC_ADDRESS_FROM_STRING
+#define UNIFFI_FFIDEF_UNIFFI_ALGO_MODELS_FFI_CHECKSUM_FUNC_ADDRESS_FROM_STRING
+uint16_t uniffi_algo_models_ffi_checksum_func_address_from_string(void
+    
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_ALGO_MODELS_FFI_CHECKSUM_FUNC_ATTACH_SIGNATURE
