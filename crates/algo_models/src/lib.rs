@@ -3,8 +3,12 @@ use serde::{Deserialize, Serialize};
 // see https://docs.rs/serde_with/latest/serde_with/struct.Bytes.html
 // It also has some other nice QOL features, like skip_serializing_none
 use serde_with::{serde_as, skip_serializing_none, Bytes};
+use sha2::{Digest, Sha512_256};
 use std::collections::BTreeMap;
 use thiserror::Error;
+
+const HASH_BYTES_LENGTH: usize = 32;
+const ALGORAND_CHECKSUM_BYTE_LENGTH: usize = 4;
 
 #[derive(Debug, Error)]
 pub enum MsgPackError {
@@ -127,7 +131,46 @@ pub enum TransactionType {
 }
 
 type Byte32 = [u8; 32];
-type Pubkey = Byte32;
+
+#[serde_as]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+#[serde(transparent)]
+pub struct Address {
+    #[serde_as(as = "Bytes")]
+    pub pub_key: Byte32,
+}
+
+impl Address {
+    pub fn from_pubkey(pub_key: &Byte32) -> Self {
+        Address { pub_key: *pub_key }
+    }
+
+    pub fn checksum(&self) -> [u8; ALGORAND_CHECKSUM_BYTE_LENGTH] {
+        let mut hasher = Sha512_256::new();
+        hasher.update(&self.pub_key);
+
+        let mut checksum = [0u8; ALGORAND_CHECKSUM_BYTE_LENGTH];
+        checksum.copy_from_slice(
+            &hasher.finalize()[(HASH_BYTES_LENGTH - ALGORAND_CHECKSUM_BYTE_LENGTH)..],
+        );
+        checksum
+    }
+
+    pub fn address(&self) -> String {
+        let mut address_bytes = [0u8; 36]; // 32 bytes pub_key + 4 bytes checksum
+
+        println!("pub_key len: {:?}", self.pub_key.len());
+        address_bytes[..32].copy_from_slice(&self.pub_key);
+
+        let checksum = self.checksum();
+        address_bytes[32..].copy_from_slice(&checksum);
+
+        println!("addr_bytes: {:?}", address_bytes);
+        println!("addr_bytes len: {:?}", address_bytes.len());
+
+        base32::encode(base32::Alphabet::Rfc4648 { padding: false }, &address_bytes)
+    }
+}
 
 #[serde_as]
 #[skip_serializing_none]
@@ -137,8 +180,7 @@ pub struct TransactionHeader {
     pub transaction_type: TransactionType,
 
     #[serde(rename = "snd")]
-    #[serde_as(as = "Bytes")]
-    pub sender: Pubkey,
+    pub sender: Address,
 
     pub fee: u64,
 
@@ -159,8 +201,7 @@ pub struct TransactionHeader {
     pub note: Option<Vec<u8>>,
 
     #[serde(rename = "rekey")]
-    #[serde_as(as = "Option<Bytes>")]
-    pub rekey_to: Option<Pubkey>,
+    pub rekey_to: Option<Address>,
 
     #[serde(rename = "lx")]
     #[serde_as(as = "Option<Bytes>")]
@@ -181,14 +222,13 @@ pub struct PayTransactionFields {
     pub header: TransactionHeader,
 
     #[serde(rename = "rcv")]
-    #[serde_as(as = "Bytes")]
-    pub receiver: Pubkey,
+    pub receiver: Address,
 
     #[serde(rename = "amt")]
     pub amount: u64,
 
     #[serde(rename = "close")]
-    pub close_remainder_to: Option<Pubkey>,
+    pub close_remainder_to: Option<Address>,
 }
 
 impl AlgorandMsgpack for PayTransactionFields {}
@@ -207,16 +247,13 @@ pub struct AssetTransferTransactionFields {
     pub amount: u64,
 
     #[serde(rename = "arcv")]
-    #[serde_as(as = "Bytes")]
-    pub receiver: Pubkey,
+    pub receiver: Address,
 
     #[serde(rename = "asnd")]
-    #[serde_as(as = "Option<Bytes>")]
-    pub asset_sender: Option<Pubkey>,
+    pub asset_sender: Option<Address>,
 
     #[serde(rename = "aclose")]
-    #[serde_as(as = "Option<Bytes>")]
-    pub close_remainder_to: Option<Pubkey>,
+    pub close_remainder_to: Option<Address>,
 }
 
 impl AlgorandMsgpack for AssetTransferTransactionFields {}
@@ -275,7 +312,7 @@ fn test_pay_transaction() {
         header: TransactionHeader {
             genesis_id: None,
             transaction_type: TransactionType::Payment,
-            sender: [0; 32],
+            sender: Address::from_pubkey(&[0; 32]),
             fee: 1000,
             first_valid: 1000,
             last_valid: 1000,
@@ -285,7 +322,7 @@ fn test_pay_transaction() {
             lease: None,
             group: None,
         },
-        receiver: [0; 32],
+        receiver: Address::from_pubkey(&[0; 32]),
         amount: 1000,
         close_remainder_to: None,
     };
@@ -323,7 +360,7 @@ fn test_asset_transfer_transaction() {
         header: TransactionHeader {
             genesis_id: None,
             transaction_type: TransactionType::AssetTransfer,
-            sender: [0; 32],
+            sender: Address::from_pubkey(&[0; 32]),
             fee: 1000,
             first_valid: 1000,
             last_valid: 1000,
@@ -335,7 +372,7 @@ fn test_asset_transfer_transaction() {
         },
         asset_id: 1,
         amount: 1000,
-        receiver: [0; 32],
+        receiver: Address::from_pubkey(&[0; 32]),
         asset_sender: None,
         close_remainder_to: None,
     };
@@ -363,4 +400,13 @@ fn test_asset_transfer_transaction() {
     assert_eq!(prefix_encoded[1], b'X');
     assert_eq!(prefix_encoded.len(), encoded_struct.len() + 2);
     assert_eq!(prefix_encoded[2..], encoded_struct);
+}
+
+#[test]
+fn test_address() {
+    let addr = Address::from_pubkey(&[0; 32]);
+    assert_eq!(
+        addr.address(),
+        "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
+    );
 }

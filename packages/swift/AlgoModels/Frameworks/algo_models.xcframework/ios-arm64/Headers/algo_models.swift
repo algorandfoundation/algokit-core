@@ -472,16 +472,82 @@ fileprivate struct FfiConverterData: FfiConverterRustBuffer {
 }
 
 
-public struct AssetTransferTransactionFields {
-    public var assetId: UInt64
-    public var amount: UInt64
-    public var receiver: ByteBuf
-    public var assetSender: ByteBuf?
-    public var closeRemainderTo: ByteBuf?
+public struct Address {
+    public var address: String
+    public var pubKey: ByteBuf
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(assetId: UInt64, amount: UInt64, receiver: ByteBuf, assetSender: ByteBuf? = nil, closeRemainderTo: ByteBuf? = nil) {
+    public init(address: String, pubKey: ByteBuf) {
+        self.address = address
+        self.pubKey = pubKey
+    }
+}
+
+
+
+extension Address: Equatable, Hashable {
+    public static func ==(lhs: Address, rhs: Address) -> Bool {
+        if lhs.address != rhs.address {
+            return false
+        }
+        if lhs.pubKey != rhs.pubKey {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(address)
+        hasher.combine(pubKey)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeAddress: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Address {
+        return
+            try Address(
+                address: FfiConverterString.read(from: &buf), 
+                pubKey: FfiConverterTypeByteBuf.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: Address, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.address, into: &buf)
+        FfiConverterTypeByteBuf.write(value.pubKey, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeAddress_lift(_ buf: RustBuffer) throws -> Address {
+    return try FfiConverterTypeAddress.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeAddress_lower(_ value: Address) -> RustBuffer {
+    return FfiConverterTypeAddress.lower(value)
+}
+
+
+public struct AssetTransferTransactionFields {
+    public var assetId: UInt64
+    public var amount: UInt64
+    public var receiver: Address
+    public var assetSender: Address?
+    public var closeRemainderTo: Address?
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(assetId: UInt64, amount: UInt64, receiver: Address, assetSender: Address? = nil, closeRemainderTo: Address? = nil) {
         self.assetId = assetId
         self.amount = amount
         self.receiver = receiver
@@ -531,18 +597,18 @@ public struct FfiConverterTypeAssetTransferTransactionFields: FfiConverterRustBu
             try AssetTransferTransactionFields(
                 assetId: FfiConverterUInt64.read(from: &buf), 
                 amount: FfiConverterUInt64.read(from: &buf), 
-                receiver: FfiConverterTypeByteBuf.read(from: &buf), 
-                assetSender: FfiConverterOptionTypeByteBuf.read(from: &buf), 
-                closeRemainderTo: FfiConverterOptionTypeByteBuf.read(from: &buf)
+                receiver: FfiConverterTypeAddress.read(from: &buf), 
+                assetSender: FfiConverterOptionTypeAddress.read(from: &buf), 
+                closeRemainderTo: FfiConverterOptionTypeAddress.read(from: &buf)
         )
     }
 
     public static func write(_ value: AssetTransferTransactionFields, into buf: inout [UInt8]) {
         FfiConverterUInt64.write(value.assetId, into: &buf)
         FfiConverterUInt64.write(value.amount, into: &buf)
-        FfiConverterTypeByteBuf.write(value.receiver, into: &buf)
-        FfiConverterOptionTypeByteBuf.write(value.assetSender, into: &buf)
-        FfiConverterOptionTypeByteBuf.write(value.closeRemainderTo, into: &buf)
+        FfiConverterTypeAddress.write(value.receiver, into: &buf)
+        FfiConverterOptionTypeAddress.write(value.assetSender, into: &buf)
+        FfiConverterOptionTypeAddress.write(value.closeRemainderTo, into: &buf)
     }
 }
 
@@ -563,13 +629,13 @@ public func FfiConverterTypeAssetTransferTransactionFields_lower(_ value: AssetT
 
 
 public struct PayTransactionFields {
-    public var receiver: ByteBuf
+    public var receiver: Address
     public var amount: UInt64
-    public var closeRemainderTo: ByteBuf?
+    public var closeRemainderTo: Address?
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(receiver: ByteBuf, amount: UInt64, closeRemainderTo: ByteBuf? = nil) {
+    public init(receiver: Address, amount: UInt64, closeRemainderTo: Address? = nil) {
         self.receiver = receiver
         self.amount = amount
         self.closeRemainderTo = closeRemainderTo
@@ -607,16 +673,16 @@ public struct FfiConverterTypePayTransactionFields: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> PayTransactionFields {
         return
             try PayTransactionFields(
-                receiver: FfiConverterTypeByteBuf.read(from: &buf), 
+                receiver: FfiConverterTypeAddress.read(from: &buf), 
                 amount: FfiConverterUInt64.read(from: &buf), 
-                closeRemainderTo: FfiConverterOptionTypeByteBuf.read(from: &buf)
+                closeRemainderTo: FfiConverterOptionTypeAddress.read(from: &buf)
         )
     }
 
     public static func write(_ value: PayTransactionFields, into buf: inout [UInt8]) {
-        FfiConverterTypeByteBuf.write(value.receiver, into: &buf)
+        FfiConverterTypeAddress.write(value.receiver, into: &buf)
         FfiConverterUInt64.write(value.amount, into: &buf)
-        FfiConverterOptionTypeByteBuf.write(value.closeRemainderTo, into: &buf)
+        FfiConverterOptionTypeAddress.write(value.closeRemainderTo, into: &buf)
     }
 }
 
@@ -722,14 +788,14 @@ public struct TransactionHeader {
     /**
      * The sender of the transaction
      */
-    public var sender: ByteBuf
+    public var sender: Address
     public var fee: UInt64
     public var firstValid: UInt64
     public var lastValid: UInt64
     public var genesisHash: ByteBuf?
     public var genesisId: String?
     public var note: ByteBuf?
-    public var rekeyTo: ByteBuf?
+    public var rekeyTo: Address?
     public var lease: ByteBuf?
     public var group: ByteBuf?
 
@@ -741,7 +807,7 @@ public struct TransactionHeader {
          */transactionType: TransactionType, 
         /**
          * The sender of the transaction
-         */sender: ByteBuf, fee: UInt64, firstValid: UInt64, lastValid: UInt64, genesisHash: ByteBuf?, genesisId: String?, note: ByteBuf? = nil, rekeyTo: ByteBuf? = nil, lease: ByteBuf? = nil, group: ByteBuf? = nil) {
+         */sender: Address, fee: UInt64, firstValid: UInt64, lastValid: UInt64, genesisHash: ByteBuf?, genesisId: String?, note: ByteBuf? = nil, rekeyTo: Address? = nil, lease: ByteBuf? = nil, group: ByteBuf? = nil) {
         self.transactionType = transactionType
         self.sender = sender
         self.fee = fee
@@ -820,14 +886,14 @@ public struct FfiConverterTypeTransactionHeader: FfiConverterRustBuffer {
         return
             try TransactionHeader(
                 transactionType: FfiConverterTypeTransactionType.read(from: &buf), 
-                sender: FfiConverterTypeByteBuf.read(from: &buf), 
+                sender: FfiConverterTypeAddress.read(from: &buf), 
                 fee: FfiConverterUInt64.read(from: &buf), 
                 firstValid: FfiConverterUInt64.read(from: &buf), 
                 lastValid: FfiConverterUInt64.read(from: &buf), 
                 genesisHash: FfiConverterOptionTypeByteBuf.read(from: &buf), 
                 genesisId: FfiConverterOptionString.read(from: &buf), 
                 note: FfiConverterOptionTypeByteBuf.read(from: &buf), 
-                rekeyTo: FfiConverterOptionTypeByteBuf.read(from: &buf), 
+                rekeyTo: FfiConverterOptionTypeAddress.read(from: &buf), 
                 lease: FfiConverterOptionTypeByteBuf.read(from: &buf), 
                 group: FfiConverterOptionTypeByteBuf.read(from: &buf)
         )
@@ -835,14 +901,14 @@ public struct FfiConverterTypeTransactionHeader: FfiConverterRustBuffer {
 
     public static func write(_ value: TransactionHeader, into buf: inout [UInt8]) {
         FfiConverterTypeTransactionType.write(value.transactionType, into: &buf)
-        FfiConverterTypeByteBuf.write(value.sender, into: &buf)
+        FfiConverterTypeAddress.write(value.sender, into: &buf)
         FfiConverterUInt64.write(value.fee, into: &buf)
         FfiConverterUInt64.write(value.firstValid, into: &buf)
         FfiConverterUInt64.write(value.lastValid, into: &buf)
         FfiConverterOptionTypeByteBuf.write(value.genesisHash, into: &buf)
         FfiConverterOptionString.write(value.genesisId, into: &buf)
         FfiConverterOptionTypeByteBuf.write(value.note, into: &buf)
-        FfiConverterOptionTypeByteBuf.write(value.rekeyTo, into: &buf)
+        FfiConverterOptionTypeAddress.write(value.rekeyTo, into: &buf)
         FfiConverterOptionTypeByteBuf.write(value.lease, into: &buf)
         FfiConverterOptionTypeByteBuf.write(value.group, into: &buf)
     }
@@ -1039,6 +1105,30 @@ fileprivate struct FfiConverterOptionString: FfiConverterRustBuffer {
         switch try readInt(&buf) as Int8 {
         case 0: return nil
         case 1: return try FfiConverterString.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterOptionTypeAddress: FfiConverterRustBuffer {
+    typealias SwiftType = Address?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTypeAddress.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTypeAddress.read(from: &buf)
         default: throw UniffiInternalError.unexpectedOptionalTag
         }
     }

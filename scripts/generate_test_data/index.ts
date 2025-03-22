@@ -34,7 +34,10 @@ const data = {
   privKey: Array.from(sender.sk.slice(0, 32)),
   transaction: {
     header: {
-      sender: Array.from(sender.addr.publicKey),
+      sender: {
+        address: sender.addr.toString(),
+        pubKey: Array.from(sender.addr.publicKey),
+      },
       fee: 1000,
       transactionType: "Payment",
       firstValid: sp.firstValid,
@@ -43,7 +46,10 @@ const data = {
       genesisId: sp.genesisID,
     },
     payFields: {
-      receiver: Array.from(receiver.addr.publicKey),
+      receiver: {
+        address: receiver.addr.toString(),
+        pubKey: Array.from(receiver.addr.publicKey),
+      },
       amount: pay.payment?.amount,
     },
   },
@@ -60,5 +66,4 @@ const replacer = (_: any, v: any) => {
 
 const content = JSON.stringify(data, replacer, 2);
 
-fs.writeFileSync("crates/algo_models_ffi/tests/test_data.json", content);
-
+fs.writeFileSync("crates/algo_models_ffi/test_data.json", content);

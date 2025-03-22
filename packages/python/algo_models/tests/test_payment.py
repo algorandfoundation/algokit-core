@@ -1,6 +1,8 @@
 from pathlib import Path
 import json
+from pprint import pprint
 from algo_models import (
+    Address,
     TransactionHeader,
     encode_transaction,
     PayTransactionFields,
@@ -9,20 +11,22 @@ from algo_models import (
     decode_transaction,
     get_encoded_transaction_type,
     MsgPackError,
-    Transaction
+    Transaction,
 )
 from nacl.signing import SigningKey
 import pytest
 from copy import deepcopy
 
 
-def convert_lists_to_bytes(obj):
+def convert_values(obj):
     if isinstance(obj, dict):
-        return {key: convert_lists_to_bytes(value) for key, value in obj.items()}
+        if "address" in obj and "pub_key" in obj:
+            return Address(address=obj["address"], pub_key=bytes(obj["pub_key"]))
+        return {key: convert_values(value) for key, value in obj.items()}
     elif isinstance(obj, list) and all(isinstance(x, int) for x in obj):
         return bytes(obj)
     elif isinstance(obj, list):
-        return [convert_lists_to_bytes(x) for x in obj]
+        return [convert_values(x) for x in obj]
     return obj
 
 
@@ -46,21 +50,27 @@ def convert_case_recursive(obj):
 
 def load_test_data():
     # Get the path to test_data.json relative to this test file
-    test_data_path = Path(__file__).parent.parent.parent.parent.parent / "crates" / "algo_models_ffi" / "test_data.json"
+    test_data_path = (
+        Path(__file__).parent.parent.parent.parent.parent
+        / "crates"
+        / "algo_models_ffi"
+        / "test_data.json"
+    )
 
     with open(test_data_path) as f:
         data = json.load(f)
 
     data = convert_case_recursive(data)
-    data = convert_lists_to_bytes(data)
+    data = convert_values(data)
 
     data["transaction"]["header"]["transaction_type"] = TransactionType.PAYMENT
 
-    data["transaction"]["header"] = TransactionHeader(
-        **data["transaction"]["header"]
-    )
+    data["transaction"]["header"] = TransactionHeader(**data["transaction"]["header"])
 
-    data["transaction"] = Transaction(header=data["transaction"]["header"], pay_fields=PayTransactionFields(**data["transaction"]["pay_fields"]))
+    data["transaction"] = Transaction(
+        header=data["transaction"]["header"],
+        pay_fields=PayTransactionFields(**data["transaction"]["pay_fields"]),
+    )
 
     return data
 
@@ -71,7 +81,8 @@ PRIV_KEY = SigningKey(TEST_DATA["priv_key"])
 
 def test_encode():
     assert (
-        encode_transaction(TEST_DATA["transaction"]) == TEST_DATA["expected_bytes_for_signing"]
+        encode_transaction(TEST_DATA["transaction"])
+        == TEST_DATA["expected_bytes_for_signing"]
     )
 
 
@@ -84,7 +95,8 @@ def test_encode_with_signature():
 
 def test_decode_with_tx_prefix():
     assert (
-        decode_transaction(TEST_DATA["expected_bytes_for_signing"]) == TEST_DATA["transaction"]
+        decode_transaction(TEST_DATA["expected_bytes_for_signing"])
+        == TEST_DATA["transaction"]
     )
 
 

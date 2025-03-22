@@ -88,6 +88,33 @@ pub enum TransactionType {
     ApplicationCall,
 }
 
+#[ffi_record]
+pub struct Address {
+    address: String,
+    pub_key: ByteBuf,
+}
+
+impl From<algo_models::Address> for Address {
+    fn from(value: algo_models::Address) -> Self {
+        return Self {
+            address: value.address(),
+            pub_key: value.pub_key.to_vec().into(),
+        };
+    }
+}
+
+impl TryFrom<Address> for algo_models::Address {
+    type Error = MsgPackError;
+
+    fn try_from(value: Address) -> Result<Self, Self::Error> {
+        let pub_key: [u8; 32] = value.pub_key.to_vec().try_into().map_err(|_| {
+            MsgPackError::EncodingError("public key should be 32 bytes".to_string())
+        })?;
+
+        Ok(algo_models::Address::from_pubkey(&pub_key))
+    }
+}
+
 // Even though these stucts are all defined in the crate, we need to re-define them
 // because we have to use different serde attributes for the struct fields.
 // In the crate, we need to use the msgpack names for the fields, but in the FFI
@@ -101,7 +128,7 @@ pub struct TransactionHeader {
     transaction_type: TransactionType,
 
     /// The sender of the transaction
-    sender: ByteBuf,
+    sender: Address,
 
     fee: u64,
 
@@ -115,7 +142,7 @@ pub struct TransactionHeader {
 
     note: Option<ByteBuf>,
 
-    rekey_to: Option<ByteBuf>,
+    rekey_to: Option<Address>,
 
     lease: Option<ByteBuf>,
 
@@ -124,11 +151,11 @@ pub struct TransactionHeader {
 
 #[ffi_record]
 pub struct PayTransactionFields {
-    receiver: ByteBuf,
+    receiver: Address,
 
     amount: u64,
 
-    close_remainder_to: Option<ByteBuf>,
+    close_remainder_to: Option<Address>,
 }
 
 #[ffi_record]
@@ -137,11 +164,11 @@ pub struct AssetTransferTransactionFields {
 
     amount: u64,
 
-    receiver: ByteBuf,
+    receiver: Address,
 
-    asset_sender: Option<ByteBuf>,
+    asset_sender: Option<Address>,
 
-    close_remainder_to: Option<ByteBuf>,
+    close_remainder_to: Option<Address>,
 }
 
 #[ffi_record]
@@ -172,21 +199,8 @@ impl TryFrom<Transaction> for algo_models::Transaction {
                 algo_models::PayTransactionFields {
                     header: tx.header.try_into()?,
                     amount: pay.amount,
-                    receiver: pay.receiver.to_vec().try_into().map_err(|_| {
-                        MsgPackError::EncodingError(
-                            "receiver should be 32 byte public key".to_string(),
-                        )
-                    })?,
-                    close_remainder_to: pay
-                        .close_remainder_to
-                        .map(|b| {
-                            b.to_vec().try_into().map_err(|_| {
-                                MsgPackError::EncodingError(
-                                    "close remainder to should be 32 byte public key".to_string(),
-                                )
-                            })
-                        })
-                        .transpose()?,
+                    receiver: pay.receiver.try_into()?,
+                    close_remainder_to: pay.close_remainder_to.map(|a| a.try_into()).transpose()?,
                 },
             ));
         }
@@ -197,30 +211,14 @@ impl TryFrom<Transaction> for algo_models::Transaction {
                     header: tx.header.try_into()?,
                     asset_id: asset_transfer.asset_id,
                     amount: asset_transfer.amount,
-                    receiver: asset_transfer.receiver.to_vec().try_into().map_err(|_| {
-                        MsgPackError::EncodingError(
-                            "receiver should be 32 byte public key".to_string(),
-                        )
-                    })?,
+                    receiver: asset_transfer.receiver.try_into()?,
                     asset_sender: asset_transfer
                         .asset_sender
-                        .map(|b| {
-                            b.to_vec().try_into().map_err(|_| {
-                                MsgPackError::EncodingError(
-                                    "close remainder to should be 32 byte public key".to_string(),
-                                )
-                            })
-                        })
+                        .map(|a| a.try_into())
                         .transpose()?,
                     close_remainder_to: asset_transfer
                         .close_remainder_to
-                        .map(|b| {
-                            b.to_vec().try_into().map_err(|_| {
-                                MsgPackError::EncodingError(
-                                    "close remainder to should be 32 byte public key".to_string(),
-                                )
-                            })
-                        })
+                        .map(|a| a.try_into())
                         .transpose()?,
                 },
             ));
@@ -251,9 +249,7 @@ impl TryFrom<TransactionHeader> for algo_models::TransactionHeader {
     fn try_from(tx: TransactionHeader) -> Result<Self, MsgPackError> {
         Ok(Self {
             transaction_type: tx.transaction_type.into(),
-            sender: tx.sender.to_vec().try_into().map_err(|_| {
-                MsgPackError::EncodingError("sender should be 32 byte public key".to_string())
-            })?,
+            sender: tx.sender.try_into()?,
             fee: tx.fee,
             first_valid: tx.first_valid,
             last_valid: tx.last_valid,
@@ -269,16 +265,7 @@ impl TryFrom<TransactionHeader> for algo_models::TransactionHeader {
                 })
                 .transpose()?,
             note: tx.note.map(|b| b.to_vec()),
-            rekey_to: tx
-                .rekey_to
-                .map(|b| {
-                    b.to_vec().try_into().map_err(|_| {
-                        MsgPackError::EncodingError(
-                            "rekey_to should be 32 byte public key".to_string(),
-                        )
-                    })
-                })
-                .transpose()?,
+            rekey_to: tx.rekey_to.map(|a| a.try_into()).transpose()?,
             lease: tx
                 .lease
                 .map(|b| {
@@ -303,14 +290,14 @@ impl From<algo_models::TransactionHeader> for TransactionHeader {
     fn from(tx: algo_models::TransactionHeader) -> Self {
         Self {
             transaction_type: tx.transaction_type.into(),
-            sender: ByteBuf::from(tx.sender.to_vec()),
+            sender: tx.sender.into(),
             fee: tx.fee,
             first_valid: tx.first_valid,
             last_valid: tx.last_valid,
             genesis_id: tx.genesis_id,
             genesis_hash: tx.genesis_hash.map(|b| ByteBuf::from(b.to_vec())),
             note: tx.note.map(|b| ByteBuf::from(b.to_vec())),
-            rekey_to: tx.rekey_to.map(|b| ByteBuf::from(b.to_vec())),
+            rekey_to: tx.rekey_to.map(|a| a.into()),
             lease: tx.lease.map(|b| ByteBuf::from(b.to_vec())),
             group: tx.group.map(|b| ByteBuf::from(b.to_vec())),
         }
@@ -320,9 +307,9 @@ impl From<algo_models::TransactionHeader> for TransactionHeader {
 impl From<algo_models::PayTransactionFields> for PayTransactionFields {
     fn from(tx: algo_models::PayTransactionFields) -> Self {
         Self {
-            receiver: ByteBuf::from(tx.receiver.to_vec()),
+            receiver: tx.receiver.into(),
             amount: tx.amount,
-            close_remainder_to: tx.close_remainder_to.map(|b| ByteBuf::from(b.to_vec())),
+            close_remainder_to: tx.close_remainder_to.map(|a| a.into()),
         }
     }
 }
@@ -334,7 +321,7 @@ impl TryFrom<PayTransactionFields> for algo_models::PayTransactionFields {
         Ok(Self {
             header: algo_models::TransactionHeader {
                 transaction_type: algo_models::TransactionType::Payment,
-                sender: vec![0; 32].try_into().unwrap(), // This will be overridden by the Transaction conversion
+                sender: algo_models::Address::from_pubkey(&[0; 32]), // This will be overridden by the Transaction conversion
                 fee: 0,
                 first_valid: 0,
                 last_valid: 0,
@@ -346,19 +333,8 @@ impl TryFrom<PayTransactionFields> for algo_models::PayTransactionFields {
                 group: None,
             },
             amount: tx.amount,
-            receiver: tx.receiver.to_vec().try_into().map_err(|_| {
-                MsgPackError::EncodingError("receiver should be 32 byte public key".to_string())
-            })?,
-            close_remainder_to: tx
-                .close_remainder_to
-                .map(|b| {
-                    b.to_vec().try_into().map_err(|_| {
-                        MsgPackError::EncodingError(
-                            "close remainder to should be 32 byte public key".to_string(),
-                        )
-                    })
-                })
-                .transpose()?,
+            receiver: tx.receiver.try_into()?,
+            close_remainder_to: tx.close_remainder_to.map(|a| a.try_into()).transpose()?,
         })
     }
 }
@@ -368,9 +344,9 @@ impl From<algo_models::AssetTransferTransactionFields> for AssetTransferTransact
         Self {
             asset_id: tx.asset_id,
             amount: tx.amount,
-            receiver: ByteBuf::from(tx.receiver.to_vec()),
-            asset_sender: tx.asset_sender.map(|b| ByteBuf::from(b.to_vec())),
-            close_remainder_to: tx.close_remainder_to.map(|b| ByteBuf::from(b.to_vec())),
+            receiver: tx.receiver.into(),
+            asset_sender: tx.asset_sender.map(|a| a.into()),
+            close_remainder_to: tx.close_remainder_to.map(|a| a.into()),
         }
     }
 }
@@ -382,7 +358,7 @@ impl TryFrom<AssetTransferTransactionFields> for algo_models::AssetTransferTrans
         Ok(Self {
             header: algo_models::TransactionHeader {
                 transaction_type: algo_models::TransactionType::AssetTransfer,
-                sender: vec![0; 32].try_into().unwrap(), // This will be overridden by the Transaction conversion
+                sender: algo_models::Address::from_pubkey(&[0; 32]), // This will be overridden by the Transaction conversion
                 fee: 0,
                 first_valid: 0,
                 last_valid: 0,
@@ -395,29 +371,9 @@ impl TryFrom<AssetTransferTransactionFields> for algo_models::AssetTransferTrans
             },
             asset_id: tx.asset_id,
             amount: tx.amount,
-            receiver: tx.receiver.to_vec().try_into().map_err(|_| {
-                MsgPackError::EncodingError("receiver should be 32 byte public key".to_string())
-            })?,
-            asset_sender: tx
-                .asset_sender
-                .map(|b| {
-                    b.to_vec().try_into().map_err(|_| {
-                        MsgPackError::EncodingError(
-                            "asset sender should be 32 byte public key".to_string(),
-                        )
-                    })
-                })
-                .transpose()?,
-            close_remainder_to: tx
-                .close_remainder_to
-                .map(|b| {
-                    b.to_vec().try_into().map_err(|_| {
-                        MsgPackError::EncodingError(
-                            "close remainder to should be 32 byte public key".to_string(),
-                        )
-                    })
-                })
-                .transpose()?,
+            receiver: tx.receiver.try_into()?,
+            asset_sender: tx.asset_sender.map(|a| a.try_into()).transpose()?,
+            close_remainder_to: tx.close_remainder_to.map(|a| a.try_into()).transpose()?,
         })
     }
 }
@@ -430,11 +386,9 @@ impl TryFrom<algo_models::Transaction> for Transaction {
             algo_models::Transaction::Payment(payment) => {
                 let header = payment.header.into();
                 let pay_fields = PayTransactionFields {
-                    receiver: ByteBuf::from(payment.receiver.to_vec()),
+                    receiver: payment.receiver.into(),
                     amount: payment.amount,
-                    close_remainder_to: payment
-                        .close_remainder_to
-                        .map(|b| ByteBuf::from(b.to_vec())),
+                    close_remainder_to: payment.close_remainder_to.map(|a| a.into()),
                 };
 
                 Ok(Self {
@@ -448,13 +402,9 @@ impl TryFrom<algo_models::Transaction> for Transaction {
                 let asset_fields = AssetTransferTransactionFields {
                     asset_id: asset_transfer.asset_id,
                     amount: asset_transfer.amount,
-                    receiver: ByteBuf::from(asset_transfer.receiver.to_vec()),
-                    asset_sender: asset_transfer
-                        .asset_sender
-                        .map(|b| ByteBuf::from(b.to_vec())),
-                    close_remainder_to: asset_transfer
-                        .close_remainder_to
-                        .map(|b| ByteBuf::from(b.to_vec())),
+                    receiver: asset_transfer.receiver.into(),
+                    asset_sender: asset_transfer.asset_sender.map(|a| a.into()),
+                    close_remainder_to: asset_transfer.close_remainder_to.map(|a| a.into()),
                 };
 
                 Ok(Self {
@@ -523,10 +473,12 @@ mod tests {
 
     #[test]
     fn test_get_encoded_transaction_type() {
+        let addr = algo_models::Address::from_pubkey(&[0; 32]);
+
         // Create a minimal payment transaction
         let header = TransactionHeader {
             transaction_type: TransactionType::Payment,
-            sender: ByteBuf::from(vec![0; 32]), // 32-byte dummy public key
+            sender: addr.clone().into(),
             fee: 1000,
             first_valid: 1000,
             last_valid: 2000,
@@ -539,7 +491,7 @@ mod tests {
         };
 
         let pay_fields = PayTransactionFields {
-            receiver: ByteBuf::from(vec![1; 32]), // 32-byte dummy receiver
+            receiver: addr.into(),
             amount: 1000000,
             close_remainder_to: None,
         };
