@@ -10,7 +10,7 @@ from algo_models import (
     attach_signature,
     decode_transaction,
     get_encoded_transaction_type,
-    MsgPackError,
+    AlgoModelsError,
     Transaction,
 )
 from nacl.signing import SigningKey
@@ -116,14 +116,16 @@ def test_get_encoded_transaction_type():
 
 
 def test_decoding_error_0_bytes():
-    with pytest.raises(MsgPackError.DecodingError, match="attempted to decode 0 bytes"):
+    with pytest.raises(
+        AlgoModelsError.DecodingError, match="attempted to decode 0 bytes"
+    ):
         decode_transaction(bytes())
 
 
 def test_decoding_error_malformed_bytes():
     bad_bytes = bytearray(TEST_DATA["expected_bytes_for_signing"])[13:37]
     with pytest.raises(
-        MsgPackError.DecodingError,
+        AlgoModelsError.DecodingError,
     ):
         decode_transaction(bad_bytes)
 

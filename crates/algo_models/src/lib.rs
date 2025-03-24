@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 // It also has some other nice QOL features, like skip_serializing_none
 use serde_with::{serde_as, skip_serializing_none, Bytes};
 use sha2::{Digest, Sha512_256};
-use std::collections::BTreeMap;
+use std::{any::Any, collections::BTreeMap};
 use thiserror::Error;
 
 const HASH_BYTES_LENGTH: usize = 32;
@@ -15,24 +15,27 @@ const ALGORAND_ADDRESS_LENGTH: usize = 58;
 const ALGORAND_PUBLIC_KEY_BYTE_LENGTH: usize = 32;
 
 #[derive(Debug, Error)]
-pub enum MsgPackError {
+pub enum AlgoModelsError {
     #[error("Error ocurred during encoding: {0}")]
-    EncodeError(#[from] rmp_serde::encode::Error),
+    EncodingError(#[from] rmp_serde::encode::Error),
 
     #[error("Error ocurred during decoding: {0}")]
-    DecodeError(#[from] rmp_serde::decode::Error),
+    DecodingError(#[from] rmp_serde::decode::Error),
 
-    #[error("Error ocurred during encoding: {0}")]
-    RmpvEncodeError(#[from] rmpv::encode::Error),
+    #[error("Error ocurred during msgpack encoding: {0}")]
+    MsgpackEncodingError(#[from] rmpv::encode::Error),
 
-    #[error("Error ocurred during encoding: {0}")]
-    RmpvDecodeError(#[from] rmpv::decode::Error),
+    #[error("Error ocurred during msgpack decoding: {0}")]
+    MsgpackDecodingError(#[from] rmpv::decode::Error),
 
-    #[error("Unknown transaction type")]
-    UnknownTransactionType,
+    #[error("Unknown transaction type: {0}")]
+    UnknownTransactionType(String),
 
-    #[error("Invalid input: {0}")]
+    #[error("{0}")]
     InputError(String),
+
+    #[error("{0}")]
+    InvalidAddress(String),
 }
 
 pub trait AlgorandMsgpack: Serialize + for<'de> Deserialize<'de> {
@@ -40,7 +43,7 @@ pub trait AlgorandMsgpack: Serialize + for<'de> Deserialize<'de> {
 
     /// msgpack encoding of the transaction with keys sorted and empty fields omitted
     /// This method does not include any prefix/domain separator
-    fn encode_raw(&self) -> Result<Vec<u8>, MsgPackError> {
+    fn encode_raw(&self) -> Result<Vec<u8>, AlgoModelsError> {
         // First serialize to a temporary buffer to get the map entries
         let mut temp_buf = Vec::new();
         let mut temp_serializer = rmp_serde::Serializer::new(&mut temp_buf)
@@ -61,9 +64,9 @@ pub trait AlgorandMsgpack: Serialize + for<'de> Deserialize<'de> {
     }
 
     /// Decode the bytes into Self. `PREFIX` is ignored if present
-    fn decode(bytes: &[u8]) -> Result<Self, MsgPackError> {
+    fn decode(bytes: &[u8]) -> Result<Self, AlgoModelsError> {
         if bytes.is_empty() {
-            return Err(MsgPackError::InputError(
+            return Err(AlgoModelsError::InputError(
                 "attempted to decode 0 bytes".to_string(),
             ));
         }
@@ -84,7 +87,7 @@ pub trait AlgorandMsgpack: Serialize + for<'de> Deserialize<'de> {
     /// msgpack encoding of the transaction with keys sorted and empty fields omitted
     /// To get the raw bytes without any domain separator (such as "TX" for transactions), use
     /// `encode_raw`
-    fn encode(&self) -> Result<Vec<u8>, MsgPackError> {
+    fn encode(&self) -> Result<Vec<u8>, AlgoModelsError> {
         let encoded = self.encode_raw()?;
         if Self::PREFIX.is_empty() {
             return Ok(encoded);
@@ -172,9 +175,9 @@ impl Address {
         Address { pub_key: *pub_key }
     }
 
-    pub fn from_string(address: &str) -> Result<Self, MsgPackError> {
+    pub fn from_string(address: &str) -> Result<Self, AlgoModelsError> {
         if address.len() != ALGORAND_ADDRESS_LENGTH {
-            return Err(MsgPackError::InputError(
+            return Err(AlgoModelsError::InvalidAddress(
                 "address length is not 58".to_string(),
             ));
         }
@@ -184,20 +187,24 @@ impl Address {
         let pub_key: [u8; 32] = decoded[..ALGORAND_PUBLIC_KEY_BYTE_LENGTH]
             .try_into()
             .map_err(|_| {
-                MsgPackError::InputError("could not decode address into public key".to_string())
+                AlgoModelsError::InvalidAddress(
+                    "could not decode address into 32-byte public key".to_string(),
+                )
             })?;
 
         let checksum: [u8; 4] = decoded[ALGORAND_PUBLIC_KEY_BYTE_LENGTH..]
             .try_into()
             .map_err(|_| {
-                MsgPackError::InputError("could not get checksum from decoded address".to_string())
+                AlgoModelsError::InvalidAddress(
+                    "could not get 4-byte checksum from decoded address".to_string(),
+                )
             })?;
 
         let computed_checksum = pub_key_to_checksum(&pub_key);
 
         if computed_checksum != checksum {
-            return Err(MsgPackError::InputError(
-                "address checksum is invalid".to_string(),
+            return Err(AlgoModelsError::InvalidAddress(
+                "checksum is invalid".to_string(),
             ));
         }
 
@@ -378,14 +385,14 @@ pub enum Transaction {
 }
 
 impl AlgorandMsgpack for Transaction {
-    fn encode(&self) -> Result<Vec<u8>, MsgPackError> {
+    fn encode(&self) -> Result<Vec<u8>, AlgoModelsError> {
         match self {
             Transaction::Payment(tx) => tx.encode(),
             Transaction::AssetTransfer(tx) => tx.encode(),
         }
     }
 
-    fn decode(bytes: &[u8]) -> Result<Self, MsgPackError> {
+    fn decode(bytes: &[u8]) -> Result<Self, AlgoModelsError> {
         let header = TransactionHeader::decode(bytes)?;
         match header.transaction_type {
             TransactionType::Payment => {
@@ -394,7 +401,10 @@ impl AlgorandMsgpack for Transaction {
             TransactionType::AssetTransfer => Ok(Transaction::AssetTransfer(
                 AssetTransferTransactionFields::decode(bytes)?,
             )),
-            _ => Err(MsgPackError::UnknownTransactionType),
+            _ => Err(AlgoModelsError::UnknownTransactionType(format!(
+                "{:?}",
+                header.transaction_type
+            ))),
         }
     }
 }
@@ -417,7 +427,7 @@ impl AlgorandMsgpack for SignedTransaction {
     // transaction type the bytes actually correspond with. To fix this we need to manually
     // decode the transaction using Transaction::decode (which does check the type) and
     // then add it to the decoded struct
-    fn decode(bytes: &[u8]) -> Result<Self, MsgPackError> {
+    fn decode(bytes: &[u8]) -> Result<Self, AlgoModelsError> {
         let value: rmpv::Value = rmp_serde::from_slice(bytes)?;
 
         match value {
@@ -439,9 +449,9 @@ impl AlgorandMsgpack for SignedTransaction {
                 return Ok(stxn);
             }
             _ => {
-                return Err(MsgPackError::InputError(format!(
-                    "Invalid input: {}",
-                    value
+                return Err(AlgoModelsError::InputError(format!(
+                    "expected signed transaction to be a map, but got a: {:#?}",
+                    value.type_id()
                 )))
             }
         }

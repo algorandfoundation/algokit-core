@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Get the transaction type from the encoded transaction.
- * This is particularly useful when decoding a transaction that has a unknow type
+ * This is particularly useful when decoding a transaction that has an unknown type
  */
 export function getEncodedTransactionType(bytes: Uint8Array): TransactionType;
 export function encodeTransaction(tx: Transaction): Uint8Array;
