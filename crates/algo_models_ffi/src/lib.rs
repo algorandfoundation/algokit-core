@@ -7,7 +7,7 @@ use serde_bytes::ByteBuf;
 // UniFFI will create classes for errors (i.e. `MsgPackError.EncodingError` in Python)
 #[derive(Debug, thiserror::Error)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
-pub enum MsgPackError {
+pub enum AlgoModelsError {
     #[error("EncodingError: {0}")]
     EncodingError(String),
     #[error("DecodingError: {0}")]
@@ -18,28 +18,37 @@ pub enum MsgPackError {
 // type being included in the error string above
 // Perhaps in the future we could use a class like in UniFFI
 #[cfg(feature = "ffi_wasm")]
-impl From<MsgPackError> for JsValue {
-    fn from(e: MsgPackError) -> Self {
+impl From<AlgoModelsError> for JsValue {
+    fn from(e: AlgoModelsError) -> Self {
         JsValue::from(e.to_string())
     }
 }
 
 // Convert errors from the Rust crate into the FFI-specific errors
-impl From<algo_models::MsgPackError> for MsgPackError {
-    fn from(e: algo_models::MsgPackError) -> Self {
+impl From<algo_models::AlgoModelsError> for AlgoModelsError {
+    fn from(e: algo_models::AlgoModelsError) -> Self {
         match e {
-            algo_models::MsgPackError::DecodeError(_) => MsgPackError::DecodingError(e.to_string()),
-            algo_models::MsgPackError::EncodeError(_) => MsgPackError::EncodingError(e.to_string()),
-            algo_models::MsgPackError::RmpvDecodeError(_) => {
-                MsgPackError::DecodingError(e.to_string())
+            algo_models::AlgoModelsError::DecodingError(_) => {
+                AlgoModelsError::DecodingError(e.to_string())
             }
-            algo_models::MsgPackError::RmpvEncodeError(_) => {
-                MsgPackError::EncodingError(e.to_string())
+            algo_models::AlgoModelsError::EncodingError(_) => {
+                AlgoModelsError::EncodingError(e.to_string())
             }
-            algo_models::MsgPackError::UnknownTransactionType => {
-                MsgPackError::DecodingError(e.to_string())
+            algo_models::AlgoModelsError::MsgpackDecodingError(_) => {
+                AlgoModelsError::DecodingError(e.to_string())
             }
-            algo_models::MsgPackError::InputError(e) => MsgPackError::DecodingError(e.to_string()),
+            algo_models::AlgoModelsError::MsgpackEncodingError(_) => {
+                AlgoModelsError::EncodingError(e.to_string())
+            }
+            algo_models::AlgoModelsError::UnknownTransactionType(_) => {
+                AlgoModelsError::DecodingError(e.to_string())
+            }
+            algo_models::AlgoModelsError::InputError(e) => {
+                AlgoModelsError::DecodingError(e.to_string())
+            }
+            algo_models::AlgoModelsError::InvalidAddress(_) => {
+                AlgoModelsError::DecodingError(e.to_string())
+            }
         }
     }
 }
@@ -73,7 +82,7 @@ impl UniffiCustomTypeConverter for ByteBuf {
 #[cfg(feature = "ffi_uniffi")]
 uniffi::custom_type!(ByteBuf, Vec<u8>);
 
-// This becomes an enum in UniFFI lnaguage bindings and a
+// This becomes an enum in UniFFI language bindings and a
 // string literal union in TS
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 #[cfg_attr(feature = "ffi_wasm", derive(Tsify))]
@@ -104,18 +113,18 @@ impl From<algo_models::Address> for Address {
 }
 
 impl TryFrom<Address> for algo_models::Address {
-    type Error = MsgPackError;
+    type Error = AlgoModelsError;
 
     fn try_from(value: Address) -> Result<Self, Self::Error> {
         let pub_key: [u8; 32] = value.pub_key.to_vec().try_into().map_err(|_| {
-            MsgPackError::EncodingError("public key should be 32 bytes".to_string())
+            AlgoModelsError::EncodingError("public key should be 32 bytes".to_string())
         })?;
 
         Ok(algo_models::Address::from_pubkey(&pub_key))
     }
 }
 
-// Even though these stucts are all defined in the crate, we need to re-define them
+// Even though these structs are all defined in the crate, we need to re-define them
 // because we have to use different serde attributes for the struct fields.
 // In the crate, we need to use the msgpack names for the fields, but in the FFI
 // we need to use the camelCase names for the fields for TSify.
@@ -181,15 +190,15 @@ pub struct Transaction {
 }
 
 impl TryFrom<Transaction> for algo_models::Transaction {
-    type Error = MsgPackError;
+    type Error = AlgoModelsError;
 
-    fn try_from(tx: Transaction) -> Result<Self, MsgPackError> {
+    fn try_from(tx: Transaction) -> Result<Self, AlgoModelsError> {
         // Ensure we only have pay fields or asset transfer fields
         let fields: [bool; 2] = [tx.pay_fields.is_some(), tx.asset_transfer_fields.is_some()];
 
         // If fields has more than one true value, then we have an error
         if fields.iter().filter(|&&x| x).count() > 1 {
-            return Err(MsgPackError::DecodingError(
+            return Err(AlgoModelsError::DecodingError(
                 "Multiple fields set".to_string(),
             ));
         }
@@ -224,7 +233,7 @@ impl TryFrom<Transaction> for algo_models::Transaction {
             ));
         }
 
-        Err(MsgPackError::DecodingError(
+        Err(AlgoModelsError::DecodingError(
             "No transaction fields set".to_string(),
         ))
     }
@@ -244,9 +253,9 @@ impl From<TransactionType> for algo_models::TransactionType {
 }
 
 impl TryFrom<TransactionHeader> for algo_models::TransactionHeader {
-    type Error = MsgPackError;
+    type Error = AlgoModelsError;
 
-    fn try_from(tx: TransactionHeader) -> Result<Self, MsgPackError> {
+    fn try_from(tx: TransactionHeader) -> Result<Self, AlgoModelsError> {
         Ok(Self {
             transaction_type: tx.transaction_type.into(),
             sender: tx.sender.try_into()?,
@@ -258,7 +267,7 @@ impl TryFrom<TransactionHeader> for algo_models::TransactionHeader {
                 .genesis_hash
                 .map(|b| {
                     b.to_vec().try_into().map_err(|_| {
-                        MsgPackError::EncodingError(
+                        AlgoModelsError::EncodingError(
                             "genesis_hash should be 32 byte hash".to_string(),
                         )
                     })
@@ -270,7 +279,7 @@ impl TryFrom<TransactionHeader> for algo_models::TransactionHeader {
                 .lease
                 .map(|b| {
                     b.to_vec().try_into().map_err(|_| {
-                        MsgPackError::EncodingError("lease should be 32 bytes".to_string())
+                        AlgoModelsError::EncodingError("lease should be 32 bytes".to_string())
                     })
                 })
                 .transpose()?,
@@ -278,7 +287,7 @@ impl TryFrom<TransactionHeader> for algo_models::TransactionHeader {
                 .group
                 .map(|b| {
                     b.to_vec().try_into().map_err(|_| {
-                        MsgPackError::EncodingError("group should be 32 byte hash".to_string())
+                        AlgoModelsError::EncodingError("group should be 32 byte hash".to_string())
                     })
                 })
                 .transpose()?,
@@ -315,7 +324,7 @@ impl From<algo_models::PayTransactionFields> for PayTransactionFields {
 }
 
 impl TryFrom<PayTransactionFields> for algo_models::PayTransactionFields {
-    type Error = MsgPackError;
+    type Error = AlgoModelsError;
 
     fn try_from(tx: PayTransactionFields) -> Result<Self, Self::Error> {
         Ok(Self {
@@ -352,7 +361,7 @@ impl From<algo_models::AssetTransferTransactionFields> for AssetTransferTransact
 }
 
 impl TryFrom<AssetTransferTransactionFields> for algo_models::AssetTransferTransactionFields {
-    type Error = MsgPackError;
+    type Error = AlgoModelsError;
 
     fn try_from(tx: AssetTransferTransactionFields) -> Result<Self, Self::Error> {
         Ok(Self {
@@ -379,7 +388,7 @@ impl TryFrom<AssetTransferTransactionFields> for algo_models::AssetTransferTrans
 }
 
 impl TryFrom<algo_models::Transaction> for Transaction {
-    type Error = MsgPackError;
+    type Error = AlgoModelsError;
 
     fn try_from(tx: algo_models::Transaction) -> Result<Self, Self::Error> {
         match tx {
@@ -434,9 +443,9 @@ impl From<algo_models::TransactionType> for TransactionType {
 // and exported for UniFFI
 
 /// Get the transaction type from the encoded transaction.
-/// This is particularly useful when decoding a transaction that has a unknow type
+/// This is particularly useful when decoding a transaction that has an unknown type
 #[ffi_func]
-pub fn get_encoded_transaction_type(bytes: &[u8]) -> Result<TransactionType, MsgPackError> {
+pub fn get_encoded_transaction_type(bytes: &[u8]) -> Result<TransactionType, AlgoModelsError> {
     let decoded = algo_models::Transaction::decode(bytes)?;
 
     match decoded {
@@ -446,19 +455,19 @@ pub fn get_encoded_transaction_type(bytes: &[u8]) -> Result<TransactionType, Msg
 }
 
 #[ffi_func]
-pub fn encode_transaction(tx: Transaction) -> Result<Vec<u8>, MsgPackError> {
+pub fn encode_transaction(tx: Transaction) -> Result<Vec<u8>, AlgoModelsError> {
     let ctx: algo_models::Transaction = tx.try_into()?;
     Ok(ctx.encode()?)
 }
 
 #[ffi_func]
-pub fn decode_transaction(bytes: &[u8]) -> Result<Transaction, MsgPackError> {
+pub fn decode_transaction(bytes: &[u8]) -> Result<Transaction, AlgoModelsError> {
     let ctx: algo_models::Transaction = algo_models::Transaction::decode(bytes)?;
     Ok(ctx.try_into()?)
 }
 
 #[ffi_func]
-pub fn attach_signature(encoded_tx: &[u8], signature: &[u8]) -> Result<Vec<u8>, MsgPackError> {
+pub fn attach_signature(encoded_tx: &[u8], signature: &[u8]) -> Result<Vec<u8>, AlgoModelsError> {
     let encoded_tx = algo_models::Transaction::decode(encoded_tx)?;
     let signed_tx = algo_models::SignedTransaction {
         transaction: encoded_tx,
@@ -468,20 +477,20 @@ pub fn attach_signature(encoded_tx: &[u8], signature: &[u8]) -> Result<Vec<u8>, 
 }
 
 #[ffi_func]
-pub fn address_from_pub_key(pub_key: &[u8]) -> Result<Address, MsgPackError> {
-    Ok(algo_models::Address::from_pubkey(
-        pub_key.try_into().map_err(|_| {
-            MsgPackError::EncodingError("public key should be 32 bytes".to_string())
-        })?,
+pub fn address_from_pub_key(pub_key: &[u8]) -> Result<Address, AlgoModelsError> {
+    Ok(
+        algo_models::Address::from_pubkey(pub_key.try_into().map_err(|_| {
+            AlgoModelsError::EncodingError("public key should be 32 bytes".to_string())
+        })?)
+        .into(),
     )
-    .into())
 }
 
 #[ffi_func]
-pub fn address_from_string(address: &str) -> Result<Address, MsgPackError> {
+pub fn address_from_string(address: &str) -> Result<Address, AlgoModelsError> {
     algo_models::Address::from_string(address)
         .map(|a| a.into())
-        .map_err(|e| MsgPackError::EncodingError(e.to_string()))
+        .map_err(|e| AlgoModelsError::EncodingError(e.to_string()))
 }
 
 #[cfg(test)]

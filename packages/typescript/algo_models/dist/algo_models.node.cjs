@@ -208,7 +208,7 @@ function requireAlgo_models_ffi () {
 		}
 		/**
 		 * Get the transaction type from the encoded transaction.
-		 * This is particularly useful when decoding a transaction that has a unknow type
+		 * This is particularly useful when decoding a transaction that has an unknown type
 		 * @param {Uint8Array} bytes
 		 * @returns {TransactionType}
 		 */

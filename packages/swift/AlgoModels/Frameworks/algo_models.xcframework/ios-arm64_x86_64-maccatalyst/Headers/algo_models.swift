@@ -930,7 +930,7 @@ public func FfiConverterTypeTransactionHeader_lower(_ value: TransactionHeader) 
 }
 
 
-public enum MsgPackError {
+public enum AlgoModelsError {
 
     
     
@@ -944,10 +944,10 @@ public enum MsgPackError {
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
-public struct FfiConverterTypeMsgPackError: FfiConverterRustBuffer {
-    typealias SwiftType = MsgPackError
+public struct FfiConverterTypeAlgoModelsError: FfiConverterRustBuffer {
+    typealias SwiftType = AlgoModelsError
 
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> MsgPackError {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> AlgoModelsError {
         let variant: Int32 = try readInt(&buf)
         switch variant {
 
@@ -965,7 +965,7 @@ public struct FfiConverterTypeMsgPackError: FfiConverterRustBuffer {
         }
     }
 
-    public static func write(_ value: MsgPackError, into buf: inout [UInt8]) {
+    public static func write(_ value: AlgoModelsError, into buf: inout [UInt8]) {
         switch value {
 
         
@@ -986,9 +986,9 @@ public struct FfiConverterTypeMsgPackError: FfiConverterRustBuffer {
 }
 
 
-extension MsgPackError: Equatable, Hashable {}
+extension AlgoModelsError: Equatable, Hashable {}
 
-extension MsgPackError: Foundation.LocalizedError {
+extension AlgoModelsError: Foundation.LocalizedError {
     public var errorDescription: String? {
         String(reflecting: self)
     }
@@ -1250,21 +1250,21 @@ public func FfiConverterTypeByteBuf_lower(_ value: ByteBuf) -> RustBuffer {
 }
 
 public func addressFromPubKey(pubKey: Data)throws  -> Address {
-    return try  FfiConverterTypeAddress.lift(try rustCallWithError(FfiConverterTypeMsgPackError.lift) {
+    return try  FfiConverterTypeAddress.lift(try rustCallWithError(FfiConverterTypeAlgoModelsError.lift) {
     uniffi_algo_models_ffi_fn_func_address_from_pub_key(
         FfiConverterData.lower(pubKey),$0
     )
 })
 }
 public func addressFromString(address: String)throws  -> Address {
-    return try  FfiConverterTypeAddress.lift(try rustCallWithError(FfiConverterTypeMsgPackError.lift) {
+    return try  FfiConverterTypeAddress.lift(try rustCallWithError(FfiConverterTypeAlgoModelsError.lift) {
     uniffi_algo_models_ffi_fn_func_address_from_string(
         FfiConverterString.lower(address),$0
     )
 })
 }
 public func attachSignature(encodedTx: Data, signature: Data)throws  -> Data {
-    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeMsgPackError.lift) {
+    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeAlgoModelsError.lift) {
     uniffi_algo_models_ffi_fn_func_attach_signature(
         FfiConverterData.lower(encodedTx),
         FfiConverterData.lower(signature),$0
@@ -1272,14 +1272,14 @@ public func attachSignature(encodedTx: Data, signature: Data)throws  -> Data {
 })
 }
 public func decodeTransaction(bytes: Data)throws  -> Transaction {
-    return try  FfiConverterTypeTransaction.lift(try rustCallWithError(FfiConverterTypeMsgPackError.lift) {
+    return try  FfiConverterTypeTransaction.lift(try rustCallWithError(FfiConverterTypeAlgoModelsError.lift) {
     uniffi_algo_models_ffi_fn_func_decode_transaction(
         FfiConverterData.lower(bytes),$0
     )
 })
 }
 public func encodeTransaction(tx: Transaction)throws  -> Data {
-    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeMsgPackError.lift) {
+    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeAlgoModelsError.lift) {
     uniffi_algo_models_ffi_fn_func_encode_transaction(
         FfiConverterTypeTransaction.lower(tx),$0
     )
@@ -1287,10 +1287,10 @@ public func encodeTransaction(tx: Transaction)throws  -> Data {
 }
 /**
  * Get the transaction type from the encoded transaction.
- * This is particularly useful when decoding a transaction that has a unknow type
+ * This is particularly useful when decoding a transaction that has an unknown type
  */
 public func getEncodedTransactionType(bytes: Data)throws  -> TransactionType {
-    return try  FfiConverterTypeTransactionType.lift(try rustCallWithError(FfiConverterTypeMsgPackError.lift) {
+    return try  FfiConverterTypeTransactionType.lift(try rustCallWithError(FfiConverterTypeAlgoModelsError.lift) {
     uniffi_algo_models_ffi_fn_func_get_encoded_transaction_type(
         FfiConverterData.lower(bytes),$0
     )
@@ -1312,22 +1312,22 @@ private let initializationResult: InitializationResult = {
     if bindings_contract_version != scaffolding_contract_version {
         return InitializationResult.contractVersionMismatch
     }
-    if (uniffi_algo_models_ffi_checksum_func_address_from_pub_key() != 36982) {
+    if (uniffi_algo_models_ffi_checksum_func_address_from_pub_key() != 7003) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_algo_models_ffi_checksum_func_address_from_string() != 27803) {
+    if (uniffi_algo_models_ffi_checksum_func_address_from_string() != 44254) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_algo_models_ffi_checksum_func_attach_signature() != 24223) {
+    if (uniffi_algo_models_ffi_checksum_func_attach_signature() != 54550) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_algo_models_ffi_checksum_func_decode_transaction() != 21646) {
+    if (uniffi_algo_models_ffi_checksum_func_decode_transaction() != 42819) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_algo_models_ffi_checksum_func_encode_transaction() != 56381) {
+    if (uniffi_algo_models_ffi_checksum_func_encode_transaction() != 30175) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_algo_models_ffi_checksum_func_get_encoded_transaction_type() != 48003) {
+    if (uniffi_algo_models_ffi_checksum_func_get_encoded_transaction_type() != 10970) {
         return InitializationResult.apiChecksumMismatch
     }
 
