@@ -109,8 +109,43 @@ struct AlgoModelsTests {
             #expect(Bool(false), "Expected DecodingError to be thrown")
         } catch AlgoModelsError.DecodingError {
             // Success - expected error was thrown
-            #expect(true)
+            #expect(Bool(true))
         }
+    }
+
+    @Test("Example")
+    func testExample() async throws {
+        let aliceKeyPair = Ed25519.generateKeyPair()
+        let alice = try addressFromPubKey(pubKey: Data(aliceKeyPair.publicKey))
+        let bob = try addressFromString(
+            address: "B72WNFFEZ7EOGMQPP7ROHYS3DSLL5JW74QASYNWGZGQXWRPJECJJLJIJ2Y"
+        )
+
+        let txn: Transaction = Transaction(
+            header: TransactionHeader(
+                transactionType: .payment,
+                sender: alice,
+                fee: 1000,
+                firstValid: 1337,
+                lastValid: 1347,
+                genesisHash: Data(repeating: 65, count: 32),  // pretend this is a valid hash
+                genesisId: "localnet"
+            ),
+            payFields: PayTransactionFields(
+                receiver: bob,
+                amount: 1337
+            )
+        )
+
+        let sig = Ed25519.sign(
+            message: [UInt8](try encodeTransaction(tx: txn)), secretKey: aliceKeyPair.secretKey)
+
+        let signedTxn = try attachSignature(
+            encodedTx: try encodeTransaction(tx: txn),
+            signature: Data(sig)
+        )
+
+        #expect(signedTxn.count > 0)
     }
 
     // Helper function to create transaction from test data
