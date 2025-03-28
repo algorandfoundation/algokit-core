@@ -1,183 +1,146 @@
 import Foundation
 import Testing
+import ed25519swift
 
 @testable import AlgoModels
 
-@Test func decodePayment() throws {
-    let uint8Array: [UInt8] = [
-        84,
-        88,
-        137,
-        163,
-        97,
-        109,
-        116,
-        205,
-        3,
-        232,
-        163,
-        102,
-        101,
-        101,
-        205,
-        3,
-        232,
-        162,
-        102,
-        118,
-        206,
-        2,
-        206,
-        143,
-        251,
-        163,
-        103,
-        101,
-        110,
-        172,
-        116,
-        101,
-        115,
-        116,
-        110,
-        101,
-        116,
-        45,
-        118,
-        49,
-        46,
-        48,
-        162,
-        103,
-        104,
-        196,
-        32,
-        72,
-        99,
-        181,
-        24,
-        164,
-        179,
-        200,
-        78,
-        200,
-        16,
-        242,
-        45,
-        79,
-        16,
-        129,
-        203,
-        15,
-        113,
-        240,
-        89,
-        167,
-        172,
-        32,
-        222,
-        198,
-        47,
-        127,
-        112,
-        229,
-        9,
-        58,
-        34,
-        162,
-        108,
-        118,
-        206,
-        2,
-        206,
-        147,
-        227,
-        163,
-        114,
-        99,
-        118,
-        196,
-        32,
-        250,
-        192,
-        119,
-        12,
-        168,
-        98,
-        69,
-        105,
-        178,
-        165,
-        55,
-        223,
-        154,
-        187,
-        123,
-        50,
-        13,
-        38,
-        59,
-        171,
-        71,
-        198,
-        255,
-        73,
-        50,
-        202,
-        202,
-        57,
-        38,
-        47,
-        242,
-        134,
-        163,
-        115,
-        110,
-        100,
-        196,
-        32,
-        193,
-        17,
-        25,
-        40,
-        226,
-        19,
-        41,
-        179,
-        120,
-        65,
-        13,
-        106,
-        47,
-        7,
-        115,
-        224,
-        235,
-        25,
-        223,
-        21,
-        129,
-        160,
-        185,
-        4,
-        203,
-        142,
-        61,
-        187,
-        254,
-        41,
-        187,
-        56,
-        164,
-        116,
-        121,
-        112,
-        101,
-        163,
-        112,
-        97,
-        121,
-    ]
-    let payment = try AlgoModels.decodeTransaction(bytes: Data(uint8Array))
-    print(payment)
+struct TestData: Codable {
+    struct AddressData: Codable {
+        let address: String
+        let pubKey: [UInt8]
+    }
+
+    struct TransactionData: Codable {
+        let header: HeaderData
+        let payFields: PayFieldsData
+    }
+
+    struct HeaderData: Codable {
+        let sender: AddressData
+        let fee: UInt64
+        let transactionType: String
+        let firstValid: UInt64
+        let lastValid: UInt64
+        let genesisHash: [UInt8]
+        let genesisId: String
+    }
+
+    struct PayFieldsData: Codable {
+        let receiver: AddressData
+        let amount: UInt64
+    }
+
+    let privKey: [UInt8]
+    let transaction: TransactionData
+    let expectedBytesForSigning: [UInt8]
+    let expectedSignedTxn: [UInt8]
+}
+
+func loadTestData() throws -> TestData {
+    let testDataURL = Bundle.module.url(forResource: "test_data", withExtension: "json")!
+    let data = try Data(contentsOf: testDataURL)
+    let decoder = JSONDecoder()
+    return try decoder.decode(TestData.self, from: data)
+}
+
+@Suite("AlgoModels Tests")
+struct AlgoModelsTests {
+    @Test("encode transaction")
+    func testEncode() async throws {
+        let testData = try loadTestData()
+        let transaction = makeTransaction(from: testData)
+        let encoded = try encodeTransaction(tx: transaction)
+        #expect([UInt8](encoded) == testData.expectedBytesForSigning)
+    }
+
+    @Test("encode with signature")
+    func testEncodeWithSignature() async throws {
+        let testData = try loadTestData()
+        // Note: You'll need to implement actual ed25519 expectedBytesForSigning
+        let signature = Ed25519.sign(
+            message: testData.expectedBytesForSigning, secretKey: testData.privKey)
+        let signedTx = try attachSignature(
+            encodedTx: Data(testData.expectedBytesForSigning),
+            signature: Data(signature)
+        )
+        #expect([UInt8](signedTx) == testData.expectedSignedTxn)
+    }
+
+    @Test("decode with TX prefix")
+    func testDecodeWithTxPrefix() async throws {
+        let testData = try loadTestData()
+        let transaction = makeTransaction(from: testData)
+        let decoded = try decodeTransaction(bytes: Data(testData.expectedBytesForSigning))
+        #expect(decoded == transaction)
+    }
+
+    @Test("decode without TX prefix")
+    func testDecodeWithoutTxPrefix() async throws {
+        let testData = try loadTestData()
+        let transaction = makeTransaction(from: testData)
+        let bytesWithoutPrefix = Data(testData.expectedBytesForSigning.dropFirst(2))
+        let decoded = try decodeTransaction(bytes: bytesWithoutPrefix)
+        #expect(decoded == transaction)
+    }
+
+    @Test("get encoded transaction type")
+    func testGetEncodedTransactionType() async throws {
+        let testData = try loadTestData()
+        let txType = try getEncodedTransactionType(bytes: Data(testData.expectedBytesForSigning))
+        #expect(txType == .payment)
+    }
+
+    @Test("decoding error - 0 bytes")
+    func testDecodingError0Bytes() async throws {
+        do {
+            _ = try decodeTransaction(bytes: Data())
+            #expect(Bool(false), "Expected DecodingError to be thrown")
+        } catch AlgoModelsError.DecodingError(let message) {
+            #expect(message == "attempted to decode 0 bytes")
+        }
+    }
+
+    @Test("decoding error - malformed bytes")
+    func testDecodingErrorMalformedBytes() async throws {
+        let testData = try loadTestData()
+        let badBytes = Data(testData.expectedBytesForSigning[13..<37])
+        do {
+            _ = try decodeTransaction(bytes: badBytes)
+            #expect(Bool(false), "Expected DecodingError to be thrown")
+        } catch AlgoModelsError.DecodingError {
+            // Success - expected error was thrown
+            #expect(true)
+        }
+    }
+
+    // Helper function to create transaction from test data
+    private func makeTransaction(from testData: TestData) -> Transaction {
+        return Transaction(
+            header: TransactionHeader(
+                transactionType: .payment,
+                sender: Address(
+                    address: testData.transaction.header.sender.address,
+                    pubKey: Data(testData.transaction.header.sender.pubKey)
+                ),
+                fee: testData.transaction.header.fee,
+                firstValid: testData.transaction.header.firstValid,
+                lastValid: testData.transaction.header.lastValid,
+                genesisHash: Data(testData.transaction.header.genesisHash),
+                genesisId: testData.transaction.header.genesisId,
+                note: nil,
+                rekeyTo: nil,
+                lease: nil,
+                group: nil
+            ),
+            payFields: PayTransactionFields(
+                receiver: Address(
+                    address: testData.transaction.payFields.receiver.address,
+                    pubKey: Data(testData.transaction.payFields.receiver.pubKey)
+                ),
+                amount: testData.transaction.payFields.amount,
+                closeRemainderTo: nil
+            ),
+            assetTransferFields: nil
+        )
+    }
 }

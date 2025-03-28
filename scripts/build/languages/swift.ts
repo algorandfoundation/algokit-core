@@ -87,5 +87,10 @@ export async function buildSwift(crate: string) {
     `packages/swift/${swiftPackage}/Sources/${swiftPackage}/${swiftPackage}.swift`,
   );
 
+  fs.copyFileSync(
+    `crates/${crate}_ffi/test_data.json`,
+    `packages/swift/${swiftPackage}/Tests/AlgoModelsTests/Resources/test_data.json`,
+  );
+
   console.log(`Updated ${swiftPackage} in packages/swift/${swiftPackage}/`);
 }
