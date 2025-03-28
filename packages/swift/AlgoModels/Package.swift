@@ -11,6 +11,9 @@ let package = Package(
             name: "AlgoModels",
             targets: ["AlgoModels"])
     ],
+    dependencies: [
+        .package(url: "https://github.com/pebble8888/ed25519swift.git", from: "1.2.7")
+    ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
@@ -25,7 +28,13 @@ let package = Package(
         ),
         .testTarget(
             name: "AlgoModelsTests",
-            dependencies: ["AlgoModels"]
+            dependencies: [
+                "AlgoModels",
+                "ed25519swift",
+            ],
+            resources: [
+                .process("Resources/test_data.json")
+            ]
         ),
     ]
 )
