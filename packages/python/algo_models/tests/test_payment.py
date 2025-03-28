@@ -12,8 +12,11 @@ from algo_models import (
     get_encoded_transaction_type,
     AlgoModelsError,
     Transaction,
+    address_from_string,
+    address_from_pub_key,
 )
 from nacl.signing import SigningKey
+import nacl
 import pytest
 from copy import deepcopy
 
@@ -138,3 +141,27 @@ def test_error_invalid_type():
         match="'str' object cannot be interpreted as an integer",
     ):
         encode_transaction(bad_fields)
+
+
+def test_example():
+    alice_keypair = SigningKey.generate()  # Keypair generated from PyNaCl
+    alice = address_from_pub_key(alice_keypair.verify_key.__bytes__())
+    bob = address_from_string(
+        "B72WNFFEZ7EOGMQPP7ROHYS3DSLL5JW74QASYNWGZGQXWRPJECJJLJIJ2Y"
+    )
+
+    txn = Transaction(
+        header=TransactionHeader(
+            transaction_type=TransactionType.PAYMENT,
+            fee=1000,
+            first_valid=1337,
+            last_valid=1347,
+            sender=alice,
+            genesis_hash=b"A" * 32,  # pretend this is a valid hash
+            genesis_id="localnet",
+        ),
+        pay_fields=PayTransactionFields(amount=1337, receiver=bob),
+    )
+
+    sig = alice_keypair.sign(encode_transaction(txn)).signature
+    signed_txn = attach_signature(encode_transaction(txn), sig)

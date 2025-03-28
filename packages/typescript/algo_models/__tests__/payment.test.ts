@@ -7,6 +7,8 @@ import {
   decodeTransaction,
   getEncodedTransactionType,
   Transaction,
+  addressFromPubKey,
+  addressFromString,
 } from "../src/index";
 import path from "path";
 
@@ -87,6 +89,35 @@ describe("algo_models WASM", async () => {
       expect(() => encodeTransaction(badFields)).toThrow(
         'Error: invalid type: string "foo", expected u64',
       );
+    });
+
+    test("Example", async () => {
+      const aliceSk = ed.utils.randomPrivateKey();
+      const alicePubKey = await ed.getPublicKeyAsync(aliceSk);
+      const alice = addressFromPubKey(alicePubKey);
+
+      const bob = addressFromString(
+        "B72WNFFEZ7EOGMQPP7ROHYS3DSLL5JW74QASYNWGZGQXWRPJECJJLJIJ2Y",
+      );
+
+      const txn: Transaction = {
+        header: {
+          transactionType: "Payment",
+          sender: alice,
+          fee: 1000n,
+          firstValid: 1337n,
+          lastValid: 1347n,
+          genesisHash: new Uint8Array(32).fill(65), // pretend this is a valid hash
+          genesisId: "localnet",
+        },
+        payFields: {
+          amount: 1337n,
+          receiver: bob,
+        },
+      };
+
+      const sig = await ed.signAsync(encodeTransaction(txn), aliceSk);
+      const signedTxn = attachSignature(encodeTransaction(txn), sig);
     });
   });
 });
