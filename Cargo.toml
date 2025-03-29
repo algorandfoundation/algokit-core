@@ -8,4 +8,4 @@ members = [
 ]
 
 [workspace.metadata.bin]
-polytest = { version = "0.2.2", locked = true }
+polytest = { version = "0.2.4", locked = true }

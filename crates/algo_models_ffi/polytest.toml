@@ -62,7 +62,7 @@ out_dir = "../../packages/typescript/algo_models/__tests__"
 out_dir = "../../packages/python/algo_models/tests"
 
 [target.swift]
-out_dir = "../../packages/Swift/AlgoModels/Tests/AlgoModelsTests"
+out_dir = "../../packages/swift/AlgoModels/Tests/AlgoModelsTests"
 
 # The default runner is macOS, which defines most of what we need
 # The iOS and Catalyst runners will inherit all the configuration from the default macOS runner, except for the command we defined
