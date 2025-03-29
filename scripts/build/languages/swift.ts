@@ -1,5 +1,6 @@
 import { toPascalCase, run } from "..";
 import * as fs from "fs";
+import * as path from "path";
 
 export async function buildSwift(crate: string) {
   const targets = ["aarch64-apple-ios"];
@@ -24,9 +25,26 @@ export async function buildSwift(crate: string) {
   );
 
   let createXcfCmd = "xcodebuild -create-xcframework";
-  targets.forEach((target) => {
-    createXcfCmd += ` -library target/${target}/debug/lib${crate}_ffi.dylib -headers target/debug/swift/${crate}/`;
-  });
+  await Promise.all(
+    targets.map(async (target) => {
+      const fullPath = path.join(
+        process.cwd(),
+        "target",
+        target,
+        "debug",
+        `lib${crate}_ffi.dylib`,
+      );
+
+      await run(
+        `install_name_tool -id "@rpath/lib${crate}_ffi.dylib" ${fullPath}`,
+      );
+      await run(
+        `install_name_tool -change ${fullPath} @rpath/lib${crate}_ffi.dylib ${fullPath}`,
+      );
+
+      createXcfCmd += ` -library target/${target}/debug/lib${crate}_ffi.dylib -headers target/debug/swift/${crate}/`;
+    }),
+  );
 
   await Promise.all(
     Object.keys(fatTargets).map(async (fatTargetName) => {
@@ -34,6 +52,18 @@ export async function buildSwift(crate: string) {
       fatTargets[fatTargetName].forEach((target) => {
         libPaths.push(`target/${target}/debug/lib${crate}_ffi.dylib`);
       });
+
+      await Promise.all(
+        libPaths.map(async (libPath) => {
+          const fullPath = path.join(process.cwd(), libPath);
+
+          const rPath = `@rpath/lib${crate}_ffi-${fatTargetName}.dylib`;
+          await run(`install_name_tool -id ${rPath} ${fullPath}`);
+          await run(
+            `install_name_tool -change ${fullPath} $[rPath} ${fullPath}`,
+          );
+        }),
+      );
 
       await run(
         `lipo -create ${libPaths.join(" ")} -output target/debug/lib${crate}_ffi-${fatTargetName}.dylib`,
