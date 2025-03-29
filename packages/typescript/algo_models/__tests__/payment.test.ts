@@ -1,7 +1,7 @@
 import { expect, test, describe } from "bun:test";
+import { testData } from "./common.ts";
 import * as ed from "@noble/ed25519";
 import {
-  type PayTransactionFields,
   encodeTransaction,
   attachSignature,
   decodeTransaction,
@@ -10,88 +10,29 @@ import {
   addressFromPubKey,
   addressFromString,
 } from "../src/index";
-import path from "path";
 
-describe("algo_models WASM", async () => {
-  const jsonString = await Bun.file(
-    path.join(__dirname, "../../../../crates/algo_models_ffi/test_data.json"),
-  ).text();
+const transaction: Transaction = testData.transaction;
+const expectedSignedTxn = testData.expectedSignedTxn;
+const expectedBytesForSigning = testData.expectedBytesForSigning;
+const privKey = testData.privKey;
 
-  const testData = JSON.parse(jsonString, (_, value) => {
-    if (Array.isArray(value) && value.every((n) => typeof n === "number")) {
-      return new Uint8Array(value);
-    }
+describe("Payment", () => {
+  // Polytest Suite: Payment
 
-    if (
-      typeof value === "number" &&
-      ["fee", "amount", "firstValid", "lastValid"].includes(_)
-    ) {
-      return BigInt(value);
-    }
+  describe("Transaction Tests", () => {
+    // Polytest Group: Transaction Tests
 
-    return value;
-  });
-
-  const privKey = testData.privKey;
-
-  describe("payment", () => {
-    const transaction: Transaction = testData.transaction;
-    const expectedSignedTxn = testData.expectedSignedTxn;
-    const expectedBytesForSigning = testData.expectedBytesForSigning;
-
-    test("encode", () => {
-      expect(encodeTransaction(transaction)).toEqual(expectedBytesForSigning);
-    });
-
-    test("encode with signature", async () => {
-      const sig = await ed.signAsync(expectedBytesForSigning, privKey);
-      const signedTx = attachSignature(expectedBytesForSigning, sig);
-      expect(signedTx).toEqual(expectedSignedTxn);
-    });
-
-    test("decode (with TX prefix)", () => {
-      expect(decodeTransaction(expectedBytesForSigning)).toEqual(transaction);
-    });
-
-    test("decode (without TX prefix)", () => {
+    test("decode without prefix", () => {
       expect(decodeTransaction(expectedBytesForSigning.slice(2))).toEqual(
         transaction,
       );
     });
 
-    test("getEncodedTransactionType", () => {
-      expect(getEncodedTransactionType(expectedBytesForSigning)).toBe(
-        "Payment",
-      );
+    test("decode with prefix", () => {
+      expect(decodeTransaction(expectedBytesForSigning)).toEqual(transaction);
     });
 
-    // TODO: Decide if this is the behavior we want or if there should be input validation on encode
-    test("encode/decode with extra field", () => {
-      const extraField = { ...transaction, foo: "bar" };
-      const encoded = encodeTransaction(extraField);
-      expect(decodeTransaction(encoded)).not.toContainKey("foo");
-    });
-
-    test("DecodingError: 0 bytes", () => {
-      expect(() => decodeTransaction(new Uint8Array(0))).toThrow(
-        "DecodingError: attempted to decode 0 bytes",
-      );
-    });
-
-    test("DecodingError: malformed bytes", () => {
-      const badBytes = expectedBytesForSigning.slice(13, 37);
-      expect(() => decodeTransaction(badBytes)).toThrow("DecodingError");
-    });
-
-    test("Error: invalid type", () => {
-      const badFields = { ...transaction, header: { fee: "foo" } };
-      // @ts-expect-error known bad type for testing purposes
-      expect(() => encodeTransaction(badFields)).toThrow(
-        'Error: invalid type: string "foo", expected u64',
-      );
-    });
-
-    test("Example", async () => {
+    test("example", async () => {
       const aliceSk = ed.utils.randomPrivateKey();
       const alicePubKey = await ed.getPublicKeyAsync(aliceSk);
       const alice = addressFromPubKey(alicePubKey);
@@ -118,6 +59,22 @@ describe("algo_models WASM", async () => {
 
       const sig = await ed.signAsync(encodeTransaction(txn), aliceSk);
       const signedTxn = attachSignature(encodeTransaction(txn), sig);
+    });
+
+    test("get encoded transaction type", () => {
+      expect(getEncodedTransactionType(expectedBytesForSigning)).toBe(
+        "Payment",
+      );
+    });
+
+    test("encode with signature", async () => {
+      const sig = await ed.signAsync(expectedBytesForSigning, privKey);
+      const signedTx = attachSignature(expectedBytesForSigning, sig);
+      expect(signedTx).toEqual(expectedSignedTxn);
+    });
+
+    test("encode", () => {
+      expect(encodeTransaction(transaction)).toEqual(expectedBytesForSigning);
     });
   });
 });

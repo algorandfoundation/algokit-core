@@ -4,5 +4,8 @@ members = [
 	"crates/algo_models",
 	"crates/algo_models_ffi",
 	"crates/ffi_macros",
-	"crates/uniffi-bindgen",
+	"crates/uniffi-bindgen", "tools/cargo-bin",
 ]
+
+[workspace.metadata.bin]
+polytest = { version = "0.2.4", locked = true }

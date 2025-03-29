@@ -312,12 +312,36 @@ dependencies = [
 ]
 
 [[package]]
+name = "cargo-bin"
+version = "0.1.0"
+dependencies = [
+ "cargo-run-bin",
+]
+
+[[package]]
 name = "cargo-platform"
 version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e35af189006b9c0f00a064685c727031e3ed2d8020f7ba284d78cc2671bd36ea"
 dependencies = [
  "serde",
+]
+
+[[package]]
+name = "cargo-run-bin"
+version = "1.7.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0770bfdecb25f182aa143e443765b8ecf6f0e6431d8c42ad997b17900c9b6c48"
+dependencies = [
+ "anyhow",
+ "cfg-if",
+ "clap",
+ "rustversion",
+ "serde",
+ "toml 0.5.11",
+ "toml_edit 0.19.15",
+ "version_check",
+ "which",
 ]
 
 [[package]]
@@ -1494,6 +1518,12 @@ dependencies = [
  "rustls-pki-types",
  "untrusted",
 ]
+
+[[package]]
+name = "rustversion"
+version = "1.0.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eded382c5f5f786b989652c49544c4877d9f015cc22e145a5ea8ea66c2921cd2"
 
 [[package]]
 name = "ryu"

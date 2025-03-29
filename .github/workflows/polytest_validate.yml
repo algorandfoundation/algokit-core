@@ -1,0 +1,29 @@
+name: Polytest Validate
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - "*"
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+env:
+  CRATE: algo_models
+
+jobs:
+  validate:
+    defaults:
+      run:
+        shell: bash
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.85.0
+      - name: Polytest Validate
+        run: cd crates/${{ env.CRATE }}_ffi && cargo bin polytest validate
