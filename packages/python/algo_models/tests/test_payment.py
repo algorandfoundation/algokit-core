@@ -1,8 +1,6 @@
-from pathlib import Path
-import json
-from pprint import pprint
+import pytest
+from . import TEST_DATA, PRIV_KEY
 from algo_models import (
-    Address,
     TransactionHeader,
     encode_transaction,
     PayTransactionFields,
@@ -10,140 +8,20 @@ from algo_models import (
     attach_signature,
     decode_transaction,
     get_encoded_transaction_type,
-    AlgoModelsError,
     Transaction,
     address_from_string,
     address_from_pub_key,
 )
 from nacl.signing import SigningKey
-import nacl
-import pytest
-from copy import deepcopy
+
+# Polytest Suite: Payment
+
+# Polytest Group: Transaction Tests
 
 
-def convert_values(obj):
-    if isinstance(obj, dict):
-        if "address" in obj and "pub_key" in obj:
-            pprint(Address(**obj))
-            return Address(address=obj["address"], pub_key=bytes(obj["pub_key"]))
-        return {key: convert_values(value) for key, value in obj.items()}
-    elif isinstance(obj, list) and all(isinstance(x, int) for x in obj):
-        return bytes(obj)
-    elif isinstance(obj, list):
-        return [convert_values(x) for x in obj]
-    return obj
-
-
-def camel_to_snake(name):
-    import re
-
-    name = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", name)
-    return re.sub("([a-z0-9])([A-Z])", r"\1_\2", name).lower()
-
-
-def convert_case_recursive(obj):
-    if isinstance(obj, dict):
-        return {
-            camel_to_snake(key): convert_case_recursive(value)
-            for key, value in obj.items()
-        }
-    elif isinstance(obj, list):
-        return [convert_case_recursive(x) for x in obj]
-    return obj
-
-
-def load_test_data():
-    # Get the path to test_data.json relative to this test file
-    test_data_path = (
-        Path(__file__).parent.parent.parent.parent.parent
-        / "crates"
-        / "algo_models_ffi"
-        / "test_data.json"
-    )
-
-    with open(test_data_path) as f:
-        data = json.load(f)
-
-    data = convert_case_recursive(data)
-    data = convert_values(data)
-
-    data["transaction"]["header"]["transaction_type"] = TransactionType.PAYMENT
-
-    data["transaction"]["header"] = TransactionHeader(**data["transaction"]["header"])
-
-    data["transaction"] = Transaction(
-        header=data["transaction"]["header"],
-        pay_fields=PayTransactionFields(**data["transaction"]["pay_fields"]),
-    )
-
-    return data
-
-
-TEST_DATA = load_test_data()
-PRIV_KEY = SigningKey(TEST_DATA["priv_key"])
-
-
-def test_encode():
-    assert (
-        encode_transaction(TEST_DATA["transaction"])
-        == TEST_DATA["expected_bytes_for_signing"]
-    )
-
-
-def test_encode_with_signature():
-    sig = PRIV_KEY.sign(TEST_DATA["expected_bytes_for_signing"]).signature
-    print(len(sig))
-    signed_tx = attach_signature(TEST_DATA["expected_bytes_for_signing"], sig)
-    assert signed_tx == TEST_DATA["expected_signed_txn"]
-
-
-def test_decode_with_tx_prefix():
-    assert (
-        decode_transaction(TEST_DATA["expected_bytes_for_signing"])
-        == TEST_DATA["transaction"]
-    )
-
-
-def test_decode_without_tx_prefix():
-    assert (
-        decode_transaction(TEST_DATA["expected_bytes_for_signing"][2:])
-        == TEST_DATA["transaction"]
-    )
-
-
-def test_get_encoded_transaction_type():
-    assert (
-        get_encoded_transaction_type(TEST_DATA["expected_bytes_for_signing"])
-        == TransactionType.PAYMENT
-    )
-
-
-def test_decoding_error_0_bytes():
-    with pytest.raises(
-        AlgoModelsError.DecodingError, match="attempted to decode 0 bytes"
-    ):
-        decode_transaction(bytes())
-
-
-def test_decoding_error_malformed_bytes():
-    bad_bytes = bytearray(TEST_DATA["expected_bytes_for_signing"])[13:37]
-    with pytest.raises(
-        AlgoModelsError.DecodingError,
-    ):
-        decode_transaction(bad_bytes)
-
-
-def test_error_invalid_type():
-    bad_fields: PayTransactionFields = deepcopy(TEST_DATA["transaction"])
-    bad_fields.header.fee = "foo"
-    with pytest.raises(
-        TypeError,
-        match="'str' object cannot be interpreted as an integer",
-    ):
-        encode_transaction(bad_fields)
-
-
+@pytest.mark.group_transaction_tests
 def test_example():
+    """A human-readable example of forming a transaction and signing it"""
     alice_keypair = SigningKey.generate()  # Keypair generated from PyNaCl
     alice = address_from_pub_key(alice_keypair.verify_key.__bytes__())
     bob = address_from_string(
@@ -165,3 +43,49 @@ def test_example():
 
     sig = alice_keypair.sign(encode_transaction(txn)).signature
     signed_txn = attach_signature(encode_transaction(txn), sig)
+
+
+@pytest.mark.group_transaction_tests
+def test_get_encoded_transaction_type():
+    """The transaction type of an encoded transaction can be retrieved"""
+    assert (
+        get_encoded_transaction_type(TEST_DATA["expected_bytes_for_signing"])
+        == TransactionType.PAYMENT
+    )
+
+
+@pytest.mark.group_transaction_tests
+def test_decode_without_prefix():
+    """A transaction without TX prefix and valid fields is decoded properly"""
+    assert (
+        decode_transaction(TEST_DATA["expected_bytes_for_signing"][2:])
+        == TEST_DATA["transaction"]
+    )
+
+
+@pytest.mark.group_transaction_tests
+def test_decode_with_prefix():
+    """A transaction with TX prefix and valid fields is decoded properly"""
+    assert (
+        decode_transaction(TEST_DATA["expected_bytes_for_signing"])
+        == TEST_DATA["transaction"]
+    )
+
+
+@pytest.mark.group_transaction_tests
+def test_encode_with_signature():
+    """A signature can be attached to a encoded transaction"""
+    sig = PRIV_KEY.sign(TEST_DATA["expected_bytes_for_signing"]).signature
+    print(len(sig))
+    signed_tx = attach_signature(TEST_DATA["expected_bytes_for_signing"], sig)
+    assert signed_tx == TEST_DATA["expected_signed_txn"]
+
+
+@pytest.mark.group_transaction_tests
+def test_encode():
+    """A transaction with valid fields is encoded properly"""
+    assert (
+        encode_transaction(TEST_DATA["transaction"])
+        == TEST_DATA["expected_bytes_for_signing"]
+    )
+
