@@ -9,3 +9,4 @@ members = [
 
 [workspace.metadata.bin]
 polytest = { version = "0.2.4", locked = true }
+uniffi-bindgen-go = { git = "https://github.com/NordSecurity/uniffi-bindgen-go", tag = "v0.3.0+v0.28.3", version = "*" }

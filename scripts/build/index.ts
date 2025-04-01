@@ -4,6 +4,7 @@ import { resolve } from "path";
 import { buildPython } from "./languages/python.ts";
 import { buildSwift } from "./languages/swift.ts";
 import { buildTypescript } from "./languages/typescript.ts";
+import { buildGo } from "./languages/go.ts";
 
 export const REPO_ROOT = path.resolve(__dirname, "../../");
 process.chdir(REPO_ROOT);
@@ -20,9 +21,10 @@ export function run(
   command: string,
   cwd: string | null = null,
   env: Record<string, string> = {},
-): Promise<void> {
-  return new Promise<void>((resolvePromise) => {
+): Promise<string> {
+  return new Promise<string>((resolvePromise) => {
     console.log(`Running '${command}'`);
+    let output = "";
 
     const args = command.split(" ");
     const subProcess = spawn(args[0], args.slice(1), {
@@ -33,12 +35,14 @@ export function run(
 
     if (subProcess.stdout) {
       subProcess.stdout.on("data", (data) => {
+        output += data;
         process.stdout?.write(data);
       });
     }
 
     if (subProcess.stderr) {
       subProcess.stderr.on("data", (data) => {
+        output += data;
         process.stderr?.write(data);
       });
     }
@@ -48,7 +52,7 @@ export function run(
         process.exit(code || 1);
       }
 
-      resolvePromise();
+      resolvePromise(output);
     });
   });
 }
@@ -57,6 +61,7 @@ const languages = {
   python: buildPython,
   swift: buildSwift,
   typescript: buildTypescript,
+  go: buildGo,
 };
 
 const crates = ["algo_models"];
