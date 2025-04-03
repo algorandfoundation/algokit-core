@@ -1,5 +1,6 @@
 import { run } from "..";
 import * as fs from "fs";
+import { $ } from "bun";
 
 async function wasmPack(
   crate: string,
@@ -92,5 +93,10 @@ export async function buildTypescript(crate: string) {
   fs.copyFileSync(
     `packages/typescript/${crate}/pkg/${crate}_ffi.d.ts`,
     `packages/typescript/${crate}/types/index.d.ts`,
+  );
+
+  fs.copyFileSync(
+    `packages/typescript/${crate}/pkg/${crate}_ffi.d.ts`,
+    `packages/typescript/${crate}/dist/index.d.ts`,
   );
 }

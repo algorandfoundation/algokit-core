@@ -1,6 +1,6 @@
 {
-  "name": "algo_models",
-  "version": "0.1.0",
+  "name": "@joe-p/algo_models",
+  "version": "0.1.1",
   "types": "./dist/index.d.ts",
   "files": [
     "dist/**/*"
@@ -14,6 +14,9 @@
       "require": "./dist/algo_models.node.cjs",
       "import": "./dist/algo_models.bundler.mjs"
     }
+  },
+  "scripts": {
+    "prepack": "bun ../../../scripts/build algo_models typescript"
   },
   "devDependencies": {
     "@jest/globals": "^29.7.0",
