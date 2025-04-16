@@ -1,0 +1,31 @@
+import Foundation
+import Testing
+
+@testable import AlgoKitTransact
+
+// Polytest Suite: Generic Transaction
+
+// Polytest Group: Generic Transaction Tests
+
+@Test("Generic Transaction: malformed bytes") 
+func genericTransactionMalformedBytes() throws {
+    let testData = try loadTestData()
+    let badBytes = Data(testData.expectedBytesForSigning[13..<37])
+    do {
+        _ = try decodeTransaction(bytes: badBytes)
+        #expect(Bool(false), "Expected DecodingError to be thrown")
+    } catch AlgoKitTransactError.DecodingError {
+        // Success - expected error was thrown
+        #expect(Bool(true))
+    }
+}
+
+@Test("Generic Transaction: encode 0 bytes") 
+func genericTransactionEncode0Bytes() throws {
+    do {
+        _ = try decodeTransaction(bytes: Data())
+        #expect(Bool(false), "Expected DecodingError to be thrown")
+    } catch AlgoKitTransactError.DecodingError(let message) {
+        #expect(message == "attempted to decode 0 bytes")
+    }
+}

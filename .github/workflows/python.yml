@@ -3,19 +3,19 @@ name: Python CI
 on:
   push:
     branches:
-      - master
+      - main
     tags:
       - "*"
   pull_request:
     branches:
-      - master
+      - main
   workflow_dispatch:
 
 permissions:
   contents: read
 
 env:
-  CRATE: algo_models
+  CRATE: algokit_transact
   # Python >= 3.8 is needed to support manylinux_x_y tags (unless you want to manually update pip)
   # Python 3.10 was chosen because it is currently the most popular according to https://mayeut.github.io/manylinux-timeline/
   PYTHON_VERSION: "3.10"
@@ -150,7 +150,7 @@ jobs:
       - name: Debug module contents
         env:
           RUN: |
-            python${{ env.PYTHON_VERSION }} -c "import algo_models; print('Available attributes:', dir(algo_models))"
+            python${{ env.PYTHON_VERSION }} -c "import algokit_transact; print('Available attributes:', dir(algokit_transact))"
         run: docker exec build-container bash -c "$RUN"
 
       - name: pytest

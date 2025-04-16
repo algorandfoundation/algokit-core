@@ -1,0 +1,79 @@
+name = "algokit_transact Test Plan"
+package_name = "algokit_transact"
+
+# Test Suites
+
+[suite.Payment]
+desc = "Tests for payment transactions"
+groups = ["Transaction Tests"]
+
+[suite."Generic Transaction"]
+desc = "Generic transaction tests"
+groups = ["Generic Transaction Tests"]
+
+# Test Group: Generic Transaction Tests
+
+[group."Generic Transaction Tests"]
+desc = "Generic transaction-related tests"
+
+[group."Generic Transaction Tests".test."encode 0 bytes"]
+desc = "Ensure a helpful error message is thrown when attempting to encode 0 bytes"
+
+[group."Generic Transaction Tests".test."malformed bytes"]
+desc = "Ensure a helpful error message is thrown when attempting to decode malformed bytes"
+
+# TODO: Need way to exclude targets from test
+# [group."Generic Transaction Tests".test."Invalid type"]
+# desc = "Ensure a helpful error message is thrown when giving the wrong type to a field"
+
+# Test Group: Transaction Tests
+
+[group."Transaction Tests"]
+desc = "Tests that apply to all transaction types"
+
+[group."Transaction Tests".test.encode]
+desc = "A transaction with valid fields is encoded properly"
+
+[group."Transaction Tests".test."encode with signature"]
+desc = "A signature can be attached to a encoded transaction"
+
+[group."Transaction Tests".test."decode with prefix"]
+desc = "A transaction with TX prefix and valid fields is decoded properly"
+
+[group."Transaction Tests".test."decode without prefix"]
+desc = "A transaction without TX prefix and valid fields is decoded properly"
+
+# TODO: decode signed transaction
+# [group."Transaction Tests".test."decode signed transaction"]
+# desc = "A transaction with a valid signature is decoded properly"
+
+[group."Transaction Tests".test."get encoded transaction type"]
+desc = "The transaction type of an encoded transaction can be retrieved"
+
+[group."Transaction Tests".test.example]
+desc = "A human-readable example of forming a transaction and signing it"
+
+# Test Targets
+
+[target.bun]
+out_dir = "../../packages/typescript/algokit_transact/__tests__"
+
+[target.pytest]
+out_dir = "../../packages/python/algokit_transact/tests"
+
+[target.swift]
+out_dir = "../../packages/swift/AlgoKitTransact/Tests/AlgoKitTransactTests"
+
+# The default runner is macOS, which defines most of what we need
+# The iOS and Catalyst runners will inherit all the configuration from the default macOS runner, except for the command we defined
+[target.swift.runner.iOS]
+command = "xcodebuild -scheme {{ package_name | convert_case('Pascal') }} test -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest'"
+
+[target.swift.runner.Catalyst]
+command = "xcodebuild -scheme {{ package_name | convert_case('Pascal') }} test -destination 'platform=macOS,variant=Mac Catalyst'"
+
+# Document
+
+[document.markdown]
+out_file = "test_plan.md"
+

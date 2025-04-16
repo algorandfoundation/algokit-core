@@ -29,7 +29,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "algo_models"
+name = "algokit_transact"
 version = "0.1.0"
 dependencies = [
  "base32",
@@ -44,10 +44,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "algo_models_ffi"
+name = "algokit_transact_ffi"
 version = "0.1.0"
 dependencies = [
- "algo_models",
+ "algokit_transact",
  "ffi_macros",
  "rmp-serde",
  "serde",

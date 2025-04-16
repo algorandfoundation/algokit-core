@@ -3,20 +3,20 @@ name: Swift CI
 on:
   push:
     branches:
-      - master
+      - main
     tags:
       - "*"
   pull_request:
     branches:
-      - master
+      - main
   workflow_dispatch:
 
 permissions:
   contents: write
 
 env:
-  CRATE: algo_models
-  PACKAGE: AlgoModels
+  CRATE: algokit_transact
+  PACKAGE: AlgoKitTransact
 
 jobs:
   build_and_test:

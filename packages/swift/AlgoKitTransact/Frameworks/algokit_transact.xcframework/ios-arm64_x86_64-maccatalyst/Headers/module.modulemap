@@ -1,0 +1,4 @@
+module algokit_transactFFI {
+    header "algokit_transactFFI.h"
+    export *
+}

@@ -18,7 +18,7 @@ The exported interfaces should be purely functional without any state owned by R
 
 ## Crates
 
-- [algo_models](./crates/algo_models) - Currently a spike to determine feasibility of using UniFFI and wasm-pack. Handles msgpack encoding and decoding of Algorand transactions and allows attaching signatures to transactions.
+- [algokit_transact](./crates/algokit_transact) - Currently a spike to determine feasibility of using UniFFI and wasm-pack. Handles msgpack encoding and decoding of Algorand transactions and allows attaching signatures to transactions.
 
 ## ADRs
 

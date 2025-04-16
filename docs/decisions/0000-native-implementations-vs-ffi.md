@@ -9,7 +9,7 @@ consulted: Algorand Foundation CTO office, MakerX engineering team
 
 ## Context and Problem Statement
 
-It is desirable for the Algorand Foundation to create and maintain libraries for multiple languages that provide core Algorand functionality. These libraries should be able to help developers use Algorand but also not reinvent the wheel by trying to handle functionality that is already available in external libraries (i.e. keypair generation, signing, etc.). There should be consistency across languages so that the API is relatively similar and there is not one language that gets ahead or falls behind the others in terms of features, as we've seen with the existing SDKs and Algokit Utils libraries. The exact languages we want to target are TBD, but ideally we can get the most popular languages for popular platforms (Python, JS for web and node, Kotlin for Android, Swift for iOS).
+It is desirable for the Algorand Foundation to create and maintain libraries for multiple languages that provide core Algorand functionality. These libraries should be able to help developers use Algorand but also not reinvent the wheel by trying to handle functionality that is already available in external libraries (i.e. keypair generation, signing, etc.). There should be consistency across languages so that the API is relatively similar and there is not one language that gets ahead or falls behind the others in terms of features, as we've seen with the existing SDKs and AlgoKit Utils libraries. The exact languages we want to target are TBD, but ideally we can get the most popular languages for popular platforms (Python, JS for web and node, Kotlin for Android, Swift for iOS).
 
 ## Decision Drivers
 
@@ -26,7 +26,7 @@ It is desirable for the Algorand Foundation to create and maintain libraries for
 
 ## Decision Outcome
 
-TBD. Currently leaning towards "Core Rust implementation with generated FFI-bindings using UniFFI and wasm-pack" with the initial spike of [algo_models](../../crates/algo_models/).
+TBD. Currently leaning towards "Core Rust implementation with generated FFI-bindings using UniFFI and wasm-pack" with the initial spike of [algokit_transact](../../crates/algokit_transact/).
 
 ### Confirmation
 

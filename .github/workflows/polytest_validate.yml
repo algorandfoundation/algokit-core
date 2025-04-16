@@ -3,16 +3,16 @@ name: Polytest Validate
 on:
   push:
     branches:
-      - master
+      - main
     tags:
       - "*"
   pull_request:
     branches:
-      - master
+      - main
   workflow_dispatch:
 
 env:
-  CRATE: algo_models
+  CRATE: algokit_transact
 
 jobs:
   validate:
