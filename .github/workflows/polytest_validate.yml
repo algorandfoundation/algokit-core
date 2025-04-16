@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 env:
-  CRATE: algo_models
+  CRATE: algokit_transact
 
 jobs:
   validate:

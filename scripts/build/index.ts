@@ -59,7 +59,7 @@ const languages = {
   typescript: buildTypescript,
 };
 
-const crates = ["algo_models"];
+const crates = ["algokit_transact"];
 
 if (process.argv.length !== 4) {
   throw new Error("Usage: bun scripts/build <crate> <language>");

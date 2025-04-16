@@ -1,8 +1,8 @@
 [workspace]
 resolver = "2"
 members = [
-	"crates/algo_models",
-	"crates/algo_models_ffi",
+	"crates/algokit_transact",
+	"crates/algokit_transact_ffi",
 	"crates/ffi_macros",
 	"crates/uniffi-bindgen", "tools/cargo-bin",
 ]

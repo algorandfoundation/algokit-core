@@ -15,8 +15,8 @@ permissions:
   contents: write
 
 env:
-  CRATE: algo_models
-  PACKAGE: AlgoModels
+  CRATE: algokit_transact
+  PACKAGE: AlgoKitTransact
 
 jobs:
   build_and_test:

@@ -66,4 +66,4 @@ const replacer = (_: any, v: any) => {
 
 const content = JSON.stringify(data, replacer, 2);
 
-fs.writeFileSync("crates/algo_models_ffi/test_data.json", content);
+fs.writeFileSync("crates/algokit_transact_ffi/test_data.json", content);
