@@ -33,6 +33,7 @@ name = "algokit_transact"
 version = "0.1.0"
 dependencies = [
  "base32",
+ "base64",
  "pretty_assertions",
  "rmp-serde",
  "rmpv",
