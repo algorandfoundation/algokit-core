@@ -3,12 +3,12 @@ name: TypeScript CI
 on:
   push:
     branches:
-      - master
+      - main
     tags:
       - "*"
   pull_request:
     branches:
-      - master
+      - main
   workflow_dispatch:
 
 permissions:
