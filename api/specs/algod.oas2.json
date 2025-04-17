@@ -1864,8 +1864,8 @@
       "get": {
         "description": "Get ledger deltas for a round.",
         "tags": [
-            "public",
-            "nonparticipating"
+          "public",
+          "nonparticipating"
         ],
         "produces": [
           "application/json",
@@ -4316,7 +4316,7 @@
         "unnamed-resources-accessed": {
           "$ref": "#/definitions/SimulateUnnamedResourcesAccessed"
         },
-        "fixed-signer":{
+        "fixed-signer": {
           "description": "The account that needed to sign this transaction when no signature was provided and the provided signer was incorrect.",
           "type": "string",
           "x-algorand-format": "Address"
