@@ -102,11 +102,10 @@ pub trait TransactionId: AlgorandMsgpack {
     fn raw_id(&self) -> Result<[u8; HASH_BYTES_LENGTH], AlgoKitTransactError> {
         let mut hasher = Sha512_256::new();
         hasher.update(self.encode()?);
-        hasher.finalize().try_into().map_err(|_| {
-            AlgoKitTransactError::InputError(
-                "could not convert transaction hash to 32 bytes".to_string(),
-            )
-        })
+
+        let mut hash = [0u8; HASH_BYTES_LENGTH];
+        hash.copy_from_slice(&hasher.finalize()[..HASH_BYTES_LENGTH]);
+        Ok(hash)
     }
 
     fn id(&self) -> Result<String, AlgoKitTransactError> {
