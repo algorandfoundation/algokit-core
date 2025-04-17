@@ -49,7 +49,9 @@ name = "algokit_transact_ffi"
 version = "0.1.0"
 dependencies = [
  "algokit_transact",
+ "base64",
  "ffi_macros",
+ "pretty_assertions",
  "rmp-serde",
  "serde",
  "serde_bytes",

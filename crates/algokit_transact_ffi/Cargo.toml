@@ -25,6 +25,8 @@ uniffi = { workspace = true, features = [
     "scaffolding-ffi-buffer-fns",
 ], optional = true }
 wasm-bindgen = { workspace = true, optional = true }
+base64 = "0.22.1"
+pretty_assertions = "1.4.1"
 
 
 [dev-dependencies]
