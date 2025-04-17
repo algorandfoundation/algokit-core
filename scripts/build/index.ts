@@ -29,6 +29,7 @@ export function run(
       cwd: cwd || resolve(__dirname, "../../"),
       stdio: ["ignore", "pipe", "pipe"],
       env: { ...process.env, ...env },
+      shell: true,
     });
 
     if (subProcess.stdout) {
