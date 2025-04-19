@@ -1,14 +1,15 @@
 name: Swift CI
 
 on:
-  push:
-    branches:
-      - main
-    tags:
-      - "*"
-  pull_request:
-    branches:
-      - main
+  # Temporarily disable automatic CI for swift while we focus on Python and TS
+  # push:
+  #   branches:
+  #     - main
+  #   tags:
+  #     - "*"
+  # pull_request:
+  #   branches:
+  #     - main
   workflow_dispatch:
 
 permissions:
