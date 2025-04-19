@@ -82,6 +82,7 @@ if (!crates.includes(crate)) {
 if (language === "all") {
   await Promise.all(
     Object.keys(languages).map(async (language) => {
+      if (language === "swift") return; // temporarily remove swift from "all" while we focus on python and typescript
       await languages[language](crate);
     }),
   );
