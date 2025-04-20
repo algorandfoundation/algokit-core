@@ -61,16 +61,17 @@ out_dir = "../../packages/typescript/algokit_transact/__tests__"
 [target.pytest]
 out_dir = "../../packages/python/algokit_transact/tests"
 
-[target.swift]
-out_dir = "../../packages/swift/AlgoKitTransact/Tests/AlgoKitTransactTests"
-
-# The default runner is macOS, which defines most of what we need
-# The iOS and Catalyst runners will inherit all the configuration from the default macOS runner, except for the command we defined
-[target.swift.runner.iOS]
-command = "xcodebuild -scheme {{ package_name | convert_case('Pascal') }} test -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest'"
-
-[target.swift.runner.Catalyst]
-command = "xcodebuild -scheme {{ package_name | convert_case('Pascal') }} test -destination 'platform=macOS,variant=Mac Catalyst'"
+# Temporarily comment out swift while we focus on Python and TypeScript
+# [target.swift]
+# out_dir = "../../packages/swift/AlgoKitTransact/Tests/AlgoKitTransactTests"
+#
+# # The default runner is macOS, which defines most of what we need
+# # The iOS and Catalyst runners will inherit all the configuration from the default macOS runner, except for the command we defined
+# [target.swift.runner.iOS]
+# command = "xcodebuild -scheme {{ package_name | convert_case('Pascal') }} test -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest'"
+#
+# [target.swift.runner.Catalyst]
+# command = "xcodebuild -scheme {{ package_name | convert_case('Pascal') }} test -destination 'platform=macOS,variant=Mac Catalyst'"
 
 # Document
 
