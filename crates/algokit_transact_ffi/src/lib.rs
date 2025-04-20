@@ -1,4 +1,4 @@
-use algokit_transact::AlgorandMsgpack;
+use algokit_transact::{AlgorandMsgpack, TransactionId};
 use ffi_macros::{ffi_func, ffi_record};
 use serde::{Deserialize, Serialize};
 use serde_bytes::ByteBuf;
@@ -493,9 +493,25 @@ pub fn address_from_string(address: &str) -> Result<Address, AlgoKitTransactErro
         .map_err(|e| AlgoKitTransactError::EncodingError(e.to_string()))
 }
 
+/// Get the raw 32-byte transaction ID for an encoded transaction.
+#[ffi_func]
+pub fn get_transaction_raw_id(encoded_tx: &[u8]) -> Result<Vec<u8>, AlgoKitTransactError> {
+    let tx = algokit_transact::Transaction::decode(encoded_tx)?;
+    let raw_id = tx.raw_id()?;
+    Ok(raw_id.to_vec())
+}
+
+/// Get the base32 transaction ID string for an encoded transaction.
+#[ffi_func]
+pub fn get_transaction_id(encoded_tx: &[u8]) -> Result<String, AlgoKitTransactError> {
+    let tx = algokit_transact::Transaction::decode(encoded_tx)?;
+    Ok(tx.id()?)
+}
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pretty_assertions::assert_eq;
+    use base64::{prelude::BASE64_STANDARD, Engine};
 
     #[test]
     fn test_get_encoded_transaction_type() {
@@ -534,5 +550,66 @@ mod tests {
         // Test the get_encoded_transaction_type function
         let tx_type = get_encoded_transaction_type(&encoded).unwrap();
         assert_eq!(tx_type, TransactionType::Payment);
+    }
+
+    // Example transaction modeled from algokit_transact::tests
+    fn example_pay_transaction_ffi() -> Transaction {
+        let sender_addr =
+            address_from_string("RIMARGKZU46OZ77OLPDHHPUJ7YBSHRTCYMQUC64KZCCMESQAFQMYU6SL2Q")
+                .unwrap();
+        let receiver_addr =
+            address_from_string("VXH5UP6JLU2CGIYPUFZ4Z5OTLJCLMA5EXD3YHTMVNDE5P7ILZ324FSYSPQ")
+                .unwrap();
+        let genesis_hash_bytes = BASE64_STANDARD
+            .decode("SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=")
+            .unwrap();
+        let note_bytes = BASE64_STANDARD
+            .decode("MGFhNTBkMjctYjhmNy00ZDc3LWExZmItNTUxZmQ1NWRmMmJj")
+            .unwrap();
+
+        let header = TransactionHeader {
+            transaction_type: TransactionType::Payment,
+            sender: sender_addr,
+            fee: 1000,
+            first_valid: 50659540,
+            last_valid: 50660540,
+            genesis_hash: Some(ByteBuf::from(genesis_hash_bytes)),
+            genesis_id: Some(String::from("testnet-v1.0")),
+            note: Some(ByteBuf::from(note_bytes)),
+            rekey_to: None,
+            lease: None,
+            group: None,
+        };
+
+        let pay_fields = PayTransactionFields {
+            receiver: receiver_addr,
+            amount: 101000,
+            close_remainder_to: None,
+        };
+
+        Transaction {
+            header,
+            pay_fields: Some(pay_fields),
+            asset_transfer_fields: None,
+        }
+    }
+
+    #[test]
+    fn test_transaction_id_ffi() {
+        let tx_ffi = example_pay_transaction_ffi();
+        let encoded_tx = encode_transaction(tx_ffi).unwrap();
+
+        // Expected values from algokit_transact::tests
+        let expected_id = "ENOQBKTA3UAUU54TQN2AOH7BFDLS6LDYQD2SSQLU76JUAWSQSPPQ";
+        let expected_raw_id = [
+            35, 93, 0, 170, 96, 221, 1, 74, 119, 147, 131, 116, 7, 31, 225, 40, 215, 47, 44, 120,
+            128, 245, 41, 65, 116, 255, 147, 64, 90, 80, 147, 223,
+        ];
+
+        let actual_id = get_transaction_id(&encoded_tx).unwrap();
+        let actual_raw_id = get_transaction_raw_id(&encoded_tx).unwrap();
+
+        assert_eq!(actual_id, expected_id);
+        assert_eq!(actual_raw_id, expected_raw_id);
     }
 }
