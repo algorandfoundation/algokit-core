@@ -50,6 +50,9 @@ desc = "A transaction without TX prefix and valid fields is decoded properly"
 [group."Transaction Tests".test."get encoded transaction type"]
 desc = "The transaction type of an encoded transaction can be retrieved"
 
+[group."Transaction Tests".test."get transaction id"]
+desc = "A transaction id can be obtained from a transaction"
+
 [group."Transaction Tests".test.example]
 desc = "A human-readable example of forming a transaction and signing it"
 
@@ -77,4 +80,3 @@ out_dir = "../../packages/python/algokit_transact/tests"
 
 [document.markdown]
 out_file = "test_plan.md"
-
