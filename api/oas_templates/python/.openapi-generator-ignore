@@ -11,3 +11,6 @@ docs
 .travis.yml
 test-requirements.txt
 .github/**
+requirements.txt
+setup.cfg
+setup.py

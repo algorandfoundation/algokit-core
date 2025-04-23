@@ -1,0 +1,10 @@
+templateDir: oas_templates/python
+additionalProperties:
+    packageName: my_client
+    projectName: my_client
+    packageVersion: 0.1.0
+
+files:
+    poetry.toml.mustache:
+        templateType: SupportingFiles
+        destinationFilename: poetry.toml
