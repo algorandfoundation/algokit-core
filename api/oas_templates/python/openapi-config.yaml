@@ -8,3 +8,21 @@ files:
     poetry.toml.mustache:
         templateType: SupportingFiles
         destinationFilename: poetry.toml
+    conftest.mustache:
+        templateType: SupportingFiles
+        destinationFilename: test/conftest.py
+    pytest_ini.mustache:
+        templateType: SupportingFiles
+        destinationFilename: pytest.ini
+    test_utils.mustache:
+        templateType: SupportingFiles
+        destinationFilename: test/test_utils.py
+    dummy_data.mustache:
+        templateType: SupportingFiles
+        destinationFilename: test/data/dummy_data.json
+    test_readme.mustache:
+        templateType: SupportingFiles
+        destinationFilename: test/README.md
+    api_usage_example.mustache:
+        templateType: SupportingFiles
+        destinationFilename: examples/api_usage_example.py

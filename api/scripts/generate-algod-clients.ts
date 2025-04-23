@@ -1,11 +1,11 @@
 #!/usr/bin/env bun
 
-import { exec } from "child_process";
+import { execSync } from "child_process";
 import { join } from "path";
-import { mkdirSync, existsSync } from "fs";
+import { mkdirSync, existsSync, copyFileSync } from "fs";
 
 // TODO: use full spec, for now just txns for testing purposes
-const SPEC_PATH = join(process.cwd(), "specs", "algod.oas3.json");
+const SPEC_PATH = join(process.cwd(), "specs", "algod.oas3_txns_only.json");
 
 // Create output directories if they don't exist
 const OUTPUT_DIR = join(process.cwd(), "api_clients");
@@ -29,8 +29,20 @@ if (!existsSync(PYTHON_OUTPUT)) {
     mkdirSync(PYTHON_OUTPUT, { recursive: true });
 }
 
+function copyIgnoreFile(templateDir: string, outputDir: string) {
+    const ignoreFilePath = join(templateDir, ".openapi-generator-ignore");
+    if (existsSync(ignoreFilePath)) {
+        console.log("ensuring ignore rules are propagated before client generation");
+        const destPath = join(outputDir, ".openapi-generator-ignore");
+        copyFileSync(ignoreFilePath, destPath);
+    }
+}
+
 function generateTypescriptClient() {
     console.log("Generating TypeScript client...");
+
+    copyIgnoreFile(TYPESCRIPT_TEMPLATE, TYPESCRIPT_OUTPUT);
+
     const cmd = [
         "bunx openapi-generator-cli generate",
         `-i ${SPEC_PATH}`,
@@ -40,18 +52,16 @@ function generateTypescriptClient() {
         "--additional-properties=npmName=@algorand/algod-client,npmVersion=1.0.0,supportsES6=true,typescriptThreePlus=true",
     ].join(" ");
 
-    try {
-        console.log(cmd);
-        exec(cmd);
-        console.log("TypeScript client generated successfully!");
-    } catch (error) {
-        console.error("Error generating TypeScript client:", error);
-        process.exit(1);
-    }
+    console.log(`Executing: ${cmd}`);
+    execSync(cmd, { stdio: 'inherit' });
+    console.log("TypeScript client generated successfully!");
 }
 
 function generatePythonClient() {
     console.log("Generating Python client...");
+
+    copyIgnoreFile(PYTHON_TEMPLATE, PYTHON_OUTPUT);
+
     const cmd = [
         "bunx openapi-generator-cli generate",
         `-i ${SPEC_PATH}`,
@@ -64,14 +74,9 @@ function generatePythonClient() {
         "--global-property=apis,models,apiTests=true,modelTests=true,supportingFiles",
     ].join(" ");
 
-    try {
-        console.log(cmd);
-        exec(cmd);
-        console.log("Python client generated successfully!");
-    } catch (error) {
-        console.error("Error generating Python client:", error);
-        process.exit(1);
-    }
+    console.log(`Executing: ${cmd}`);
+    execSync(cmd, { stdio: 'inherit' });
+    console.log("Python client generated successfully!");
 }
 
 function main() {

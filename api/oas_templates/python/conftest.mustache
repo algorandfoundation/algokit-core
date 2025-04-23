@@ -1,0 +1,89 @@
+# coding: utf-8
+
+{{>partial_header}}
+
+import pytest
+import os
+import json
+from typing import Dict, Any
+import os.path
+
+from {{packageName}}.configuration import Configuration
+from {{packageName}}.api_client import ApiClient
+from test.test_utils import TestDataGenerator
+
+
+@pytest.fixture
+def base_configuration():
+    """Fixture to create a base configuration for tests."""
+    # Default values for local Algorand node
+    host = os.environ.get("ALGORAND_HOST", "http://localhost:4001")
+    
+    configuration = Configuration(
+        host=host
+    )
+    
+    # Configure API key authorization
+    api_key = os.environ.get(
+        "ALGORAND_API_TOKEN", 
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    )
+    configuration.api_key['X-Algo-API-Token'] = api_key
+    
+    return configuration
+
+
+@pytest.fixture
+def api_client(base_configuration):
+    """Fixture to create a configured API client."""
+    client = ApiClient(configuration=base_configuration)
+    yield client
+    {{#asyncio}}
+    # This will be executed after the test to close the client
+    import asyncio
+    asyncio.run(client.close())
+    {{/asyncio}}
+
+
+@pytest.fixture
+def dummy_data():
+    """Fixture to load dummy data for tests."""
+    # Load dummy data from JSON file
+    data_file = os.path.join(os.path.dirname(__file__), "data", "dummy_data.json")
+    if os.path.exists(data_file):
+        with open(data_file, "r") as f:
+            return json.load(f)
+    else:
+        # If file doesn't exist, return generated data
+        return {
+            "transaction": {
+                "sig": TestDataGenerator.random_base64(64),
+                "txn": {
+                    "amt": TestDataGenerator.random_int(1, 1000),
+                    "fee": TestDataGenerator.random_int(1, 10),
+                    "fv": TestDataGenerator.random_int(1000, 2000),
+                    "gen": "mainnet-v1.0",
+                    "gh": TestDataGenerator.random_base64(32),
+                    "lv": TestDataGenerator.random_int(2000, 3000),
+                    "note": TestDataGenerator.random_base64(16),
+                    "rcv": TestDataGenerator.random_address(),
+                    "snd": TestDataGenerator.random_address(),
+                    "type": "pay"
+                }
+            },
+            "account": {
+                "address": TestDataGenerator.random_address(),
+                "amount": TestDataGenerator.random_int(100000, 1000000),
+                "status": "Online"
+            },
+            "block": {
+                "genesis-hash": TestDataGenerator.random_base64(32),
+                "genesis-id": "mainnet-v1.0",
+                "previous-block-hash": TestDataGenerator.random_base64(32),
+                "round": TestDataGenerator.random_int(1000, 2000),
+                "seed": TestDataGenerator.random_string(20),
+                "timestamp": TestDataGenerator.random_int(1600000000, 1700000000),
+                "transactions-root": TestDataGenerator.random_base64(32),
+                "txn-counter": TestDataGenerator.random_int(0, 100)
+            }
+        } 

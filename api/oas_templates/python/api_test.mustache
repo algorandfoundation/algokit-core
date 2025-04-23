@@ -2,35 +2,54 @@
 
 {{>partial_header}}
 
-import unittest
+import pytest
+import os
+import base64
+from typing import Dict, Any
 
 from {{apiPackage}}.{{classFilename}} import {{classname}}
+from {{modelPackage}} import *
+from {{packageName}}.configuration import Configuration
+from {{packageName}}.api_client import ApiClient
+from {{packageName}}.exceptions import ApiException
+from test.test_utils import TestDataGenerator
 
 
-class {{#operations}}Test{{classname}}(unittest.{{#asyncio}}IsolatedAsyncio{{/asyncio}}TestCase):
-    """{{classname}} unit test stubs"""
-
+@pytest.fixture
+def api_client_fixture():
+    """Fixture to create a configured API client for testing."""
+    # Configuration for local Algorand node
+    configuration = Configuration(
+        host="http://localhost:4001",
+        api_key={
+            'api_key': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+        }
+    )
+    
+    # Create API client with the configuration
+    client = ApiClient(configuration)
+    yield client
     {{#asyncio}}
-    async def asyncSetUp(self) -> None:
-        self.api = {{classname}}()
-
-    async def asyncTearDown(self) -> None:
-        await self.api.api_client.close()
+    # This will be executed after the test to close the client
+    import asyncio
+    asyncio.run(client.close())
     {{/asyncio}}
     {{^asyncio}}
-    def setUp(self) -> None:
-        self.api = {{classname}}()
-
-    def tearDown(self) -> None:
-        pass
+    # No cleanup needed for non-async client
+    pass
     {{/asyncio}}
+
+
+class {{#operations}}Test{{classname}}:
+    """{{classname}} test cases"""
 
     {{#operation}}
     {{#asyncio}}
-    async def test_{{operationId}}(self) -> None:
+    @pytest.mark.asyncio
+    async def test_{{operationId}}(self, api_client_fixture, dummy_data) -> None:
     {{/asyncio}}
     {{^asyncio}}
-    def test_{{operationId}}(self) -> None:
+    def test_{{operationId}}(self, api_client_fixture, dummy_data) -> None:
     {{/asyncio}}
         """Test case for {{{operationId}}}
 
@@ -38,10 +57,116 @@ class {{#operations}}Test{{classname}}(unittest.{{#asyncio}}IsolatedAsyncio{{/as
         {{{.}}}
 {{/summary}}
         """
-        pass
+        try:
+            # Create an instance of the API class using the api_client fixture
+            api_instance = {{classname}}(api_client_fixture)
+            
+            # Test for {{{summary}}}
+            {{#allParams}}
+            # Generate test data for {{paramName}}
+            {{#isFile}}
+            {{paramName}} = TestDataGenerator.random_bytes()  # Generate random file content
+            {{/isFile}}
+            {{^isFile}}
+            {{#vendorExtensions.x-algorand-transaction}}
+            {{paramName}} = dummy_data["transaction"]  # Use dummy transaction data
+            {{/vendorExtensions.x-algorand-transaction}}
+            {{#vendorExtensions.x-algorand-account}}
+            {{paramName}} = dummy_data["account"]  # Use dummy account data
+            {{/vendorExtensions.x-algorand-account}}
+            {{#vendorExtensions.x-algorand-block}}
+            {{paramName}} = dummy_data["block"]  # Use dummy block data
+            {{/vendorExtensions.x-algorand-block}}
+            {{^vendorExtensions.x-algorand-transaction}}
+            {{^vendorExtensions.x-algorand-account}}
+            {{^vendorExtensions.x-algorand-block}}
+            {{#isListContainer}}
+            {{paramName}} = []  # Replace with appropriate test data for {{dataType}}
+            {{/isListContainer}}
+            {{#isString}}
+            {{#pattern}}
+            {{paramName}} = "{{example}}"  # Replace with appropriate test {{dataType}} matching pattern {{pattern}}
+            {{/pattern}}
+            {{^pattern}}
+            {{paramName}} = TestDataGenerator.random_string()  # Replace with appropriate test {{dataType}}
+            {{/pattern}}
+            {{/isString}}
+            {{#isInteger}}
+            {{paramName}} = TestDataGenerator.random_int()  # Replace with appropriate test {{dataType}}
+            {{/isInteger}}
+            {{#isBoolean}}
+            {{paramName}} = True  # Replace with appropriate test {{dataType}}
+            {{/isBoolean}}
+            {{^isListContainer}}
+            {{^isString}}
+            {{^isInteger}}
+            {{^isBoolean}}
+            {{paramName}} = None  # Replace with appropriate test {{dataType}}
+            {{/isBoolean}}
+            {{/isInteger}}
+            {{/isString}}
+            {{/isListContainer}}
+            {{/vendorExtensions.x-algorand-block}}
+            {{/vendorExtensions.x-algorand-account}}
+            {{/vendorExtensions.x-algorand-transaction}}
+            {{/isFile}}
+            {{/allParams}}
+
+            # Set Accept header
+            headers = {
+                'Accept': 'application/json'
+            }
+            
+            # Call API and validate response
+            {{#asyncio}}
+            {{#allParams}}
+            response = await api_instance.{{operationId}}(
+                {{#allParams}}{{paramName}}={{paramName}}, {{/allParams}}
+                _headers=headers
+            )
+            {{/allParams}}
+            {{^allParams}}
+            response = await api_instance.{{operationId}}(_headers=headers)
+            {{/allParams}}
+            {{/asyncio}}
+            {{^asyncio}}
+            {{#allParams}}
+            response = api_instance.{{operationId}}(
+                {{#allParams}}{{paramName}}={{paramName}}, {{/allParams}}
+                _headers=headers
+            )
+            {{/allParams}}
+            {{^allParams}}
+            response = api_instance.{{operationId}}(_headers=headers)
+            {{/allParams}}
+            {{/asyncio}}
+            assert response is not None
+            
+            # Perform additional assertions on the response
+            {{#returnType}}
+            {{#returnTypeIsPrimitive}}
+            # Assert on primitive return type
+            assert isinstance(response, {{returnType}})
+            {{/returnTypeIsPrimitive}}
+            {{^returnTypeIsPrimitive}}
+            # Assert on complex return type
+            assert hasattr(response, 'to_dict')
+            response_dict = response.to_dict()
+            assert isinstance(response_dict, dict)
+            {{/returnTypeIsPrimitive}}
+            {{/returnType}}
+            
+        except ApiException as e:
+            if e.status == 401:
+                pytest.skip(f"Authentication required or failed: {e}")
+            elif e.status == 404:
+                pytest.skip(f"Endpoint not available or resource not found: {e}")
+            elif e.status == 501:
+                pytest.skip(f"API not implemented: {e}")
+            else:
+                pytest.fail(f"API Exception: {e}")
+        except Exception as e:
+            pytest.fail(f"Exception when calling {{classname}}->{{operationId}}: {e}")
 
    {{/operation}}
 {{/operations}}
-
-if __name__ == '__main__':
-    unittest.main()
