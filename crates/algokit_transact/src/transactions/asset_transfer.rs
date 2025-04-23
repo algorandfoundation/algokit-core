@@ -1,6 +1,4 @@
 use crate::address::Address;
-use crate::traits::{AlgorandMsgpack, TransactionId};
-use crate::transactions::common::TransactionHeader;
 use crate::utils::{is_zero, is_zero_addr, is_zero_addr_opt};
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, skip_serializing_none};
@@ -9,34 +7,23 @@ use serde_with::{serde_as, skip_serializing_none};
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct AssetTransferTransactionFields {
-    #[serde(flatten)]
-    pub header: TransactionHeader,
-
     #[serde(rename = "xaid")]
     #[serde(skip_serializing_if = "is_zero")]
-    #[serde(default)]
     pub asset_id: u64,
 
     #[serde(rename = "aamt")]
     #[serde(skip_serializing_if = "is_zero")]
-    #[serde(default)]
     pub amount: u64,
 
     #[serde(rename = "arcv")]
     #[serde(skip_serializing_if = "is_zero_addr")]
-    #[serde(default)]
     pub receiver: Address,
 
     #[serde(rename = "asnd")]
     #[serde(skip_serializing_if = "is_zero_addr_opt")]
-    #[serde(default)]
     pub asset_sender: Option<Address>,
 
     #[serde(rename = "aclose")]
     #[serde(skip_serializing_if = "is_zero_addr_opt")]
-    #[serde(default)]
     pub close_remainder_to: Option<Address>,
 }
-
-impl AlgorandMsgpack for AssetTransferTransactionFields {}
-impl TransactionId for AssetTransferTransactionFields {}

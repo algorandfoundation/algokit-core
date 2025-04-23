@@ -1,9 +1,8 @@
 import pytest
 from . import TEST_DATA, PRIV_KEY
 from algokit_transact import (
-    TransactionHeader,
     encode_transaction,
-    PayTransactionFields,
+    PaymentTransactionFields,
     TransactionType,
     attach_signature,
     decode_transaction,
@@ -34,16 +33,14 @@ def test_example():
     )
 
     txn = Transaction(
-        header=TransactionHeader(
-            transaction_type=TransactionType.PAYMENT,
-            fee=1000,
-            first_valid=1337,
-            last_valid=1347,
-            sender=alice,
-            genesis_hash=b"A" * 32,  # pretend this is a valid hash
-            genesis_id="localnet",
-        ),
-        pay_fields=PayTransactionFields(amount=1337, receiver=bob),
+        transaction_type=TransactionType.PAYMENT,
+        fee=1000,
+        first_valid=1337,
+        last_valid=1347,
+        sender=alice,
+        genesis_hash=b"A" * 32,  # pretend this is a valid hash
+        genesis_id="localnet",
+        payment=PaymentTransactionFields(amount=1337, receiver=bob),
     )
 
     sig = alice_keypair.sign(encode_transaction(txn)).signature

@@ -33,19 +33,17 @@ const stxn = pay.signTxn(sender.sk);
 const data = {
   privKey: Array.from(sender.sk.slice(0, 32)),
   transaction: {
-    header: {
-      sender: {
-        address: sender.addr.toString(),
-        pubKey: Array.from(sender.addr.publicKey),
-      },
-      fee: 1000,
-      transactionType: "Payment",
-      firstValid: sp.firstValid,
-      lastValid: sp.lastValid,
-      genesisHash: Array.from(sp.genesisHash!),
-      genesisId: sp.genesisID,
+    sender: {
+      address: sender.addr.toString(),
+      pubKey: Array.from(sender.addr.publicKey),
     },
-    payFields: {
+    fee: 1000,
+    transactionType: "Payment",
+    firstValid: sp.firstValid,
+    lastValid: sp.lastValid,
+    genesisHash: Array.from(sp.genesisHash!),
+    genesisId: sp.genesisID,
+    payment: {
       receiver: {
         address: receiver.addr.toString(),
         pubKey: Array.from(receiver.addr.publicKey),
