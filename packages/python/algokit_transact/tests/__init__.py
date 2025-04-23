@@ -3,8 +3,7 @@ import json
 from pprint import pprint
 from algokit_transact import (
     Address,
-    TransactionHeader,
-    PayTransactionFields,
+    PaymentTransactionFields,
     TransactionType,
     Transaction,
 )
@@ -57,13 +56,20 @@ def load_test_data():
     data = convert_case_recursive(data)
     data = convert_values(data)
 
-    data["transaction"]["header"]["transaction_type"] = TransactionType.PAYMENT
-
-    data["transaction"]["header"] = TransactionHeader(**data["transaction"]["header"])
-
+    tx_data = data["transaction"]
     data["transaction"] = Transaction(
-        header=data["transaction"]["header"],
-        pay_fields=PayTransactionFields(**data["transaction"]["pay_fields"]),
+        transaction_type=TransactionType.PAYMENT,
+        sender=tx_data["sender"],
+        fee=tx_data["fee"],
+        first_valid=tx_data["first_valid"],
+        last_valid=tx_data["last_valid"],
+        genesis_hash=tx_data.get("genesis_hash"),
+        genesis_id=tx_data.get("genesis_id"),
+        note=tx_data.get("note"),
+        rekey_to=tx_data.get("rekey_to"),
+        lease=tx_data.get("lease"),
+        group=tx_data.get("group"),
+        payment=PaymentTransactionFields(**tx_data["payment"]),
     )
 
     return data

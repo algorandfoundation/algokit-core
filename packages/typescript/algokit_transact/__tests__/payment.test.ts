@@ -44,16 +44,14 @@ describe("Payment", () => {
       );
 
       const txn: Transaction = {
-        header: {
-          transactionType: "Payment",
-          sender: alice,
-          fee: 1000n,
-          firstValid: 1337n,
-          lastValid: 1347n,
-          genesisHash: new Uint8Array(32).fill(65), // pretend this is a valid hash
-          genesisId: "localnet",
-        },
-        payFields: {
+        transactionType: "Payment",
+        sender: alice,
+        fee: 1000n,
+        firstValid: 1337n,
+        lastValid: 1347n,
+        genesisHash: new Uint8Array(32).fill(65), // pretend this is a valid hash
+        genesisId: "localnet",
+        payment: {
           amount: 1337n,
           receiver: bob,
         },
