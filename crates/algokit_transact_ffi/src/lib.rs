@@ -390,7 +390,7 @@ impl TryFrom<AssetTransferTransactionFields> for algokit_transact::AssetTransfer
 impl TryFrom<algokit_transact::Transaction> for Transaction {
     type Error = AlgoKitTransactError;
 
-    fn try_from(tx: algokit_transact::Transaction) -> Result<Self, Self::Error> {
+    fn try_from(tx: algokit_transact::Transaction) -> Result<Self, AlgoKitTransactError> {
         match tx {
             algokit_transact::Transaction::Payment(payment) => {
                 let header = payment.header.into();
@@ -502,20 +502,21 @@ pub fn address_from_string(address: &str) -> Result<Address, AlgoKitTransactErro
         .map_err(|e| AlgoKitTransactError::EncodingError(e.to_string()))
 }
 
-/// Get the raw 32-byte transaction ID for an encoded transaction.
+/// Get the raw 32-byte transaction ID for a transaction.
 #[ffi_func]
-pub fn get_transaction_raw_id(encoded_tx: &[u8]) -> Result<Vec<u8>, AlgoKitTransactError> {
-    let tx = algokit_transact::Transaction::decode(encoded_tx)?;
-    let raw_id = tx.raw_id()?;
+pub fn get_transaction_raw_id(tx: &Transaction) -> Result<Vec<u8>, AlgoKitTransactError> {
+    let tx_internal: algokit_transact::Transaction = tx.clone().try_into()?;
+    let raw_id = tx_internal.raw_id()?;
     Ok(raw_id.to_vec())
 }
 
-/// Get the base32 transaction ID string for an encoded transaction.
+/// Get the base32 transaction ID string for a transaction.
 #[ffi_func]
-pub fn get_transaction_id(encoded_tx: &[u8]) -> Result<String, AlgoKitTransactError> {
-    let tx = algokit_transact::Transaction::decode(encoded_tx)?;
-    Ok(tx.id()?)
+pub fn get_transaction_id(tx: &Transaction) -> Result<String, AlgoKitTransactError> {
+    let tx_internal: algokit_transact::Transaction = tx.clone().try_into()?;
+    Ok(tx_internal.id()?)
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -606,17 +607,17 @@ mod tests {
     #[test]
     fn test_transaction_id_ffi() {
         let tx_ffi = example_pay_transaction_ffi();
-        let encoded_tx = encode_transaction(tx_ffi).unwrap();
 
         // Expected values from algokit_transact::tests
+        //TODO: Update from outcome of AK-244
         let expected_id = "ENOQBKTA3UAUU54TQN2AOH7BFDLS6LDYQD2SSQLU76JUAWSQSPPQ";
         let expected_raw_id = [
             35, 93, 0, 170, 96, 221, 1, 74, 119, 147, 131, 116, 7, 31, 225, 40, 215, 47, 44, 120,
             128, 245, 41, 65, 116, 255, 147, 64, 90, 80, 147, 223,
         ];
 
-        let actual_id = get_transaction_id(&encoded_tx).unwrap();
-        let actual_raw_id = get_transaction_raw_id(&encoded_tx).unwrap();
+        let actual_id = get_transaction_id(&tx_ffi).unwrap();
+        let actual_raw_id = get_transaction_raw_id(&tx_ffi).unwrap();
 
         assert_eq!(actual_id, expected_id);
         assert_eq!(actual_raw_id, expected_raw_id);
