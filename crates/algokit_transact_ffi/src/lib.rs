@@ -455,14 +455,14 @@ pub fn get_encoded_transaction_type(bytes: &[u8]) -> Result<TransactionType, Alg
 }
 
 #[ffi_func] 
-/// Encode the transaction with the domain separator (e.g. "TX") prefix
+/// Encode the transaction with the domain separation (e.g. "TX") prefix
 pub fn encode_transaction(tx: Transaction) -> Result<Vec<u8>, AlgoKitTransactError> {
     let ctx: algokit_transact::Transaction = tx.try_into()?;
     Ok(ctx.encode()?)
 }
 
 #[ffi_func] 
-/// Encode the transaction without the domain separator (e.g. "TX") prefix
+/// Encode the transaction without the domain separation (e.g. "TX") prefix
 /// This is useful for encoding the transaction for signing with tools that automatically add "TX" prefix to the transaction bytes. 
 pub fn encode_transaction_raw(tx: Transaction) -> Result<Vec<u8>, AlgoKitTransactError> {
     let ctx: algokit_transact::Transaction = tx.try_into()?;
