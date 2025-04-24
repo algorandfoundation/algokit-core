@@ -17,4 +17,4 @@
 # import models into model package
 from algorand_algod_client.models.error_response import ErrorResponse
 from algorand_algod_client.models.raw_transaction200_response import RawTransaction200Response
-from algorand_algod_client.models.transaction_params200_response import TransactionParams200Response
+from algorand_algod_client.models.transaction_parameters_response import TransactionParametersResponse

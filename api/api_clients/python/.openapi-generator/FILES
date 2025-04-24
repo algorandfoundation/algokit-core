@@ -12,7 +12,7 @@ algorand_algod_client/exceptions.py
 algorand_algod_client/models/__init__.py
 algorand_algod_client/models/error_response.py
 algorand_algod_client/models/raw_transaction200_response.py
-algorand_algod_client/models/transaction_params200_response.py
+algorand_algod_client/models/transaction_parameters_response.py
 algorand_algod_client/py.typed
 algorand_algod_client/rest.py
 docs/ErrorResponse.md
@@ -20,8 +20,14 @@ docs/NonparticipatingApi.md
 docs/ParticipatingApi.md
 docs/PublicApi.md
 docs/RawTransaction200Response.md
-docs/TransactionParams200Response.md
+docs/TransactionParametersResponse.md
+examples/api_usage_example.py
+poetry.toml
 pyproject.toml
-requirements.txt
-setup.cfg
-setup.py
+pytest.ini
+test/README.md
+test/__init__.py
+test/conftest.py
+test/data/dummy_data.json
+test/test_transaction_parameters_response.py
+test/test_utils.py

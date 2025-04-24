@@ -21,7 +21,7 @@ from pydantic import Field, StrictBytes, StrictStr
 from typing import Tuple, Union
 from typing_extensions import Annotated
 from algorand_algod_client.models.raw_transaction200_response import RawTransaction200Response
-from algorand_algod_client.models.transaction_params200_response import TransactionParams200Response
+from algorand_algod_client.models.transaction_parameters_response import TransactionParametersResponse
 
 from algorand_algod_client.api_client import ApiClient, RequestSerialized
 from algorand_algod_client.api_response import ApiResponse
@@ -347,7 +347,7 @@ class PublicApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> TransactionParams200Response:
+    ) -> TransactionParametersResponse:
         """Get parameters for constructing a new transaction
 
 
@@ -381,7 +381,7 @@ class PublicApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "TransactionParams200Response",
+            '200': "TransactionParametersResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
@@ -412,7 +412,7 @@ class PublicApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[TransactionParams200Response]:
+    ) -> ApiResponse[TransactionParametersResponse]:
         """Get parameters for constructing a new transaction
 
 
@@ -446,7 +446,7 @@ class PublicApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "TransactionParams200Response",
+            '200': "TransactionParametersResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
@@ -511,7 +511,7 @@ class PublicApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "TransactionParams200Response",
+            '200': "TransactionParametersResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",

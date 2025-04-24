@@ -66,7 +66,6 @@ function generatePythonClient() {
         "bunx openapi-generator-cli generate",
         `-i ${SPEC_PATH}`,
         "-g python",
-        "--library asyncio",
         `-o ${PYTHON_OUTPUT}`,
         `-t ${PYTHON_TEMPLATE}`,
         `-c ${PYTHON_TEMPLATE}/openapi-config.yaml`,

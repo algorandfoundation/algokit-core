@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+# coding: utf-8
+
+"""
+Example usage of the algorand_algod_client client.
+"""
+
+import os
+import asyncio
+from pprint import pprint
+
+import algorand_algod_client
+from algorand_algod_client.configuration import Configuration
+from algorand_algod_client.api_client import ApiClient
+from algorand_algod_client.api.public_api import PublicApi
+from algorand_algod_client.rest import ApiException
+
+
+async def main():
+    # Configure API client
+    configuration = Configuration(
+        host="http://localhost:4001"
+    )
+
+    # Configure API key authorization
+    configuration.api_key['X-Algo-API-Token'] = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+
+    # Create API client with configuration
+    async with algorand_algod_client.ApiClient(configuration) as api_client:
+        # Create instance of the API class using the client
+        api_instance = PublicApi(api_client)
+
+        try:
+            # Get parameters for constructing a new transaction
+            api_response = await api_instance.transaction_params()
+            print("Transaction parameters:")
+            pprint(api_response)
+        except ApiException as e:
+            print(f"Exception when calling PublicApi->transaction_params: {e}")
+
+
+if __name__ == "__main__":
+    asyncio.run(main()) 

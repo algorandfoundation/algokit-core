@@ -1,0 +1,29 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "api"
+		},
+		{
+			"path": "api/api_clients/python"
+		},
+		{
+			"path": "crates"
+		},
+		{
+			"path": "docs"
+		},
+		{
+			"path": "packages"
+		},
+		{
+			"path": "scripts"
+		},
+		{
+			"path": "tools"
+		}
+	],
+	"settings": {}
+} 

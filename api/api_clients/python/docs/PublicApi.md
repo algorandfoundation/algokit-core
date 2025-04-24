@@ -91,7 +91,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **transaction_params**
-> TransactionParams200Response transaction_params()
+> TransactionParametersResponse transaction_params()
 
 Get parameters for constructing a new transaction
 
@@ -101,7 +101,7 @@ Get parameters for constructing a new transaction
 
 ```python
 import algorand_algod_client
-from algorand_algod_client.models.transaction_params200_response import TransactionParams200Response
+from algorand_algod_client.models.transaction_parameters_response import TransactionParametersResponse
 from algorand_algod_client.rest import ApiException
 from pprint import pprint
 
@@ -144,7 +144,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**TransactionParams200Response**](TransactionParams200Response.md)
+[**TransactionParametersResponse**](TransactionParametersResponse.md)
 
 ### Authorization
 
