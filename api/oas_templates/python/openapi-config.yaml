@@ -4,6 +4,9 @@ additionalProperties:
     projectName: my_client
     packageVersion: 0.1.0
 
+openapiNormalizer:
+    SET_TAGS_FOR_ALL_OPERATIONS: Algod
+
 files:
     poetry.toml.mustache:
         templateType: SupportingFiles

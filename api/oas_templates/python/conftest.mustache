@@ -38,11 +38,7 @@ def api_client(base_configuration):
     """Fixture to create a configured API client."""
     client = ApiClient(configuration=base_configuration)
     yield client
-    {{#asyncio}}
-    # This will be executed after the test to close the client
-    import asyncio
-    asyncio.run(client.close())
-    {{/asyncio}}
+    # No cleanup needed for non-async client
 
 
 @pytest.fixture

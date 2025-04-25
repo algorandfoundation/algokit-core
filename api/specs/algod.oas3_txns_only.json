@@ -35,6 +35,9 @@
           "public",
           "participating"
         ],
+        "x-algokit-extension": {
+          "title": "raw-transaction"
+        },
         "summary": "Broadcasts a raw transaction or transaction group to the network.",
         "operationId": "RawTransaction",
         "requestBody": {

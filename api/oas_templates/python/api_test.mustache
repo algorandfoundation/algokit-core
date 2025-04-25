@@ -29,28 +29,15 @@ def api_client_fixture():
     # Create API client with the configuration
     client = ApiClient(configuration)
     yield client
-    {{#asyncio}}
-    # This will be executed after the test to close the client
-    import asyncio
-    asyncio.run(client.close())
-    {{/asyncio}}
-    {{^asyncio}}
     # No cleanup needed for non-async client
     pass
-    {{/asyncio}}
 
 
 class {{#operations}}Test{{classname}}:
     """{{classname}} test cases"""
 
     {{#operation}}
-    {{#asyncio}}
-    @pytest.mark.asyncio
-    async def test_{{operationId}}(self, api_client_fixture, dummy_data) -> None:
-    {{/asyncio}}
-    {{^asyncio}}
     def test_{{operationId}}(self, api_client_fixture, dummy_data) -> None:
-    {{/asyncio}}
         """Test case for {{{operationId}}}
 
 {{#summary}}
@@ -62,6 +49,19 @@ class {{#operations}}Test{{classname}}:
             api_instance = {{classname}}(api_client_fixture)
             
             # Test for {{{summary}}}
+            # Set Accept header
+            headers = {
+                'Accept': 'application/json'
+            }
+            
+            # Check if this is a special case endpoint and handle accordingly
+            {{#equals operationId "RawTransaction"}}
+            # Special handling for raw-transaction endpoint
+            rawtxn = TestDataGenerator.random_signed_txn(api_instance, headers)
+            response = api_instance.{{operationId}}(rawtxn=rawtxn, _headers=headers)
+            {{/equals operationId "RawTransaction"}}
+            {{^equals operationId "RawTransaction"}}
+            # Standard endpoint handling
             {{#allParams}}
             # Generate test data for {{paramName}}
             {{#isFile}}
@@ -111,35 +111,19 @@ class {{#operations}}Test{{classname}}:
             {{/vendorExtensions.x-algorand-transaction}}
             {{/isFile}}
             {{/allParams}}
-
-            # Set Accept header
-            headers = {
-                'Accept': 'application/json'
-            }
             
             # Call API and validate response
-            {{#asyncio}}
-            {{#allParams}}
-            response = await api_instance.{{operationId}}(
-                {{#allParams}}{{paramName}}={{paramName}}, {{/allParams}}
-                _headers=headers
-            )
-            {{/allParams}}
-            {{^allParams}}
-            response = await api_instance.{{operationId}}(_headers=headers)
-            {{/allParams}}
-            {{/asyncio}}
-            {{^asyncio}}
             {{#allParams}}
             response = api_instance.{{operationId}}(
-                {{#allParams}}{{paramName}}={{paramName}}, {{/allParams}}
+                {{paramName}}={{paramName}}{{^last}}, {{/last}}
                 _headers=headers
             )
             {{/allParams}}
             {{^allParams}}
             response = api_instance.{{operationId}}(_headers=headers)
             {{/allParams}}
-            {{/asyncio}}
+            {{/equals operationId "RawTransaction"}}
+            
             assert response is not None
             
             # Perform additional assertions on the response

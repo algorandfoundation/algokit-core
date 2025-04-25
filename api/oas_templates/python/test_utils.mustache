@@ -7,6 +7,20 @@ import string
 import base64
 from typing import Dict, Any, List
 import json
+import os
+
+from {{packageName}}.api.algod_api import AlgodApi
+from algokit_transact import (
+    TransactionHeader,
+    encode_transaction,
+    PayTransactionFields,
+    TransactionType,
+    attach_signature,
+    Transaction,
+    address_from_string,
+    address_from_pub_key,
+)
+from nacl.signing import SigningKey
 
 
 class TestDataGenerator:
@@ -45,6 +59,35 @@ class TestDataGenerator:
         """Generate a random transaction ID-like string."""
         # Transaction IDs are 52 characters
         return TestDataGenerator.random_base64(26)
+
+    @staticmethod
+    def random_signed_txn(api_instance: AlgodApi, headers: Dict[str, str] | None = None) -> bytes:
+        """Generate a random signed transaction."""
+        alice_keypair = SigningKey(seed=base64.b64decode(os.environ["TEST_WALLET_PKEY"]))
+        alice = address_from_pub_key(alice_keypair.verify_key.__bytes__())
+        bob = address_from_string(
+            "B72WNFFEZ7EOGMQPP7ROHYS3DSLL5JW74QASYNWGZGQXWRPJECJJLJIJ2Y"
+        )
+
+        params = api_instance.transaction_params(_headers=headers)
+        print(params)
+
+        txn = Transaction(
+            header=TransactionHeader(
+                transaction_type=TransactionType.PAYMENT,
+                fee=params.min_fee,
+                first_valid=params.last_round,
+                last_valid=params.last_round + 1000,
+                sender=alice,
+                genesis_hash=base64.b64decode(params.genesis_hash),  # pretend this is a valid hash
+                genesis_id=params.genesis_id,
+            ),
+            pay_fields=PayTransactionFields(amount=int(1e6), receiver=bob),
+        )
+
+        sig = alice_keypair.sign(encode_transaction(txn)).signature
+        signed_txn = attach_signature(encode_transaction(txn), sig)
+        return signed_txn
 
     @staticmethod
     def random_dict(keys: List[str], min_val: int = 0, max_val: int = 100) -> Dict[str, int]:
