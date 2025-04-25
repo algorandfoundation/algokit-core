@@ -18,17 +18,18 @@ import pprint
 import re  # noqa: F401
 import json
 
-from pydantic import BaseModel, ConfigDict, Field, StrictStr
-from typing import Any, ClassVar, Dict, List
+from pydantic import BaseModel, ConfigDict, StrictStr
+from typing import Any, ClassVar, Dict, List, Optional
 from typing import Optional, Set
 from typing_extensions import Self
 
 class ErrorResponse(BaseModel):
     """
-    An error response
+    An error response with optional data field.
     """ # noqa: E501
-    message: StrictStr = Field(description="Error message")
-    __properties: ClassVar[List[str]] = ["message"]
+    data: Optional[Dict[str, Any]] = None
+    message: StrictStr
+    __properties: ClassVar[List[str]] = ["data", "message"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -81,6 +82,7 @@ class ErrorResponse(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
+            "data": obj.get("data"),
             "message": obj.get("message")
         })
         return _obj

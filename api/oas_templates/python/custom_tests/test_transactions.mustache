@@ -1,0 +1,62 @@
+# coding: utf-8
+
+{{>partial_header}}
+
+import pytest
+import os
+import base64
+from typing import Dict, Any
+
+from algorand_algod_client.api.algod_api import AlgodApi
+from algorand_algod_client.models import *
+from algorand_algod_client.configuration import Configuration
+from tests.test_utils import TestDataGenerator
+
+
+class TestTransactionAPI:
+    """Specialized tests for transaction endpoints"""
+
+    def test_raw_transaction(self, api_client_fixture) -> None:
+        """Test case for RawTransaction
+
+        Broadcasts a raw transaction or transaction group to the network.
+        """
+        try:
+            # Create an instance of the API class using the api_client fixture
+            api_instance = AlgodApi(api_client_fixture)
+            
+            # Set Accept header
+            headers = {
+                'Accept': 'application/json'
+            }
+            
+            # Special handling for raw-transaction endpoint
+            # Use the dedicated dummy_transaction fixture instead of random bytes
+            rawtxn = TestDataGenerator.random_signed_transaction(api_instance, headers)
+            
+            # Call API and validate response
+            response = api_instance.raw_transaction(
+                rawtxn=rawtxn, 
+                _headers=headers
+            )
+            
+            assert response is not None
+            
+            # Transaction-specific assertions
+            assert hasattr(response, 'to_dict')
+            response_dict = response.to_dict()
+            assert isinstance(response_dict, dict)
+            assert 'txId' in response_dict
+            assert len(response_dict['txId']) > 0
+            
+        except ApiException as e:
+            if e.status == 401:
+                pytest.skip(f"Authentication required or failed: {e}")
+            elif e.status == 404:
+                pytest.skip(f"Endpoint not available or resource not found: {e}")
+            elif e.status == 501:
+                pytest.skip(f"API not implemented: {e}")
+            else:
+                pytest.fail(f"API Exception: {e}")
+        except Exception as e:
+            pytest.fail(f"Exception when calling AlgodApi->raw_transaction: {e}")

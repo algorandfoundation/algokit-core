@@ -6,8 +6,7 @@
     "scripts": {
         "generate": "openapi-generator-cli generate",
         "generate-algod-clients": "bun run scripts/generate-algod-clients.ts",
-        "convert-openapi": "bun run scripts/convert-openapi.ts",
-        "sync-vendored-extensions": "bun run scripts/sync-vendored-extensions.ts specs/algod.oas3_txns_only.json specs/algod.oas3_txns_only.json"
+        "convert-openapi": "bun run scripts/convert-openapi.ts"
     },
     "devDependencies": {
         "@openapitools/openapi-generator-cli": "2.19.1",

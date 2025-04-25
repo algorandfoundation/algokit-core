@@ -15,20 +15,1380 @@
 
 import * as runtime from '../runtime';
 import type {
+  AbortCatchup200Response,
+  Account,
+  AccountApplicationInformation200Response,
+  AccountAssetInformation200Response,
+  Application,
+  Asset,
+  Box,
+  DryrunRequest,
   ErrorResponse,
+  GetApplicationBoxes200Response,
+  GetBlock200Response,
+  GetBlockHash200Response,
+  GetBlockLogs200Response,
+  GetBlockTimeStampOffset200Response,
+  GetBlockTxids200Response,
+  GetStatus200Response,
+  GetSupply200Response,
+  GetTransactionGroupLedgerStateDeltasForRound200Response,
+  GetTransactionProof200Response,
+  LightBlockHeaderProof,
+  SimulateRequest,
+  SimulateTransaction200Response,
+  StartCatchup200Response,
+  StateProof,
+  TealCompile200Response,
+  TealDisassemble200Response,
+  TealDryrun200Response,
   TransactionParams200Response,
 } from '../models/index';
 import {
+    AbortCatchup200ResponseFromJSON,
+    AbortCatchup200ResponseToJSON,
+    AccountFromJSON,
+    AccountToJSON,
+    AccountApplicationInformation200ResponseFromJSON,
+    AccountApplicationInformation200ResponseToJSON,
+    AccountAssetInformation200ResponseFromJSON,
+    AccountAssetInformation200ResponseToJSON,
+    ApplicationFromJSON,
+    ApplicationToJSON,
+    AssetFromJSON,
+    AssetToJSON,
+    BoxFromJSON,
+    BoxToJSON,
+    DryrunRequestFromJSON,
+    DryrunRequestToJSON,
     ErrorResponseFromJSON,
     ErrorResponseToJSON,
+    GetApplicationBoxes200ResponseFromJSON,
+    GetApplicationBoxes200ResponseToJSON,
+    GetBlock200ResponseFromJSON,
+    GetBlock200ResponseToJSON,
+    GetBlockHash200ResponseFromJSON,
+    GetBlockHash200ResponseToJSON,
+    GetBlockLogs200ResponseFromJSON,
+    GetBlockLogs200ResponseToJSON,
+    GetBlockTimeStampOffset200ResponseFromJSON,
+    GetBlockTimeStampOffset200ResponseToJSON,
+    GetBlockTxids200ResponseFromJSON,
+    GetBlockTxids200ResponseToJSON,
+    GetStatus200ResponseFromJSON,
+    GetStatus200ResponseToJSON,
+    GetSupply200ResponseFromJSON,
+    GetSupply200ResponseToJSON,
+    GetTransactionGroupLedgerStateDeltasForRound200ResponseFromJSON,
+    GetTransactionGroupLedgerStateDeltasForRound200ResponseToJSON,
+    GetTransactionProof200ResponseFromJSON,
+    GetTransactionProof200ResponseToJSON,
+    LightBlockHeaderProofFromJSON,
+    LightBlockHeaderProofToJSON,
+    SimulateRequestFromJSON,
+    SimulateRequestToJSON,
+    SimulateTransaction200ResponseFromJSON,
+    SimulateTransaction200ResponseToJSON,
+    StartCatchup200ResponseFromJSON,
+    StartCatchup200ResponseToJSON,
+    StateProofFromJSON,
+    StateProofToJSON,
+    TealCompile200ResponseFromJSON,
+    TealCompile200ResponseToJSON,
+    TealDisassemble200ResponseFromJSON,
+    TealDisassemble200ResponseToJSON,
+    TealDryrun200ResponseFromJSON,
+    TealDryrun200ResponseToJSON,
     TransactionParams200ResponseFromJSON,
     TransactionParams200ResponseToJSON,
 } from '../models/index';
+
+export interface AbortCatchupRequest {
+    catchpoint: string;
+}
+
+export interface AccountApplicationInformationRequest {
+    address: string;
+    applicationId: number;
+    format?: AccountApplicationInformationFormatEnum;
+}
+
+export interface AccountAssetInformationRequest {
+    address: string;
+    assetId: number;
+    format?: AccountAssetInformationFormatEnum;
+}
+
+export interface AccountInformationRequest {
+    address: string;
+    format?: AccountInformationFormatEnum;
+    exclude?: AccountInformationExcludeEnum;
+}
+
+export interface GetApplicationBoxByNameRequest {
+    applicationId: number;
+    name: string;
+}
+
+export interface GetApplicationBoxesRequest {
+    applicationId: number;
+    max?: number;
+    prefix?: string;
+    next?: string;
+    values?: boolean;
+}
+
+export interface GetApplicationByIDRequest {
+    applicationId: number;
+}
+
+export interface GetAssetByIDRequest {
+    assetId: number;
+}
+
+export interface GetBlockRequest {
+    round: number;
+    format?: GetBlockFormatEnum;
+    headerOnly?: boolean;
+}
+
+export interface GetBlockHashRequest {
+    round: number;
+}
+
+export interface GetBlockLogsRequest {
+    round: number;
+}
+
+export interface GetBlockTxidsRequest {
+    round: number;
+}
+
+export interface GetLedgerStateDeltaRequest {
+    round: number;
+    format?: GetLedgerStateDeltaFormatEnum;
+}
+
+export interface GetLedgerStateDeltaForTransactionGroupRequest {
+    id: string;
+    format?: GetLedgerStateDeltaForTransactionGroupFormatEnum;
+}
+
+export interface GetLightBlockHeaderProofRequest {
+    round: number;
+}
+
+export interface GetStateProofRequest {
+    round: number;
+}
+
+export interface GetTransactionGroupLedgerStateDeltasForRoundRequest {
+    round: number;
+    format?: GetTransactionGroupLedgerStateDeltasForRoundFormatEnum;
+}
+
+export interface GetTransactionProofRequest {
+    round: number;
+    txid: string;
+    hashtype?: GetTransactionProofHashtypeEnum;
+    format?: GetTransactionProofFormatEnum;
+}
+
+export interface SetBlockTimeStampOffsetRequest {
+    offset: number;
+}
+
+export interface ShutdownNodeRequest {
+    timeout?: number;
+}
+
+export interface SimulateTransactionRequest {
+    request: SimulateRequest;
+    format?: SimulateTransactionFormatEnum;
+}
+
+export interface StartCatchupRequest {
+    catchpoint: string;
+    min?: number;
+}
+
+export interface TealCompileRequest {
+    source: Blob;
+    sourcemap?: boolean;
+}
+
+export interface TealDisassembleRequest {
+    source: string;
+}
+
+export interface TealDryrunRequest {
+    request?: DryrunRequest;
+}
+
+export interface WaitForBlockRequest {
+    round: number;
+}
 
 /**
  * 
  */
 export class NonparticipatingApi extends runtime.BaseAPI {
+
+    /**
+     * Given a catchpoint, it aborts catching up to this catchpoint
+     * Aborts a catchpoint catchup.
+     */
+    async abortCatchupRaw(requestParameters: AbortCatchupRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AbortCatchup200Response>> {
+        if (requestParameters['catchpoint'] == null) {
+            throw new runtime.RequiredError(
+                'catchpoint',
+                'Required parameter "catchpoint" was null or undefined when calling abortCatchup().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-Algo-API-Token"] = await this.configuration.apiKey("X-Algo-API-Token"); // api_key authentication
+        }
+
+        const response = await this.request({
+            path: `/v2/catchup/{catchpoint}`.replace(`{${"catchpoint"}}`, encodeURIComponent(String(requestParameters['catchpoint']))),
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AbortCatchup200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Given a catchpoint, it aborts catching up to this catchpoint
+     * Aborts a catchpoint catchup.
+     */
+    async abortCatchup(requestParameters: AbortCatchupRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AbortCatchup200Response> {
+        const response = await this.abortCatchupRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Given a specific account public key and application ID, this call returns the account\'s application local state and global state (AppLocalState and AppParams, if either exists). Global state will only be returned if the provided address is the application\'s creator.
+     * Get account information about a given app.
+     */
+    async accountApplicationInformationRaw(requestParameters: AccountApplicationInformationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AccountApplicationInformation200Response>> {
+        if (requestParameters['address'] == null) {
+            throw new runtime.RequiredError(
+                'address',
+                'Required parameter "address" was null or undefined when calling accountApplicationInformation().'
+            );
+        }
+
+        if (requestParameters['applicationId'] == null) {
+            throw new runtime.RequiredError(
+                'applicationId',
+                'Required parameter "applicationId" was null or undefined when calling accountApplicationInformation().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['format'] != null) {
+            queryParameters['format'] = requestParameters['format'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-Algo-API-Token"] = await this.configuration.apiKey("X-Algo-API-Token"); // api_key authentication
+        }
+
+        const response = await this.request({
+            path: `/v2/accounts/{address}/applications/{application-id}`.replace(`{${"address"}}`, encodeURIComponent(String(requestParameters['address']))).replace(`{${"application-id"}}`, encodeURIComponent(String(requestParameters['applicationId']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AccountApplicationInformation200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Given a specific account public key and application ID, this call returns the account\'s application local state and global state (AppLocalState and AppParams, if either exists). Global state will only be returned if the provided address is the application\'s creator.
+     * Get account information about a given app.
+     */
+    async accountApplicationInformation(requestParameters: AccountApplicationInformationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AccountApplicationInformation200Response> {
+        const response = await this.accountApplicationInformationRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Given a specific account public key and asset ID, this call returns the account\'s asset holding and asset parameters (if either exist). Asset parameters will only be returned if the provided address is the asset\'s creator.
+     * Get account information about a given asset.
+     */
+    async accountAssetInformationRaw(requestParameters: AccountAssetInformationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AccountAssetInformation200Response>> {
+        if (requestParameters['address'] == null) {
+            throw new runtime.RequiredError(
+                'address',
+                'Required parameter "address" was null or undefined when calling accountAssetInformation().'
+            );
+        }
+
+        if (requestParameters['assetId'] == null) {
+            throw new runtime.RequiredError(
+                'assetId',
+                'Required parameter "assetId" was null or undefined when calling accountAssetInformation().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['format'] != null) {
+            queryParameters['format'] = requestParameters['format'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-Algo-API-Token"] = await this.configuration.apiKey("X-Algo-API-Token"); // api_key authentication
+        }
+
+        const response = await this.request({
+            path: `/v2/accounts/{address}/assets/{asset-id}`.replace(`{${"address"}}`, encodeURIComponent(String(requestParameters['address']))).replace(`{${"asset-id"}}`, encodeURIComponent(String(requestParameters['assetId']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AccountAssetInformation200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Given a specific account public key and asset ID, this call returns the account\'s asset holding and asset parameters (if either exist). Asset parameters will only be returned if the provided address is the asset\'s creator.
+     * Get account information about a given asset.
+     */
+    async accountAssetInformation(requestParameters: AccountAssetInformationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AccountAssetInformation200Response> {
+        const response = await this.accountAssetInformationRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Given a specific account public key, this call returns the account\'s status, balance and spendable amounts
+     * Get account information.
+     */
+    async accountInformationRaw(requestParameters: AccountInformationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Account>> {
+        if (requestParameters['address'] == null) {
+            throw new runtime.RequiredError(
+                'address',
+                'Required parameter "address" was null or undefined when calling accountInformation().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['format'] != null) {
+            queryParameters['format'] = requestParameters['format'];
+        }
+
+        if (requestParameters['exclude'] != null) {
+            queryParameters['exclude'] = requestParameters['exclude'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-Algo-API-Token"] = await this.configuration.apiKey("X-Algo-API-Token"); // api_key authentication
+        }
+
+        const response = await this.request({
+            path: `/v2/accounts/{address}`.replace(`{${"address"}}`, encodeURIComponent(String(requestParameters['address']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AccountFromJSON(jsonValue));
+    }
+
+    /**
+     * Given a specific account public key, this call returns the account\'s status, balance and spendable amounts
+     * Get account information.
+     */
+    async accountInformation(requestParameters: AccountInformationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Account> {
+        const response = await this.accountInformationRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Given an application ID and box name, it returns the round, box name, and value (each base64 encoded). Box names must be in the goal app call arg encoding form \'encoding:value\'. For ints, use the form \'int:1234\'. For raw bytes, use the form \'b64:A==\'. For printable strings, use the form \'str:hello\'. For addresses, use the form \'addr:XYZ...\'.
+     * Get box information for a given application.
+     */
+    async getApplicationBoxByNameRaw(requestParameters: GetApplicationBoxByNameRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Box>> {
+        if (requestParameters['applicationId'] == null) {
+            throw new runtime.RequiredError(
+                'applicationId',
+                'Required parameter "applicationId" was null or undefined when calling getApplicationBoxByName().'
+            );
+        }
+
+        if (requestParameters['name'] == null) {
+            throw new runtime.RequiredError(
+                'name',
+                'Required parameter "name" was null or undefined when calling getApplicationBoxByName().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['name'] != null) {
+            queryParameters['name'] = requestParameters['name'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-Algo-API-Token"] = await this.configuration.apiKey("X-Algo-API-Token"); // api_key authentication
+        }
+
+        const response = await this.request({
+            path: `/v2/applications/{application-id}/box`.replace(`{${"application-id"}}`, encodeURIComponent(String(requestParameters['applicationId']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => BoxFromJSON(jsonValue));
+    }
+
+    /**
+     * Given an application ID and box name, it returns the round, box name, and value (each base64 encoded). Box names must be in the goal app call arg encoding form \'encoding:value\'. For ints, use the form \'int:1234\'. For raw bytes, use the form \'b64:A==\'. For printable strings, use the form \'str:hello\'. For addresses, use the form \'addr:XYZ...\'.
+     * Get box information for a given application.
+     */
+    async getApplicationBoxByName(requestParameters: GetApplicationBoxByNameRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Box> {
+        const response = await this.getApplicationBoxByNameRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Given an application ID, return boxes in lexographical order by name. If the results must be truncated, a next-token is supplied to continue the request.
+     * Get boxes for a given application.
+     */
+    async getApplicationBoxesRaw(requestParameters: GetApplicationBoxesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GetApplicationBoxes200Response>> {
+        if (requestParameters['applicationId'] == null) {
+            throw new runtime.RequiredError(
+                'applicationId',
+                'Required parameter "applicationId" was null or undefined when calling getApplicationBoxes().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['max'] != null) {
+            queryParameters['max'] = requestParameters['max'];
+        }
+
+        if (requestParameters['prefix'] != null) {
+            queryParameters['prefix'] = requestParameters['prefix'];
+        }
+
+        if (requestParameters['next'] != null) {
+            queryParameters['next'] = requestParameters['next'];
+        }
+
+        if (requestParameters['values'] != null) {
+            queryParameters['values'] = requestParameters['values'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-Algo-API-Token"] = await this.configuration.apiKey("X-Algo-API-Token"); // api_key authentication
+        }
+
+        const response = await this.request({
+            path: `/v2/applications/{application-id}/boxes`.replace(`{${"application-id"}}`, encodeURIComponent(String(requestParameters['applicationId']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => GetApplicationBoxes200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Given an application ID, return boxes in lexographical order by name. If the results must be truncated, a next-token is supplied to continue the request.
+     * Get boxes for a given application.
+     */
+    async getApplicationBoxes(requestParameters: GetApplicationBoxesRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GetApplicationBoxes200Response> {
+        const response = await this.getApplicationBoxesRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Given a application ID, it returns application information including creator, approval and clear programs, global and local schemas, and global state.
+     * Get application information.
+     */
+    async getApplicationByIDRaw(requestParameters: GetApplicationByIDRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Application>> {
+        if (requestParameters['applicationId'] == null) {
+            throw new runtime.RequiredError(
+                'applicationId',
+                'Required parameter "applicationId" was null or undefined when calling getApplicationByID().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-Algo-API-Token"] = await this.configuration.apiKey("X-Algo-API-Token"); // api_key authentication
+        }
+
+        const response = await this.request({
+            path: `/v2/applications/{application-id}`.replace(`{${"application-id"}}`, encodeURIComponent(String(requestParameters['applicationId']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ApplicationFromJSON(jsonValue));
+    }
+
+    /**
+     * Given a application ID, it returns application information including creator, approval and clear programs, global and local schemas, and global state.
+     * Get application information.
+     */
+    async getApplicationByID(requestParameters: GetApplicationByIDRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Application> {
+        const response = await this.getApplicationByIDRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Given a asset ID, it returns asset information including creator, name, total supply and special addresses.
+     * Get asset information.
+     */
+    async getAssetByIDRaw(requestParameters: GetAssetByIDRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Asset>> {
+        if (requestParameters['assetId'] == null) {
+            throw new runtime.RequiredError(
+                'assetId',
+                'Required parameter "assetId" was null or undefined when calling getAssetByID().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-Algo-API-Token"] = await this.configuration.apiKey("X-Algo-API-Token"); // api_key authentication
+        }
+
+        const response = await this.request({
+            path: `/v2/assets/{asset-id}`.replace(`{${"asset-id"}}`, encodeURIComponent(String(requestParameters['assetId']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => AssetFromJSON(jsonValue));
+    }
+
+    /**
+     * Given a asset ID, it returns asset information including creator, name, total supply and special addresses.
+     * Get asset information.
+     */
+    async getAssetByID(requestParameters: GetAssetByIDRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Asset> {
+        const response = await this.getAssetByIDRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get the block for the given round.
+     */
+    async getBlockRaw(requestParameters: GetBlockRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GetBlock200Response>> {
+        if (requestParameters['round'] == null) {
+            throw new runtime.RequiredError(
+                'round',
+                'Required parameter "round" was null or undefined when calling getBlock().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['format'] != null) {
+            queryParameters['format'] = requestParameters['format'];
+        }
+
+        if (requestParameters['headerOnly'] != null) {
+            queryParameters['header-only'] = requestParameters['headerOnly'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-Algo-API-Token"] = await this.configuration.apiKey("X-Algo-API-Token"); // api_key authentication
+        }
+
+        const response = await this.request({
+            path: `/v2/blocks/{round}`.replace(`{${"round"}}`, encodeURIComponent(String(requestParameters['round']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => GetBlock200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Get the block for the given round.
+     */
+    async getBlock(requestParameters: GetBlockRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GetBlock200Response> {
+        const response = await this.getBlockRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get the block hash for the block on the given round.
+     */
+    async getBlockHashRaw(requestParameters: GetBlockHashRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GetBlockHash200Response>> {
+        if (requestParameters['round'] == null) {
+            throw new runtime.RequiredError(
+                'round',
+                'Required parameter "round" was null or undefined when calling getBlockHash().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-Algo-API-Token"] = await this.configuration.apiKey("X-Algo-API-Token"); // api_key authentication
+        }
+
+        const response = await this.request({
+            path: `/v2/blocks/{round}/hash`.replace(`{${"round"}}`, encodeURIComponent(String(requestParameters['round']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => GetBlockHash200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Get the block hash for the block on the given round.
+     */
+    async getBlockHash(requestParameters: GetBlockHashRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GetBlockHash200Response> {
+        const response = await this.getBlockHashRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get all of the logs from outer and inner app calls in the given round
+     * Get all of the logs from outer and inner app calls in the given round
+     */
+    async getBlockLogsRaw(requestParameters: GetBlockLogsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GetBlockLogs200Response>> {
+        if (requestParameters['round'] == null) {
+            throw new runtime.RequiredError(
+                'round',
+                'Required parameter "round" was null or undefined when calling getBlockLogs().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-Algo-API-Token"] = await this.configuration.apiKey("X-Algo-API-Token"); // api_key authentication
+        }
+
+        const response = await this.request({
+            path: `/v2/blocks/{round}/logs`.replace(`{${"round"}}`, encodeURIComponent(String(requestParameters['round']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => GetBlockLogs200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Get all of the logs from outer and inner app calls in the given round
+     * Get all of the logs from outer and inner app calls in the given round
+     */
+    async getBlockLogs(requestParameters: GetBlockLogsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GetBlockLogs200Response> {
+        const response = await this.getBlockLogsRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Gets the current timestamp offset.
+     * Returns the timestamp offset. Timestamp offsets can only be set in dev mode.
+     */
+    async getBlockTimeStampOffsetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GetBlockTimeStampOffset200Response>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-Algo-API-Token"] = await this.configuration.apiKey("X-Algo-API-Token"); // api_key authentication
+        }
+
+        const response = await this.request({
+            path: `/v2/devmode/blocks/offset`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => GetBlockTimeStampOffset200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Gets the current timestamp offset.
+     * Returns the timestamp offset. Timestamp offsets can only be set in dev mode.
+     */
+    async getBlockTimeStampOffset(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GetBlockTimeStampOffset200Response> {
+        const response = await this.getBlockTimeStampOffsetRaw(initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get the top level transaction IDs for the block on the given round.
+     */
+    async getBlockTxidsRaw(requestParameters: GetBlockTxidsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GetBlockTxids200Response>> {
+        if (requestParameters['round'] == null) {
+            throw new runtime.RequiredError(
+                'round',
+                'Required parameter "round" was null or undefined when calling getBlockTxids().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-Algo-API-Token"] = await this.configuration.apiKey("X-Algo-API-Token"); // api_key authentication
+        }
+
+        const response = await this.request({
+            path: `/v2/blocks/{round}/txids`.replace(`{${"round"}}`, encodeURIComponent(String(requestParameters['round']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => GetBlockTxids200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Get the top level transaction IDs for the block on the given round.
+     */
+    async getBlockTxids(requestParameters: GetBlockTxidsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GetBlockTxids200Response> {
+        const response = await this.getBlockTxidsRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get ledger deltas for a round.
+     * Get a LedgerStateDelta object for a given round
+     */
+    async getLedgerStateDeltaRaw(requestParameters: GetLedgerStateDeltaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<object>> {
+        if (requestParameters['round'] == null) {
+            throw new runtime.RequiredError(
+                'round',
+                'Required parameter "round" was null or undefined when calling getLedgerStateDelta().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['format'] != null) {
+            queryParameters['format'] = requestParameters['format'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-Algo-API-Token"] = await this.configuration.apiKey("X-Algo-API-Token"); // api_key authentication
+        }
+
+        const response = await this.request({
+            path: `/v2/deltas/{round}`.replace(`{${"round"}}`, encodeURIComponent(String(requestParameters['round']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse<any>(response);
+    }
+
+    /**
+     * Get ledger deltas for a round.
+     * Get a LedgerStateDelta object for a given round
+     */
+    async getLedgerStateDelta(requestParameters: GetLedgerStateDeltaRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<object> {
+        const response = await this.getLedgerStateDeltaRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get a ledger delta for a given transaction group.
+     * Get a LedgerStateDelta object for a given transaction group
+     */
+    async getLedgerStateDeltaForTransactionGroupRaw(requestParameters: GetLedgerStateDeltaForTransactionGroupRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<object>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling getLedgerStateDeltaForTransactionGroup().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['format'] != null) {
+            queryParameters['format'] = requestParameters['format'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-Algo-API-Token"] = await this.configuration.apiKey("X-Algo-API-Token"); // api_key authentication
+        }
+
+        const response = await this.request({
+            path: `/v2/deltas/txn/group/{id}`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse<any>(response);
+    }
+
+    /**
+     * Get a ledger delta for a given transaction group.
+     * Get a LedgerStateDelta object for a given transaction group
+     */
+    async getLedgerStateDeltaForTransactionGroup(requestParameters: GetLedgerStateDeltaForTransactionGroupRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<object> {
+        const response = await this.getLedgerStateDeltaForTransactionGroupRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Gets a proof for a given light block header inside a state proof commitment
+     */
+    async getLightBlockHeaderProofRaw(requestParameters: GetLightBlockHeaderProofRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<LightBlockHeaderProof>> {
+        if (requestParameters['round'] == null) {
+            throw new runtime.RequiredError(
+                'round',
+                'Required parameter "round" was null or undefined when calling getLightBlockHeaderProof().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-Algo-API-Token"] = await this.configuration.apiKey("X-Algo-API-Token"); // api_key authentication
+        }
+
+        const response = await this.request({
+            path: `/v2/blocks/{round}/lightheader/proof`.replace(`{${"round"}}`, encodeURIComponent(String(requestParameters['round']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => LightBlockHeaderProofFromJSON(jsonValue));
+    }
+
+    /**
+     * Gets a proof for a given light block header inside a state proof commitment
+     */
+    async getLightBlockHeaderProof(requestParameters: GetLightBlockHeaderProofRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<LightBlockHeaderProof> {
+        const response = await this.getLightBlockHeaderProofRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get a state proof that covers a given round
+     */
+    async getStateProofRaw(requestParameters: GetStateProofRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<StateProof>> {
+        if (requestParameters['round'] == null) {
+            throw new runtime.RequiredError(
+                'round',
+                'Required parameter "round" was null or undefined when calling getStateProof().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-Algo-API-Token"] = await this.configuration.apiKey("X-Algo-API-Token"); // api_key authentication
+        }
+
+        const response = await this.request({
+            path: `/v2/stateproofs/{round}`.replace(`{${"round"}}`, encodeURIComponent(String(requestParameters['round']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => StateProofFromJSON(jsonValue));
+    }
+
+    /**
+     * Get a state proof that covers a given round
+     */
+    async getStateProof(requestParameters: GetStateProofRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<StateProof> {
+        const response = await this.getStateProofRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Gets the current node status.
+     */
+    async getStatusRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GetStatus200Response>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-Algo-API-Token"] = await this.configuration.apiKey("X-Algo-API-Token"); // api_key authentication
+        }
+
+        const response = await this.request({
+            path: `/v2/status`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => GetStatus200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Gets the current node status.
+     */
+    async getStatus(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GetStatus200Response> {
+        const response = await this.getStatusRaw(initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get the current supply reported by the ledger.
+     */
+    async getSupplyRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GetSupply200Response>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-Algo-API-Token"] = await this.configuration.apiKey("X-Algo-API-Token"); // api_key authentication
+        }
+
+        const response = await this.request({
+            path: `/v2/ledger/supply`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => GetSupply200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Get the current supply reported by the ledger.
+     */
+    async getSupply(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GetSupply200Response> {
+        const response = await this.getSupplyRaw(initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get ledger deltas for transaction groups in a given round.
+     * Get LedgerStateDelta objects for all transaction groups in a given round
+     */
+    async getTransactionGroupLedgerStateDeltasForRoundRaw(requestParameters: GetTransactionGroupLedgerStateDeltasForRoundRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GetTransactionGroupLedgerStateDeltasForRound200Response>> {
+        if (requestParameters['round'] == null) {
+            throw new runtime.RequiredError(
+                'round',
+                'Required parameter "round" was null or undefined when calling getTransactionGroupLedgerStateDeltasForRound().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['format'] != null) {
+            queryParameters['format'] = requestParameters['format'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-Algo-API-Token"] = await this.configuration.apiKey("X-Algo-API-Token"); // api_key authentication
+        }
+
+        const response = await this.request({
+            path: `/v2/deltas/{round}/txn/group`.replace(`{${"round"}}`, encodeURIComponent(String(requestParameters['round']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => GetTransactionGroupLedgerStateDeltasForRound200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Get ledger deltas for transaction groups in a given round.
+     * Get LedgerStateDelta objects for all transaction groups in a given round
+     */
+    async getTransactionGroupLedgerStateDeltasForRound(requestParameters: GetTransactionGroupLedgerStateDeltasForRoundRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GetTransactionGroupLedgerStateDeltasForRound200Response> {
+        const response = await this.getTransactionGroupLedgerStateDeltasForRoundRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Get a proof for a transaction in a block.
+     */
+    async getTransactionProofRaw(requestParameters: GetTransactionProofRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GetTransactionProof200Response>> {
+        if (requestParameters['round'] == null) {
+            throw new runtime.RequiredError(
+                'round',
+                'Required parameter "round" was null or undefined when calling getTransactionProof().'
+            );
+        }
+
+        if (requestParameters['txid'] == null) {
+            throw new runtime.RequiredError(
+                'txid',
+                'Required parameter "txid" was null or undefined when calling getTransactionProof().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['hashtype'] != null) {
+            queryParameters['hashtype'] = requestParameters['hashtype'];
+        }
+
+        if (requestParameters['format'] != null) {
+            queryParameters['format'] = requestParameters['format'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-Algo-API-Token"] = await this.configuration.apiKey("X-Algo-API-Token"); // api_key authentication
+        }
+
+        const response = await this.request({
+            path: `/v2/blocks/{round}/transactions/{txid}/proof`.replace(`{${"round"}}`, encodeURIComponent(String(requestParameters['round']))).replace(`{${"txid"}}`, encodeURIComponent(String(requestParameters['txid']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => GetTransactionProof200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Get a proof for a transaction in a block.
+     */
+    async getTransactionProof(requestParameters: GetTransactionProofRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GetTransactionProof200Response> {
+        const response = await this.getTransactionProofRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Sets the timestamp offset (seconds) for blocks in dev mode. Providing an offset of 0 will unset this value and try to use the real clock for the timestamp.
+     * Given a timestamp offset in seconds, adds the offset to every subsequent block header\'s timestamp.
+     */
+    async setBlockTimeStampOffsetRaw(requestParameters: SetBlockTimeStampOffsetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['offset'] == null) {
+            throw new runtime.RequiredError(
+                'offset',
+                'Required parameter "offset" was null or undefined when calling setBlockTimeStampOffset().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-Algo-API-Token"] = await this.configuration.apiKey("X-Algo-API-Token"); // api_key authentication
+        }
+
+        const response = await this.request({
+            path: `/v2/devmode/blocks/offset/{offset}`.replace(`{${"offset"}}`, encodeURIComponent(String(requestParameters['offset']))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * Sets the timestamp offset (seconds) for blocks in dev mode. Providing an offset of 0 will unset this value and try to use the real clock for the timestamp.
+     * Given a timestamp offset in seconds, adds the offset to every subsequent block header\'s timestamp.
+     */
+    async setBlockTimeStampOffset(requestParameters: SetBlockTimeStampOffsetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.setBlockTimeStampOffsetRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     * Special management endpoint to shutdown the node. Optionally provide a timeout parameter to indicate that the node should begin shutting down after a number of seconds.
+     */
+    async shutdownNodeRaw(requestParameters: ShutdownNodeRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<object>> {
+        const queryParameters: any = {};
+
+        if (requestParameters['timeout'] != null) {
+            queryParameters['timeout'] = requestParameters['timeout'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-Algo-API-Token"] = await this.configuration.apiKey("X-Algo-API-Token"); // api_key authentication
+        }
+
+        const response = await this.request({
+            path: `/v2/shutdown`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse<any>(response);
+    }
+
+    /**
+     * Special management endpoint to shutdown the node. Optionally provide a timeout parameter to indicate that the node should begin shutting down after a number of seconds.
+     */
+    async shutdownNode(requestParameters: ShutdownNodeRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<object> {
+        const response = await this.shutdownNodeRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Simulates a raw transaction or transaction group as it would be evaluated on the network. The simulation will use blockchain state from the latest committed round.
+     */
+    async simulateTransactionRaw(requestParameters: SimulateTransactionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SimulateTransaction200Response>> {
+        if (requestParameters['request'] == null) {
+            throw new runtime.RequiredError(
+                'request',
+                'Required parameter "request" was null or undefined when calling simulateTransaction().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['format'] != null) {
+            queryParameters['format'] = requestParameters['format'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-Algo-API-Token"] = await this.configuration.apiKey("X-Algo-API-Token"); // api_key authentication
+        }
+
+        const response = await this.request({
+            path: `/v2/transactions/simulate`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: SimulateRequestToJSON(requestParameters['request']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SimulateTransaction200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Simulates a raw transaction or transaction group as it would be evaluated on the network. The simulation will use blockchain state from the latest committed round.
+     */
+    async simulateTransaction(requestParameters: SimulateTransactionRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SimulateTransaction200Response> {
+        const response = await this.simulateTransactionRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Given a catchpoint, it starts catching up to this catchpoint
+     * Starts a catchpoint catchup.
+     */
+    async startCatchupRaw(requestParameters: StartCatchupRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<StartCatchup200Response>> {
+        if (requestParameters['catchpoint'] == null) {
+            throw new runtime.RequiredError(
+                'catchpoint',
+                'Required parameter "catchpoint" was null or undefined when calling startCatchup().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['min'] != null) {
+            queryParameters['min'] = requestParameters['min'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-Algo-API-Token"] = await this.configuration.apiKey("X-Algo-API-Token"); // api_key authentication
+        }
+
+        const response = await this.request({
+            path: `/v2/catchup/{catchpoint}`.replace(`{${"catchpoint"}}`, encodeURIComponent(String(requestParameters['catchpoint']))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => StartCatchup200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Given a catchpoint, it starts catching up to this catchpoint
+     * Starts a catchpoint catchup.
+     */
+    async startCatchup(requestParameters: StartCatchupRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<StartCatchup200Response> {
+        const response = await this.startCatchupRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Given TEAL source code in plain text, return base64 encoded program bytes and base32 SHA512_256 hash of program bytes (Address style). This endpoint is only enabled when a node\'s configuration file sets EnableDeveloperAPI to true.
+     * Compile TEAL source code to binary, produce its hash
+     */
+    async tealCompileRaw(requestParameters: TealCompileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TealCompile200Response>> {
+        if (requestParameters['source'] == null) {
+            throw new runtime.RequiredError(
+                'source',
+                'Required parameter "source" was null or undefined when calling tealCompile().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['sourcemap'] != null) {
+            queryParameters['sourcemap'] = requestParameters['sourcemap'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'text/plain';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-Algo-API-Token"] = await this.configuration.apiKey("X-Algo-API-Token"); // api_key authentication
+        }
+
+        const response = await this.request({
+            path: `/v2/teal/compile`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: requestParameters['source'] as any,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => TealCompile200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Given TEAL source code in plain text, return base64 encoded program bytes and base32 SHA512_256 hash of program bytes (Address style). This endpoint is only enabled when a node\'s configuration file sets EnableDeveloperAPI to true.
+     * Compile TEAL source code to binary, produce its hash
+     */
+    async tealCompile(requestParameters: TealCompileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TealCompile200Response> {
+        const response = await this.tealCompileRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Given the program bytes, return the TEAL source code in plain text. This endpoint is only enabled when a node\'s configuration file sets EnableDeveloperAPI to true.
+     * Disassemble program bytes into the TEAL source code.
+     */
+    async tealDisassembleRaw(requestParameters: TealDisassembleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TealDisassemble200Response>> {
+        if (requestParameters['source'] == null) {
+            throw new runtime.RequiredError(
+                'source',
+                'Required parameter "source" was null or undefined when calling tealDisassemble().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/x-binary';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-Algo-API-Token"] = await this.configuration.apiKey("X-Algo-API-Token"); // api_key authentication
+        }
+
+        const response = await this.request({
+            path: `/v2/teal/disassemble`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: requestParameters['source'] as any,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => TealDisassemble200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Given the program bytes, return the TEAL source code in plain text. This endpoint is only enabled when a node\'s configuration file sets EnableDeveloperAPI to true.
+     * Disassemble program bytes into the TEAL source code.
+     */
+    async tealDisassemble(requestParameters: TealDisassembleRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TealDisassemble200Response> {
+        const response = await this.tealDisassembleRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Executes TEAL program(s) in context and returns debugging information about the execution. This endpoint is only enabled when a node\'s configuration file sets EnableDeveloperAPI to true.
+     * Provide debugging information for a transaction (or group).
+     */
+    async tealDryrunRaw(requestParameters: TealDryrunRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TealDryrun200Response>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-Algo-API-Token"] = await this.configuration.apiKey("X-Algo-API-Token"); // api_key authentication
+        }
+
+        const response = await this.request({
+            path: `/v2/teal/dryrun`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: DryrunRequestToJSON(requestParameters['request']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => TealDryrun200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Executes TEAL program(s) in context and returns debugging information about the execution. This endpoint is only enabled when a node\'s configuration file sets EnableDeveloperAPI to true.
+     * Provide debugging information for a transaction (or group).
+     */
+    async tealDryrun(requestParameters: TealDryrunRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TealDryrun200Response> {
+        const response = await this.tealDryrunRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
 
     /**
      * Get parameters for constructing a new transaction
@@ -60,4 +1420,132 @@ export class NonparticipatingApi extends runtime.BaseAPI {
         return await response.value();
     }
 
+    /**
+     * Waits for a block to appear after round {round} and returns the node\'s status at the time. There is a 1 minute timeout, when reached the current status is returned regardless of whether or not it is the round after the given round.
+     * Gets the node status after waiting for a round after the given round.
+     */
+    async waitForBlockRaw(requestParameters: WaitForBlockRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GetStatus200Response>> {
+        if (requestParameters['round'] == null) {
+            throw new runtime.RequiredError(
+                'round',
+                'Required parameter "round" was null or undefined when calling waitForBlock().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["X-Algo-API-Token"] = await this.configuration.apiKey("X-Algo-API-Token"); // api_key authentication
+        }
+
+        const response = await this.request({
+            path: `/v2/status/wait-for-block-after/{round}`.replace(`{${"round"}}`, encodeURIComponent(String(requestParameters['round']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => GetStatus200ResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Waits for a block to appear after round {round} and returns the node\'s status at the time. There is a 1 minute timeout, when reached the current status is returned regardless of whether or not it is the round after the given round.
+     * Gets the node status after waiting for a round after the given round.
+     */
+    async waitForBlock(requestParameters: WaitForBlockRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GetStatus200Response> {
+        const response = await this.waitForBlockRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
 }
+
+/**
+ * @export
+ */
+export const AccountApplicationInformationFormatEnum = {
+    Json: 'json',
+    Msgpack: 'msgpack'
+} as const;
+export type AccountApplicationInformationFormatEnum = typeof AccountApplicationInformationFormatEnum[keyof typeof AccountApplicationInformationFormatEnum];
+/**
+ * @export
+ */
+export const AccountAssetInformationFormatEnum = {
+    Json: 'json',
+    Msgpack: 'msgpack'
+} as const;
+export type AccountAssetInformationFormatEnum = typeof AccountAssetInformationFormatEnum[keyof typeof AccountAssetInformationFormatEnum];
+/**
+ * @export
+ */
+export const AccountInformationFormatEnum = {
+    Json: 'json',
+    Msgpack: 'msgpack'
+} as const;
+export type AccountInformationFormatEnum = typeof AccountInformationFormatEnum[keyof typeof AccountInformationFormatEnum];
+/**
+ * @export
+ */
+export const AccountInformationExcludeEnum = {
+    All: 'all',
+    None: 'none'
+} as const;
+export type AccountInformationExcludeEnum = typeof AccountInformationExcludeEnum[keyof typeof AccountInformationExcludeEnum];
+/**
+ * @export
+ */
+export const GetBlockFormatEnum = {
+    Json: 'json',
+    Msgpack: 'msgpack'
+} as const;
+export type GetBlockFormatEnum = typeof GetBlockFormatEnum[keyof typeof GetBlockFormatEnum];
+/**
+ * @export
+ */
+export const GetLedgerStateDeltaFormatEnum = {
+    Json: 'json',
+    Msgpack: 'msgpack'
+} as const;
+export type GetLedgerStateDeltaFormatEnum = typeof GetLedgerStateDeltaFormatEnum[keyof typeof GetLedgerStateDeltaFormatEnum];
+/**
+ * @export
+ */
+export const GetLedgerStateDeltaForTransactionGroupFormatEnum = {
+    Json: 'json',
+    Msgpack: 'msgpack'
+} as const;
+export type GetLedgerStateDeltaForTransactionGroupFormatEnum = typeof GetLedgerStateDeltaForTransactionGroupFormatEnum[keyof typeof GetLedgerStateDeltaForTransactionGroupFormatEnum];
+/**
+ * @export
+ */
+export const GetTransactionGroupLedgerStateDeltasForRoundFormatEnum = {
+    Json: 'json',
+    Msgpack: 'msgpack'
+} as const;
+export type GetTransactionGroupLedgerStateDeltasForRoundFormatEnum = typeof GetTransactionGroupLedgerStateDeltasForRoundFormatEnum[keyof typeof GetTransactionGroupLedgerStateDeltasForRoundFormatEnum];
+/**
+ * @export
+ */
+export const GetTransactionProofHashtypeEnum = {
+    Sha512256: 'sha512_256',
+    Sha256: 'sha256'
+} as const;
+export type GetTransactionProofHashtypeEnum = typeof GetTransactionProofHashtypeEnum[keyof typeof GetTransactionProofHashtypeEnum];
+/**
+ * @export
+ */
+export const GetTransactionProofFormatEnum = {
+    Json: 'json',
+    Msgpack: 'msgpack'
+} as const;
+export type GetTransactionProofFormatEnum = typeof GetTransactionProofFormatEnum[keyof typeof GetTransactionProofFormatEnum];
+/**
+ * @export
+ */
+export const SimulateTransactionFormatEnum = {
+    Json: 'json',
+    Msgpack: 'msgpack'
+} as const;
+export type SimulateTransactionFormatEnum = typeof SimulateTransactionFormatEnum[keyof typeof SimulateTransactionFormatEnum];

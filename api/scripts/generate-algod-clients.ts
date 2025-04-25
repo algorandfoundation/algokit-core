@@ -5,7 +5,7 @@ import { join } from "path";
 import { mkdirSync, existsSync, copyFileSync } from "fs";
 
 // TODO: use full spec, for now just txns for testing purposes
-const SPEC_PATH = join(process.cwd(), "specs", "algod.oas3_txns_only.json");
+const SPEC_PATH = join(process.cwd(), "specs", "algod.oas3.json");
 
 // Create output directories if they don't exist
 const OUTPUT_DIR = join(process.cwd(), "api_clients");
@@ -32,7 +32,9 @@ if (!existsSync(PYTHON_OUTPUT)) {
 function copyIgnoreFile(templateDir: string, outputDir: string) {
     const ignoreFilePath = join(templateDir, ".openapi-generator-ignore");
     if (existsSync(ignoreFilePath)) {
-        console.log("ensuring ignore rules are propagated before client generation");
+        console.log(
+            "ensuring ignore rules are propagated before client generation"
+        );
         const destPath = join(outputDir, ".openapi-generator-ignore");
         copyFileSync(ignoreFilePath, destPath);
     }
@@ -53,7 +55,7 @@ function generateTypescriptClient() {
     ].join(" ");
 
     console.log(`Executing: ${cmd}`);
-    execSync(cmd, { stdio: 'inherit' });
+    execSync(cmd, { stdio: "inherit" });
     console.log("TypeScript client generated successfully!");
 }
 
@@ -70,11 +72,11 @@ function generatePythonClient() {
         `-t ${PYTHON_TEMPLATE}`,
         `-c ${PYTHON_TEMPLATE}/openapi-config.yaml`,
         "--additional-properties=packageName=algorand_algod_client,packageVersion=1.0.0",
-        "--global-property=apis,models,apiTests=true,modelTests=true,supportingFiles",
+        "--global-property=apis,models,apiTests=false,modelTests=false,supportingFiles",
     ].join(" ");
 
     console.log(`Executing: ${cmd}`);
-    execSync(cmd, { stdio: 'inherit' });
+    execSync(cmd, { stdio: "inherit" });
     console.log("Python client generated successfully!");
 }
 

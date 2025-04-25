@@ -77,15 +77,16 @@ configuration.api_key['api_key'] = os.environ["API_KEY"]
 # Enter a context with an instance of the API client
 with algorand_algod_client.ApiClient(configuration) as api_client:
     # Create an instance of the API class
-    api_instance = algorand_algod_client.NonparticipatingApi(api_client)
+    api_instance = algorand_algod_client.AlgodApi(api_client)
+    catchpoint = 'catchpoint_example' # str | A catch point
 
     try:
-        # Get parameters for constructing a new transaction
-        api_response = api_instance.transaction_params()
-        print("The response of NonparticipatingApi->transaction_params:\n")
+        # Aborts a catchpoint catchup.
+        api_response = api_instance.abort_catchup(catchpoint)
+        print("The response of AlgodApi->abort_catchup:\n")
         pprint(api_response)
     except ApiException as e:
-        print("Exception when calling NonparticipatingApi->transaction_params: %s\n" % e)
+        print("Exception when calling AlgodApi->abort_catchup: %s\n" % e)
 
 ```
 
@@ -95,17 +96,139 @@ All URIs are relative to *http://localhost*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
-*NonparticipatingApi* | [**transaction_params**](docs/NonparticipatingApi.md#transaction_params) | **GET** /v2/transactions/params | Get parameters for constructing a new transaction
-*ParticipatingApi* | [**raw_transaction**](docs/ParticipatingApi.md#raw_transaction) | **POST** /v2/transactions | Broadcasts a raw transaction or transaction group to the network.
-*PublicApi* | [**raw_transaction**](docs/PublicApi.md#raw_transaction) | **POST** /v2/transactions | Broadcasts a raw transaction or transaction group to the network.
-*PublicApi* | [**transaction_params**](docs/PublicApi.md#transaction_params) | **GET** /v2/transactions/params | Get parameters for constructing a new transaction
+*AlgodApi* | [**abort_catchup**](docs/AlgodApi.md#abort_catchup) | **DELETE** /v2/catchup/{catchpoint} | Aborts a catchpoint catchup.
+*AlgodApi* | [**account_application_information**](docs/AlgodApi.md#account_application_information) | **GET** /v2/accounts/{address}/applications/{application-id} | Get account information about a given app.
+*AlgodApi* | [**account_asset_information**](docs/AlgodApi.md#account_asset_information) | **GET** /v2/accounts/{address}/assets/{asset-id} | Get account information about a given asset.
+*AlgodApi* | [**account_assets_information**](docs/AlgodApi.md#account_assets_information) | **GET** /v2/accounts/{address}/assets | Get a list of assets held by an account, inclusive of asset params.
+*AlgodApi* | [**account_information**](docs/AlgodApi.md#account_information) | **GET** /v2/accounts/{address} | Get account information.
+*AlgodApi* | [**add_participation_key**](docs/AlgodApi.md#add_participation_key) | **POST** /v2/participation | Add a participation key to the node
+*AlgodApi* | [**append_keys**](docs/AlgodApi.md#append_keys) | **POST** /v2/participation/{participation-id} | Append state proof keys to a participation key
+*AlgodApi* | [**delete_participation_key_by_id**](docs/AlgodApi.md#delete_participation_key_by_id) | **DELETE** /v2/participation/{participation-id} | Delete a given participation key by ID
+*AlgodApi* | [**experimental_check**](docs/AlgodApi.md#experimental_check) | **GET** /v2/experimental | Returns OK if experimental API is enabled.
+*AlgodApi* | [**generate_participation_keys**](docs/AlgodApi.md#generate_participation_keys) | **POST** /v2/participation/generate/{address} | Generate and install participation keys to the node.
+*AlgodApi* | [**get_application_box_by_name**](docs/AlgodApi.md#get_application_box_by_name) | **GET** /v2/applications/{application-id}/box | Get box information for a given application.
+*AlgodApi* | [**get_application_boxes**](docs/AlgodApi.md#get_application_boxes) | **GET** /v2/applications/{application-id}/boxes | Get boxes for a given application.
+*AlgodApi* | [**get_application_by_id**](docs/AlgodApi.md#get_application_by_id) | **GET** /v2/applications/{application-id} | Get application information.
+*AlgodApi* | [**get_asset_by_id**](docs/AlgodApi.md#get_asset_by_id) | **GET** /v2/assets/{asset-id} | Get asset information.
+*AlgodApi* | [**get_block**](docs/AlgodApi.md#get_block) | **GET** /v2/blocks/{round} | Get the block for the given round.
+*AlgodApi* | [**get_block_hash**](docs/AlgodApi.md#get_block_hash) | **GET** /v2/blocks/{round}/hash | Get the block hash for the block on the given round.
+*AlgodApi* | [**get_block_logs**](docs/AlgodApi.md#get_block_logs) | **GET** /v2/blocks/{round}/logs | Get all of the logs from outer and inner app calls in the given round
+*AlgodApi* | [**get_block_time_stamp_offset**](docs/AlgodApi.md#get_block_time_stamp_offset) | **GET** /v2/devmode/blocks/offset | Returns the timestamp offset. Timestamp offsets can only be set in dev mode.
+*AlgodApi* | [**get_block_txids**](docs/AlgodApi.md#get_block_txids) | **GET** /v2/blocks/{round}/txids | Get the top level transaction IDs for the block on the given round.
+*AlgodApi* | [**get_config**](docs/AlgodApi.md#get_config) | **GET** /debug/settings/config | Gets the merged config file.
+*AlgodApi* | [**get_debug_settings_prof**](docs/AlgodApi.md#get_debug_settings_prof) | **GET** /debug/settings/pprof | 
+*AlgodApi* | [**get_genesis**](docs/AlgodApi.md#get_genesis) | **GET** /genesis | Gets the genesis information.
+*AlgodApi* | [**get_ledger_state_delta**](docs/AlgodApi.md#get_ledger_state_delta) | **GET** /v2/deltas/{round} | Get a LedgerStateDelta object for a given round
+*AlgodApi* | [**get_ledger_state_delta_for_transaction_group**](docs/AlgodApi.md#get_ledger_state_delta_for_transaction_group) | **GET** /v2/deltas/txn/group/{id} | Get a LedgerStateDelta object for a given transaction group
+*AlgodApi* | [**get_light_block_header_proof**](docs/AlgodApi.md#get_light_block_header_proof) | **GET** /v2/blocks/{round}/lightheader/proof | Gets a proof for a given light block header inside a state proof commitment
+*AlgodApi* | [**get_participation_key_by_id**](docs/AlgodApi.md#get_participation_key_by_id) | **GET** /v2/participation/{participation-id} | Get participation key info given a participation ID
+*AlgodApi* | [**get_participation_keys**](docs/AlgodApi.md#get_participation_keys) | **GET** /v2/participation | Return a list of participation keys
+*AlgodApi* | [**get_pending_transactions**](docs/AlgodApi.md#get_pending_transactions) | **GET** /v2/transactions/pending | Get a list of unconfirmed transactions currently in the transaction pool.
+*AlgodApi* | [**get_pending_transactions_by_address**](docs/AlgodApi.md#get_pending_transactions_by_address) | **GET** /v2/accounts/{address}/transactions/pending | Get a list of unconfirmed transactions currently in the transaction pool by address.
+*AlgodApi* | [**get_ready**](docs/AlgodApi.md#get_ready) | **GET** /ready | Returns OK if healthy and fully caught up.
+*AlgodApi* | [**get_state_proof**](docs/AlgodApi.md#get_state_proof) | **GET** /v2/stateproofs/{round} | Get a state proof that covers a given round
+*AlgodApi* | [**get_status**](docs/AlgodApi.md#get_status) | **GET** /v2/status | Gets the current node status.
+*AlgodApi* | [**get_supply**](docs/AlgodApi.md#get_supply) | **GET** /v2/ledger/supply | Get the current supply reported by the ledger.
+*AlgodApi* | [**get_sync_round**](docs/AlgodApi.md#get_sync_round) | **GET** /v2/ledger/sync | Returns the minimum sync round the ledger is keeping in cache.
+*AlgodApi* | [**get_transaction_group_ledger_state_deltas_for_round**](docs/AlgodApi.md#get_transaction_group_ledger_state_deltas_for_round) | **GET** /v2/deltas/{round}/txn/group | Get LedgerStateDelta objects for all transaction groups in a given round
+*AlgodApi* | [**get_transaction_proof**](docs/AlgodApi.md#get_transaction_proof) | **GET** /v2/blocks/{round}/transactions/{txid}/proof | Get a proof for a transaction in a block.
+*AlgodApi* | [**get_version**](docs/AlgodApi.md#get_version) | **GET** /versions | 
+*AlgodApi* | [**health_check**](docs/AlgodApi.md#health_check) | **GET** /health | Returns OK if healthy.
+*AlgodApi* | [**metrics**](docs/AlgodApi.md#metrics) | **GET** /metrics | Return metrics about algod functioning.
+*AlgodApi* | [**pending_transaction_information**](docs/AlgodApi.md#pending_transaction_information) | **GET** /v2/transactions/pending/{txid} | Get a specific pending transaction.
+*AlgodApi* | [**put_debug_settings_prof**](docs/AlgodApi.md#put_debug_settings_prof) | **PUT** /debug/settings/pprof | 
+*AlgodApi* | [**raw_transaction**](docs/AlgodApi.md#raw_transaction) | **POST** /v2/transactions | Broadcasts a raw transaction or transaction group to the network.
+*AlgodApi* | [**raw_transaction_async**](docs/AlgodApi.md#raw_transaction_async) | **POST** /v2/transactions/async | Fast track for broadcasting a raw transaction or transaction group to the network through the tx handler without performing most of the checks and reporting detailed errors. Should be only used for development and performance testing.
+*AlgodApi* | [**set_block_time_stamp_offset**](docs/AlgodApi.md#set_block_time_stamp_offset) | **POST** /v2/devmode/blocks/offset/{offset} | Given a timestamp offset in seconds, adds the offset to every subsequent block header&#39;s timestamp.
+*AlgodApi* | [**set_sync_round**](docs/AlgodApi.md#set_sync_round) | **POST** /v2/ledger/sync/{round} | Given a round, tells the ledger to keep that round in its cache.
+*AlgodApi* | [**shutdown_node**](docs/AlgodApi.md#shutdown_node) | **POST** /v2/shutdown | 
+*AlgodApi* | [**simulate_transaction**](docs/AlgodApi.md#simulate_transaction) | **POST** /v2/transactions/simulate | Simulates a raw transaction or transaction group as it would be evaluated on the network. The simulation will use blockchain state from the latest committed round.
+*AlgodApi* | [**start_catchup**](docs/AlgodApi.md#start_catchup) | **POST** /v2/catchup/{catchpoint} | Starts a catchpoint catchup.
+*AlgodApi* | [**swagger_json**](docs/AlgodApi.md#swagger_json) | **GET** /swagger.json | Gets the current swagger spec.
+*AlgodApi* | [**teal_compile**](docs/AlgodApi.md#teal_compile) | **POST** /v2/teal/compile | Compile TEAL source code to binary, produce its hash
+*AlgodApi* | [**teal_disassemble**](docs/AlgodApi.md#teal_disassemble) | **POST** /v2/teal/disassemble | Disassemble program bytes into the TEAL source code.
+*AlgodApi* | [**teal_dryrun**](docs/AlgodApi.md#teal_dryrun) | **POST** /v2/teal/dryrun | Provide debugging information for a transaction (or group).
+*AlgodApi* | [**transaction_params**](docs/AlgodApi.md#transaction_params) | **GET** /v2/transactions/params | Get parameters for constructing a new transaction
+*AlgodApi* | [**unset_sync_round**](docs/AlgodApi.md#unset_sync_round) | **DELETE** /v2/ledger/sync | Removes minimum sync round restriction from the ledger.
+*AlgodApi* | [**wait_for_block**](docs/AlgodApi.md#wait_for_block) | **GET** /v2/status/wait-for-block-after/{round} | Gets the node status after waiting for a round after the given round.
 
 
 ## Documentation For Models
 
+ - [AbortCatchup200Response](docs/AbortCatchup200Response.md)
+ - [Account](docs/Account.md)
+ - [AccountApplicationInformation200Response](docs/AccountApplicationInformation200Response.md)
+ - [AccountAssetHolding](docs/AccountAssetHolding.md)
+ - [AccountAssetInformation200Response](docs/AccountAssetInformation200Response.md)
+ - [AccountAssetsInformation200Response](docs/AccountAssetsInformation200Response.md)
+ - [AccountParticipation](docs/AccountParticipation.md)
+ - [AccountStateDelta](docs/AccountStateDelta.md)
+ - [AddParticipationKey200Response](docs/AddParticipationKey200Response.md)
+ - [AppCallLogs](docs/AppCallLogs.md)
+ - [Application](docs/Application.md)
+ - [ApplicationInitialStates](docs/ApplicationInitialStates.md)
+ - [ApplicationKVStorage](docs/ApplicationKVStorage.md)
+ - [ApplicationLocalReference](docs/ApplicationLocalReference.md)
+ - [ApplicationLocalState](docs/ApplicationLocalState.md)
+ - [ApplicationParams](docs/ApplicationParams.md)
+ - [ApplicationStateOperation](docs/ApplicationStateOperation.md)
+ - [ApplicationStateSchema](docs/ApplicationStateSchema.md)
+ - [Asset](docs/Asset.md)
+ - [AssetHolding](docs/AssetHolding.md)
+ - [AssetHoldingReference](docs/AssetHoldingReference.md)
+ - [AssetParams](docs/AssetParams.md)
+ - [AvmKeyValue](docs/AvmKeyValue.md)
+ - [AvmValue](docs/AvmValue.md)
+ - [Box](docs/Box.md)
+ - [BoxReference](docs/BoxReference.md)
+ - [BuildVersion](docs/BuildVersion.md)
+ - [DebugSettingsProf](docs/DebugSettingsProf.md)
+ - [DryrunRequest](docs/DryrunRequest.md)
+ - [DryrunSource](docs/DryrunSource.md)
+ - [DryrunState](docs/DryrunState.md)
+ - [DryrunTxnResult](docs/DryrunTxnResult.md)
  - [ErrorResponse](docs/ErrorResponse.md)
+ - [EvalDelta](docs/EvalDelta.md)
+ - [EvalDeltaKeyValue](docs/EvalDeltaKeyValue.md)
+ - [GetApplicationBoxes200Response](docs/GetApplicationBoxes200Response.md)
+ - [GetBlock200Response](docs/GetBlock200Response.md)
+ - [GetBlockHash200Response](docs/GetBlockHash200Response.md)
+ - [GetBlockLogs200Response](docs/GetBlockLogs200Response.md)
+ - [GetBlockTimeStampOffset200Response](docs/GetBlockTimeStampOffset200Response.md)
+ - [GetBlockTxids200Response](docs/GetBlockTxids200Response.md)
+ - [GetPendingTransactionsByAddress200Response](docs/GetPendingTransactionsByAddress200Response.md)
+ - [GetStatus200Response](docs/GetStatus200Response.md)
+ - [GetSupply200Response](docs/GetSupply200Response.md)
+ - [GetSyncRound200Response](docs/GetSyncRound200Response.md)
+ - [GetTransactionGroupLedgerStateDeltasForRound200Response](docs/GetTransactionGroupLedgerStateDeltasForRound200Response.md)
+ - [GetTransactionProof200Response](docs/GetTransactionProof200Response.md)
+ - [LedgerStateDeltaForTransactionGroup](docs/LedgerStateDeltaForTransactionGroup.md)
+ - [LightBlockHeaderProof](docs/LightBlockHeaderProof.md)
+ - [ParticipationKey](docs/ParticipationKey.md)
+ - [PendingTransactionResponse](docs/PendingTransactionResponse.md)
  - [RawTransaction200Response](docs/RawTransaction200Response.md)
- - [TransactionParametersResponse](docs/TransactionParametersResponse.md)
+ - [ScratchChange](docs/ScratchChange.md)
+ - [SimulateInitialStates](docs/SimulateInitialStates.md)
+ - [SimulateRequest](docs/SimulateRequest.md)
+ - [SimulateRequestTransactionGroup](docs/SimulateRequestTransactionGroup.md)
+ - [SimulateTraceConfig](docs/SimulateTraceConfig.md)
+ - [SimulateTransaction200Response](docs/SimulateTransaction200Response.md)
+ - [SimulateTransactionGroupResult](docs/SimulateTransactionGroupResult.md)
+ - [SimulateTransactionResult](docs/SimulateTransactionResult.md)
+ - [SimulateUnnamedResourcesAccessed](docs/SimulateUnnamedResourcesAccessed.md)
+ - [SimulationEvalOverrides](docs/SimulationEvalOverrides.md)
+ - [SimulationOpcodeTraceUnit](docs/SimulationOpcodeTraceUnit.md)
+ - [SimulationTransactionExecTrace](docs/SimulationTransactionExecTrace.md)
+ - [StartCatchup200Response](docs/StartCatchup200Response.md)
+ - [StateProof](docs/StateProof.md)
+ - [StateProofMessage](docs/StateProofMessage.md)
+ - [TealCompile200Response](docs/TealCompile200Response.md)
+ - [TealDisassemble200Response](docs/TealDisassemble200Response.md)
+ - [TealDryrun200Response](docs/TealDryrun200Response.md)
+ - [TealKeyValue](docs/TealKeyValue.md)
+ - [TealValue](docs/TealValue.md)
+ - [TransactionParams200Response](docs/TransactionParams200Response.md)
+ - [Version](docs/Version.md)
 
 
 <a id="documentation-for-authorization"></a>

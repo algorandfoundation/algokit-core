@@ -14,13 +14,19 @@
 
 import { mapValues } from '../runtime';
 /**
- * An error response
+ * An error response with optional data field.
  * @export
  * @interface ErrorResponse
  */
 export interface ErrorResponse {
     /**
-     * Error message
+     * 
+     * @type {object}
+     * @memberof ErrorResponse
+     */
+    data?: object;
+    /**
+     * 
      * @type {string}
      * @memberof ErrorResponse
      */
@@ -45,6 +51,7 @@ export function ErrorResponseFromJSONTyped(json: any, ignoreDiscriminator: boole
     }
     return {
         
+        'data': json['data'] == null ? undefined : json['data'],
         'message': json['message'],
     };
 }
@@ -60,6 +67,7 @@ export function ErrorResponseToJSONTyped(value?: ErrorResponse | null, ignoreDis
 
     return {
         
+        'data': value['data'],
         'message': value['message'],
     };
 }

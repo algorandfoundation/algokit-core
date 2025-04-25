@@ -37,6 +37,7 @@ class {{#operations}}Test{{classname}}:
     """{{classname}} test cases"""
 
     {{#operation}}
+    {{^vendorExtensions.x-algorand-custom-test}}
     def test_{{operationId}}(self, api_client_fixture, dummy_data) -> None:
         """Test case for {{{operationId}}}
 
@@ -53,14 +54,7 @@ class {{#operations}}Test{{classname}}:
             headers = {
                 'Accept': 'application/json'
             }
-            
-            # Check if this is a special case endpoint and handle accordingly
-            {{#equals operationId "RawTransaction"}}
-            # Special handling for raw-transaction endpoint
-            rawtxn = TestDataGenerator.random_signed_txn(api_instance, headers)
-            response = api_instance.{{operationId}}(rawtxn=rawtxn, _headers=headers)
-            {{/equals operationId "RawTransaction"}}
-            {{^equals operationId "RawTransaction"}}
+
             # Standard endpoint handling
             {{#allParams}}
             # Generate test data for {{paramName}}
@@ -68,18 +62,6 @@ class {{#operations}}Test{{classname}}:
             {{paramName}} = TestDataGenerator.random_bytes()  # Generate random file content
             {{/isFile}}
             {{^isFile}}
-            {{#vendorExtensions.x-algorand-transaction}}
-            {{paramName}} = dummy_data["transaction"]  # Use dummy transaction data
-            {{/vendorExtensions.x-algorand-transaction}}
-            {{#vendorExtensions.x-algorand-account}}
-            {{paramName}} = dummy_data["account"]  # Use dummy account data
-            {{/vendorExtensions.x-algorand-account}}
-            {{#vendorExtensions.x-algorand-block}}
-            {{paramName}} = dummy_data["block"]  # Use dummy block data
-            {{/vendorExtensions.x-algorand-block}}
-            {{^vendorExtensions.x-algorand-transaction}}
-            {{^vendorExtensions.x-algorand-account}}
-            {{^vendorExtensions.x-algorand-block}}
             {{#isListContainer}}
             {{paramName}} = []  # Replace with appropriate test data for {{dataType}}
             {{/isListContainer}}
@@ -106,12 +88,9 @@ class {{#operations}}Test{{classname}}:
             {{/isInteger}}
             {{/isString}}
             {{/isListContainer}}
-            {{/vendorExtensions.x-algorand-block}}
-            {{/vendorExtensions.x-algorand-account}}
-            {{/vendorExtensions.x-algorand-transaction}}
             {{/isFile}}
             {{/allParams}}
-            
+
             # Call API and validate response
             {{#allParams}}
             response = api_instance.{{operationId}}(
@@ -122,7 +101,6 @@ class {{#operations}}Test{{classname}}:
             {{^allParams}}
             response = api_instance.{{operationId}}(_headers=headers)
             {{/allParams}}
-            {{/equals operationId "RawTransaction"}}
             
             assert response is not None
             
@@ -151,6 +129,7 @@ class {{#operations}}Test{{classname}}:
                 pytest.fail(f"API Exception: {e}")
         except Exception as e:
             pytest.fail(f"Exception when calling {{classname}}->{{operationId}}: {e}")
-
+            
+    {{/vendorExtensions.x-algorand-custom-test}}
    {{/operation}}
 {{/operations}}

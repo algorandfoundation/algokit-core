@@ -1,12 +1,13 @@
 # ErrorResponse
 
-An error response
+An error response with optional data field.
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**message** | **str** | Error message | 
+**data** | **object** |  | [optional] 
+**message** | **str** |  | 
 
 ## Example
 
