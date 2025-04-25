@@ -1,10 +1,6 @@
-mod asset_transfer;
-mod common;
-mod payment;
-
-pub use asset_transfer::AssetTransferTransactionFields;
-pub use common::TransactionType;
-pub use payment::PaymentTransactionFields;
+pub mod asset_transfer;
+pub mod common;
+pub mod payment;
 
 use crate::address::Address;
 use crate::constants::Byte32;
@@ -15,6 +11,7 @@ use crate::utils::{
     is_empty_bytes32_opt, is_empty_string_opt, is_empty_vec_opt, is_zero, is_zero_addr,
     is_zero_addr_opt,
 };
+use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, skip_serializing_none, Bytes};
 use std::any::Any;
@@ -78,10 +75,12 @@ impl TransactionId for SignedTransaction {
 
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Builder)]
+#[builder(setter(strip_option))]
 pub struct Transaction {
     #[serde(rename = "type")]
-    pub transaction_type: TransactionType,
+    #[builder(setter(custom))]
+    pub transaction_type: common::TransactionType,
 
     #[serde(rename = "snd")]
     #[serde(skip_serializing_if = "is_zero_addr")]
@@ -116,28 +115,82 @@ pub struct Transaction {
     #[serde_as(as = "Option<Bytes>")]
     #[serde(skip_serializing_if = "is_empty_vec_opt")]
     #[serde(default)]
+    #[builder(default)]
     pub note: Option<Vec<u8>>,
 
     #[serde(rename = "rekey")]
     #[serde(skip_serializing_if = "is_zero_addr_opt")]
     #[serde(default)]
+    #[builder(default)]
     pub rekey_to: Option<Address>,
 
     #[serde(rename = "lx")]
     #[serde_as(as = "Option<Bytes>")]
     #[serde(skip_serializing_if = "is_empty_bytes32_opt")]
     #[serde(default)]
+    #[builder(default)]
     pub lease: Option<Byte32>,
 
     #[serde(rename = "grp")]
     #[serde_as(as = "Option<Bytes>")]
     #[serde(skip_serializing_if = "is_empty_bytes32_opt")]
     #[serde(default)]
+    #[builder(default)]
     pub group: Option<Byte32>,
 
     #[serde(flatten)]
-    pub payment: Option<PaymentTransactionFields>,
+    #[builder(default, setter(custom))]
+    pub payment: Option<payment::PaymentTransactionFields>,
 
     #[serde(flatten)]
-    pub asset_transfer: Option<AssetTransferTransactionFields>,
+    #[builder(default, setter(custom))]
+    pub asset_transfer: Option<asset_transfer::AssetTransferTransactionFields>,
+}
+
+impl TransactionBuilder {
+    pub fn new(genesis_id: String, genesis_hash: Byte32) -> Self {
+        TransactionBuilder::default()
+            .genesis_id(genesis_id)
+            .genesis_hash(genesis_hash)
+            .to_owned()
+    }
+
+    pub fn new_testnet() -> Self {
+        TransactionBuilder::new(
+            String::from("testnet-v1.0"),
+            [
+                72, 99, 181, 24, 164, 179, 200, 78, 200, 16, 242, 45, 79, 16, 129, 203, 15, 113,
+                240, 89, 167, 172, 32, 222, 198, 47, 127, 112, 229, 9, 58, 34,
+            ], // SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=
+        )
+        .to_owned()
+    }
+
+    pub fn new_mainnet() -> Self {
+        TransactionBuilder::new(
+            String::from("mainnet-v1.0"),
+            [
+                192, 97, 196, 216, 252, 29, 189, 222, 210, 215, 96, 75, 228, 86, 142, 63, 109, 4,
+                25, 135, 172, 55, 189, 228, 182, 32, 181, 171, 57, 36, 138, 223,
+            ], // wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=
+        )
+        .to_owned()
+    }
+
+    pub fn payment(&mut self, payment: payment::PaymentTransactionFields) -> Self {
+        self.transaction_type = Some(common::TransactionType::Payment);
+        self.payment = Some(Some(payment));
+        self.asset_transfer = None;
+        self.to_owned()
+    }
+
+    pub fn asset_transfer(
+        &mut self,
+        asset_transfer: asset_transfer::AssetTransferTransactionFields,
+    ) -> Self {
+        self.transaction_type = Some(common::TransactionType::AssetTransfer);
+        self.asset_transfer = Some(Some(asset_transfer));
+        self.payment = None;
+        self.to_owned()
+    }
 }

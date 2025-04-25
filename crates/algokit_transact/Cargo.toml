@@ -3,11 +3,17 @@ name = "algokit_transact"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+default = ["test_utils"]
+test_utils = ["base64"]
+
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 base32 = "0.5.1"
+base64 = { version = "0.22.1", optional = true }
+derive_builder = { version = "0.20.2" }
 rmp-serde = "1.3.0"
 rmpv = { version = "1.3.0", features = ["with-serde"] }
 serde = { version = "1.0.216", features = ["derive"] }
@@ -18,4 +24,3 @@ thiserror = { workspace = true }
 
 [dev-dependencies]
 pretty_assertions = "1.4.1"
-base64 = "0.22.1"

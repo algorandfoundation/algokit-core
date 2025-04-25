@@ -1,9 +1,9 @@
 use crate::{
+    test_utils::TransactionMother,
     transactions::{SignedTransaction, Transaction},
     Address, AlgorandMsgpack, AssetTransferTransactionFields, PaymentTransactionFields,
     TransactionId, TransactionType,
 };
-use base64::{prelude::BASE64_STANDARD, Engine};
 use pretty_assertions::assert_eq;
 
 #[test]
@@ -113,7 +113,7 @@ fn test_pay_transaction_raw_id() {
         245, 41, 65, 116, 255, 147, 64, 90, 80, 147, 223,
     ];
 
-    let unsigned_tx = example_pay_transaction();
+    let unsigned_tx = TransactionMother::payment_with_note().build().unwrap();
     let signed_tx = SignedTransaction {
         transaction: unsigned_tx.clone(),
         signature: [0; 64],
@@ -127,7 +127,7 @@ fn test_pay_transaction_raw_id() {
 fn test_pay_transaction_id() {
     let expected_tx_id = "ENOQBKTA3UAUU54TQN2AOH7BFDLS6LDYQD2SSQLU76JUAWSQSPPQ";
 
-    let payment = example_pay_transaction();
+    let payment = TransactionMother::payment_with_note().build().unwrap();
 
     let signed_tx = SignedTransaction {
         transaction: payment.clone(),
@@ -136,40 +136,4 @@ fn test_pay_transaction_id() {
 
     assert_eq!(payment.id().unwrap(), expected_tx_id);
     assert_eq!(signed_tx.id().unwrap(), expected_tx_id);
-}
-
-fn example_pay_transaction() -> Transaction {
-    Transaction {
-        genesis_id: Some(String::from("testnet-v1.0")),
-        transaction_type: TransactionType::Payment,
-        sender: Address::from_string("RIMARGKZU46OZ77OLPDHHPUJ7YBSHRTCYMQUC64KZCCMESQAFQMYU6SL2Q")
-            .unwrap(),
-        fee: 1000,
-        first_valid: 50659540,
-        last_valid: 50660540,
-        genesis_hash: Some(
-            BASE64_STANDARD
-                .decode("SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=")
-                .unwrap()
-                .try_into()
-                .unwrap(),
-        ),
-        note: Some(
-            BASE64_STANDARD
-                .decode("MGFhNTBkMjctYjhmNy00ZDc3LWExZmItNTUxZmQ1NWRmMmJj")
-                .unwrap(),
-        ),
-        rekey_to: None,
-        lease: None,
-        group: None,
-        payment: Some(PaymentTransactionFields {
-            amount: 101000,
-            receiver: Address::from_string(
-                "VXH5UP6JLU2CGIYPUFZ4Z5OTLJCLMA5EXD3YHTMVNDE5P7ILZ324FSYSPQ",
-            )
-            .unwrap(),
-            close_remainder_to: None,
-        }),
-        asset_transfer: None,
-    }
 }

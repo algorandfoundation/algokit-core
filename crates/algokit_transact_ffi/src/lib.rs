@@ -463,7 +463,7 @@ pub fn get_transaction_id(tx: &Transaction) -> Result<String, AlgoKitTransactErr
 #[cfg(test)]
 mod tests {
     use super::*;
-    use base64::{prelude::BASE64_STANDARD, Engine};
+    use algokit_transact::test_utils::TransactionMother;
     use pretty_assertions::assert_eq;
 
     #[test]
@@ -501,47 +501,13 @@ mod tests {
         assert_eq!(tx_type, TransactionType::Payment);
     }
 
-    // Example transaction modeled from algokit_transact::tests
-    fn example_pay_transaction_ffi() -> Transaction {
-        let sender_addr =
-            address_from_string("RIMARGKZU46OZ77OLPDHHPUJ7YBSHRTCYMQUC64KZCCMESQAFQMYU6SL2Q")
-                .unwrap();
-        let receiver_addr =
-            address_from_string("VXH5UP6JLU2CGIYPUFZ4Z5OTLJCLMA5EXD3YHTMVNDE5P7ILZ324FSYSPQ")
-                .unwrap();
-        let genesis_hash_bytes = BASE64_STANDARD
-            .decode("SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=")
-            .unwrap();
-        let note_bytes = BASE64_STANDARD
-            .decode("MGFhNTBkMjctYjhmNy00ZDc3LWExZmItNTUxZmQ1NWRmMmJj")
-            .unwrap();
-
-        let payment_fields = PaymentTransactionFields {
-            receiver: receiver_addr,
-            amount: 101000,
-            close_remainder_to: None,
-        };
-
-        Transaction {
-            transaction_type: TransactionType::Payment,
-            sender: sender_addr,
-            fee: 1000,
-            first_valid: 50659540,
-            last_valid: 50660540,
-            genesis_hash: Some(ByteBuf::from(genesis_hash_bytes)),
-            genesis_id: Some(String::from("testnet-v1.0")),
-            note: Some(ByteBuf::from(note_bytes)),
-            rekey_to: None,
-            lease: None,
-            group: None,
-            payment: Some(payment_fields),
-            asset_transfer: None,
-        }
-    }
-
     #[test]
     fn test_transaction_id_ffi() {
-        let tx_ffi = example_pay_transaction_ffi();
+        let tx_ffi: Transaction = TransactionMother::payment_with_note()
+            .build()
+            .unwrap()
+            .try_into()
+            .unwrap();
 
         // Expected values from algokit_transact::tests
         //TODO: Update from outcome of AK-244

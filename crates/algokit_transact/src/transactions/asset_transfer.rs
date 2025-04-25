@@ -1,11 +1,13 @@
 use crate::address::Address;
 use crate::utils::{is_zero, is_zero_addr, is_zero_addr_opt};
+use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, skip_serializing_none};
 
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Builder, Default)]
+#[builder(default)]
 pub struct AssetTransferTransactionFields {
     #[serde(rename = "xaid")]
     #[serde(skip_serializing_if = "is_zero")]
