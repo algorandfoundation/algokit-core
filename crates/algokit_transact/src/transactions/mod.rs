@@ -155,28 +155,6 @@ impl TransactionBuilder {
             .to_owned()
     }
 
-    pub fn new_testnet() -> Self {
-        TransactionBuilder::new(
-            String::from("testnet-v1.0"),
-            [
-                72, 99, 181, 24, 164, 179, 200, 78, 200, 16, 242, 45, 79, 16, 129, 203, 15, 113,
-                240, 89, 167, 172, 32, 222, 198, 47, 127, 112, 229, 9, 58, 34,
-            ], // SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=
-        )
-        .to_owned()
-    }
-
-    pub fn new_mainnet() -> Self {
-        TransactionBuilder::new(
-            String::from("mainnet-v1.0"),
-            [
-                192, 97, 196, 216, 252, 29, 189, 222, 210, 215, 96, 75, 228, 86, 142, 63, 109, 4,
-                25, 135, 172, 55, 189, 228, 182, 32, 181, 171, 57, 36, 138, 223,
-            ], // wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=
-        )
-        .to_owned()
-    }
-
     pub fn payment(&mut self, payment: payment::PaymentTransactionFields) -> Self {
         self.transaction_type = Some(common::TransactionType::Payment);
         self.payment = Some(Some(payment));

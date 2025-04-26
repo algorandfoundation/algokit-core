@@ -7,8 +7,31 @@ use base64::{prelude::BASE64_STANDARD, Engine};
 pub struct TransactionMother {}
 
 impl TransactionMother {
+    fn testnet_builder() -> TransactionBuilder {
+        TransactionBuilder::new(
+            String::from("testnet-v1.0"),
+            BASE64_STANDARD
+                .decode("SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=")
+                .unwrap()
+                .try_into()
+                .unwrap(),
+        )
+    }
+
+    // Uncomment if/when we want to create mainnet transactions
+    // fn mainnet_builder() -> TransactionBuilder {
+    //     TransactionBuilder::new(
+    //         String::from("mainnet-v1.0"),
+    //         BASE64_STANDARD
+    //             .decode("wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=")
+    //             .unwrap()
+    //             .try_into()
+    //             .unwrap(),
+    //     )
+    // }
+
     pub fn simple_payment() -> TransactionBuilder {
-        TransactionBuilder::new_testnet()
+        TransactionMother::testnet_builder()
             .sender(
                 Address::from_string("RIMARGKZU46OZ77OLPDHHPUJ7YBSHRTCYMQUC64KZCCMESQAFQMYU6SL2Q")
                     .unwrap(),
