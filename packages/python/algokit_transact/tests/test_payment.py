@@ -15,7 +15,6 @@ from algokit_transact import (
     get_transaction_raw_id
 )
 from nacl.signing import SigningKey
-import base64
 
 transaction: Transaction = TEST_DATA["transaction"]
 
