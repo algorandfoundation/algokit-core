@@ -23,6 +23,44 @@ from algokit_transact.algokit_transact import (
 class TestTransactionAPI:
     """Specialized tests for transaction endpoints"""
 
+    def test_transaction_params(self, api_client_fixture) -> None:
+        """Test case for TransactionParams"""
+        try:
+            # Create an instance of the API class using the api_client fixture
+            api_instance = AlgodApi(api_client_fixture)
+
+            # Set Accept header
+            headers = {
+                'Accept': 'application/json'
+            }
+
+            response = api_instance.transaction_params(_headers=headers)
+
+            assert response is not None
+            # Transaction-specific assertions
+            assert hasattr(response, 'to_dict')
+            response_dict = response.to_dict()
+            assert isinstance(response_dict, dict)
+            assert 'consensus-version' in response_dict
+            assert 'fee' in response_dict
+            assert 'genesis-hash' in response_dict
+            assert 'genesis-id' in response_dict
+            assert 'last-round' in response_dict
+            assert 'min-fee' in response_dict
+            
+        except ApiException as e:
+            if e.status == 401:
+                pytest.skip(f"Authentication required or failed: {e}")
+            elif e.status == 404:
+                pytest.skip(f"Endpoint not available or resource not found: {e}")
+            elif e.status == 501:
+                pytest.skip(f"API not implemented: {e}")
+            else:
+                pytest.fail(f"API Exception: {e}")
+        except Exception as e:
+            pytest.fail(f"Exception when calling AlgodApi->raw_transaction: {e}")
+
+
     def test_raw_transaction(self, bob: SigningAccount, alice: SigningAccount, api_client_fixture) -> None:
         """Test case for RawTransaction
 
