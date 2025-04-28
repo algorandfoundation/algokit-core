@@ -91,6 +91,7 @@ const isJsonMimeType = mimeTypeSimplePredicateFactory('application', 'json');
 const isJsonLikeMimeType = mimeTypePredicateFactory((descriptor) => descriptor.type === 'application' && descriptor.subtypeTokens.some((item) => item === 'json'));
 const isOctetStreamMimeType = mimeTypeSimplePredicateFactory('application', 'octet-stream');
 const isFormUrlencodedMimeType = mimeTypeSimplePredicateFactory('application', 'x-www-form-urlencoded');
+const isBinaryMimeType = mimeTypeSimplePredicateFactory('application', 'x-binary');
 
 // Defining a list of mime-types in the order of prioritization for handling.
 const supportedMimeTypePredicatesWithPriority: MimeTypePredicate[] = [
@@ -98,6 +99,7 @@ const supportedMimeTypePredicatesWithPriority: MimeTypePredicate[] = [
     isJsonLikeMimeType,
     isTextLikeMimeType,
     isOctetStreamMimeType,
+    isBinaryMimeType,
     isFormUrlencodedMimeType,
 ];
 
@@ -312,6 +314,11 @@ export class ObjectSerializer {
             return JSON.stringify(data);
         }
 
+        if (isOctetStreamMimeType(mediaType) || isBinaryMimeType(mediaType)) {
+            // For binary types, return the data as is (assuming it's already in the correct format, e.g., BufferSource)
+            return data;
+        }
+
         throw new Error("The mediaType " + mediaType + " is not supported by ObjectSerializer.stringify.");
     }
 
@@ -329,6 +336,15 @@ export class ObjectSerializer {
 
         if (isJsonLikeMimeType(mediaType)) {
             return JSON.parse(rawData);
+        }
+
+        if (isOctetStreamMimeType(mediaType) || isBinaryMimeType(mediaType)) {
+            // Parsing binary data might depend on the context,
+            // often it's handled directly by the HTTP library (e.g., as Blob or ArrayBuffer)
+            // Returning rawData might be appropriate if downstream code expects a string representation,
+            // but often binary data shouldn't be parsed back into a string here.
+            // For now, we'll just return it, but this might need adjustment based on usage.
+            return rawData;
         }
 
         throw new Error("The mediaType " + mediaType + " is not supported by ObjectSerializer.parse.");

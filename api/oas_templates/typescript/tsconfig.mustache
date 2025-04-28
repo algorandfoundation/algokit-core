@@ -2,14 +2,10 @@
   "compilerOptions": {
     "strict": true,
     /* Basic Options */
-    {{#supportsES6}}
     "target": "es6",
+    "module": "ESNext",
     "esModuleInterop": true,
-    {{/supportsES6}}
-    {{^supportsES6}}
-    "target": "es5",
-    {{/supportsES6}}
-    "moduleResolution": "node",
+    "moduleResolution": "Bundler",
     "declaration": true,
 
     /* Additional Checks */
@@ -25,21 +21,12 @@
     "sourceMap": true,
     "outDir": "./dist",
     "noLib": false,
-    {{#platforms}}
     "lib": [
       "es6"
       ,"ES2017.Object"
       ,"ES2021.String"
-    {{#node}}
-    {{/node}}
-    {{#browser}}
       ,"dom"
-    {{/browser}}
     ],
-    {{/platforms}}
-    {{#useInversify}}
-    "experimentalDecorators": true,
-    {{/useInversify}}
   },
   "exclude": [
     "dist",

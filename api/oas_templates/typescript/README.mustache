@@ -20,13 +20,13 @@ Navigate to the folder of your consuming project and run one of the following co
 
 _published:_
 
-```
+```bash
 npm install {{npmName}}@{{npmVersion}} --save
 ```
 
 _unPublished (not recommended):_
 
-```
+```bash
 npm install PATH_TO_GENERATED_PACKAGE --save
 ```
 
@@ -35,46 +35,36 @@ npm install PATH_TO_GENERATED_PACKAGE --save
 Below code snippet shows exemplary usage of the configuration and the API based 
 on the typical `PetStore` example used for OpenAPI. 
 
-```
-import * as your_api from 'your_api_package'
+```typescript
+import * as algodApi from '{{npmName}}'
 
 // Covers all auth methods included in your OpenAPI yaml definition
-const authConfig: your_api.AuthMethodsConfiguration = {
-    "api_key": "YOUR_API_KEY"
-}
-
-// Implements a simple middleware to modify requests before (`pre`) they are sent
-// and after (`post`) they have been received 
-class Test implements your_api.Middleware {
-    pre(context: your_api.RequestContext): Promise<your_api.RequestContext> {
-        // Modify context here and return
-        return Promise.resolve(context);
-    }
-
-    post(context: your_api.ResponseContext): Promise<your_api.ResponseContext> {
-        return Promise.resolve(context);
-    }
-
+const authConfig: algodApi.AuthMethodsConfiguration = {
+    "api_key": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 }
 
 // Create configuration parameter object
+const serverConfig = new algodApi.ServerConfiguration('http://localhost:4001', {})
 const configurationParameters = {
-    httpApi: new your_api.JQueryHttpLibrary(), // Can also be ignored - default is usually fine
-    baseServer: your_api.servers[0], // First server is default
+    httpApi: new algodApi.IsomorphicFetchHttpLibrary(), // Can also be ignored - default is usually fine
+    baseServer: serverConfig, // First server is default
     authMethods: authConfig, // No auth is default
-    promiseMiddleware: [new Test()],
+    promiseMiddleware: [],
 }
 
 // Convert to actual configuration
-const config = your_api.createConfiguration(configurationParameters);
+const config = algodApi.createConfiguration(configurationParameters);
 
 // Use configuration with your_api
-const api = new your_api.PetApi(config);
-your_api.Pet p = new your_api.Pet();
-p.name = "My new pet";
-p.photoUrls = [];
-p.tags = [];
-p.status = "available";
-Promise<your_api.Pet> createdPet = api.addPet(p);
+const api = new algodApi.AlgodApi(config);
+const response = await api.transactionParams()
+console.log(response?.lastRound)
+```
 
+### Testing
+
+To run the tests, use the following command:
+
+```bash
+npm run test
 ```

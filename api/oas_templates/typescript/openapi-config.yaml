@@ -1,9 +1,21 @@
 templateDir: oas_templates/typescript
 additionalProperties:
-    npmVersion: 10.8.3
+    npmVersion: 0.0.1
     npmName: "@algorand/algod-client"
     supportsES6: true
     useRxJS: false
     platform: browser
 openapiNormalizer:
     SET_TAGS_FOR_ALL_OPERATIONS: Algod
+
+files:
+    # Section for dropping custom tests
+    tsconfig.esm.mustache:
+        templateType: SupportingFiles
+        destinationFilename: tsconfig.esm.json
+    tsconfig.cjs.mustache:
+        templateType: SupportingFiles
+        destinationFilename: tsconfig.cjs.json
+    custom_tests/transactions.test.mustache:
+        templateType: SupportingFiles
+        destinationFilename: tests/transactions.test.ts
