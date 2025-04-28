@@ -2,14 +2,17 @@
 
 {{>partial_header}}
 
+
+from typing import Dict, cast
 from algokit_utils import SigningAccount
 import pytest
 import base64
 from algosdk.encoding import msgpack_decode
+from algosdk.transaction import SignedTransaction
 
 from algorand_algod_client.api.algod_api import AlgodApi
 from algorand_algod_client.exceptions import ApiException
-from algorand_algod_client.models import *
+from algorand_algod_client.models.transaction_params200_response import TransactionParams200Response
 from algokit_transact.algokit_transact import (
     TransactionHeader,
     encode_transaction,
@@ -20,105 +23,174 @@ from algokit_transact.algokit_transact import (
     Address,
 )
 
+
+@pytest.fixture
+def headers() -> Dict[str, str]:
+    """Fixture for common API headers."""
+    return {'Accept': 'application/json'}
+
+
+@pytest.fixture
+def algod_instance(api_client_fixture) -> AlgodApi:
+    """Fixture for AlgodApi instance."""
+    return AlgodApi(api_client_fixture)
+
+
+@pytest.fixture
+def transaction_params(algod_instance: AlgodApi, headers: Dict[str, str]) -> TransactionParams200Response:
+    """Fixture for getting transaction parameters."""
+    return algod_instance.transaction_params(_headers=headers)
+
+
+def create_test_transaction(
+    sender: SigningAccount,
+    receiver: SigningAccount,
+    params: TransactionParams200Response,
+) -> bytes:
+    """
+    Create and sign a test payment transaction.
+    
+    Args:
+        sender: Account sending the transaction
+        receiver: Account receiving the transaction
+        params: Transaction parameters
+        
+    Returns:
+        bytes: Signed transaction
+    """
+    txn = Transaction(
+        header=TransactionHeader(
+            transaction_type=TransactionType.PAYMENT,
+            fee=params.min_fee,
+            first_valid=params.last_round,
+            last_valid=params.last_round + 1000,
+            sender=Address(address=sender.address, pub_key=sender.public_key),
+            genesis_hash=base64.b64decode(params.genesis_hash),
+            genesis_id=params.genesis_id,
+        ),
+        pay_fields=PayTransactionFields(
+            amount=int(1e6),
+            receiver=Address(address=receiver.address, pub_key=receiver.public_key)
+        ),
+    )
+    
+    encoded_txn = encode_transaction(txn)
+    algosdk_txn = msgpack_decode(base64.b64encode(encoded_txn[2:]))
+    
+    # Safely extract signature from the signed transaction
+    signed_algosdk_txn = sender.signer.sign_transactions([algosdk_txn], [0])[0]
+    sig = cast(SignedTransaction, signed_algosdk_txn).signature
+    
+    return attach_signature(encoded_txn, base64.b64decode(sig))
+
+
+def handle_api_exception(e: ApiException) -> None:
+    """
+    Handle API exceptions consistently.
+    
+    Args:
+        e: API exception to handle
+    """
+    if e.status == 401:
+        pytest.skip(f"Authentication required or failed: {e}")
+    elif e.status == 404:
+        pytest.skip(f"Endpoint not available or resource not found: {e}")
+    elif e.status == 501:
+        pytest.skip(f"API not implemented: {e}")
+    else:
+        pytest.fail(f"API Exception: {e}")
+
+
 class TestTransactionAPI:
     """Specialized tests for transaction endpoints"""
 
-    def test_transaction_params(self, api_client_fixture) -> None:
+    def test_transaction_params(
+        self, 
+        algod_instance: AlgodApi, 
+        headers: Dict[str, str]
+    ) -> None:
         """Test case for TransactionParams"""
         try:
-            # Create an instance of the API class using the api_client fixture
-            api_instance = AlgodApi(api_client_fixture)
-
-            # Set Accept header
-            headers = {
-                'Accept': 'application/json'
-            }
-
-            response = api_instance.transaction_params(_headers=headers)
+            response = algod_instance.transaction_params(_headers=headers)
 
             assert response is not None
-            # Transaction-specific assertions
-            assert hasattr(response, 'to_dict')
             response_dict = response.to_dict()
             assert isinstance(response_dict, dict)
-            assert 'consensus-version' in response_dict
-            assert 'fee' in response_dict
-            assert 'genesis-hash' in response_dict
-            assert 'genesis-id' in response_dict
-            assert 'last-round' in response_dict
-            assert 'min-fee' in response_dict
+            
+            # Required transaction parameters
+            required_fields = [
+                'consensus-version', 'fee', 'genesis-hash', 
+                'genesis-id', 'last-round', 'min-fee'
+            ]
+            for field in required_fields:
+                assert field in response_dict
             
         except ApiException as e:
-            if e.status == 401:
-                pytest.skip(f"Authentication required or failed: {e}")
-            elif e.status == 404:
-                pytest.skip(f"Endpoint not available or resource not found: {e}")
-            elif e.status == 501:
-                pytest.skip(f"API not implemented: {e}")
-            else:
-                pytest.fail(f"API Exception: {e}")
+            handle_api_exception(e)
         except Exception as e:
-            pytest.fail(f"Exception when calling AlgodApi->raw_transaction: {e}")
+            pytest.fail(f"Exception when calling AlgodApi->transaction_params: {e}")
 
-
-    def test_raw_transaction(self, bob: SigningAccount, alice: SigningAccount, api_client_fixture) -> None:
-        """Test case for RawTransaction
-
+    def test_raw_transaction(
+        self, 
+        bob: SigningAccount, 
+        alice: SigningAccount, 
+        algod_instance: AlgodApi, 
+        headers: Dict[str, str],
+        transaction_params: TransactionParams200Response,
+    ) -> None:
+        """
+        Test case for RawTransaction
+        
         Broadcasts a raw transaction or transaction group to the network.
         """
         try:
-            # Create an instance of the API class using the api_client fixture
-            api_instance = AlgodApi(api_client_fixture)
-            
-            # Set Accept header
-            headers = {
-                'Accept': 'application/json'
-            }
-
-            params = api_instance.transaction_params(_headers=headers)
-            
-            # Special handling for raw-transaction endpoint
-            # Use the dedicated dummy_transaction fixture instead of random bytes
-            txn = Transaction(
-                header=TransactionHeader(
-                    transaction_type=TransactionType.PAYMENT,
-                    fee=params.min_fee,
-                    first_valid=params.last_round,
-                    last_valid=params.last_round + 1000,
-                    sender=Address(address=alice.address, pub_key=alice.public_key),
-                    genesis_hash=base64.b64decode(params.genesis_hash),  # pretend this is a valid hash
-                    genesis_id=params.genesis_id,
-                ),
-                pay_fields=PayTransactionFields(amount=int(1e6), receiver=Address(address=bob.address, pub_key=bob.public_key)),
-            )
-            encoded_txn = encode_transaction(txn)
-            algosdk_txn = msgpack_decode(base64.b64encode(encoded_txn[2:]))
-            sig = alice.signer.sign_transactions([algosdk_txn], [0])[0].signature
-            signed_txn = attach_signature(encoded_txn, base64.b64decode(sig))
+            signed_txn = create_test_transaction(alice, bob, transaction_params)
             
             # Call API and validate response
-            response = api_instance.raw_transaction(
+            response = algod_instance.raw_transaction(
                 rawtxn=signed_txn, 
                 _headers=headers
             )
             
             assert response is not None
-            
-            # Transaction-specific assertions
-            assert hasattr(response, 'to_dict')
             response_dict = response.to_dict()
             assert isinstance(response_dict, dict)
             assert 'txId' in response_dict
             assert len(response_dict['txId']) > 0
             
         except ApiException as e:
-            if e.status == 401:
-                pytest.skip(f"Authentication required or failed: {e}")
-            elif e.status == 404:
-                pytest.skip(f"Endpoint not available or resource not found: {e}")
-            elif e.status == 501:
-                pytest.skip(f"API not implemented: {e}")
-            else:
-                pytest.fail(f"API Exception: {e}")
+            handle_api_exception(e)
         except Exception as e:
             pytest.fail(f"Exception when calling AlgodApi->raw_transaction: {e}")
+
+    def test_pending_transactions(
+        self, 
+        bob: SigningAccount, 
+        algod_instance: AlgodApi, 
+        headers: Dict[str, str],
+        transaction_params: TransactionParams200Response,
+    ) -> None:
+        """Test case for PendingTransactions"""
+        try:
+            signed_txn = create_test_transaction(bob, bob, transaction_params)
+            
+            # Call API and validate response
+            sent_txn = algod_instance.raw_transaction(
+                rawtxn=signed_txn, 
+                _headers=headers
+            )
+            response = algod_instance.pending_transaction_information(
+                txid=sent_txn.tx_id,
+                _headers=headers
+            )
+            
+            assert response is not None
+            response_dict = response.to_dict()
+            assert response_dict['txn'] is not None
+            assert "confirmed-round" in response_dict
+            assert "pool-error" in response_dict
+            
+        except ApiException as e:
+            handle_api_exception(e)
+        except Exception as e:
+            pytest.fail(f"Exception when calling AlgodApi->pending_transaction_information: {e}")
