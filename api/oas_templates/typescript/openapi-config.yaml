@@ -1,0 +1,9 @@
+templateDir: oas_templates/typescript
+additionalProperties:
+    npmVersion: 10.8.3
+    npmName: "@algorand/algod-client"
+    supportsES6: true
+    useRxJS: false
+    platform: browser
+openapiNormalizer:
+    SET_TAGS_FOR_ALL_OPERATIONS: Algod

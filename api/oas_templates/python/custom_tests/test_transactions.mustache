@@ -2,21 +2,28 @@
 
 {{>partial_header}}
 
+from algokit_utils import SigningAccount
 import pytest
-import os
 import base64
-from typing import Dict, Any
+from algosdk.encoding import msgpack_decode
 
 from algorand_algod_client.api.algod_api import AlgodApi
+from algorand_algod_client.exceptions import ApiException
 from algorand_algod_client.models import *
-from algorand_algod_client.configuration import Configuration
-from tests.test_utils import TestDataGenerator
-
+from algokit_transact.algokit_transact import (
+    TransactionHeader,
+    encode_transaction,
+    PayTransactionFields,
+    TransactionType,
+    attach_signature,
+    Transaction,
+    Address,
+)
 
 class TestTransactionAPI:
     """Specialized tests for transaction endpoints"""
 
-    def test_raw_transaction(self, api_client_fixture) -> None:
+    def test_raw_transaction(self, bob: SigningAccount, alice: SigningAccount, api_client_fixture) -> None:
         """Test case for RawTransaction
 
         Broadcasts a raw transaction or transaction group to the network.
@@ -29,14 +36,31 @@ class TestTransactionAPI:
             headers = {
                 'Accept': 'application/json'
             }
+
+            params = api_instance.transaction_params(_headers=headers)
             
             # Special handling for raw-transaction endpoint
             # Use the dedicated dummy_transaction fixture instead of random bytes
-            rawtxn = TestDataGenerator.random_signed_transaction(api_instance, headers)
+            txn = Transaction(
+                header=TransactionHeader(
+                    transaction_type=TransactionType.PAYMENT,
+                    fee=params.min_fee,
+                    first_valid=params.last_round,
+                    last_valid=params.last_round + 1000,
+                    sender=Address(address=alice.address, pub_key=alice.public_key),
+                    genesis_hash=base64.b64decode(params.genesis_hash),  # pretend this is a valid hash
+                    genesis_id=params.genesis_id,
+                ),
+                pay_fields=PayTransactionFields(amount=int(1e6), receiver=Address(address=bob.address, pub_key=bob.public_key)),
+            )
+            encoded_txn = encode_transaction(txn)
+            algosdk_txn = msgpack_decode(base64.b64encode(encoded_txn[2:]))
+            sig = alice.signer.sign_transactions([algosdk_txn], [0])[0].signature
+            signed_txn = attach_signature(encoded_txn, base64.b64decode(sig))
             
             # Call API and validate response
             response = api_instance.raw_transaction(
-                rawtxn=rawtxn, 
+                rawtxn=signed_txn, 
                 _headers=headers
             )
             

@@ -1,8 +1,7 @@
 templateDir: oas_templates/python
 additionalProperties:
-    packageName: my_client
-    projectName: my_client
     packageVersion: 0.1.0
+    packageName: algorand_algod_client
 
 openapiNormalizer:
     SET_TAGS_FOR_ALL_OPERATIONS: Algod
@@ -18,10 +17,6 @@ files:
     conftest.mustache:
         templateType: SupportingFiles
         destinationFilename: tests/conftest.py
-    test_utils.mustache:
-        templateType: SupportingFiles
-        destinationFilename: tests/test_utils.py
-
     # Generic supporting files
     poetry.toml.mustache:
         templateType: SupportingFiles

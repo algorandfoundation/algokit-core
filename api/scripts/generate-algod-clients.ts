@@ -48,10 +48,10 @@ function generateTypescriptClient() {
     const cmd = [
         "bunx openapi-generator-cli generate",
         `-i ${SPEC_PATH}`,
-        "-g typescript-fetch",
+        "-g typescript",
         `-o ${TYPESCRIPT_OUTPUT}`,
         `-t ${TYPESCRIPT_TEMPLATE}`,
-        "--additional-properties=npmName=@algorand/algod-client,npmVersion=1.0.0,supportsES6=true,typescriptThreePlus=true",
+        `-c ${TYPESCRIPT_TEMPLATE}/openapi-config.yaml`,
     ].join(" ");
 
     console.log(`Executing: ${cmd}`);
@@ -71,7 +71,6 @@ function generatePythonClient() {
         `-o ${PYTHON_OUTPUT}`,
         `-t ${PYTHON_TEMPLATE}`,
         `-c ${PYTHON_TEMPLATE}/openapi-config.yaml`,
-        "--additional-properties=packageName=algorand_algod_client,packageVersion=1.0.0",
         "--global-property=apis,models,apiTests=false,modelTests=false,supportingFiles",
     ].join(" ");
 
