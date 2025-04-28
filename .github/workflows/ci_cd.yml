@@ -1,0 +1,34 @@
+name: CI/CD
+
+on:
+  push: # A push indicates that a PR is merged and CD should be triggered
+    branches:
+      - main
+  pull_request: # For PRs, we run CI, which is the same as CD without the release step(s)
+    branches:
+      - main
+
+jobs:
+  # A setup job to define the matricies that will be used across all of the jobs in this workflow
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      # The packages that use Uniffi bindings
+      uniffi_packages: ${{ steps.set_uniffi_packages.outputs.uniffi_packages }}
+    steps:
+      - id: set_uniffi_packages
+        run: echo 'uniffi_packages=["algokit_transact"]' >> $GITHUB_OUTPUT
+
+
+  python_uniffi_ci_cd:
+    needs: setup
+    uses: ./.github/workflows/python_uniffi_ci_cd.yml
+    strategy:
+      matrix:
+        crate: ${{ fromJSON(needs.setup.outputs.uniffi_packages) }}
+    with:
+      crate: ${{ matrix.crate }}
+      release: ${{ github.event_name == 'push' }}
+    secrets:
+      BOT_ID: ${{ secrets.BOT_ID }}
+      BOT_SK: ${{ secrets.BOT_SK }}
