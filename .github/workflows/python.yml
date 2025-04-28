@@ -50,10 +50,14 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: "pip" # caching pip dependencies
 
-      - name: pip install
+      - name: Install Poetry
+        run: |
+          pipx install poetry
+
+      - name: Poetry install
         run: |
           cd packages/python/${{ env.CRATE }}
-          pip install ".[dev]"
+          poetry install --with dev
 
       - name: pytest
         # Until GitHub makes windows arm64 runners publicly available, there is not a simple way to test aarch64-pc-windows-msvc
@@ -61,7 +65,7 @@ jobs:
         if: matrix.target.name != 'aarch64-pc-windows-msvc'
         run: |
           cd packages/python/${{ env.CRATE }}
-          pytest
+          poetry run pytest
 
   linux_build_and_test:
     defaults:
@@ -121,18 +125,17 @@ jobs:
           RUN: rustup target add ${{ env.TARGET }}
         run: docker exec build-container bash -c "$RUN"
 
-      - name: Install pip-tools
+      - name: Install Poetry
         env:
-          RUN: python${{ env.PYTHON_VERSION }} -m pip install pip-tools
+          RUN: pipx install poetry
         run: docker exec build-container bash -c "$RUN"
 
-      - name: Install dependencies
+      - name: Install dependencies with Poetry
         env:
           RUN: |
             set -e
             cd /workspace/packages/python/${{ env.CRATE }}
-            python${{ env.PYTHON_VERSION }} -m piptools compile pyproject.toml --extra dev -o requirements.txt
-            python${{ env.PYTHON_VERSION }} -m pip install -r requirements.txt
+            poetry install --with dev
         run: docker exec build-container bash -c "$RUN"
 
       - name: maturin build
@@ -157,5 +160,5 @@ jobs:
         env:
           RUN: |
             cd /workspace/packages/python/${{ env.CRATE }}
-            python${{ env.PYTHON_VERSION }} -m pytest
+            poetry run pytest
         run: docker exec build-container bash -c "$RUN"
