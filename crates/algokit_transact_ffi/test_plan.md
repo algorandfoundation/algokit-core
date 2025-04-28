@@ -31,6 +31,7 @@
 | [decode with prefix](#decode-with-prefix) | A transaction with TX prefix and valid fields is decoded properly |
 | [decode without prefix](#decode-without-prefix) | A transaction without TX prefix and valid fields is decoded properly |
 | [get encoded transaction type](#get-encoded-transaction-type) | The transaction type of an encoded transaction can be retrieved |
+| [get transaction id](#get-transaction-id) | A transaction id can be obtained from a transaction |
 | [example](#example) | A human-readable example of forming a transaction and signing it |
 
 ## Test Cases
@@ -62,6 +63,10 @@ A transaction without TX prefix and valid fields is decoded properly
 ### get encoded transaction type
 
 The transaction type of an encoded transaction can be retrieved
+
+### get transaction id
+
+A transaction id can be obtained from a transaction
 
 ### example
 

@@ -11,8 +11,13 @@ from algokit_transact import (
     Transaction,
     address_from_string,
     address_from_pub_key,
+    get_transaction_id,
+    get_transaction_raw_id
 )
 from nacl.signing import SigningKey
+import base64
+
+transaction: Transaction = TEST_DATA["transaction"]
 
 # Polytest Suite: Payment
 
@@ -88,4 +93,16 @@ def test_encode():
         encode_transaction(TEST_DATA["transaction"])
         == TEST_DATA["expected_bytes_for_signing"]
     )
+
+
+@pytest.mark.group_transaction_tests
+def test_get_transaction_id():
+    """A transaction id can be obtained from a transaction"""
+
+    assert(get_transaction_raw_id(transaction) == bytes([
+          89, 237, 187, 95, 72, 48, 184, 21, 54, 185, 237, 245, 160, 212, 160,
+          212, 214, 207, 239, 131, 123, 133, 183, 247, 179, 37, 169, 90, 79, 19,
+          170, 171,
+        ]))
+    assert(get_transaction_id(transaction) == "LHW3WX2IGC4BKNVZ5X22BVFA2TLM734DPOC3P55TEWUVUTYTVKVQ")
 

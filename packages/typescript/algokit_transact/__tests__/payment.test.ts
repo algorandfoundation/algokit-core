@@ -9,6 +9,8 @@ import {
   Transaction,
   addressFromPubKey,
   addressFromString,
+  getTransactionRawId,
+  getTransactionId,
 } from "../src/index";
 
 const transaction: Transaction = testData.transaction;
@@ -24,7 +26,7 @@ describe("Payment", () => {
 
     test("decode without prefix", () => {
       expect(decodeTransaction(expectedBytesForSigning.slice(2))).toEqual(
-        transaction,
+        transaction
       );
     });
 
@@ -38,7 +40,7 @@ describe("Payment", () => {
       const alice = addressFromPubKey(alicePubKey);
 
       const bob = addressFromString(
-        "B72WNFFEZ7EOGMQPP7ROHYS3DSLL5JW74QASYNWGZGQXWRPJECJJLJIJ2Y",
+        "B72WNFFEZ7EOGMQPP7ROHYS3DSLL5JW74QASYNWGZGQXWRPJECJJLJIJ2Y"
       );
 
       const txn: Transaction = {
@@ -63,7 +65,7 @@ describe("Payment", () => {
 
     test("get encoded transaction type", () => {
       expect(getEncodedTransactionType(expectedBytesForSigning)).toBe(
-        "Payment",
+        "Payment"
       );
     });
 
@@ -75,6 +77,19 @@ describe("Payment", () => {
 
     test("encode", () => {
       expect(encodeTransaction(transaction)).toEqual(expectedBytesForSigning);
+    });
+
+    test("get transaction id", () => {
+      expect(getTransactionRawId(transaction)).toEqual(
+        Uint8Array.from([
+          89, 237, 187, 95, 72, 48, 184, 21, 54, 185, 237, 245, 160, 212, 160,
+          212, 214, 207, 239, 131, 123, 133, 183, 247, 179, 37, 169, 90, 79, 19,
+          170, 171,
+        ])
+      );
+      expect(getTransactionId(transaction)).toEqual(
+        "LHW3WX2IGC4BKNVZ5X22BVFA2TLM734DPOC3P55TEWUVUTYTVKVQ"
+      );
     });
   });
 });
