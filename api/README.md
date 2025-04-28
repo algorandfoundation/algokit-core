@@ -5,6 +5,7 @@ This package contains tools for working with the Algorand API specifications and
 ## Prerequisites
 
 - [Bun](https://bun.sh/) - JavaScript runtime and package manager
+- [OpenJDK](https://adoptium.net/) - Java Development Kit
 
 ## Setup
 
@@ -52,11 +53,12 @@ The client generation is configured with the following options:
 
 - Package name: `@algorand/algod-client`
 - ES6 support: true
-- TypeScript 3+ features: true
+- Manually refined tsconfig setup to build cjs, esm clients along with browser support.
+- Custom tests defined in `oas_templates/typescript/custom-tests/` that implement tests for initial batch of transaction endpoints. More endpoint tests are to be added in the future.
 
 ### Python Client
 
 - Package name: `algorand_algod_client`
 - Ignoring various unneeded supporting files like tox.ini, git_push.sh, etc.
-
-You can customize these options by editing the scripts in the `scripts/` directory.
+- Various improvements to make auto generated code compatible with poetry and more modern python conventions and practices.
+- Custom tests defined in `oas_templates/python/custom-tests/` that implement tests for initial batch of transaction endpoints. More endpoint tests are to be added in the future.
