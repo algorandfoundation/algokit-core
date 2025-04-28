@@ -45,19 +45,31 @@ jobs:
         with:
           toolchain: 1.85.0
           targets: ${{ matrix.target.name }}
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: "pip" # caching pip dependencies
-
+          
       - name: Install Poetry
         run: |
           pipx install poetry
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: "poetry"
+          cache-dependency-path: packages/python/${{ env.CRATE }}/poetry.lock
 
       - name: Poetry install
         run: |
           cd packages/python/${{ env.CRATE }}
           poetry install --with dev
+
+      - name: Build wheel
+        run: |
+          cd packages/python/${{ env.CRATE }}
+          poetry run maturin build --release -o dist
+
+      - name: Install wheel
+        run: |
+          cd packages/python/${{ env.CRATE }}
+          poetry run pip install dist/*.whl --force-reinstall
 
       - name: pytest
         # Until GitHub makes windows arm64 runners publicly available, there is not a simple way to test aarch64-pc-windows-msvc
@@ -142,18 +154,21 @@ jobs:
         env:
           RUN: |
             cd /workspace/packages/python/${{ env.CRATE }}
-            python${{ env.PYTHON_VERSION }} -m maturin build --release --target ${{ env.TARGET }} --compatibility ${{ env.MANYLINUX }} --features ffi_uniffi
+            poetry run maturin build --release --target ${{ env.TARGET }} --compatibility ${{ env.MANYLINUX }} --features ffi_uniffi 
         run: docker exec build-container bash -c "$RUN"
 
       - name: pip install wheel
         env:
-          RUN: python${{ env.PYTHON_VERSION }} -m pip install /workspace/target/wheels/*.whl
+          RUN: |
+            cd /workspace/packages/python/${{ env.CRATE }}
+            poetry run pip install ../../../target/wheels/*.whl
         run: docker exec build-container bash -c "$RUN"
 
       - name: Debug module contents
         env:
           RUN: |
-            python${{ env.PYTHON_VERSION }} -c "import algokit_transact; print('Available attributes:', dir(algokit_transact))"
+            cd /workspace/packages/python/${{ env.CRATE }}
+            poetry run python -c "import algokit_transact; print('Available attributes:', dir(algokit_transact))"
         run: docker exec build-container bash -c "$RUN"
 
       - name: pytest
