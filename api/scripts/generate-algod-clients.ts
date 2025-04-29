@@ -4,6 +4,11 @@ import { execSync } from "child_process";
 import { join } from "path";
 import { mkdirSync, existsSync, copyFileSync } from "fs";
 
+// Parse command line arguments
+const args = process.argv.slice(2);
+const targetIndex = args.indexOf('--target');
+const target = targetIndex !== -1 ? args[targetIndex + 1]?.toLowerCase() : 'all';
+
 // TODO: use full spec, for now just txns for testing purposes
 const SPEC_PATH = join(process.cwd(), "specs", "algod.oas3.json");
 
@@ -21,11 +26,12 @@ if (!existsSync(OUTPUT_DIR)) {
     mkdirSync(OUTPUT_DIR, { recursive: true });
 }
 
-if (!existsSync(TYPESCRIPT_OUTPUT)) {
+// Only create directories for the targets we'll generate
+if ((target === 'all' || target === 'typescript') && !existsSync(TYPESCRIPT_OUTPUT)) {
     mkdirSync(TYPESCRIPT_OUTPUT, { recursive: true });
 }
 
-if (!existsSync(PYTHON_OUTPUT)) {
+if ((target === 'all' || target === 'python') && !existsSync(PYTHON_OUTPUT)) {
     mkdirSync(PYTHON_OUTPUT, { recursive: true });
 }
 
@@ -81,9 +87,20 @@ function generatePythonClient() {
 
 function main() {
     try {
-        generateTypescriptClient();
-        generatePythonClient();
-        console.log("All clients generated successfully!");
+        if (target === 'all' || target === 'typescript') {
+            generateTypescriptClient();
+        }
+        
+        if (target === 'all' || target === 'python') {
+            generatePythonClient();
+        }
+        
+        if (target !== 'all' && target !== 'typescript' && target !== 'python') {
+            console.error(`Invalid target: ${target}. Valid options are 'typescript', 'python', or 'all'`);
+            process.exit(1);
+        }
+        
+        console.log("Client generation completed!");
     } catch (error) {
         console.error("Error generating clients:", error);
         process.exit(1);
