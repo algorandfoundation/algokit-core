@@ -6,11 +6,12 @@ build-backend = "maturin"
 name = "algokit_transact"
 version = "0.1.0"
 requires-python = ">=3.8,<4.0"
-dependencies = ["pynacl>=1.5.0,<2.0.0", "cffi>=1.17.1"]
+dependencies = ["cffi>=1.17.1"]
 
 [tool.maturin]
 manifest-path = "../../../crates/algokit_transact_ffi/Cargo.toml"
-module-name = "_algokit_transact"
+# https://www.maturin.rs/project_layout.html#import-rust-as-a-submodule-of-your-project
+module-name = "algokit_transact._algokit_transact"
 
 include = ["algokit_transact/py.typed", "algokit_transact/__init__.py"]
 
@@ -24,5 +25,5 @@ maturin = [
         "patchelf",
     ], markers = "platform_system == 'Linux'" },
 ]
-pynacl = ">=1.5.0"
+pynacl = ">=1.5.0,<2.0.0"
 pytest = ">=7.4.4"

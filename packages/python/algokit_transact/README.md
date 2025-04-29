@@ -70,3 +70,5 @@ Alternatively, you can build it via bun script at the root of the repository:
 ```bash
 bun run scripts/build/index.ts algokit_transact python
 ```
+
+> NOTE: You have to clear out the maturin build target directory if you are rebuilding the release wheel.
