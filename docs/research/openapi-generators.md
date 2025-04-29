@@ -1,4 +1,4 @@
-# API Architecture Documentation
+# OpenAPI Generators for Algorand APIs
 
 ## Overview
 
@@ -29,7 +29,7 @@ The original algod oas spec from go algorand repository was in v2, but it also p
 
 ## Improvements Over Original Specification
 
-Modifications to the original specification have mainly focused on improving documentation clarity, formatting consistency, and ensuring compatibility with the generator tools, rather than making significant changes to the API itself. We plan to address minor known issues, like problems with non-ASCII characters in JSON responses on certain endpoints, by further refining the spec as we develop test suites for each generated client language.
+Modifications to the original specification have mainly focused on improving documentation clarity, formatting consistency, and ensuring compatibility with the generator tools, rather than making significant changes to the API itself. Minor known issues, like problems with non-ASCII characters in JSON responses on certain endpoints, by further refining the spec as we develop test suites for each generated client language.
 
 Notable changes include:
 
@@ -71,6 +71,24 @@ The OpenAPI generator uses Mustache templates for code generation. We utilize cu
 3. Inject additional utilities and helper functions where needed.
 4. Implement language-specific optimizations or adjustments.
 
+### Template Lookup Order
+
+OpenAPI Generator looks for templates in the following order (simplified from the [oas generator docs](https://openapi-generator.tech/docs/templating#retrieving-templates)):
+
+```ascii
++--------------------------+ (api/oas_templates/{lang}/) 
+| 1. User Lib Path         | (custom/.../libraries/...)
++------------+-------------+
+              | (Not found fetch from next level up)
+              v
++--------------------------+
+| 2. Base Template content 
+| and other embedded files | (base template files in oas generators)
++------------+-------------+
+```
+
+Which means that if custom template that was extended from the base does not contain files that exist in base template, the generator will look in the next level up. To explicitly prevent this from happening, we can use the `.openapi-generator-ignore` files are placed in generation output directory prior to invocation of the generator. This logic is handled inside `scripts/generate-api-clients.ts` script.
+
 ## Configuration and Ignore Files
 
 The core configuration for the OpenAPI generator resides in `openapitools.json`. This file defines:
@@ -89,10 +107,12 @@ Lastly, each template folder defined `openapi-config.yaml` file to control the g
 
 ## Future Work
 
-1. **Expanded Endpoint Coverage**: Develop custom Mustache test templates for each target language to ensure robust testing across more API endpoints.
+1. **Expanded Endpoint Coverage and integration into algokit-utils**: Develop custom Mustache test templates for each target language to ensure robust testing across more API endpoints. As new categories of endpoints are covered, we can perform integration into algokit-utils in parallel.
 2. **CI/CD Integration & Versioning**: Implement a proper CI/CD pipeline for automated client generation and introduce semantic versioning. This includes integrating the generated clients into version control and adding output stability tests to track changes easily when specifications are updated.
 3. **Monorepo Management**: Explore tools like Bazel or NX to improve the management of our multi-language codebase, potentially offering benefits like incremental builds and better dependency handling.
 4. **Documentation Generation**: Automate the generation of client-specific documentation. The default generator already creates basic Markdown files, but we aim to enhance this.
+
+### Furthe notes
 
 Adopting a monorepo structure with tools like Bazel or NX could offer advantages such as:
 
