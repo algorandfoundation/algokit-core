@@ -31,7 +31,6 @@ env:
 
 jobs:
   get_version:
-    if: inputs.release
     runs-on: ubuntu-latest
     outputs: 
       tag: ${{ steps.semantic_release.outputs.tag }}
@@ -42,16 +41,21 @@ jobs:
         working-directory: ./packages/python/${{ inputs.crate }}/
     steps:
       - uses: actions/create-github-app-token@v1
+        if: inputs.release
         id: app_token
         with:
           app-id: ${{ secrets.BOT_ID }}
           private-key: ${{ secrets.BOT_SK }}
       - uses: actions/checkout@v4
+        if: inputs.release
       - uses: oven-sh/setup-bun@v2
+        if: inputs.release
         with:
           bun-version: latest
       - run: cd ../../../ && bun install
+        if: inputs.release
       - name: Semantic Release (dry-run)
+        if: inputs.release
         id: semantic_release
         env:
           GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
