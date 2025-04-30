@@ -1,5 +1,15 @@
+//! Error types for the AlgoKit Core transact module.
+//!
+//! This module defines the various error types that can occur during Algorand
+//! transaction processing, including encoding/decoding errors, validation errors,
+//! and other transaction-related failures.
+
 use thiserror::Error;
 
+/// Represents errors that can occur during Algorand transaction operations.
+///
+/// This enum encompasses various failure scenarios that may arise when creating,
+/// manipulating, serializing, or deserializing Algorand transactions.
 #[derive(Debug, Error)]
 pub enum AlgoKitTransactError {
     #[error("Error ocurred during encoding: {0}")]

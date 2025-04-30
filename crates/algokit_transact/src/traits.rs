@@ -1,14 +1,37 @@
+//! Traits for Algokit Core data encoding and transaction identification.
+//!
+//! This module provides traits for standardized MessagePack encoding/decoding of
+//! Algorand data structures and for calculating transaction identifiers.
+
 use crate::constants::HASH_BYTES_LENGTH;
 use crate::error::AlgoKitTransactError;
 use crate::utils::sort_msgpack_value;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha512_256};
 
+/// Trait for Algorand MessagePack encoding and decoding.
+///
+/// This trait defines methods for serializing and deserializing Algorand data structures
+/// to and from MessagePack format with the specific requirements of the Algorand protocol,
+/// including canonical sorting of map keys and domain separation prefixes.
 pub trait AlgorandMsgpack: Serialize + for<'de> Deserialize<'de> {
+    /// Domain separation prefix used during encoding.
+    ///
+    /// This prefix is prepended to the encoded data to distinguish different types of
+    /// Algorand objects. For example, transactions use "TX" as their prefix.
+    /// An empty prefix means no domain separation is applied.
     const PREFIX: &'static [u8] = b"TX";
 
-    /// msgpack encoding of the transaction with keys sorted and empty fields omitted
-    /// This method does not include any prefix/domain separator
+    /// Encodes the object to MessagePack format without any prefix.
+    ///
+    /// This method performs canonical encoding with sorted map keys and omitted empty fields,
+    /// but does not include any domain separation prefix.
+    ///
+    /// # Returns
+    /// A Result containing the raw encoded bytes.
+    ///
+    /// # Errors
+    /// Returns an error if serialization fails.
     fn encode_raw(&self) -> Result<Vec<u8>, AlgoKitTransactError> {
         // First serialize to a temporary buffer to get the map entries
         let mut temp_buf = Vec::new();

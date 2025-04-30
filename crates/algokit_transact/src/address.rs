@@ -1,3 +1,9 @@
+//! Algorand address handling and manipulation.
+//!
+//! This module provides functionality for working with Algorand addresses,
+//! including creation, validation, encoding, and decoding. Algorand addresses
+//! are base32-encoded strings that represent a public key with a checksum.
+
 use crate::constants::{
     Byte32, ALGORAND_ADDRESS_LENGTH, ALGORAND_CHECKSUM_BYTE_LENGTH, ALGORAND_PUBLIC_KEY_BYTE_LENGTH,
 };
@@ -6,19 +12,47 @@ use crate::utils::pub_key_to_checksum;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, Bytes};
 
+/// Represents an address.
+///
+/// An Algorand address is a 32-byte public key with a 4-byte checksum,
+/// typically represented as a 58-character base32-encoded string.
+/// This struct encapsulates the underlying public key and provides
+/// methods for creating, validating, and converting human-readable addresses.
 #[serde_as]
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Default)]
 #[serde(transparent)]
 pub struct Address {
+    /// The 32-byte Ed25519 public key associated with this address.
     #[serde_as(as = "Bytes")]
     pub pub_key: Byte32,
 }
 
 impl Address {
+    /// Creates a new Address from a 32-byte public key.
+    ///
+    /// # Parameters
+    /// * `pub_key` - The 32-byte Ed25519 public key
+    ///
+    /// # Returns
+    /// A new Address instance containing the provided public key.
     pub fn from_pubkey(pub_key: &Byte32) -> Self {
         Address { pub_key: *pub_key }
     }
 
+    /// Creates a new Address from a base32-encoded string.
+    ///
+    /// # Parameters
+    /// * `address` - A 58-character base32-encoded Algorand address string
+    ///
+    /// # Returns
+    /// A Result containing the Address.
+    ///
+    /// # Errors
+    /// Returns an error if the string cannot be decoded, including if:
+    /// - The string is not 58 characters long
+    /// - The string cannot be decoded as base32
+    /// - The decoded data does not contain a valid 32-byte public key and 4-byte checksum
+    /// - The checksum does not match the calculated checksum for the public key
     pub fn from_string(address: &str) -> Result<Self, AlgoKitTransactError> {
         if address.len() != ALGORAND_ADDRESS_LENGTH {
             return Err(AlgoKitTransactError::InvalidAddress(
@@ -55,10 +89,21 @@ impl Address {
         Ok(Self { pub_key })
     }
 
+    /// Calculates the 4-byte checksum for this address's public key.
+    ///
+    /// # Returns
+    /// A 4-byte array containing the checksum.
     pub fn checksum(&self) -> [u8; ALGORAND_CHECKSUM_BYTE_LENGTH] {
         pub_key_to_checksum(&self.pub_key)
     }
 
+    /// Converts the Address to its standard base32-encoded string representation.
+    ///
+    /// # Returns
+    /// A string containing the base32-encoded address.
+    // FIXME: Address.address? Is this the right name? Is there a canonical way to convert an
+    // object to a printable human-readable string?
+    // I suppose a related question is how to print the public key.
     pub fn address(&self) -> String {
         let mut address_bytes = [0u8; 36]; // 32 bytes pub_key + 4 bytes checksum
 
