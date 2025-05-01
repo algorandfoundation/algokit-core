@@ -226,6 +226,7 @@ export class SelfDecodingBody implements ResponseBody {
 export class ResponseContext {
     public constructor(
         public httpStatusCode: number,
+        public httpStatusText: string,
         public headers: Headers,
         public body: ResponseBody
     ) {}
@@ -316,15 +317,4 @@ export function wrapHttpLibrary(promiseHttpLibrary: PromiseHttpLibrary): HttpLib
       return from(promiseHttpLibrary.send(request));
     }
   }
-}
-
-export class HttpInfo<T> extends ResponseContext {
-    public constructor(
-        httpStatusCode: number,
-        headers: Headers,
-        body: ResponseBody,
-        public data: T,
-    ) {
-        super(httpStatusCode, headers, body);
-    }
 }

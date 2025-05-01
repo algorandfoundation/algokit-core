@@ -1,4 +1,4 @@
-import { ResponseContext, RequestContext, HttpFile, HttpInfo } from '../http/http{{importFileExtension}}';
+import { ResponseContext, RequestContext, HttpFile } from '../http/http{{importFileExtension}}';
 import { Configuration{{^useInversify}}, ConfigurationOptions, PromiseConfigurationOptions{{/useInversify}} } from '../configuration{{importFileExtension}}'
 {{^useInversify}}
 import { PromiseMiddleware, Middleware, PromiseMiddlewareWrapper } from '../middleware{{importFileExtension}}';
@@ -54,7 +54,7 @@ export class Promise{{classname}} {
      * @param {{#required}}{{paramName}}{{/required}}{{^required}}[{{paramName}}]{{/required}}{{#description}} {{description}}{{/description}}
      {{/allParams}}
      */
-    public {{nickname}}WithHttpInfo({{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}_options?: {{#useInversify}}Configuration{{/useInversify}}{{^useInversify}}PromiseConfigurationOptions{{/useInversify}}): Promise<HttpInfo<{{{returnType}}}{{^returnType}}void{{/returnType}}>> {
+    public {{nickname}}Response({{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}_options?: {{#useInversify}}Configuration{{/useInversify}}{{^useInversify}}PromiseConfigurationOptions{{/useInversify}}): Promise<ResponseContext> {
         let observableOptions: undefined | Configuration{{^useInversify}}Options{{/useInversify}}{{#useInversify}} = _options{{/useInversify}}
         {{^useInversify}}
         if (_options){
@@ -69,7 +69,7 @@ export class Promise{{classname}} {
 	    }
 	}
         {{/useInversify}}
-        const result = this.api.{{nickname}}WithHttpInfo({{#allParams}}{{paramName}}, {{/allParams}}observableOptions);
+        const result = this.api.{{nickname}}Response({{#allParams}}{{paramName}}, {{/allParams}}observableOptions);
         return result.toPromise();
     }
 

@@ -1,4 +1,4 @@
-import { ResponseContext, RequestContext, HttpFile, HttpInfo } from '../http/http{{importFileExtension}}';
+import { ResponseContext, RequestContext, HttpFile } from '../http/http{{importFileExtension}}';
 import { Configuration{{^useInversify}}, ConfigurationOptions{{/useInversify}} } from '../configuration{{importFileExtension}}'
 {{^useInversify}}
 import type { Middleware } from '../middleware{{importFileExtension}}';
@@ -58,8 +58,8 @@ export class Object{{classname}} {
      {{/summary}}
      * @param param the request object
      */
-    public {{nickname}}WithHttpInfo(param: {{classname}}{{operationIdCamelCase}}Request{{^hasRequiredParams}} = {}{{/hasRequiredParams}}, options?: Configuration{{^useInversify}}Options{{/useInversify}}): {{#useRxJS}}Observable{{/useRxJS}}{{^useRxJS}}Promise{{/useRxJS}}<HttpInfo<{{{returnType}}}{{^returnType}}void{{/returnType}}>> {
-        return this.api.{{nickname}}WithHttpInfo({{#allParams}}param.{{paramName}}, {{/allParams}} options){{^useRxJS}}.toPromise(){{/useRxJS}};
+    public {{nickname}}Response(param: {{classname}}{{operationIdCamelCase}}Request{{^hasRequiredParams}} = {}{{/hasRequiredParams}}, options?: Configuration{{^useInversify}}Options{{/useInversify}}): {{#useRxJS}}Observable{{/useRxJS}}{{^useRxJS}}Promise{{/useRxJS}}<ResponseContext> {
+        return this.api.{{nickname}}Response({{#allParams}}param.{{paramName}}, {{/allParams}} options){{^useRxJS}}.toPromise(){{/useRxJS}};
     }
 
     /**

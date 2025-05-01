@@ -1,4 +1,4 @@
-import { ResponseContext, RequestContext, HttpFile, HttpInfo } from '../http/http{{importFileExtension}}';
+import { ResponseContext, RequestContext, HttpFile } from '../http/http{{importFileExtension}}';
 import { Configuration{{^useInversify}}, ConfigurationOptions{{/useInversify}} } from '../configuration{{importFileExtension}}'
 import type { Middleware } from '../middleware{{importFileExtension}}';
 import { Observable, of, from } from {{#useRxJS}}'rxjs'{{/useRxJS}}{{^useRxJS}}'../rxjsStub{{importFileExtension}}'{{/useRxJS}};
@@ -62,7 +62,7 @@ export class Observable{{classname}} {
      * @param {{#required}}{{paramName}}{{/required}}{{^required}}[{{paramName}}]{{/required}}{{#description}} {{description}}{{/description}}
      {{/allParams}}
      */
-    public {{nickname}}WithHttpInfo({{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}_options?: Configuration{{^useInversify}}Options{{/useInversify}}): Observable<HttpInfo<{{{returnType}}}{{^returnType}}void{{/returnType}}>> {
+    public {{nickname}}Response({{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}_options?: Configuration{{^useInversify}}Options{{/useInversify}}): Observable<ResponseContext> {
     let _config = this.configuration;
     let allMiddleware: Middleware[] = [];
     {{#useInversify}}
@@ -114,7 +114,7 @@ export class Observable{{classname}} {
                 for (const middleware of allMiddleware.reverse()) {
                     middlewarePostObservable = middlewarePostObservable.pipe(mergeMap((rsp: ResponseContext) => middleware.post(rsp)));
                 }
-                return middlewarePostObservable.pipe(map((rsp: ResponseContext) => this.responseProcessor.{{nickname}}WithHttpInfo(rsp)));
+                return middlewarePostObservable;
             }));
     }
 
@@ -130,7 +130,8 @@ export class Observable{{classname}} {
      {{/allParams}}
      */
     public {{nickname}}({{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}_options?: Configuration{{^useInversify}}Options{{/useInversify}}): Observable<{{{returnType}}}{{^returnType}}void{{/returnType}}> {
-        return this.{{nickname}}WithHttpInfo({{#allParams}}{{paramName}}, {{/allParams}}_options).pipe(map((apiResponse: HttpInfo<{{{returnType}}}{{^returnType}}void{{/returnType}}>) => apiResponse.data));
+        return this.{{nickname}}Response({{#allParams}}{{paramName}}, {{/allParams}}_options)
+          .pipe(map((rsp: ResponseContext) => this.responseProcessor.{{nickname}}Response(rsp)));
     }
 
 {{/operation}}

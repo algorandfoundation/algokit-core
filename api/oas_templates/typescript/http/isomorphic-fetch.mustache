@@ -47,7 +47,7 @@ export class IsomorphicFetchHttpLibrary implements HttpLibrary {
             };
             {{/node}}
             {{/platforms}}
-            return new ResponseContext(resp.status, headers, body);
+            return new ResponseContext(resp.status, resp.statusText, headers, body);
         });
 
         return from<Promise<ResponseContext>>(resultPromise);
