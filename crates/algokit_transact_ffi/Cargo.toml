@@ -25,13 +25,13 @@ uniffi = { workspace = true, features = [
     "scaffolding-ffi-buffer-fns",
 ], optional = true }
 wasm-bindgen = { workspace = true, optional = true }
-base64 = "0.22.1"
 pretty_assertions = "1.4.1"
 
 
 [dev-dependencies]
 wasm-pack = "0.13.1"
 uniffi = { workspace = true, features = ["bindgen-tests"] }
+algokit_transact = { path = "../algokit_transact", features = ["test_utils"] }
 
 [build-dependencies]
 uniffi = { workspace = true, features = [
