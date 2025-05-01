@@ -184,9 +184,9 @@ pub struct AssetTransferTransactionFields {
 pub struct Transaction {
     header: TransactionHeader,
 
-    pay_fields: Option<PayTransactionFields>,
+    pay_fields: Option<PayTransactionFields>, // TODO: NC - Rename to payment
 
-    asset_transfer_fields: Option<AssetTransferTransactionFields>,
+    asset_transfer_fields: Option<AssetTransferTransactionFields>, // TODO: NC - Rename to asset_transfer
 }
 
 impl TryFrom<Transaction> for algokit_transact::Transaction {
@@ -525,7 +525,7 @@ pub fn get_transaction_id(tx: &Transaction) -> Result<String, AlgoKitTransactErr
 #[cfg(test)]
 mod tests {
     use super::*;
-    use algokit_transact::test_utils::TransactionMother;
+    use algokit_transact::test_utils::{TestDataMother, TransactionMother};
     use pretty_assertions::assert_eq;
 
     #[test]
@@ -546,24 +546,13 @@ mod tests {
 
     #[test]
     fn test_transaction_id_ffi() {
-        let tx_ffi = TransactionMother::payment_with_note()
-            .build()
-            .unwrap()
-            .try_into()
-            .unwrap();
-
-        // Expected values from algokit_transact::tests
-        // TODO: NC - Do we want to move this expected value to the ObjectMother? Maybe as expectations?
-        let expected_id = "ENOQBKTA3UAUU54TQN2AOH7BFDLS6LDYQD2SSQLU76JUAWSQSPPQ";
-        let expected_raw_id = [
-            35, 93, 0, 170, 96, 221, 1, 74, 119, 147, 131, 116, 7, 31, 225, 40, 215, 47, 44, 120,
-            128, 245, 41, 65, 116, 255, 147, 64, 90, 80, 147, 223,
-        ];
+        let data = TestDataMother::simple_payment();
+        let tx_ffi = data.transaction.try_into().unwrap();
 
         let actual_id = get_transaction_id(&tx_ffi).unwrap();
         let actual_raw_id = get_transaction_raw_id(&tx_ffi).unwrap();
 
-        assert_eq!(actual_id, expected_id);
-        assert_eq!(actual_raw_id, expected_raw_id);
+        assert_eq!(actual_id, data.id);
+        assert_eq!(actual_raw_id, data.raw_id);
     }
 }

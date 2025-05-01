@@ -2,14 +2,16 @@
 name = "algokit_transact_ffi"
 version = "0.1.0"
 edition = "2021"
+build = "build.rs"
 
 [lib]
 crate-type = ["cdylib", "staticlib"]
 
 [features]
-default = ["ffi_uniffi"]
+default = ["ffi_uniffi", "generate_test_data"]
 ffi_wasm = ["dep:wasm-bindgen", "dep:tsify-next"]
 ffi_uniffi = ["dep:uniffi"]
+generate_test_data = ["algokit_transact/test_utils"]
 
 [dependencies]
 algokit_transact = { path = "../algokit_transact" }
@@ -38,3 +40,9 @@ uniffi = { workspace = true, features = [
     "build",
     "scaffolding-ffi-buffer-fns", # Add the "scaffolding-ffi-buffer-fns" feature to make sure things can build correctly
 ] }
+algokit_transact = { path = "../algokit_transact" }
+ffi_macros = { path = "../ffi_macros" }
+thiserror = { workspace = true }
+serde = { version = "1.0.216", features = ["derive"] }
+serde_bytes = "0.11.15"
+serde_json = "1.0.133"

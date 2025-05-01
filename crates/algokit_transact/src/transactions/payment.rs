@@ -12,7 +12,7 @@ use serde_with::{serde_as, skip_serializing_none};
 #[builder(
     name = "PaymentTransactionBuilder",
     setter(strip_option),
-    build_fn(name = "build_fields") // TODO: NC - private ?
+    build_fn(name = "build_fields")
 )]
 pub struct PaymentTransactionFields {
     #[serde(flatten)]

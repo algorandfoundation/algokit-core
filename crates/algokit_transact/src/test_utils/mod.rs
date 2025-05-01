@@ -1,7 +1,13 @@
+use std::fs::File;
+
 use crate::{
-    transactions::PaymentTransactionBuilder, Address, TransactionHeaderBuilder, TransactionType,
+    transactions::PaymentTransactionBuilder, Address, AlgorandMsgpack, Byte32, SignedTransaction,
+    Transaction, TransactionHeaderBuilder, TransactionId, TransactionType,
 };
 use base64::{prelude::BASE64_STANDARD, Engine};
+use ed25519_dalek::{Signer, SigningKey};
+use serde::Serialize;
+use serde_json::to_writer_pretty;
 
 pub struct TransactionHeaderMother {}
 impl TransactionHeaderMother {
@@ -79,7 +85,168 @@ impl TransactionMother {
     }
 }
 
-// TODO: NC - Update to use the new test data file
-// TODO: NC - Remove old generation process
-// TODO: NC - Can we auto build the TS and Python types?
 // TODO: NC - Do we need an Object mother for addresses?
+// TODO: NC - Update the swift proj
+
+#[derive(Serialize)]
+pub struct TransactionTestData {
+    pub transaction: Transaction,
+    pub id: String,
+    pub raw_id: Byte32,
+    pub unsigned_bytes: Vec<u8>,
+    pub signing_private_key: Byte32,
+    pub signed_bytes: Vec<u8>,
+}
+
+impl TransactionTestData {
+    pub fn new(transaction: Transaction, signing_private_key: Byte32) -> Self {
+        let signing_key: SigningKey = SigningKey::from_bytes(&signing_private_key);
+        let id = transaction.id().unwrap();
+        let raw_id: [u8; 32] = transaction.raw_id().unwrap();
+        let unsigned_bytes = transaction.encode().unwrap();
+        let signature = signing_key.sign(&unsigned_bytes);
+        let signed_txn = SignedTransaction {
+            transaction: transaction.clone(),
+            signature: signature.to_bytes(),
+        };
+        let signed_bytes = signed_txn.encode().unwrap();
+
+        Self {
+            transaction,
+            id,
+            raw_id,
+            unsigned_bytes,
+            signing_private_key,
+            signed_bytes,
+        }
+    }
+
+    pub fn as_json<F, T>(&self, transform: Option<F>) -> serde_json::Value
+    where
+        F: FnOnce(&Self) -> T,
+        T: serde::Serialize,
+    {
+        match transform {
+            Some(f) => serde_json::json!(f(self)),
+            None => serde_json::json!(self),
+        }
+    }
+}
+
+pub struct TestDataMother {}
+impl TestDataMother {
+    pub fn simple_payment() -> TransactionTestData {
+        let signing_private_key: Byte32 = [
+            2, 205, 103, 33, 67, 14, 82, 196, 115, 196, 206, 254, 50, 110, 63, 182, 149, 229, 184,
+            216, 93, 11, 13, 99, 69, 213, 218, 165, 134, 118, 47, 44,
+        ];
+        let transaction = TransactionMother::simple_payment().build().unwrap();
+        TransactionTestData::new(transaction, signing_private_key)
+    }
+
+    // // TODO: NC - This needs cleanup
+    fn normalise_json(value: serde_json::Value) -> serde_json::Value {
+        match value {
+            serde_json::Value::Object(map) => serde_json::Value::Object(
+                map.into_iter()
+                    .filter(|(_, v)| !v.is_null()) // Remove items with null values
+                    .map(|(k, v)| (Self::to_camel_case(&k), Self::normalise_json(v)))
+                    .collect(),
+            ),
+            serde_json::Value::Array(arr) => {
+                serde_json::Value::Array(arr.into_iter().map(|v| Self::normalise_json(v)).collect())
+            }
+            other => other,
+        }
+    }
+
+    fn to_camel_case(s: &str) -> String {
+        let mut result = String::new();
+        let mut capitalize_next = false;
+
+        for c in s.chars() {
+            if c == '_' {
+                capitalize_next = true;
+            } else if capitalize_next {
+                result.push(c.to_ascii_uppercase());
+                capitalize_next = false;
+            } else {
+                result.push(c);
+            }
+        }
+
+        result
+    }
+
+    pub fn export<F, T>(path: &std::path::Path, transform: Option<F>)
+    where
+        F: FnOnce(&TransactionTestData) -> T,
+        T: serde::Serialize,
+    {
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent).expect("Failed to create export path directories");
+        }
+
+        let test_data = Self::normalise_json(serde_json::json!({
+            "simple_payment": Self::simple_payment().as_json(transform),
+        }));
+
+        let file = File::create(path).expect("Failed to create export file");
+        to_writer_pretty(file, &test_data).expect("Failed to write export JSON");
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_simple_payment_snapshot() {
+        let data = TestDataMother::simple_payment();
+        assert_eq!(
+            data.id,
+            String::from("TZM3P4ZL4DLIEZ3WOEP67MQ6JITTO4D3NJN3RCA5YDBC3V4LA5LA")
+        );
+        assert_eq!(
+            data.raw_id,
+            [
+                158, 89, 183, 243, 43, 224, 214, 130, 103, 118, 113, 31, 239, 178, 30, 74, 39, 55,
+                112, 123, 106, 91, 184, 136, 29, 192, 194, 45, 215, 139, 7, 86
+            ]
+        );
+        assert_eq!(
+            data.unsigned_bytes,
+            vec![
+                84, 88, 137, 163, 97, 109, 116, 206, 0, 1, 138, 136, 163, 102, 101, 101, 205, 3,
+                232, 162, 102, 118, 206, 3, 5, 0, 212, 163, 103, 101, 110, 172, 116, 101, 115, 116,
+                110, 101, 116, 45, 118, 49, 46, 48, 162, 103, 104, 196, 32, 72, 99, 181, 24, 164,
+                179, 200, 78, 200, 16, 242, 45, 79, 16, 129, 203, 15, 113, 240, 89, 167, 172, 32,
+                222, 198, 47, 127, 112, 229, 9, 58, 34, 162, 108, 118, 206, 3, 5, 4, 188, 163, 114,
+                99, 118, 196, 32, 173, 207, 218, 63, 201, 93, 52, 35, 35, 15, 161, 115, 204, 245,
+                211, 90, 68, 182, 3, 164, 184, 247, 131, 205, 149, 104, 201, 215, 253, 11, 206,
+                245, 163, 115, 110, 100, 196, 32, 138, 24, 8, 153, 89, 167, 60, 236, 255, 238, 91,
+                198, 115, 190, 137, 254, 3, 35, 198, 98, 195, 33, 65, 123, 138, 200, 132, 194, 74,
+                0, 44, 25, 164, 116, 121, 112, 101, 163, 112, 97, 121
+            ]
+        );
+        assert_eq!(
+            data.signed_bytes,
+            vec![
+                130, 163, 115, 105, 103, 196, 64, 198, 56, 196, 15, 176, 92, 85, 96, 205, 178, 248,
+                28, 27, 215, 149, 74, 22, 18, 122, 228, 98, 34, 13, 202, 109, 58, 242, 134, 31,
+                206, 195, 29, 110, 250, 219, 67, 240, 62, 47, 253, 200, 132, 24, 36, 210, 17, 97,
+                97, 165, 32, 154, 49, 102, 252, 16, 157, 51, 135, 216, 86, 41, 198, 47, 15, 163,
+                116, 120, 110, 137, 163, 97, 109, 116, 206, 0, 1, 138, 136, 163, 102, 101, 101,
+                205, 3, 232, 162, 102, 118, 206, 3, 5, 0, 212, 163, 103, 101, 110, 172, 116, 101,
+                115, 116, 110, 101, 116, 45, 118, 49, 46, 48, 162, 103, 104, 196, 32, 72, 99, 181,
+                24, 164, 179, 200, 78, 200, 16, 242, 45, 79, 16, 129, 203, 15, 113, 240, 89, 167,
+                172, 32, 222, 198, 47, 127, 112, 229, 9, 58, 34, 162, 108, 118, 206, 3, 5, 4, 188,
+                163, 114, 99, 118, 196, 32, 173, 207, 218, 63, 201, 93, 52, 35, 35, 15, 161, 115,
+                204, 245, 211, 90, 68, 182, 3, 164, 184, 247, 131, 205, 149, 104, 201, 215, 253,
+                11, 206, 245, 163, 115, 110, 100, 196, 32, 138, 24, 8, 153, 89, 167, 60, 236, 255,
+                238, 91, 198, 115, 190, 137, 254, 3, 35, 198, 98, 195, 33, 65, 123, 138, 200, 132,
+                194, 74, 0, 44, 25, 164, 116, 121, 112, 101, 163, 112, 97, 121
+            ]
+        );
+    }
+}

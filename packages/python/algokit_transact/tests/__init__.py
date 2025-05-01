@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from pathlib import Path
 import json
 from pprint import pprint
@@ -10,6 +11,19 @@ from algokit_transact import (
 )
 from nacl.signing import SigningKey
 
+
+@dataclass
+class TransactionTestData:
+    transaction: Transaction
+    id: str
+    raw_id: bytes
+    unsigned_bytes: bytes
+    signed_bytes: bytes
+    signing_private_key: SigningKey
+
+@dataclass
+class TestData:
+    simple_payment: TransactionTestData
 
 def convert_values(obj):
     if isinstance(obj, dict):
@@ -54,20 +68,28 @@ def load_test_data():
     with open(test_data_path) as f:
         data = json.load(f)
 
-    data = convert_case_recursive(data)
-    data = convert_values(data)
-
-    data["transaction"]["header"]["transaction_type"] = TransactionType.PAYMENT
-
-    data["transaction"]["header"] = TransactionHeader(**data["transaction"]["header"])
-
-    data["transaction"] = Transaction(
-        header=data["transaction"]["header"],
-        pay_fields=PayTransactionFields(**data["transaction"]["pay_fields"]),
+    data = convert_values(
+        convert_case_recursive(data)
     )
 
-    return data
+    simple_payment = data["simple_payment"]
 
 
+    simple_payment["transaction"]["header"]["transaction_type"] = TransactionType.PAYMENT
+    transaction = Transaction(
+        header=TransactionHeader(**simple_payment["transaction"]["header"]),
+        pay_fields=PayTransactionFields(**simple_payment["transaction"]["pay_fields"]),
+    )
+
+    return TestData(
+        simple_payment= TransactionTestData(
+            transaction=transaction,
+            id=simple_payment["id"],
+            raw_id=simple_payment["raw_id"],
+            unsigned_bytes=simple_payment["unsigned_bytes"],
+            signed_bytes=simple_payment["signed_bytes"],
+            signing_private_key=SigningKey(simple_payment["signing_private_key"])
+        )
+    )
+    
 TEST_DATA = load_test_data()
-PRIV_KEY = SigningKey(TEST_DATA["priv_key"])
