@@ -14,18 +14,33 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       # The packages that use Uniffi bindings
-      uniffi_packages: ${{ steps.set_uniffi_packages.outputs.uniffi_packages }}
+      ffi_packages: ${{ steps.set_ffi_packages.outputs.ffi_packages }}
     steps:
-      - id: set_uniffi_packages
-        run: echo 'uniffi_packages=["algokit_transact"]' >> $GITHUB_OUTPUT
+      - id: set_ffi_packages
+        run: echo 'ffi_packages=["algokit_transact"]' >> $GITHUB_OUTPUT
 
 
+  typescript_wasm_ci_cd:
+    concurrency: ${{ github.event_name == 'push' && format('cd-{0}', github.ref) || format('ci-typescript_wasm-{0}', github.run_id) }}
+    needs: setup
+    uses: ./.github/workflows/typescript_wasm_ci_cd.yml
+    strategy:
+      matrix:
+        crate: ${{ fromJSON(needs.setup.outputs.ffi_packages) }}
+    with:
+      crate: ${{ matrix.crate }}
+      release: ${{ github.event_name == 'push' }}
+    secrets:
+      BOT_ID: ${{ secrets.BOT_ID }}
+      BOT_SK: ${{ secrets.BOT_SK }}
+  
   python_uniffi_ci_cd:
+    concurrency: ${{ github.event_name == 'push' && format('cd-{0}', github.ref) || format('ci-python_uniffi-{0}', github.run_id) }}
     needs: setup
     uses: ./.github/workflows/python_uniffi_ci_cd.yml
     strategy:
       matrix:
-        crate: ${{ fromJSON(needs.setup.outputs.uniffi_packages) }}
+        crate: ${{ fromJSON(needs.setup.outputs.ffi_packages) }}
     with:
       crate: ${{ matrix.crate }}
       release: ${{ github.event_name == 'push' }}

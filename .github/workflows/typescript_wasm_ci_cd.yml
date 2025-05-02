@@ -1,0 +1,58 @@
+name: TypeScript CI
+
+on:
+  workflow_call:
+    inputs:
+      crate:
+        required: true
+        type: string
+        description: "The name of the crate to build and publish"
+      release:
+        required: false
+        type: boolean
+        default: false
+        description: "Whether to run release steps"
+    secrets:
+      BOT_ID:
+        required: true
+      BOT_SK:
+        required: true
+
+permissions:
+  contents: write # to make commits
+  actions: write # to upload artifacts
+  issues: write # to be able to comment on released issues
+  pull-requests: write # to be able to comment on released pull requests
+
+jobs:
+  build_and_test:
+    defaults:
+      run:
+        shell: bash
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/create-github-app-token@v1
+        if: inputs.release
+        id: app_token
+        with:
+          app-id: ${{ secrets.BOT_ID }}
+          private-key: ${{ secrets.BOT_SK }}
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.85.0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile 
+      - name: Build
+        run: bun scripts/build ${{ inputs.CRATE }} typescript
+      - name: Test
+        run: cd packages/typescript/${{ inputs.CRATE }} && bun test
+      - name: Release
+        if: inputs.release
+        env:
+          GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
+        run: bun release:${{ inputs.CRATE }}:ts
