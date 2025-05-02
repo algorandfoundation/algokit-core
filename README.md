@@ -34,6 +34,7 @@ The exported interfaces should be purely functional without any state owned by R
 
 If you are new to Rust or UniFFI, check out the [learning resources document](./docs/contributing/learning_resources.md)
 
+
 ### Contributing Guide
 
 See the [contributing guide](./docs/contributing/contributing_guide.md) for recommended editors settings and other guidelines for contribution.
