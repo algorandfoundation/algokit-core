@@ -37,4 +37,6 @@ type TransactionTestData = {
 };
 
 export const testData =
-  parseJson<Record<"simplePayment", TransactionTestData>>(jsonString);
+  parseJson<
+    Record<"simplePayment" | "optInAssetTransfer", TransactionTestData>
+  >(jsonString);

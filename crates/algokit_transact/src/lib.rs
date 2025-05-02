@@ -14,8 +14,9 @@ pub use constants::{
 pub use error::AlgoKitTransactError;
 pub use traits::{AlgorandMsgpack, TransactionId};
 pub use transactions::{
-    AssetTransferTransactionFields, PaymentTransactionBuilder, PaymentTransactionFields,
-    SignedTransaction, Transaction, TransactionHeader, TransactionHeaderBuilder, TransactionType,
+    AssetTransferTransactionBuilder, AssetTransferTransactionFields, PaymentTransactionBuilder,
+    PaymentTransactionFields, SignedTransaction, Transaction, TransactionHeader,
+    TransactionHeaderBuilder, TransactionType,
 };
 
 #[cfg(test)]

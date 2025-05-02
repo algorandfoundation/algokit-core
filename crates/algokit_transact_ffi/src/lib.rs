@@ -159,7 +159,7 @@ pub struct TransactionHeader {
 }
 
 #[ffi_record]
-pub struct PayTransactionFields {
+pub struct PaymentTransactionFields {
     receiver: Address,
 
     amount: u64,
@@ -184,7 +184,7 @@ pub struct AssetTransferTransactionFields {
 pub struct Transaction {
     header: TransactionHeader,
 
-    pay_fields: Option<PayTransactionFields>, // TODO: NC - Rename to payment
+    pay_fields: Option<PaymentTransactionFields>, // TODO: NC - Rename to payment
 
     asset_transfer_fields: Option<AssetTransferTransactionFields>, // TODO: NC - Rename to asset_transfer
 }
@@ -315,7 +315,7 @@ impl From<algokit_transact::TransactionHeader> for TransactionHeader {
     }
 }
 
-impl From<algokit_transact::PaymentTransactionFields> for PayTransactionFields {
+impl From<algokit_transact::PaymentTransactionFields> for PaymentTransactionFields {
     fn from(tx: algokit_transact::PaymentTransactionFields) -> Self {
         Self {
             receiver: tx.receiver.into(),
@@ -325,10 +325,10 @@ impl From<algokit_transact::PaymentTransactionFields> for PayTransactionFields {
     }
 }
 
-impl TryFrom<PayTransactionFields> for algokit_transact::PaymentTransactionFields {
+impl TryFrom<PaymentTransactionFields> for algokit_transact::PaymentTransactionFields {
     type Error = AlgoKitTransactError;
 
-    fn try_from(tx: PayTransactionFields) -> Result<Self, Self::Error> {
+    fn try_from(tx: PaymentTransactionFields) -> Result<Self, Self::Error> {
         Ok(Self {
             header: algokit_transact::TransactionHeader {
                 transaction_type: algokit_transact::TransactionType::Payment,
@@ -396,7 +396,7 @@ impl TryFrom<algokit_transact::Transaction> for Transaction {
         match tx {
             algokit_transact::Transaction::Payment(payment) => {
                 let header = payment.header.into();
-                let pay_fields = PayTransactionFields {
+                let pay_fields = PaymentTransactionFields {
                     receiver: payment.receiver.into(),
                     amount: payment.amount,
                     close_remainder_to: payment.close_remainder_to.map(|a| a.into()),

@@ -1,8 +1,9 @@
 use std::fs::File;
 
 use crate::{
-    transactions::PaymentTransactionBuilder, Address, AlgorandMsgpack, Byte32, SignedTransaction,
-    Transaction, TransactionHeaderBuilder, TransactionId, TransactionType,
+    transactions::{AssetTransferTransactionBuilder, PaymentTransactionBuilder},
+    Address, AlgorandMsgpack, Byte32, SignedTransaction, Transaction, TransactionHeaderBuilder,
+    TransactionId, TransactionType,
 };
 use base64::{prelude::BASE64_STANDARD, Engine};
 use ed25519_dalek::{Signer, SigningKey};
@@ -49,6 +50,19 @@ impl TransactionHeaderMother {
             .last_valid(50660540)
             .to_owned()
     }
+
+    pub fn simple_testnet_asset_transfer() -> TransactionHeaderBuilder {
+        Self::testnet()
+            .transaction_type(TransactionType::AssetTransfer)
+            .sender(
+                Address::from_string("JB3K6HTAXODO4THESLNYTSG6GQUFNEVIQG7A6ZYVDACR6WA3ZF52TKU5NA")
+                    .unwrap(),
+            )
+            .fee(1000)
+            .first_valid(51183672)
+            .last_valid(51183872)
+            .to_owned()
+    }
 }
 
 pub struct TransactionMother {}
@@ -79,6 +93,22 @@ impl TransactionMother {
                     )
                     .to_owned()
                     .build()
+                    .unwrap(),
+            )
+            .to_owned()
+    }
+
+    pub fn opt_in_asset_transfer() -> AssetTransferTransactionBuilder {
+        AssetTransferTransactionBuilder::default()
+            .header(
+                TransactionHeaderMother::simple_testnet_asset_transfer()
+                    .build()
+                    .unwrap(),
+            )
+            .asset_id(107686045)
+            .amount(0)
+            .receiver(
+                Address::from_string("JB3K6HTAXODO4THESLNYTSG6GQUFNEVIQG7A6ZYVDACR6WA3ZF52TKU5NA")
                     .unwrap(),
             )
             .to_owned()
@@ -121,9 +151,9 @@ impl TransactionTestData {
         }
     }
 
-    pub fn as_json<F, T>(&self, transform: Option<F>) -> serde_json::Value
+    pub fn as_json<F, T>(&self, transform: &Option<F>) -> serde_json::Value
     where
-        F: FnOnce(&Self) -> T,
+        F: Fn(&Self) -> T,
         T: serde::Serialize,
     {
         match transform {
@@ -141,6 +171,15 @@ impl TestDataMother {
             216, 93, 11, 13, 99, 69, 213, 218, 165, 134, 118, 47, 44,
         ];
         let transaction = TransactionMother::simple_payment().build().unwrap();
+        TransactionTestData::new(transaction, signing_private_key)
+    }
+
+    pub fn opt_in_asset_transfer() -> TransactionTestData {
+        let signing_private_key: Byte32 = [
+            2, 205, 103, 33, 67, 14, 82, 196, 115, 196, 206, 254, 50, 110, 63, 182, 149, 229, 184,
+            216, 93, 11, 13, 99, 69, 213, 218, 165, 134, 118, 47, 44,
+        ];
+        let transaction = TransactionMother::opt_in_asset_transfer().build().unwrap();
         TransactionTestData::new(transaction, signing_private_key)
     }
 
@@ -180,7 +219,7 @@ impl TestDataMother {
 
     pub fn export<F, T>(path: &std::path::Path, transform: Option<F>)
     where
-        F: FnOnce(&TransactionTestData) -> T,
+        F: Fn(&TransactionTestData) -> T,
         T: serde::Serialize,
     {
         if let Some(parent) = path.parent() {
@@ -188,7 +227,8 @@ impl TestDataMother {
         }
 
         let test_data = Self::normalise_json(serde_json::json!({
-            "simple_payment": Self::simple_payment().as_json(transform),
+            "simple_payment": Self::simple_payment().as_json(&transform),
+            "opt_in_asset_transfer": Self::opt_in_asset_transfer().as_json(&transform),
         }));
 
         let file = File::create(path).expect("Failed to create export file");
@@ -246,6 +286,57 @@ mod tests {
                 11, 206, 245, 163, 115, 110, 100, 196, 32, 138, 24, 8, 153, 89, 167, 60, 236, 255,
                 238, 91, 198, 115, 190, 137, 254, 3, 35, 198, 98, 195, 33, 65, 123, 138, 200, 132,
                 194, 74, 0, 44, 25, 164, 116, 121, 112, 101, 163, 112, 97, 121
+            ]
+        );
+    }
+
+    #[test]
+    fn test_opt_in_asset_transfer_snapshot() {
+        let data = TestDataMother::opt_in_asset_transfer();
+        assert_eq!(
+            data.id,
+            String::from("JIDBHDPLBASULQZFI4EY5FJWR6VQRMPPFSGYBKE2XKW65N3UQJXA")
+        );
+        assert_eq!(
+            data.raw_id,
+            [
+                74, 6, 19, 141, 235, 8, 37, 69, 195, 37, 71, 9, 142, 149, 54, 143, 171, 8, 177,
+                239, 44, 141, 128, 168, 154, 186, 173, 238, 183, 116, 130, 110
+            ]
+        );
+        assert_eq!(
+            data.unsigned_bytes,
+            vec![
+                84, 88, 137, 164, 97, 114, 99, 118, 196, 32, 72, 118, 175, 30, 96, 187, 134, 238,
+                76, 228, 146, 219, 137, 200, 222, 52, 40, 86, 146, 168, 129, 190, 15, 103, 21, 24,
+                5, 31, 88, 27, 201, 123, 163, 102, 101, 101, 205, 3, 232, 162, 102, 118, 206, 3,
+                13, 0, 56, 163, 103, 101, 110, 172, 116, 101, 115, 116, 110, 101, 116, 45, 118, 49,
+                46, 48, 162, 103, 104, 196, 32, 72, 99, 181, 24, 164, 179, 200, 78, 200, 16, 242,
+                45, 79, 16, 129, 203, 15, 113, 240, 89, 167, 172, 32, 222, 198, 47, 127, 112, 229,
+                9, 58, 34, 162, 108, 118, 206, 3, 13, 1, 0, 163, 115, 110, 100, 196, 32, 72, 118,
+                175, 30, 96, 187, 134, 238, 76, 228, 146, 219, 137, 200, 222, 52, 40, 86, 146, 168,
+                129, 190, 15, 103, 21, 24, 5, 31, 88, 27, 201, 123, 164, 116, 121, 112, 101, 165,
+                97, 120, 102, 101, 114, 164, 120, 97, 105, 100, 206, 6, 107, 40, 157
+            ]
+        );
+        assert_eq!(
+            data.signed_bytes,
+            vec![
+                130, 163, 115, 105, 103, 196, 64, 108, 27, 242, 197, 141, 1, 233, 137, 108, 190,
+                54, 245, 55, 173, 43, 72, 68, 36, 204, 128, 202, 112, 148, 46, 178, 69, 192, 121,
+                3, 159, 167, 170, 75, 211, 7, 248, 87, 195, 171, 222, 105, 44, 38, 162, 25, 58,
+                154, 189, 182, 48, 252, 167, 101, 145, 73, 180, 101, 107, 181, 191, 37, 57, 211, 1,
+                163, 116, 120, 110, 137, 164, 97, 114, 99, 118, 196, 32, 72, 118, 175, 30, 96, 187,
+                134, 238, 76, 228, 146, 219, 137, 200, 222, 52, 40, 86, 146, 168, 129, 190, 15,
+                103, 21, 24, 5, 31, 88, 27, 201, 123, 163, 102, 101, 101, 205, 3, 232, 162, 102,
+                118, 206, 3, 13, 0, 56, 163, 103, 101, 110, 172, 116, 101, 115, 116, 110, 101, 116,
+                45, 118, 49, 46, 48, 162, 103, 104, 196, 32, 72, 99, 181, 24, 164, 179, 200, 78,
+                200, 16, 242, 45, 79, 16, 129, 203, 15, 113, 240, 89, 167, 172, 32, 222, 198, 47,
+                127, 112, 229, 9, 58, 34, 162, 108, 118, 206, 3, 13, 1, 0, 163, 115, 110, 100, 196,
+                32, 72, 118, 175, 30, 96, 187, 134, 238, 76, 228, 146, 219, 137, 200, 222, 52, 40,
+                86, 146, 168, 129, 190, 15, 103, 21, 24, 5, 31, 88, 27, 201, 123, 164, 116, 121,
+                112, 101, 165, 97, 120, 102, 101, 114, 164, 120, 97, 105, 100, 206, 6, 107, 40,
+                157
             ]
         );
     }

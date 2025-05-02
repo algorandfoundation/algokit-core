@@ -2,7 +2,8 @@ mod asset_transfer;
 mod common;
 mod payment;
 
-pub use asset_transfer::AssetTransferTransactionFields;
+use asset_transfer::AssetTransferTransactionBuilderError;
+pub use asset_transfer::{AssetTransferTransactionBuilder, AssetTransferTransactionFields};
 pub use common::{TransactionHeader, TransactionHeaderBuilder, TransactionType};
 use payment::PaymentTransactionBuilderError;
 pub use payment::{PaymentTransactionBuilder, PaymentTransactionFields};
@@ -24,6 +25,12 @@ pub enum Transaction {
 impl PaymentTransactionBuilder {
     pub fn build(&self) -> Result<Transaction, PaymentTransactionBuilderError> {
         self.build_fields().map(|t| Transaction::Payment(t))
+    }
+}
+
+impl AssetTransferTransactionBuilder {
+    pub fn build(&self) -> Result<Transaction, AssetTransferTransactionBuilderError> {
+        self.build_fields().map(|t| Transaction::AssetTransfer(t))
     }
 }
 

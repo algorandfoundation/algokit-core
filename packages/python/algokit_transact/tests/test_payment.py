@@ -3,7 +3,7 @@ from . import TEST_DATA
 from algokit_transact import (
     TransactionHeader,
     encode_transaction,
-    PayTransactionFields,
+    PaymentTransactionFields,
     TransactionType,
     attach_signature,
     decode_transaction,
@@ -42,7 +42,7 @@ def test_example():
             genesis_hash=b"A" * 32,  # pretend this is a valid hash
             genesis_id="localnet",
         ),
-        pay_fields=PayTransactionFields(amount=1337, receiver=bob),
+        pay_fields=PaymentTransactionFields(amount=1337, receiver=bob),
     )
 
     sig = alice_keypair.sign(encode_transaction(txn)).signature
