@@ -41,10 +41,7 @@ impl TransactionHeaderMother {
     pub fn simple_testnet_payment() -> TransactionHeaderBuilder {
         Self::testnet()
             .transaction_type(TransactionType::Payment)
-            .sender(
-                Address::from_string("RIMARGKZU46OZ77OLPDHHPUJ7YBSHRTCYMQUC64KZCCMESQAFQMYU6SL2Q")
-                    .unwrap(),
-            )
+            .sender(AddressMother::address())
             .fee(1000)
             .first_valid(50659540)
             .last_valid(50660540)
@@ -115,7 +112,17 @@ impl TransactionMother {
     }
 }
 
-// TODO: NC - Do we need an Object mother for addresses?
+pub struct AddressMother {}
+impl AddressMother {
+    pub fn zero_address() -> Address {
+        Address::from_pubkey(&[0; 32])
+    }
+
+    pub fn address() -> Address {
+        Address::from_string("RIMARGKZU46OZ77OLPDHHPUJ7YBSHRTCYMQUC64KZCCMESQAFQMYU6SL2Q").unwrap()
+    }
+}
+
 // TODO: NC - Update the swift proj
 
 #[derive(Serialize)]

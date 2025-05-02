@@ -1,6 +1,7 @@
 use crate::{
-    test_utils::TransactionMother, Address, AlgorandMsgpack, AssetTransferTransactionFields,
-    PaymentTransactionFields, SignedTransaction, Transaction, TransactionId,
+    test_utils::{AddressMother, TransactionMother},
+    Address, AlgorandMsgpack, AssetTransferTransactionFields, PaymentTransactionFields,
+    SignedTransaction, Transaction, TransactionId,
 };
 use pretty_assertions::assert_eq;
 
@@ -71,12 +72,23 @@ fn test_asset_transfer_transaction_encoding() {
 }
 
 #[test]
-fn test_address() {
-    // TODO: NC - How about an address mother?
-    let addr = Address::from_pubkey(&[0; 32]);
+fn test_zero_address() {
+    let addr = AddressMother::zero_address();
     assert_eq!(
         addr.address(),
         "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
+    );
+
+    let addr_from_str = Address::from_string(&addr.address()).unwrap();
+    assert_eq!(addr, addr_from_str);
+}
+
+#[test]
+fn test_address() {
+    let addr = AddressMother::address();
+    assert_eq!(
+        addr.address(),
+        "RIMARGKZU46OZ77OLPDHHPUJ7YBSHRTCYMQUC64KZCCMESQAFQMYU6SL2Q"
     );
 
     let addr_from_str = Address::from_string(&addr.address()).unwrap();
@@ -111,7 +123,7 @@ fn test_pay_transaction_id() {
     let payment_tx_fields = tx_builder.build_fields().unwrap();
     let payment_tx = tx_builder.build().unwrap();
     let signed_tx = SignedTransaction {
-        transaction: payment_tx.clone(), // TODO: NC - Should this be a ref?
+        transaction: payment_tx.clone(),
         signature: [0; 64],
     };
 

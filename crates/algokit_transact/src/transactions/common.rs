@@ -28,7 +28,6 @@ pub enum TransactionType {
 
     #[serde(rename = "appl")]
     ApplicationCall,
-    // TODO: NC - Because stpf and hb can't/shouldn't be sent directly, are we ok to not have them represented here?
 }
 
 #[serde_as]
