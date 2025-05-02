@@ -108,20 +108,36 @@ jobs:
         with:
           toolchain: 1.85.0
           targets: ${{ matrix.target.name }}
+      
+      - name: Install Poetry
+        run: |
+          pipx install poetry
+          
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: "pip" # caching pip dependencies
+          cache: "poetry"
+          cache-dependency-path: packages/python/${{ inputs.crate }}/poetry.lock
 
-      - name: pip install
+      - name: Poetry install
         run: |
           cd packages/python/${{ inputs.crate }}
-          pip install ".[dev]"
+          poetry install --with dev
+
+      - name: Build wheel
+        run: |
+          cd packages/python/${{ inputs.crate }}
+          poetry run maturin build --release --features ffi_uniffi
+
+      - name: Install wheel
+        run: |
+          cd packages/python/${{ inputs.crate }}
+          poetry run pip install ../../../target/wheels/*.whl --force-reinstall
 
       - name: pytest
         run: |
           cd packages/python/${{ inputs.crate }}
-          pytest
+          poetry run pytest
 
       - name: Upload build artifacts
         if: inputs.release
@@ -192,9 +208,9 @@ jobs:
           RUN: rustup target add ${{ env.TARGET }}
         run: docker exec build-container bash -c "$RUN"
 
-      - name: Install pip-tools
+      - name: Install Poetry
         env:
-          RUN: python${{ env.PYTHON_VERSION }} -m pip install pip-tools
+          RUN: pipx install poetry --python python${{ env.PYTHON_VERSION }}
         run: docker exec build-container bash -c "$RUN"
 
       - name: Install dependencies
@@ -202,27 +218,29 @@ jobs:
           RUN: |
             set -e
             cd /workspace/packages/python/${{ inputs.crate }}
-            python${{ env.PYTHON_VERSION }} -m piptools compile pyproject.toml --extra dev -o requirements.txt
-            python${{ env.PYTHON_VERSION }} -m pip install -r requirements.txt
+            poetry env use python${{ env.PYTHON_VERSION }}
+            poetry install --with dev
         run: docker exec build-container bash -c "$RUN"
 
       - name: maturin build
         env:
           RUN: |
             cd /workspace/packages/python/${{ inputs.crate }}
-            python${{ env.PYTHON_VERSION }} -m maturin build --release --target ${{ env.TARGET }} --compatibility ${{ env.MANYLINUX }} --features ffi_uniffi
+            poetry run maturin build --release --target ${{ env.TARGET }} --compatibility ${{ env.MANYLINUX }} --features ffi_uniffi
         run: docker exec build-container bash -c "$RUN"
 
-      - name: pip install wheel
+      - name: Install wheel
         env:
-          RUN: python${{ env.PYTHON_VERSION }} -m pip install /workspace/target/wheels/*.whl
+          RUN: |
+            cd /workspace/packages/python/${{ inputs.crate }}
+            poetry run pip install /workspace/target/wheels/*.whl
         run: docker exec build-container bash -c "$RUN"
 
       - name: pytest
         env:
           RUN: |
             cd /workspace/packages/python/${{ inputs.crate }}
-            python${{ env.PYTHON_VERSION }} -m pytest
+            poetry run pytest
         run: docker exec build-container bash -c "$RUN"
       
       - name: Upload build artifacts
