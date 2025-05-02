@@ -111,8 +111,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: "pip" # caching pip dependencies
-
+       
       - name: pip install
         run: |
           cd packages/python/${{ inputs.crate }}
