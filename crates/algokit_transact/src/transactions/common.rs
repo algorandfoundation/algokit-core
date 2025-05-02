@@ -36,7 +36,7 @@ pub enum TransactionType {
 #[builder(setter(strip_option))]
 pub struct TransactionHeader {
     #[serde(rename = "type")]
-    pub transaction_type: TransactionType, // TODO: NC - can we fold away this field?
+    pub transaction_type: TransactionType,
 
     #[serde(rename = "snd")]
     #[serde(skip_serializing_if = "is_zero_addr")]

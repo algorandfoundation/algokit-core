@@ -10,7 +10,7 @@ struct TransactionTestData: Codable {
 
     struct TransactionData: Codable {
         let header: HeaderData
-        let payFields: PaymentFieldsData
+        let payment: PaymentFieldsData
     }
 
     struct HeaderData: Codable {
@@ -65,14 +65,14 @@ func makeTransaction(from testData: TransactionTestData) -> Transaction {
             lease: nil,
             group: nil
         ),
-        payFields: PaymentTransactionFields(
+        payment: PaymentTransactionFields(
             receiver: Address(
-                address: testData.transaction.payFields.receiver.address,
-                pubKey: Data(testData.transaction.payFields.receiver.pubKey)
+                address: testData.transaction.payment.receiver.address,
+                pubKey: Data(testData.transaction.payment.receiver.pubKey)
             ),
-            amount: testData.transaction.payFields.amount,
+            amount: testData.transaction.payment.amount,
             closeRemainderTo: nil
         ),
-        assetTransferFields: nil
+        assetTransfer: nil
     )
 }

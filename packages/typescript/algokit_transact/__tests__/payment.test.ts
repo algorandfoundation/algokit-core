@@ -52,7 +52,7 @@ describe("Payment", () => {
           genesisHash: new Uint8Array(32).fill(65), // pretend this is a valid hash
           genesisId: "localnet",
         },
-        payFields: {
+        payment: {
           amount: 1337n,
           receiver: bob,
         },

@@ -323,7 +323,7 @@
       44
     ],
     "transaction": {
-      "assetTransferFields": {
+      "assetTransfer": {
         "amount": 0,
         "assetId": 107686045,
         "receiver": {
@@ -1022,7 +1022,7 @@
         },
         "transactionType": "Payment"
       },
-      "payFields": {
+      "payment": {
         "amount": 101000,
         "receiver": {
           "address": "VXH5UP6JLU2CGIYPUFZ4Z5OTLJCLMA5EXD3YHTMVNDE5P7ILZ324FSYSPQ",

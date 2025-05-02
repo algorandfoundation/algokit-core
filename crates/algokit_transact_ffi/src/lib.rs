@@ -184,9 +184,9 @@ pub struct AssetTransferTransactionFields {
 pub struct Transaction {
     header: TransactionHeader,
 
-    pay_fields: Option<PaymentTransactionFields>, // TODO: NC - Rename to payment
+    payment: Option<PaymentTransactionFields>,
 
-    asset_transfer_fields: Option<AssetTransferTransactionFields>, // TODO: NC - Rename to asset_transfer
+    asset_transfer: Option<AssetTransferTransactionFields>,
 }
 
 impl TryFrom<Transaction> for algokit_transact::Transaction {
@@ -194,7 +194,7 @@ impl TryFrom<Transaction> for algokit_transact::Transaction {
 
     fn try_from(tx: Transaction) -> Result<Self, AlgoKitTransactError> {
         // Ensure we only have pay fields or asset transfer fields
-        let fields: [bool; 2] = [tx.pay_fields.is_some(), tx.asset_transfer_fields.is_some()];
+        let fields: [bool; 2] = [tx.payment.is_some(), tx.asset_transfer.is_some()];
 
         // If fields has more than one true value, then we have an error
         if fields.iter().filter(|&&x| x).count() > 1 {
@@ -203,7 +203,7 @@ impl TryFrom<Transaction> for algokit_transact::Transaction {
             ));
         }
 
-        if let Some(pay) = tx.pay_fields {
+        if let Some(pay) = tx.payment {
             return Ok(algokit_transact::Transaction::Payment(
                 algokit_transact::PaymentTransactionFields {
                     header: tx.header.try_into()?,
@@ -214,7 +214,7 @@ impl TryFrom<Transaction> for algokit_transact::Transaction {
             ));
         }
 
-        if let Some(asset_transfer) = tx.asset_transfer_fields {
+        if let Some(asset_transfer) = tx.asset_transfer {
             return Ok(algokit_transact::Transaction::AssetTransfer(
                 algokit_transact::AssetTransferTransactionFields {
                     header: tx.header.try_into()?,
@@ -404,13 +404,13 @@ impl TryFrom<algokit_transact::Transaction> for Transaction {
 
                 Ok(Self {
                     header,
-                    pay_fields: Some(pay_fields),
-                    asset_transfer_fields: None,
+                    payment: Some(pay_fields),
+                    asset_transfer: None,
                 })
             }
             algokit_transact::Transaction::AssetTransfer(asset_transfer) => {
                 let header = asset_transfer.header.into();
-                let asset_fields = AssetTransferTransactionFields {
+                let asset_transfer_fields = AssetTransferTransactionFields {
                     asset_id: asset_transfer.asset_id,
                     amount: asset_transfer.amount,
                     receiver: asset_transfer.receiver.into(),
@@ -420,8 +420,8 @@ impl TryFrom<algokit_transact::Transaction> for Transaction {
 
                 Ok(Self {
                     header,
-                    pay_fields: None,
-                    asset_transfer_fields: Some(asset_fields),
+                    payment: None,
+                    asset_transfer: Some(asset_transfer_fields),
                 })
             }
         }

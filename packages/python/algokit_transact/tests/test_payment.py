@@ -42,7 +42,7 @@ def test_example():
             genesis_hash=b"A" * 32,  # pretend this is a valid hash
             genesis_id="localnet",
         ),
-        pay_fields=PaymentTransactionFields(amount=1337, receiver=bob),
+        payment=PaymentTransactionFields(amount=1337, receiver=bob),
     )
 
     sig = alice_keypair.sign(encode_transaction(txn)).signature

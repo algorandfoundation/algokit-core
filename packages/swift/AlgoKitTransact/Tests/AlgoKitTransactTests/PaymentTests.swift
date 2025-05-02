@@ -26,7 +26,7 @@ func paymentExample() throws {
             genesisHash: Data(repeating: 65, count: 32),  // pretend this is a valid hash
             genesisId: "localnet"
         ),
-        payFields: PaymentTransactionFields(
+        payment: PaymentTransactionFields(
             receiver: bob,
             amount: 1337
         )

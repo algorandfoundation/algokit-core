@@ -77,14 +77,14 @@ def load_test_data():
     simple_payment["transaction"]["header"]["transaction_type"] = TransactionType.PAYMENT
     simple_payment_txn = Transaction(
         header=TransactionHeader(**simple_payment["transaction"]["header"]),
-        pay_fields=PaymentTransactionFields(**simple_payment["transaction"]["pay_fields"]),
+        payment=PaymentTransactionFields(**simple_payment["transaction"]["payment"]),
     )
 
     opt_in_asset_transfer = data["opt_in_asset_transfer"]
     opt_in_asset_transfer["transaction"]["header"]["transaction_type"] = TransactionType.ASSET_TRANSFER
     opt_in_asset_transfer_txn = Transaction(
         header=TransactionHeader(**opt_in_asset_transfer["transaction"]["header"]),
-        asset_transfer_fields=AssetTransferTransactionFields(**opt_in_asset_transfer["transaction"]["asset_transfer_fields"]),
+        asset_transfer=AssetTransferTransactionFields(**opt_in_asset_transfer["transaction"]["asset_transfer"]),
     )
 
     return TestData(

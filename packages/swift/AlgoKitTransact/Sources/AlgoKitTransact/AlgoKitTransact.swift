@@ -704,15 +704,15 @@ public func FfiConverterTypePaymentTransactionFields_lower(_ value: PaymentTrans
 
 public struct Transaction {
     public var header: TransactionHeader
-    public var payFields: PaymentTransactionFields?
-    public var assetTransferFields: AssetTransferTransactionFields?
+    public var payment: PaymentTransactionFields?
+    public var assetTransfer: AssetTransferTransactionFields?
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(header: TransactionHeader, payFields: PaymentTransactionFields? = nil, assetTransferFields: AssetTransferTransactionFields? = nil) {
+    public init(header: TransactionHeader, payment: PaymentTransactionFields? = nil, assetTransfer: AssetTransferTransactionFields? = nil) {
         self.header = header
-        self.payFields = payFields
-        self.assetTransferFields = assetTransferFields
+        self.payment = payment
+        self.assetTransfer = assetTransfer
     }
 }
 
@@ -723,10 +723,10 @@ extension Transaction: Equatable, Hashable {
         if lhs.header != rhs.header {
             return false
         }
-        if lhs.payFields != rhs.payFields {
+        if lhs.payment != rhs.payment {
             return false
         }
-        if lhs.assetTransferFields != rhs.assetTransferFields {
+        if lhs.assetTransfer != rhs.assetTransfer {
             return false
         }
         return true
@@ -734,8 +734,8 @@ extension Transaction: Equatable, Hashable {
 
     public func hash(into hasher: inout Hasher) {
         hasher.combine(header)
-        hasher.combine(payFields)
-        hasher.combine(assetTransferFields)
+        hasher.combine(payment)
+        hasher.combine(assetTransfer)
     }
 }
 
@@ -748,15 +748,15 @@ public struct FfiConverterTypeTransaction: FfiConverterRustBuffer {
         return
             try Transaction(
                 header: FfiConverterTypeTransactionHeader.read(from: &buf), 
-                payFields: FfiConverterOptionTypePaymentTransactionFields.read(from: &buf), 
-                assetTransferFields: FfiConverterOptionTypeAssetTransferTransactionFields.read(from: &buf)
+                payment: FfiConverterOptionTypePaymentTransactionFields.read(from: &buf), 
+                assetTransfer: FfiConverterOptionTypeAssetTransferTransactionFields.read(from: &buf)
         )
     }
 
     public static func write(_ value: Transaction, into buf: inout [UInt8]) {
         FfiConverterTypeTransactionHeader.write(value.header, into: &buf)
-        FfiConverterOptionTypePaymentTransactionFields.write(value.payFields, into: &buf)
-        FfiConverterOptionTypeAssetTransferTransactionFields.write(value.assetTransferFields, into: &buf)
+        FfiConverterOptionTypePaymentTransactionFields.write(value.payment, into: &buf)
+        FfiConverterOptionTypeAssetTransferTransactionFields.write(value.assetTransfer, into: &buf)
     }
 }
 
