@@ -22,9 +22,8 @@ fn generate_test_data() {
         raw_id: [u8; 32],
     }
 
-    let file_path = Path::new("./test_data.json");
     test_utils::TestDataMother::export(
-        file_path,
+        Path::new("./test_data.json"),
         Some(|d: &test_utils::TransactionTestData| TransactionTestData {
             signing_private_key: d.signing_private_key,
             transaction: d.transaction.clone().try_into().unwrap(),

@@ -396,7 +396,7 @@ impl TryFrom<algokit_transact::Transaction> for Transaction {
         match tx {
             algokit_transact::Transaction::Payment(payment) => {
                 let header = payment.header.into();
-                let pay_fields = PaymentTransactionFields {
+                let payment_fields = PaymentTransactionFields {
                     receiver: payment.receiver.into(),
                     amount: payment.amount,
                     close_remainder_to: payment.close_remainder_to.map(|a| a.into()),
@@ -404,7 +404,7 @@ impl TryFrom<algokit_transact::Transaction> for Transaction {
 
                 Ok(Self {
                     header,
-                    payment: Some(pay_fields),
+                    payment: Some(payment_fields),
                     asset_transfer: None,
                 })
             }

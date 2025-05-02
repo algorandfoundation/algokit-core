@@ -208,6 +208,21 @@ impl TestDataMother {
     }
 }
 
+fn normalise_json(value: serde_json::Value) -> serde_json::Value {
+    match value {
+        serde_json::Value::Object(map) => serde_json::Value::Object(
+            map.into_iter()
+                .filter(|(_, v)| !v.is_null())
+                .map(|(k, v)| (k.to_case(Case::Camel), normalise_json(v)))
+                .collect(),
+        ),
+        serde_json::Value::Array(arr) => {
+            serde_json::Value::Array(arr.into_iter().map(|v| normalise_json(v)).collect())
+        }
+        other => other,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -311,20 +326,5 @@ mod tests {
                 157
             ]
         );
-    }
-}
-
-fn normalise_json(value: serde_json::Value) -> serde_json::Value {
-    match value {
-        serde_json::Value::Object(map) => serde_json::Value::Object(
-            map.into_iter()
-                .filter(|(_, v)| !v.is_null())
-                .map(|(k, v)| (k.to_case(Case::Camel), normalise_json(v)))
-                .collect(),
-        ),
-        serde_json::Value::Array(arr) => {
-            serde_json::Value::Array(arr.into_iter().map(|v| normalise_json(v)).collect())
-        }
-        other => other,
     }
 }
