@@ -210,7 +210,7 @@ jobs:
 
       - name: Install Poetry
         env:
-          RUN: pipx install poetry
+          RUN: pipx install poetry --python python${{ env.PYTHON_VERSION }}
         run: docker exec build-container bash -c "$RUN"
 
       - name: Install dependencies
@@ -218,6 +218,7 @@ jobs:
           RUN: |
             set -e
             cd /workspace/packages/python/${{ inputs.crate }}
+            poetry env use python${{ env.PYTHON_VERSION }}
             poetry install --with dev
         run: docker exec build-container bash -c "$RUN"
 

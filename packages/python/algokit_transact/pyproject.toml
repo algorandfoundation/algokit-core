@@ -10,8 +10,16 @@ dependencies = ["cffi>=1.17.1"]
 
 [tool.maturin]
 manifest-path = "../../../crates/algokit_transact_ffi/Cargo.toml"
-# https://www.maturin.rs/project_layout.html#import-rust-as-a-submodule-of-your-project
-module-name = "algokit_transact._algokit_transact"
+# While Maturin's documentation suggests using {module.name}._{module.name} for submodules,
+# we're using a simple "_algokit_transact" without the parent module name prefix.
+# This is because the UniFfi generated binding code expects dynamic libraries bundled by
+# auditwheel/Maturin to be placed in a .libs directory relative to the module's location.
+# Using the nested module pattern (algokit_transact._algokit_transact) would cause Maturin
+# to place the libraries in algokit_transact.libs, but the UniFfi code would look for them
+# in algokit_transact/_algokit_transact/.libs, resulting in ImportError at runtime on targets like musl libc where
+# the dynamic libraries are not found and auditwheel repair (invoked implicitly by maturin build) would place them
+# in the root .libs folder instead.
+module-name = "_algokit_transact"
 
 include = ["algokit_transact/py.typed", "algokit_transact/__init__.py"]
 
