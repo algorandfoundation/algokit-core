@@ -47,6 +47,7 @@ def test_example():
 
     sig = alice_keypair.sign(encode_transaction(txn)).signature
     signed_txn = attach_signature(encode_transaction(txn), sig)
+    assert len(signed_txn) > 0
 
 
 @pytest.mark.group_transaction_tests

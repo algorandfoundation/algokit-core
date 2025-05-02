@@ -60,6 +60,7 @@ describe("Payment", () => {
 
       const sig = await ed.signAsync(encodeTransaction(txn), aliceSk);
       const signedTxn = attachSignature(encodeTransaction(txn), sig);
+      expect(signedTxn.length).toBeGreaterThan(0);
     });
 
     test("get encoded transaction type", () => {

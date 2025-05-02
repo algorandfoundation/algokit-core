@@ -10,7 +10,8 @@ import Testing
 @Test("Generic Transaction: malformed bytes") 
 func genericTransactionMalformedBytes() throws {
     let testData = try loadTestData()
-    let badBytes = Data(testData.expectedBytesForSigning[13..<37])
+    let simplePayment = testData.simplePayment
+    let badBytes = Data(simplePayment.unsignedBytes[13..<37])
     do {
         _ = try decodeTransaction(bytes: badBytes)
         #expect(Bool(false), "Expected DecodingError to be thrown")

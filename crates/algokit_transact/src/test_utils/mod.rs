@@ -123,8 +123,6 @@ impl AddressMother {
     }
 }
 
-// TODO: NC - Update the swift proj
-
 #[derive(Serialize)]
 pub struct TransactionTestData {
     pub transaction: Transaction,
