@@ -6,6 +6,7 @@ use crate::{
     TransactionId, TransactionType,
 };
 use base64::{prelude::BASE64_STANDARD, Engine};
+use convert_case::{Case, Casing};
 use ed25519_dalek::{Signer, SigningKey};
 use serde::Serialize;
 use serde_json::to_writer_pretty;
@@ -188,40 +189,6 @@ impl TestDataMother {
         TransactionTestData::new(transaction, signing_private_key)
     }
 
-    // // TODO: NC - This needs cleanup
-    fn normalise_json(value: serde_json::Value) -> serde_json::Value {
-        match value {
-            serde_json::Value::Object(map) => serde_json::Value::Object(
-                map.into_iter()
-                    .filter(|(_, v)| !v.is_null()) // Remove items with null values
-                    .map(|(k, v)| (Self::to_camel_case(&k), Self::normalise_json(v)))
-                    .collect(),
-            ),
-            serde_json::Value::Array(arr) => {
-                serde_json::Value::Array(arr.into_iter().map(|v| Self::normalise_json(v)).collect())
-            }
-            other => other,
-        }
-    }
-
-    fn to_camel_case(s: &str) -> String {
-        let mut result = String::new();
-        let mut capitalize_next = false;
-
-        for c in s.chars() {
-            if c == '_' {
-                capitalize_next = true;
-            } else if capitalize_next {
-                result.push(c.to_ascii_uppercase());
-                capitalize_next = false;
-            } else {
-                result.push(c);
-            }
-        }
-
-        result
-    }
-
     pub fn export<F, T>(path: &std::path::Path, transform: Option<F>)
     where
         F: Fn(&TransactionTestData) -> T,
@@ -231,7 +198,7 @@ impl TestDataMother {
             std::fs::create_dir_all(parent).expect("Failed to create export path directories");
         }
 
-        let test_data = Self::normalise_json(serde_json::json!({
+        let test_data = normalise_json(serde_json::json!({
             "simple_payment": Self::simple_payment().as_json(&transform),
             "opt_in_asset_transfer": Self::opt_in_asset_transfer().as_json(&transform),
         }));
@@ -344,5 +311,20 @@ mod tests {
                 157
             ]
         );
+    }
+}
+
+fn normalise_json(value: serde_json::Value) -> serde_json::Value {
+    match value {
+        serde_json::Value::Object(map) => serde_json::Value::Object(
+            map.into_iter()
+                .filter(|(_, v)| !v.is_null())
+                .map(|(k, v)| (k.to_case(Case::Camel), normalise_json(v)))
+                .collect(),
+        ),
+        serde_json::Value::Array(arr) => {
+            serde_json::Value::Array(arr.into_iter().map(|v| normalise_json(v)).collect())
+        }
+        other => other,
     }
 }

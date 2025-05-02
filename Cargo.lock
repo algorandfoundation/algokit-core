@@ -35,6 +35,7 @@ dependencies = [
  "algokit_transact",
  "base32",
  "base64",
+ "convert_case",
  "derive_builder",
  "ed25519-dalek",
  "pretty_assertions",
