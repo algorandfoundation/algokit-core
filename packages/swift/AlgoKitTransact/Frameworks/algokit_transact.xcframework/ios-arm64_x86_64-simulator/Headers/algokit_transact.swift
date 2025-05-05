@@ -628,7 +628,7 @@ public func FfiConverterTypeAssetTransferTransactionFields_lower(_ value: AssetT
 }
 
 
-public struct PayTransactionFields {
+public struct PaymentTransactionFields {
     public var receiver: Address
     public var amount: UInt64
     public var closeRemainderTo: Address?
@@ -644,8 +644,8 @@ public struct PayTransactionFields {
 
 
 
-extension PayTransactionFields: Equatable, Hashable {
-    public static func ==(lhs: PayTransactionFields, rhs: PayTransactionFields) -> Bool {
+extension PaymentTransactionFields: Equatable, Hashable {
+    public static func ==(lhs: PaymentTransactionFields, rhs: PaymentTransactionFields) -> Bool {
         if lhs.receiver != rhs.receiver {
             return false
         }
@@ -669,17 +669,17 @@ extension PayTransactionFields: Equatable, Hashable {
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
-public struct FfiConverterTypePayTransactionFields: FfiConverterRustBuffer {
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> PayTransactionFields {
+public struct FfiConverterTypePaymentTransactionFields: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> PaymentTransactionFields {
         return
-            try PayTransactionFields(
+            try PaymentTransactionFields(
                 receiver: FfiConverterTypeAddress.read(from: &buf), 
                 amount: FfiConverterUInt64.read(from: &buf), 
                 closeRemainderTo: FfiConverterOptionTypeAddress.read(from: &buf)
         )
     }
 
-    public static func write(_ value: PayTransactionFields, into buf: inout [UInt8]) {
+    public static func write(_ value: PaymentTransactionFields, into buf: inout [UInt8]) {
         FfiConverterTypeAddress.write(value.receiver, into: &buf)
         FfiConverterUInt64.write(value.amount, into: &buf)
         FfiConverterOptionTypeAddress.write(value.closeRemainderTo, into: &buf)
@@ -690,97 +690,19 @@ public struct FfiConverterTypePayTransactionFields: FfiConverterRustBuffer {
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
-public func FfiConverterTypePayTransactionFields_lift(_ buf: RustBuffer) throws -> PayTransactionFields {
-    return try FfiConverterTypePayTransactionFields.lift(buf)
+public func FfiConverterTypePaymentTransactionFields_lift(_ buf: RustBuffer) throws -> PaymentTransactionFields {
+    return try FfiConverterTypePaymentTransactionFields.lift(buf)
 }
 
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
-public func FfiConverterTypePayTransactionFields_lower(_ value: PayTransactionFields) -> RustBuffer {
-    return FfiConverterTypePayTransactionFields.lower(value)
+public func FfiConverterTypePaymentTransactionFields_lower(_ value: PaymentTransactionFields) -> RustBuffer {
+    return FfiConverterTypePaymentTransactionFields.lower(value)
 }
 
 
 public struct Transaction {
-    public var header: TransactionHeader
-    public var payFields: PayTransactionFields?
-    public var assetTransferFields: AssetTransferTransactionFields?
-
-    // Default memberwise initializers are never public by default, so we
-    // declare one manually.
-    public init(header: TransactionHeader, payFields: PayTransactionFields? = nil, assetTransferFields: AssetTransferTransactionFields? = nil) {
-        self.header = header
-        self.payFields = payFields
-        self.assetTransferFields = assetTransferFields
-    }
-}
-
-
-
-extension Transaction: Equatable, Hashable {
-    public static func ==(lhs: Transaction, rhs: Transaction) -> Bool {
-        if lhs.header != rhs.header {
-            return false
-        }
-        if lhs.payFields != rhs.payFields {
-            return false
-        }
-        if lhs.assetTransferFields != rhs.assetTransferFields {
-            return false
-        }
-        return true
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(header)
-        hasher.combine(payFields)
-        hasher.combine(assetTransferFields)
-    }
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public struct FfiConverterTypeTransaction: FfiConverterRustBuffer {
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Transaction {
-        return
-            try Transaction(
-                header: FfiConverterTypeTransactionHeader.read(from: &buf), 
-                payFields: FfiConverterOptionTypePayTransactionFields.read(from: &buf), 
-                assetTransferFields: FfiConverterOptionTypeAssetTransferTransactionFields.read(from: &buf)
-        )
-    }
-
-    public static func write(_ value: Transaction, into buf: inout [UInt8]) {
-        FfiConverterTypeTransactionHeader.write(value.header, into: &buf)
-        FfiConverterOptionTypePayTransactionFields.write(value.payFields, into: &buf)
-        FfiConverterOptionTypeAssetTransferTransactionFields.write(value.assetTransferFields, into: &buf)
-    }
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeTransaction_lift(_ buf: RustBuffer) throws -> Transaction {
-    return try FfiConverterTypeTransaction.lift(buf)
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeTransaction_lower(_ value: Transaction) -> RustBuffer {
-    return FfiConverterTypeTransaction.lower(value)
-}
-
-
-/**
- * The transaction header contains the fields that can be present in any transaction.
- * "Header" only indicates that these are common fields, NOT that they are the first fields in the transaction.
- */
-public struct TransactionHeader {
     /**
      * The type of transaction
      */
@@ -798,6 +720,8 @@ public struct TransactionHeader {
     public var rekeyTo: Address?
     public var lease: ByteBuf?
     public var group: ByteBuf?
+    public var payment: PaymentTransactionFields?
+    public var assetTransfer: AssetTransferTransactionFields?
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
@@ -807,7 +731,7 @@ public struct TransactionHeader {
          */transactionType: TransactionType, 
         /**
          * The sender of the transaction
-         */sender: Address, fee: UInt64, firstValid: UInt64, lastValid: UInt64, genesisHash: ByteBuf?, genesisId: String?, note: ByteBuf? = nil, rekeyTo: Address? = nil, lease: ByteBuf? = nil, group: ByteBuf? = nil) {
+         */sender: Address, fee: UInt64, firstValid: UInt64, lastValid: UInt64, genesisHash: ByteBuf?, genesisId: String?, note: ByteBuf? = nil, rekeyTo: Address? = nil, lease: ByteBuf? = nil, group: ByteBuf? = nil, payment: PaymentTransactionFields? = nil, assetTransfer: AssetTransferTransactionFields? = nil) {
         self.transactionType = transactionType
         self.sender = sender
         self.fee = fee
@@ -819,13 +743,15 @@ public struct TransactionHeader {
         self.rekeyTo = rekeyTo
         self.lease = lease
         self.group = group
+        self.payment = payment
+        self.assetTransfer = assetTransfer
     }
 }
 
 
 
-extension TransactionHeader: Equatable, Hashable {
-    public static func ==(lhs: TransactionHeader, rhs: TransactionHeader) -> Bool {
+extension Transaction: Equatable, Hashable {
+    public static func ==(lhs: Transaction, rhs: Transaction) -> Bool {
         if lhs.transactionType != rhs.transactionType {
             return false
         }
@@ -859,6 +785,12 @@ extension TransactionHeader: Equatable, Hashable {
         if lhs.group != rhs.group {
             return false
         }
+        if lhs.payment != rhs.payment {
+            return false
+        }
+        if lhs.assetTransfer != rhs.assetTransfer {
+            return false
+        }
         return true
     }
 
@@ -874,6 +806,8 @@ extension TransactionHeader: Equatable, Hashable {
         hasher.combine(rekeyTo)
         hasher.combine(lease)
         hasher.combine(group)
+        hasher.combine(payment)
+        hasher.combine(assetTransfer)
     }
 }
 
@@ -881,10 +815,10 @@ extension TransactionHeader: Equatable, Hashable {
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
-public struct FfiConverterTypeTransactionHeader: FfiConverterRustBuffer {
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> TransactionHeader {
+public struct FfiConverterTypeTransaction: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Transaction {
         return
-            try TransactionHeader(
+            try Transaction(
                 transactionType: FfiConverterTypeTransactionType.read(from: &buf), 
                 sender: FfiConverterTypeAddress.read(from: &buf), 
                 fee: FfiConverterUInt64.read(from: &buf), 
@@ -895,11 +829,13 @@ public struct FfiConverterTypeTransactionHeader: FfiConverterRustBuffer {
                 note: FfiConverterOptionTypeByteBuf.read(from: &buf), 
                 rekeyTo: FfiConverterOptionTypeAddress.read(from: &buf), 
                 lease: FfiConverterOptionTypeByteBuf.read(from: &buf), 
-                group: FfiConverterOptionTypeByteBuf.read(from: &buf)
+                group: FfiConverterOptionTypeByteBuf.read(from: &buf), 
+                payment: FfiConverterOptionTypePaymentTransactionFields.read(from: &buf), 
+                assetTransfer: FfiConverterOptionTypeAssetTransferTransactionFields.read(from: &buf)
         )
     }
 
-    public static func write(_ value: TransactionHeader, into buf: inout [UInt8]) {
+    public static func write(_ value: Transaction, into buf: inout [UInt8]) {
         FfiConverterTypeTransactionType.write(value.transactionType, into: &buf)
         FfiConverterTypeAddress.write(value.sender, into: &buf)
         FfiConverterUInt64.write(value.fee, into: &buf)
@@ -911,6 +847,8 @@ public struct FfiConverterTypeTransactionHeader: FfiConverterRustBuffer {
         FfiConverterOptionTypeAddress.write(value.rekeyTo, into: &buf)
         FfiConverterOptionTypeByteBuf.write(value.lease, into: &buf)
         FfiConverterOptionTypeByteBuf.write(value.group, into: &buf)
+        FfiConverterOptionTypePaymentTransactionFields.write(value.payment, into: &buf)
+        FfiConverterOptionTypeAssetTransferTransactionFields.write(value.assetTransfer, into: &buf)
     }
 }
 
@@ -918,15 +856,15 @@ public struct FfiConverterTypeTransactionHeader: FfiConverterRustBuffer {
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
-public func FfiConverterTypeTransactionHeader_lift(_ buf: RustBuffer) throws -> TransactionHeader {
-    return try FfiConverterTypeTransactionHeader.lift(buf)
+public func FfiConverterTypeTransaction_lift(_ buf: RustBuffer) throws -> Transaction {
+    return try FfiConverterTypeTransaction.lift(buf)
 }
 
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
-public func FfiConverterTypeTransactionHeader_lower(_ value: TransactionHeader) -> RustBuffer {
-    return FfiConverterTypeTransactionHeader.lower(value)
+public func FfiConverterTypeTransaction_lower(_ value: Transaction) -> RustBuffer {
+    return FfiConverterTypeTransaction.lower(value)
 }
 
 
@@ -1161,8 +1099,8 @@ fileprivate struct FfiConverterOptionTypeAssetTransferTransactionFields: FfiConv
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
-fileprivate struct FfiConverterOptionTypePayTransactionFields: FfiConverterRustBuffer {
-    typealias SwiftType = PayTransactionFields?
+fileprivate struct FfiConverterOptionTypePaymentTransactionFields: FfiConverterRustBuffer {
+    typealias SwiftType = PaymentTransactionFields?
 
     public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
         guard let value = value else {
@@ -1170,13 +1108,13 @@ fileprivate struct FfiConverterOptionTypePayTransactionFields: FfiConverterRustB
             return
         }
         writeInt(&buf, Int8(1))
-        FfiConverterTypePayTransactionFields.write(value, into: &buf)
+        FfiConverterTypePaymentTransactionFields.write(value, into: &buf)
     }
 
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
         switch try readInt(&buf) as Int8 {
         case 0: return nil
-        case 1: return try FfiConverterTypePayTransactionFields.read(from: &buf)
+        case 1: return try FfiConverterTypePaymentTransactionFields.read(from: &buf)
         default: throw UniffiInternalError.unexpectedOptionalTag
         }
     }
@@ -1278,9 +1216,23 @@ public func decodeTransaction(bytes: Data)throws  -> Transaction {
     )
 })
 }
+/**
+ * Encode the transaction with the domain separation (e.g. "TX") prefix
+ */
 public func encodeTransaction(tx: Transaction)throws  -> Data {
     return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeAlgoKitTransactError.lift) {
     uniffi_algokit_transact_ffi_fn_func_encode_transaction(
+        FfiConverterTypeTransaction.lower(tx),$0
+    )
+})
+}
+/**
+ * Encode the transaction without the domain separation (e.g. "TX") prefix
+ * This is useful for encoding the transaction for signing with tools that automatically add "TX" prefix to the transaction bytes.
+ */
+public func encodeTransactionRaw(tx: Transaction)throws  -> Data {
+    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeAlgoKitTransactError.lift) {
+    uniffi_algokit_transact_ffi_fn_func_encode_transaction_raw(
         FfiConverterTypeTransaction.lower(tx),$0
     )
 })
@@ -1293,6 +1245,26 @@ public func getEncodedTransactionType(bytes: Data)throws  -> TransactionType {
     return try  FfiConverterTypeTransactionType.lift(try rustCallWithError(FfiConverterTypeAlgoKitTransactError.lift) {
     uniffi_algokit_transact_ffi_fn_func_get_encoded_transaction_type(
         FfiConverterData.lower(bytes),$0
+    )
+})
+}
+/**
+ * Get the base32 transaction ID string for a transaction.
+ */
+public func getTransactionId(tx: Transaction)throws  -> String {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeAlgoKitTransactError.lift) {
+    uniffi_algokit_transact_ffi_fn_func_get_transaction_id(
+        FfiConverterTypeTransaction.lower(tx),$0
+    )
+})
+}
+/**
+ * Get the raw 32-byte transaction ID for a transaction.
+ */
+public func getTransactionRawId(tx: Transaction)throws  -> Data {
+    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeAlgoKitTransactError.lift) {
+    uniffi_algokit_transact_ffi_fn_func_get_transaction_raw_id(
+        FfiConverterTypeTransaction.lower(tx),$0
     )
 })
 }
@@ -1312,22 +1284,31 @@ private let initializationResult: InitializationResult = {
     if bindings_contract_version != scaffolding_contract_version {
         return InitializationResult.contractVersionMismatch
     }
-    if (uniffi_algokit_transact_ffi_checksum_func_address_from_pub_key() != 38652) {
+    if (uniffi_algokit_transact_ffi_checksum_func_address_from_pub_key() != 65205) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_algokit_transact_ffi_checksum_func_address_from_string() != 64537) {
+    if (uniffi_algokit_transact_ffi_checksum_func_address_from_string() != 56499) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_algokit_transact_ffi_checksum_func_attach_signature() != 48938) {
+    if (uniffi_algokit_transact_ffi_checksum_func_attach_signature() != 7369) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_algokit_transact_ffi_checksum_func_decode_transaction() != 6126) {
+    if (uniffi_algokit_transact_ffi_checksum_func_decode_transaction() != 38127) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_algokit_transact_ffi_checksum_func_encode_transaction() != 60969) {
+    if (uniffi_algokit_transact_ffi_checksum_func_encode_transaction() != 62809) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_algokit_transact_ffi_checksum_func_get_encoded_transaction_type() != 63248) {
+    if (uniffi_algokit_transact_ffi_checksum_func_encode_transaction_raw() != 1774) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_algokit_transact_ffi_checksum_func_get_encoded_transaction_type() != 9866) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_algokit_transact_ffi_checksum_func_get_transaction_id() != 20463) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_algokit_transact_ffi_checksum_func_get_transaction_raw_id() != 15873) {
         return InitializationResult.apiChecksumMismatch
     }
 

@@ -17,16 +17,14 @@ func paymentExample() throws {
     )
 
     let txn: Transaction = Transaction(
-        header: TransactionHeader(
-            transactionType: .payment,
-            sender: alice,
-            fee: 1000,
-            firstValid: 1337,
-            lastValid: 1347,
-            genesisHash: Data(repeating: 65, count: 32),  // pretend this is a valid hash
-            genesisId: "localnet"
-        ),
-        payFields: PayTransactionFields(
+        transactionType: .payment,
+        sender: alice,
+        fee: 1000,
+        firstValid: 1337,
+        lastValid: 1347,
+        genesisHash: Data(repeating: 65, count: 32),  // pretend this is a valid hash
+        genesisId: "localnet",
+        payment: PaymentTransactionFields(
             receiver: bob,
             amount: 1337
         )
@@ -46,15 +44,17 @@ func paymentExample() throws {
 @Test("Payment: get encoded transaction type") 
 func paymentGetEncodedTransactionType() throws {
     let testData = try loadTestData()
-    let txType = try getEncodedTransactionType(bytes: Data(testData.expectedBytesForSigning))
+    let simplePayment = testData.simplePayment
+    let txType = try getEncodedTransactionType(bytes: Data(simplePayment.unsignedBytes))
     #expect(txType == .payment)
 }
 
 @Test("Payment: decode without prefix") 
 func paymentDecodeWithoutPrefix() throws {
     let testData = try loadTestData()
-    let transaction = makeTransaction(from: testData)
-    let bytesWithoutPrefix = Data(testData.expectedBytesForSigning.dropFirst(2))
+    let simplePayment = testData.simplePayment
+    let transaction = makeTransaction(from: simplePayment)
+    let bytesWithoutPrefix = Data(simplePayment.unsignedBytes.dropFirst(2))
     let decoded = try decodeTransaction(bytes: bytesWithoutPrefix)
     #expect(decoded == transaction)
 }
@@ -62,27 +62,30 @@ func paymentDecodeWithoutPrefix() throws {
 @Test("Payment: decode with prefix") 
 func paymentDecodeWithPrefix() throws {
     let testData = try loadTestData()
-    let transaction = makeTransaction(from: testData)
-    let decoded = try decodeTransaction(bytes: Data(testData.expectedBytesForSigning))
+    let simplePayment = testData.simplePayment
+    let transaction = makeTransaction(from: simplePayment)
+    let decoded = try decodeTransaction(bytes: Data(simplePayment.unsignedBytes))
     #expect(decoded == transaction)
 }
 
 @Test("Payment: encode with signature") 
 func paymentEncodeWithSignature() throws {
     let testData = try loadTestData()
+    let simplePayment = testData.simplePayment
     let signature = Ed25519.sign(
-        message: testData.expectedBytesForSigning, secretKey: testData.privKey)
+        message: simplePayment.unsignedBytes, secretKey: simplePayment.signingPrivateKey)
     let signedTx = try attachSignature(
-        encodedTx: Data(testData.expectedBytesForSigning),
+        encodedTx: Data(simplePayment.unsignedBytes),
         signature: Data(signature)
     )
-    #expect([UInt8](signedTx) == testData.expectedSignedTxn)
+    #expect([UInt8](signedTx) == simplePayment.signedBytes)
 }
 
 @Test("Payment: encode") 
 func paymentEncode() throws {
     let testData = try loadTestData()
-    let transaction = makeTransaction(from: testData)
+    let simplePayment = testData.simplePayment
+    let transaction = makeTransaction(from: simplePayment)
     let encoded = try encodeTransaction(tx: transaction)
-    #expect([UInt8](encoded) == testData.expectedBytesForSigning)
+    #expect([UInt8](encoded) == simplePayment.unsignedBytes)
 }

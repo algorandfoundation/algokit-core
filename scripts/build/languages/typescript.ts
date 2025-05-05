@@ -4,7 +4,7 @@ import * as fs from "fs";
 async function wasmPack(
   crate: string,
   target: "web" | "nodejs" | "bundler",
-  cwd: string,
+  cwd: string
 ) {
   const cmd = `npx wasm-pack build --out-dir ../../packages/typescript/algokit_transact/pkg --mode normal --release --target ${target} ../../../crates/${crate}_ffi --no-default-features --features ffi_wasm`;
 
@@ -18,7 +18,7 @@ async function wasmPack(
 async function build(
   crate: string,
   mode: "esm" | "cjs" | "wasm2js",
-  cwd: string,
+  cwd: string
 ) {
   switch (mode) {
     case "esm":
@@ -31,7 +31,7 @@ async function build(
       await wasmPack(crate, "bundler", cwd);
       await run(
         `npx wasm2js -O pkg/${crate}_ffi_bg.wasm -o pkg/${crate}_ffi_bg.wasm.js`,
-        cwd,
+        cwd
       );
 
       // Replace references to the wasm file with the wasm2js file
@@ -41,7 +41,7 @@ async function build(
 
         fs.writeFileSync(
           file,
-          content.replace(`${crate}_ffi_bg.wasm`, `${crate}_ffi_bg.wasm.js`),
+          content.replace(`${crate}_ffi_bg.wasm`, `${crate}_ffi_bg.wasm.js`)
         );
       });
 
@@ -54,8 +54,8 @@ async function build(
         bgJs,
         content.replace(
           "BigInt.asUintN(64, arg0)",
-          "BigInt.asUintN(64, BigInt(arg0))",
-        ),
+          "BigInt.asUintN(64, BigInt(arg0))"
+        )
       );
 
       break;
@@ -90,6 +90,6 @@ export async function buildTypescript(crate: string) {
 
   fs.copyFileSync(
     `packages/typescript/${crate}/pkg/${crate}_ffi.d.ts`,
-    `packages/typescript/${crate}/dist/index.d.ts`,
+    `packages/typescript/${crate}/dist/index.d.ts`
   );
 }

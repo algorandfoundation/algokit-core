@@ -13,10 +13,7 @@ import {
   getTransactionId,
 } from "../src/index";
 
-const transaction: Transaction = testData.transaction;
-const expectedSignedTxn = testData.expectedSignedTxn;
-const expectedBytesForSigning = testData.expectedBytesForSigning;
-const privKey = testData.privKey;
+const simplePayment = testData.simplePayment;
 
 describe("Payment", () => {
   // Polytest Suite: Payment
@@ -25,13 +22,15 @@ describe("Payment", () => {
     // Polytest Group: Transaction Tests
 
     test("decode without prefix", () => {
-      expect(decodeTransaction(expectedBytesForSigning.slice(2))).toEqual(
-        transaction
+      expect(decodeTransaction(simplePayment.unsignedBytes.slice(2))).toEqual(
+        simplePayment.transaction
       );
     });
 
     test("decode with prefix", () => {
-      expect(decodeTransaction(expectedBytesForSigning)).toEqual(transaction);
+      expect(decodeTransaction(simplePayment.unsignedBytes)).toEqual(
+        simplePayment.transaction
+      );
     });
 
     test("example", async () => {
@@ -44,16 +43,14 @@ describe("Payment", () => {
       );
 
       const txn: Transaction = {
-        header: {
-          transactionType: "Payment",
-          sender: alice,
-          fee: 1000n,
-          firstValid: 1337n,
-          lastValid: 1347n,
-          genesisHash: new Uint8Array(32).fill(65), // pretend this is a valid hash
-          genesisId: "localnet",
-        },
-        payFields: {
+        transactionType: "Payment",
+        sender: alice,
+        fee: 1000n,
+        firstValid: 1337n,
+        lastValid: 1347n,
+        genesisHash: new Uint8Array(32).fill(65), // pretend this is a valid hash
+        genesisId: "localnet",
+        payment: {
           amount: 1337n,
           receiver: bob,
         },
@@ -61,34 +58,36 @@ describe("Payment", () => {
 
       const sig = await ed.signAsync(encodeTransaction(txn), aliceSk);
       const signedTxn = attachSignature(encodeTransaction(txn), sig);
+      expect(signedTxn.length).toBeGreaterThan(0);
     });
 
     test("get encoded transaction type", () => {
-      expect(getEncodedTransactionType(expectedBytesForSigning)).toBe(
-        "Payment"
+      expect(getEncodedTransactionType(simplePayment.unsignedBytes)).toBe(
+        simplePayment.transaction.transactionType
       );
     });
 
     test("encode with signature", async () => {
-      const sig = await ed.signAsync(expectedBytesForSigning, privKey);
-      const signedTx = attachSignature(expectedBytesForSigning, sig);
-      expect(signedTx).toEqual(expectedSignedTxn);
+      const sig = await ed.signAsync(
+        simplePayment.unsignedBytes,
+        simplePayment.signingPrivateKey
+      );
+      const signedTx = attachSignature(simplePayment.unsignedBytes, sig);
+      expect(signedTx).toEqual(simplePayment.signedBytes);
     });
 
     test("encode", () => {
-      expect(encodeTransaction(transaction)).toEqual(expectedBytesForSigning);
+      expect(encodeTransaction(simplePayment.transaction)).toEqual(
+        simplePayment.unsignedBytes
+      );
     });
 
     test("get transaction id", () => {
-      expect(getTransactionRawId(transaction)).toEqual(
-        Uint8Array.from([
-          89, 237, 187, 95, 72, 48, 184, 21, 54, 185, 237, 245, 160, 212, 160,
-          212, 214, 207, 239, 131, 123, 133, 183, 247, 179, 37, 169, 90, 79, 19,
-          170, 171,
-        ])
+      expect(getTransactionRawId(simplePayment.transaction)).toEqual(
+        simplePayment.rawId
       );
-      expect(getTransactionId(transaction)).toEqual(
-        "LHW3WX2IGC4BKNVZ5X22BVFA2TLM734DPOC3P55TEWUVUTYTVKVQ"
+      expect(getTransactionId(simplePayment.transaction)).toEqual(
+        simplePayment.id
       );
     });
   });

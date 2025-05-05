@@ -1,6 +1,7 @@
 import path from "path";
 import { spawn } from "child_process";
 import { resolve } from "path";
+import { parseArgs } from "util";
 import { buildPython } from "./languages/python.ts";
 import { buildSwift } from "./languages/swift.ts";
 import { buildTypescript } from "./languages/typescript.ts";
@@ -62,12 +63,15 @@ const languages = {
 
 const crates = ["algokit_transact"];
 
-if (process.argv.length !== 4) {
+const { positionals } = parseArgs({
+  allowPositionals: true,
+});
+
+if (positionals.length !== 2) {
   throw new Error("Usage: bun scripts/build <crate> <language>");
 }
 
-const crate = process.argv[2];
-const language = process.argv[3];
+const [crate, language] = positionals;
 
 if (language !== "all" && !Object.keys(languages).includes(language)) {
   throw new Error(

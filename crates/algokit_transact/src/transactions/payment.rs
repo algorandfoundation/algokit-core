@@ -7,14 +7,20 @@ use crate::address::Address;
 use crate::traits::{AlgorandMsgpack, TransactionId};
 use crate::transactions::common::TransactionHeader;
 use crate::utils::{is_zero, is_zero_addr, is_zero_addr_opt};
+use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, skip_serializing_none};
 
 /// Represents a payment transaction that transfers ALGO between accounts.
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-pub struct PayTransactionFields {
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Builder)]
+#[builder(
+    name = "PaymentTransactionBuilder",
+    setter(strip_option),
+    build_fn(name = "build_fields")
+)]
+pub struct PaymentTransactionFields {
     /// Common transaction header fields.
     #[serde(flatten)]
     pub header: TransactionHeader,
@@ -41,8 +47,9 @@ pub struct PayTransactionFields {
     #[serde(rename = "close")]
     #[serde(skip_serializing_if = "is_zero_addr_opt")]
     #[serde(default)]
+    #[builder(default)]
     pub close_remainder_to: Option<Address>,
 }
 
-impl AlgorandMsgpack for PayTransactionFields {}
-impl TransactionId for PayTransactionFields {}
+impl AlgorandMsgpack for PaymentTransactionFields {}
+impl TransactionId for PaymentTransactionFields {}

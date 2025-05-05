@@ -1,0 +1,21 @@
+{
+  "description": "This package.json contains the workspaces for scripts and the dependencies for semantic-release",
+  "workspaces": [
+    "scripts/build"
+  ],
+  "type": "module",
+  "scripts": {
+    "build:transact:py": "bun scripts/build algokit_transact python",
+    "build:transact:swift": "bun scripts/build algokit_transact swift",
+    "build:transact:ts": "bun scripts/build algokit_transact typescript",
+    "build:transact:all": "bun scripts/build algokit_transact all",
+    "release:transact:py": "cd packages/python/algokit_transact && bun semantic-release"
+  },
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@semantic-release/changelog": "^6.0.3",
+    "semantic-release": "^24.2.3",
+    "semantic-release-gha-output": "^1.1.1",
+    "semantic-release-scope-filter": "1.0.0"
+  }
+}

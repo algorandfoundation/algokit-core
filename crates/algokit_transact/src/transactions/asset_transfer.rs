@@ -6,6 +6,7 @@ use crate::address::Address;
 use crate::traits::{AlgorandMsgpack, TransactionId};
 use crate::transactions::common::TransactionHeader;
 use crate::utils::{is_zero, is_zero_addr, is_zero_addr_opt};
+use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, skip_serializing_none};
 
@@ -15,7 +16,12 @@ use serde_with::{serde_as, skip_serializing_none};
 /// from one account to another.
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Builder)]
+#[builder(
+    name = "AssetTransferTransactionBuilder",
+    setter(strip_option),
+    build_fn(name = "build_fields")
+)]
 pub struct AssetTransferTransactionFields {
     /// Common transaction header fields.
     #[serde(flatten)]
@@ -57,6 +63,7 @@ pub struct AssetTransferTransactionFields {
     #[serde(rename = "asnd")]
     #[serde(skip_serializing_if = "is_zero_addr_opt")]
     #[serde(default)]
+    #[builder(default)]
     pub asset_sender: Option<Address>,
 
     /// Optional address to send all remaining asset units to after the transfer.
@@ -68,6 +75,7 @@ pub struct AssetTransferTransactionFields {
     #[serde(rename = "aclose")]
     #[serde(skip_serializing_if = "is_zero_addr_opt")]
     #[serde(default)]
+    #[builder(default)]
     pub close_remainder_to: Option<Address>,
 }
 

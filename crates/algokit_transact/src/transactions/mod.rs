@@ -8,9 +8,11 @@ mod asset_transfer;
 mod common;
 mod payment;
 
-pub use asset_transfer::AssetTransferTransactionFields;
-pub use common::{TransactionHeader, TransactionType};
-pub use payment::PayTransactionFields;
+use asset_transfer::AssetTransferTransactionBuilderError;
+pub use asset_transfer::{AssetTransferTransactionBuilder, AssetTransferTransactionFields};
+pub use common::{TransactionHeader, TransactionHeaderBuilder, TransactionType};
+use payment::PaymentTransactionBuilderError;
+pub use payment::{PaymentTransactionBuilder, PaymentTransactionFields};
 
 use crate::constants::HASH_BYTES_LENGTH;
 use crate::error::AlgoKitTransactError;
@@ -23,8 +25,20 @@ use std::any::Any;
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 #[serde(untagged)]
 pub enum Transaction {
-    Payment(PayTransactionFields),
+    Payment(PaymentTransactionFields),
     AssetTransfer(AssetTransferTransactionFields),
+}
+
+impl PaymentTransactionBuilder {
+    pub fn build(&self) -> Result<Transaction, PaymentTransactionBuilderError> {
+        self.build_fields().map(|t| Transaction::Payment(t))
+    }
+}
+
+impl AssetTransferTransactionBuilder {
+    pub fn build(&self) -> Result<Transaction, AssetTransferTransactionBuilderError> {
+        self.build_fields().map(|t| Transaction::AssetTransfer(t))
+    }
 }
 
 impl AlgorandMsgpack for Transaction {
@@ -54,10 +68,11 @@ impl AlgorandMsgpack for Transaction {
     /// If the decoding fails or if the transaction type is not recognized.
     fn decode(bytes: &[u8]) -> Result<Self, AlgoKitTransactError> {
         let header = TransactionHeader::decode(bytes)?;
+
         match header.transaction_type {
-            TransactionType::Payment => {
-                Ok(Transaction::Payment(PayTransactionFields::decode(bytes)?))
-            }
+            TransactionType::Payment => Ok(Transaction::Payment(PaymentTransactionFields::decode(
+                bytes,
+            )?)),
             TransactionType::AssetTransfer => Ok(Transaction::AssetTransfer(
                 AssetTransferTransactionFields::decode(bytes)?,
             )),

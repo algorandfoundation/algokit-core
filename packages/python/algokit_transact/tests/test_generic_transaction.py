@@ -1,10 +1,9 @@
 import pytest
-from . import TEST_DATA, PRIV_KEY
+from . import TEST_DATA
 from algokit_transact import (
     decode_transaction,
     AlgoKitTransactError,
 )
-
 
 # Polytest Suite: Generic Transaction
 
@@ -14,7 +13,7 @@ from algokit_transact import (
 @pytest.mark.group_generic_transaction_tests
 def test_malformed_bytes():
     """Ensure a helpful error message is thrown when attempting to decode malformed bytes"""
-    bad_bytes = bytearray(TEST_DATA["expected_bytes_for_signing"])[13:37]
+    bad_bytes = bytearray(TEST_DATA.simple_payment.unsigned_bytes)[13:37]
     with pytest.raises(
         AlgoKitTransactError.DecodingError,
     ):

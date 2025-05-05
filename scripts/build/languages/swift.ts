@@ -9,7 +9,7 @@ export async function buildSwift(crate: string) {
     macos: ["x86_64-apple-darwin", "aarch64-apple-darwin"],
   };
 
-  let cargoBuildCmd = `cargo --color always build --manifest-path crates/${crate}_ffi/Cargo.toml --features ffi_uniffi`;
+  let cargoBuildCmd = `cargo --color always build --manifest-path crates/${crate}_ffi/Cargo.toml`;
 
   const allTargets = [...Object.values(fatTargets).flat(), ...targets];
 
@@ -20,7 +20,7 @@ export async function buildSwift(crate: string) {
   await run(cargoBuildCmd);
 
   await run(
-    `cargo --color always run -p uniffi-bindgen generate --no-format --library target/aarch64-apple-darwin/debug/lib${crate}_ffi.a --language swift --out-dir target/debug/swift/${crate}`,
+    `cargo --color always run -p uniffi-bindgen generate --no-format --library target/aarch64-apple-darwin/debug/lib${crate}_ffi.a --language swift --out-dir target/debug/swift/${crate}`
   );
 
   let createXcfCmd = "xcodebuild -create-xcframework";
@@ -36,11 +36,11 @@ export async function buildSwift(crate: string) {
       });
 
       await run(
-        `lipo -create ${libPaths.join(" ")} -output target/debug/lib${crate}_ffi-${fatTargetName}.a`,
+        `lipo -create ${libPaths.join(" ")} -output target/debug/lib${crate}_ffi-${fatTargetName}.a`
       );
 
       createXcfCmd += ` -library target/debug/lib${crate}_ffi-${fatTargetName}.a -headers target/debug/swift/${crate}/`;
-    }),
+    })
   );
 
   const swiftPackage = toPascalCase(crate);
@@ -48,21 +48,21 @@ export async function buildSwift(crate: string) {
 
   if (
     fs.existsSync(
-      `packages/swift/${swiftPackage}/Frameworks/${crate}.xcframework`,
+      `packages/swift/${swiftPackage}/Frameworks/${crate}.xcframework`
     )
   ) {
     fs.rmdirSync(
       `packages/swift/${swiftPackage}/Frameworks/${crate}.xcframework`,
       {
         recursive: true,
-      },
+      }
     );
   }
 
   // xcframework needs the modulemap to be named module.modulemap
   fs.renameSync(
     `target/debug/swift/${crate}/${crate}FFI.modulemap`,
-    `target/debug/swift/${crate}/module.modulemap`,
+    `target/debug/swift/${crate}/module.modulemap`
   );
 
   // replace var with let to resolve swift concurrency issues
@@ -71,11 +71,11 @@ export async function buildSwift(crate: string) {
   // Nord generators (i.e. Golang) are updated to use 0.29.0
   let content = fs.readFileSync(
     `target/debug/swift/${crate}/${crate}.swift`,
-    "utf-8",
+    "utf-8"
   );
   content = content.replace(
     "private var initializationResult",
-    "private let initializationResult",
+    "private let initializationResult"
   );
 
   fs.writeFileSync(`target/debug/swift/${crate}/${crate}.swift`, content);
@@ -84,12 +84,12 @@ export async function buildSwift(crate: string) {
 
   fs.renameSync(
     `target/debug/swift/${crate}/${crate}.swift`,
-    `packages/swift/${swiftPackage}/Sources/${swiftPackage}/${swiftPackage}.swift`,
+    `packages/swift/${swiftPackage}/Sources/${swiftPackage}/${swiftPackage}.swift`
   );
 
   fs.copyFileSync(
     `crates/${crate}_ffi/test_data.json`,
-    `packages/swift/${swiftPackage}/Tests/AlgoKitTransactTests/Resources/test_data.json`,
+    `packages/swift/${swiftPackage}/Tests/AlgoKitTransactTests/Resources/test_data.json`
   );
 
   console.log(`Updated ${swiftPackage} in packages/swift/${swiftPackage}/`);

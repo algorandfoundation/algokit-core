@@ -1,15 +1,29 @@
+from dataclasses import dataclass
 from pathlib import Path
 import json
 from pprint import pprint
 from algokit_transact import (
     Address,
-    TransactionHeader,
-    PayTransactionFields,
+    PaymentTransactionFields,
     TransactionType,
     Transaction,
+    AssetTransferTransactionFields,
 )
 from nacl.signing import SigningKey
 
+@dataclass
+class TransactionTestData:
+    transaction: Transaction
+    id: str
+    raw_id: bytes
+    unsigned_bytes: bytes
+    signed_bytes: bytes
+    signing_private_key: SigningKey
+
+@dataclass
+class TestData:
+    simple_payment: TransactionTestData
+    opt_in_asset_transfer: TransactionTestData
 
 def convert_values(obj):
     if isinstance(obj, dict):
@@ -54,20 +68,39 @@ def load_test_data():
     with open(test_data_path) as f:
         data = json.load(f)
 
-    data = convert_case_recursive(data)
-    data = convert_values(data)
-
-    data["transaction"]["header"]["transaction_type"] = TransactionType.PAYMENT
-
-    data["transaction"]["header"] = TransactionHeader(**data["transaction"]["header"])
-
-    data["transaction"] = Transaction(
-        header=data["transaction"]["header"],
-        pay_fields=PayTransactionFields(**data["transaction"]["pay_fields"]),
+    data = convert_values(
+        convert_case_recursive(data)
     )
 
-    return data
+    simple_payment_txn = data["simple_payment"].pop("transaction")
+    _ = simple_payment_txn.pop("transaction_type")
+    simple_payment_txn_data = simple_payment_txn.pop("payment")
+    simple_payment_signing_private_key = data["simple_payment"].pop("signing_private_key")
 
+    opt_in_asset_transfer_txn = data["opt_in_asset_transfer"].pop("transaction")
+    _ = opt_in_asset_transfer_txn.pop("transaction_type")
+    opt_in_asset_transfer_txn_data = opt_in_asset_transfer_txn.pop("asset_transfer")
+    opt_in_asset_transfer_signing_private_key = data["opt_in_asset_transfer"].pop("signing_private_key")
 
+    return TestData(
+        simple_payment=TransactionTestData(
+            **data["simple_payment"],
+            transaction=Transaction(
+                **simple_payment_txn,
+                transaction_type=TransactionType.PAYMENT,
+                payment=PaymentTransactionFields(**simple_payment_txn_data),
+            ),
+            signing_private_key=SigningKey(simple_payment_signing_private_key),
+        ),
+        opt_in_asset_transfer=TransactionTestData(
+            **data["opt_in_asset_transfer"],
+            transaction=Transaction(
+                **opt_in_asset_transfer_txn,
+                transaction_type=TransactionType.ASSET_TRANSFER,
+                asset_transfer=AssetTransferTransactionFields(**opt_in_asset_transfer_txn_data),
+            ),
+            signing_private_key=SigningKey(opt_in_asset_transfer_signing_private_key)
+        ),
+    )
+    
 TEST_DATA = load_test_data()
-PRIV_KEY = SigningKey(TEST_DATA["priv_key"])

@@ -1,26 +1,37 @@
 [build-system]
-requires = ["maturin>=1,<2"]
+requires = ["maturin>=1.5,<2"]
 build-backend = "maturin"
 
 [project]
 name = "algokit_transact"
 version = "0.1.0"
-requires-python = ">=3.7"
-dependencies = ["pynacl>=1.5.0"]
+requires-python = ">=3.8,<4.0"
+dependencies = ["cffi>=1.17.1"]
 
 [tool.maturin]
 manifest-path = "../../../crates/algokit_transact_ffi/Cargo.toml"
+# While Maturin's documentation suggests using {module.name}._{module.name} for submodules,
+# we're using a simple "_algokit_transact" without the parent module name prefix.
+# This is because the UniFfi generated binding code expects dynamic libraries bundled by
+# auditwheel/Maturin to be placed in a .libs directory relative to the module's location.
+# Using the nested module pattern (algokit_transact._algokit_transact) would cause Maturin
+# to place the libraries in algokit_transact.libs, but the UniFfi code would look for them
+# in algokit_transact/_algokit_transact/.libs, resulting in ImportError at runtime on targets like musl libc where
+# the dynamic libraries are not found and auditwheel repair (invoked implicitly by maturin build) would place them
+# in the root .libs folder instead.
+module-name = "_algokit_transact"
 
-[project.optional-dependencies]
-dev = [
-    'maturin>=1.8.2 ; platform_system != "Linux"',
-    'maturin[patchelf]>=1.8.2 ; platform_system == "Linux"',
-    "pynacl>=1.5.0",
-    "pytest>=7.4.4",
-]
+include = ["algokit_transact/py.typed", "algokit_transact/__init__.py"]
 
 [tool.pytest.ini_options]
-markers = [
-    "group_generic_transaction_tests",
-    "group_transaction_tests"
+markers = ["group_generic_transaction_tests", "group_transaction_tests"]
+
+[tool.poetry.group.dev.dependencies]
+maturin = [
+    { version = ">=1.8.2", markers = "platform_system != 'Linux'" },
+    { version = ">=1.8.2", extras = [
+        "patchelf",
+    ], markers = "platform_system == 'Linux'" },
 ]
+pynacl = ">=1.5.0,<2.0.0"
+pytest = ">=7.4.4"
