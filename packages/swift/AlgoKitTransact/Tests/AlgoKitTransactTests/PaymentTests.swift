@@ -17,15 +17,13 @@ func paymentExample() throws {
     )
 
     let txn: Transaction = Transaction(
-        header: TransactionHeader(
-            transactionType: .payment,
-            sender: alice,
-            fee: 1000,
-            firstValid: 1337,
-            lastValid: 1347,
-            genesisHash: Data(repeating: 65, count: 32),  // pretend this is a valid hash
-            genesisId: "localnet"
-        ),
+        transactionType: .payment,
+        sender: alice,
+        fee: 1000,
+        firstValid: 1337,
+        lastValid: 1347,
+        genesisHash: Data(repeating: 65, count: 32),  // pretend this is a valid hash
+        genesisId: "localnet",
         payment: PaymentTransactionFields(
             receiver: bob,
             amount: 1337

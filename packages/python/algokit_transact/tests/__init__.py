@@ -4,7 +4,6 @@ import json
 from pprint import pprint
 from algokit_transact import (
     Address,
-    TransactionHeader,
     PaymentTransactionFields,
     TransactionType,
     Transaction,
@@ -73,36 +72,34 @@ def load_test_data():
         convert_case_recursive(data)
     )
 
-    simple_payment = data["simple_payment"]
-    simple_payment["transaction"]["header"]["transaction_type"] = TransactionType.PAYMENT
-    simple_payment_txn = Transaction(
-        header=TransactionHeader(**simple_payment["transaction"]["header"]),
-        payment=PaymentTransactionFields(**simple_payment["transaction"]["payment"]),
-    )
+    simple_payment_txn = data["simple_payment"].pop("transaction")
+    _ = simple_payment_txn.pop("transaction_type")
+    simple_payment_txn_data = simple_payment_txn.pop("payment")
+    simple_payment_signing_private_key = data["simple_payment"].pop("signing_private_key")
 
-    opt_in_asset_transfer = data["opt_in_asset_transfer"]
-    opt_in_asset_transfer["transaction"]["header"]["transaction_type"] = TransactionType.ASSET_TRANSFER
-    opt_in_asset_transfer_txn = Transaction(
-        header=TransactionHeader(**opt_in_asset_transfer["transaction"]["header"]),
-        asset_transfer=AssetTransferTransactionFields(**opt_in_asset_transfer["transaction"]["asset_transfer"]),
-    )
+    opt_in_asset_transfer_txn = data["opt_in_asset_transfer"].pop("transaction")
+    _ = opt_in_asset_transfer_txn.pop("transaction_type")
+    opt_in_asset_transfer_txn_data = opt_in_asset_transfer_txn.pop("asset_transfer")
+    opt_in_asset_transfer_signing_private_key = data["opt_in_asset_transfer"].pop("signing_private_key")
 
     return TestData(
         simple_payment=TransactionTestData(
-            transaction=simple_payment_txn,
-            id=simple_payment["id"],
-            raw_id=simple_payment["raw_id"],
-            unsigned_bytes=simple_payment["unsigned_bytes"],
-            signed_bytes=simple_payment["signed_bytes"],
-            signing_private_key=SigningKey(simple_payment["signing_private_key"])
+            **data["simple_payment"],
+            transaction=Transaction(
+                **simple_payment_txn,
+                transaction_type=TransactionType.PAYMENT,
+                payment=PaymentTransactionFields(**simple_payment_txn_data),
+            ),
+            signing_private_key=SigningKey(simple_payment_signing_private_key),
         ),
         opt_in_asset_transfer=TransactionTestData(
-            transaction=opt_in_asset_transfer_txn,
-            id=opt_in_asset_transfer["id"],
-            raw_id=opt_in_asset_transfer["raw_id"],
-            unsigned_bytes=opt_in_asset_transfer["unsigned_bytes"],
-            signed_bytes=opt_in_asset_transfer["signed_bytes"],
-            signing_private_key=SigningKey(opt_in_asset_transfer["signing_private_key"])
+            **data["opt_in_asset_transfer"],
+            transaction=Transaction(
+                **opt_in_asset_transfer_txn,
+                transaction_type=TransactionType.ASSET_TRANSFER,
+                asset_transfer=AssetTransferTransactionFields(**opt_in_asset_transfer_txn_data),
+            ),
+            signing_private_key=SigningKey(opt_in_asset_transfer_signing_private_key)
         ),
     )
     

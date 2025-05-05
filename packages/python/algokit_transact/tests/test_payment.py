@@ -1,7 +1,6 @@
 import pytest
 from . import TEST_DATA
 from algokit_transact import (
-    TransactionHeader,
     encode_transaction,
     PaymentTransactionFields,
     TransactionType,
@@ -33,15 +32,13 @@ def test_example():
     )
 
     txn = Transaction(
-        header=TransactionHeader(
-            transaction_type=TransactionType.PAYMENT,
-            fee=1000,
-            first_valid=1337,
-            last_valid=1347,
-            sender=alice,
-            genesis_hash=b"A" * 32,  # pretend this is a valid hash
-            genesis_id="localnet",
-        ),
+        transaction_type=TransactionType.PAYMENT,
+        fee=1000,
+        first_valid=1337,
+        last_valid=1347,
+        sender=alice,
+        genesis_hash=b"A" * 32,  # pretend this is a valid hash
+        genesis_id="localnet",
         payment=PaymentTransactionFields(amount=1337, receiver=bob),
     )
 
@@ -55,7 +52,7 @@ def test_get_encoded_transaction_type():
     """The transaction type of an encoded transaction can be retrieved"""
     assert (
         get_encoded_transaction_type(simple_payment.unsigned_bytes)
-        == simple_payment.transaction.header.transaction_type
+        == simple_payment.transaction.transaction_type
     )
 
 
