@@ -3,7 +3,7 @@ use std::fs::File;
 use crate::{
     transactions::{AssetTransferTransactionBuilder, PaymentTransactionBuilder},
     Address, AlgorandMsgpack, Byte32, SignedTransaction, Transaction, TransactionHeaderBuilder,
-    TransactionId, TransactionType,
+    TransactionId,
 };
 use base64::{prelude::BASE64_STANDARD, Engine};
 use convert_case::{Case, Casing};
@@ -23,6 +23,7 @@ impl TransactionHeaderMother {
                     .try_into()
                     .unwrap(),
             )
+            .fee(1000)
             .to_owned()
     }
 
@@ -36,29 +37,15 @@ impl TransactionHeaderMother {
                     .try_into()
                     .unwrap(),
             )
+            .fee(1000)
             .to_owned()
     }
 
-    pub fn simple_testnet_payment() -> TransactionHeaderBuilder {
+    pub fn simple_testnet() -> TransactionHeaderBuilder {
         Self::testnet()
-            .transaction_type(TransactionType::Payment)
             .sender(AddressMother::address())
-            .fee(1000)
             .first_valid(50659540)
             .last_valid(50660540)
-            .to_owned()
-    }
-
-    pub fn simple_testnet_asset_transfer() -> TransactionHeaderBuilder {
-        Self::testnet()
-            .transaction_type(TransactionType::AssetTransfer)
-            .sender(
-                Address::from_string("JB3K6HTAXODO4THESLNYTSG6GQUFNEVIQG7A6ZYVDACR6WA3ZF52TKU5NA")
-                    .unwrap(),
-            )
-            .fee(1000)
-            .first_valid(51183672)
-            .last_valid(51183872)
             .to_owned()
     }
 }
@@ -67,11 +54,7 @@ pub struct TransactionMother {}
 impl TransactionMother {
     pub fn simple_payment() -> PaymentTransactionBuilder {
         PaymentTransactionBuilder::default()
-            .header(
-                TransactionHeaderMother::simple_testnet_payment()
-                    .build()
-                    .unwrap(),
-            )
+            .header(TransactionHeaderMother::simple_testnet().build().unwrap())
             .amount(101000)
             .receiver(
                 Address::from_string("VXH5UP6JLU2CGIYPUFZ4Z5OTLJCLMA5EXD3YHTMVNDE5P7ILZ324FSYSPQ")
@@ -83,7 +66,7 @@ impl TransactionMother {
     pub fn payment_with_note() -> PaymentTransactionBuilder {
         Self::simple_payment()
             .header(
-                TransactionHeaderMother::simple_testnet_payment()
+                TransactionHeaderMother::simple_testnet()
                     .note(
                         BASE64_STANDARD
                             .decode("MGFhNTBkMjctYjhmNy00ZDc3LWExZmItNTUxZmQ1NWRmMmJj")
@@ -99,7 +82,15 @@ impl TransactionMother {
     pub fn opt_in_asset_transfer() -> AssetTransferTransactionBuilder {
         AssetTransferTransactionBuilder::default()
             .header(
-                TransactionHeaderMother::simple_testnet_asset_transfer()
+                TransactionHeaderMother::simple_testnet()
+                    .sender(
+                        Address::from_string(
+                            "JB3K6HTAXODO4THESLNYTSG6GQUFNEVIQG7A6ZYVDACR6WA3ZF52TKU5NA",
+                        )
+                        .unwrap(),
+                    )
+                    .first_valid(51183672)
+                    .last_valid(51183872)
                     .build()
                     .unwrap(),
             )
