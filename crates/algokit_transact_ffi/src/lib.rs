@@ -159,7 +159,7 @@ pub struct TransactionHeader {
 }
 
 #[ffi_record]
-pub struct PayTransactionFields {
+pub struct PaymentTransactionFields {
     receiver: Address,
 
     amount: u64,
@@ -184,9 +184,9 @@ pub struct AssetTransferTransactionFields {
 pub struct Transaction {
     header: TransactionHeader,
 
-    pay_fields: Option<PayTransactionFields>,
+    payment: Option<PaymentTransactionFields>,
 
-    asset_transfer_fields: Option<AssetTransferTransactionFields>,
+    asset_transfer: Option<AssetTransferTransactionFields>,
 }
 
 impl TryFrom<Transaction> for algokit_transact::Transaction {
@@ -194,7 +194,7 @@ impl TryFrom<Transaction> for algokit_transact::Transaction {
 
     fn try_from(tx: Transaction) -> Result<Self, AlgoKitTransactError> {
         // Ensure we only have pay fields or asset transfer fields
-        let fields: [bool; 2] = [tx.pay_fields.is_some(), tx.asset_transfer_fields.is_some()];
+        let fields: [bool; 2] = [tx.payment.is_some(), tx.asset_transfer.is_some()];
 
         // If fields has more than one true value, then we have an error
         if fields.iter().filter(|&&x| x).count() > 1 {
@@ -203,9 +203,9 @@ impl TryFrom<Transaction> for algokit_transact::Transaction {
             ));
         }
 
-        if let Some(pay) = tx.pay_fields {
+        if let Some(pay) = tx.payment {
             return Ok(algokit_transact::Transaction::Payment(
-                algokit_transact::PayTransactionFields {
+                algokit_transact::PaymentTransactionFields {
                     header: tx.header.try_into()?,
                     amount: pay.amount,
                     receiver: pay.receiver.try_into()?,
@@ -214,7 +214,7 @@ impl TryFrom<Transaction> for algokit_transact::Transaction {
             ));
         }
 
-        if let Some(asset_transfer) = tx.asset_transfer_fields {
+        if let Some(asset_transfer) = tx.asset_transfer {
             return Ok(algokit_transact::Transaction::AssetTransfer(
                 algokit_transact::AssetTransferTransactionFields {
                     header: tx.header.try_into()?,
@@ -287,7 +287,9 @@ impl TryFrom<TransactionHeader> for algokit_transact::TransactionHeader {
                 .group
                 .map(|b| {
                     b.to_vec().try_into().map_err(|_| {
-                        AlgoKitTransactError::EncodingError("group should be 32 byte hash".to_string())
+                        AlgoKitTransactError::EncodingError(
+                            "group should be 32 byte hash".to_string(),
+                        )
                     })
                 })
                 .transpose()?,
@@ -313,8 +315,8 @@ impl From<algokit_transact::TransactionHeader> for TransactionHeader {
     }
 }
 
-impl From<algokit_transact::PayTransactionFields> for PayTransactionFields {
-    fn from(tx: algokit_transact::PayTransactionFields) -> Self {
+impl From<algokit_transact::PaymentTransactionFields> for PaymentTransactionFields {
+    fn from(tx: algokit_transact::PaymentTransactionFields) -> Self {
         Self {
             receiver: tx.receiver.into(),
             amount: tx.amount,
@@ -323,10 +325,10 @@ impl From<algokit_transact::PayTransactionFields> for PayTransactionFields {
     }
 }
 
-impl TryFrom<PayTransactionFields> for algokit_transact::PayTransactionFields {
+impl TryFrom<PaymentTransactionFields> for algokit_transact::PaymentTransactionFields {
     type Error = AlgoKitTransactError;
 
-    fn try_from(tx: PayTransactionFields) -> Result<Self, Self::Error> {
+    fn try_from(tx: PaymentTransactionFields) -> Result<Self, Self::Error> {
         Ok(Self {
             header: algokit_transact::TransactionHeader {
                 transaction_type: algokit_transact::TransactionType::Payment,
@@ -394,7 +396,7 @@ impl TryFrom<algokit_transact::Transaction> for Transaction {
         match tx {
             algokit_transact::Transaction::Payment(payment) => {
                 let header = payment.header.into();
-                let pay_fields = PayTransactionFields {
+                let payment_fields = PaymentTransactionFields {
                     receiver: payment.receiver.into(),
                     amount: payment.amount,
                     close_remainder_to: payment.close_remainder_to.map(|a| a.into()),
@@ -402,13 +404,13 @@ impl TryFrom<algokit_transact::Transaction> for Transaction {
 
                 Ok(Self {
                     header,
-                    pay_fields: Some(pay_fields),
-                    asset_transfer_fields: None,
+                    payment: Some(payment_fields),
+                    asset_transfer: None,
                 })
             }
             algokit_transact::Transaction::AssetTransfer(asset_transfer) => {
                 let header = asset_transfer.header.into();
-                let asset_fields = AssetTransferTransactionFields {
+                let asset_transfer_fields = AssetTransferTransactionFields {
                     asset_id: asset_transfer.asset_id,
                     amount: asset_transfer.amount,
                     receiver: asset_transfer.receiver.into(),
@@ -418,8 +420,8 @@ impl TryFrom<algokit_transact::Transaction> for Transaction {
 
                 Ok(Self {
                     header,
-                    pay_fields: None,
-                    asset_transfer_fields: Some(asset_fields),
+                    payment: None,
+                    asset_transfer: Some(asset_transfer_fields),
                 })
             }
         }
@@ -454,16 +456,16 @@ pub fn get_encoded_transaction_type(bytes: &[u8]) -> Result<TransactionType, Alg
     }
 }
 
-#[ffi_func] 
+#[ffi_func]
 /// Encode the transaction with the domain separation (e.g. "TX") prefix
 pub fn encode_transaction(tx: Transaction) -> Result<Vec<u8>, AlgoKitTransactError> {
     let ctx: algokit_transact::Transaction = tx.try_into()?;
     Ok(ctx.encode()?)
 }
 
-#[ffi_func] 
+#[ffi_func]
 /// Encode the transaction without the domain separation (e.g. "TX") prefix
-/// This is useful for encoding the transaction for signing with tools that automatically add "TX" prefix to the transaction bytes. 
+/// This is useful for encoding the transaction for signing with tools that automatically add "TX" prefix to the transaction bytes.
 pub fn encode_transaction_raw(tx: Transaction) -> Result<Vec<u8>, AlgoKitTransactError> {
     let ctx: algokit_transact::Transaction = tx.try_into()?;
     Ok(ctx.encode_raw()?)
@@ -476,7 +478,10 @@ pub fn decode_transaction(bytes: &[u8]) -> Result<Transaction, AlgoKitTransactEr
 }
 
 #[ffi_func]
-pub fn attach_signature(encoded_tx: &[u8], signature: &[u8]) -> Result<Vec<u8>, AlgoKitTransactError> {
+pub fn attach_signature(
+    encoded_tx: &[u8],
+    signature: &[u8],
+) -> Result<Vec<u8>, AlgoKitTransactError> {
     let encoded_tx = algokit_transact::Transaction::decode(encoded_tx)?;
     let signed_tx = algokit_transact::SignedTransaction {
         transaction: encoded_tx,
@@ -520,106 +525,34 @@ pub fn get_transaction_id(tx: &Transaction) -> Result<String, AlgoKitTransactErr
 #[cfg(test)]
 mod tests {
     use super::*;
+    use algokit_transact::test_utils::{TestDataMother, TransactionMother};
     use pretty_assertions::assert_eq;
-    use base64::{prelude::BASE64_STANDARD, Engine};
 
     #[test]
     fn test_get_encoded_transaction_type() {
-        let addr = algokit_transact::Address::from_pubkey(&[0; 32]);
-
-        // Create a minimal payment transaction
-        let header = TransactionHeader {
-            transaction_type: TransactionType::Payment,
-            sender: address_from_string(&addr.address()).unwrap(),
-            fee: 1000,
-            first_valid: 1000,
-            last_valid: 2000,
-            genesis_hash: None,
-            genesis_id: None,
-            note: None,
-            rekey_to: None,
-            lease: None,
-            group: None,
-        };
-
-        let pay_fields = PayTransactionFields {
-            receiver: address_from_pub_key(&addr.pub_key).unwrap(),
-            amount: 1000000,
-            close_remainder_to: None,
-        };
-
-        let tx = Transaction {
-            header,
-            pay_fields: Some(pay_fields),
-            asset_transfer_fields: None,
-        };
+        let txn: Transaction = TransactionMother::simple_payment()
+            .build()
+            .unwrap()
+            .try_into()
+            .unwrap();
 
         // Encode the transaction
-        let encoded = encode_transaction(tx).unwrap();
+        let encoded = encode_transaction(txn).unwrap();
 
         // Test the get_encoded_transaction_type function
         let tx_type = get_encoded_transaction_type(&encoded).unwrap();
         assert_eq!(tx_type, TransactionType::Payment);
     }
 
-    // Example transaction modeled from algokit_transact::tests
-    fn example_pay_transaction_ffi() -> Transaction {
-        let sender_addr =
-            address_from_string("RIMARGKZU46OZ77OLPDHHPUJ7YBSHRTCYMQUC64KZCCMESQAFQMYU6SL2Q")
-                .unwrap();
-        let receiver_addr =
-            address_from_string("VXH5UP6JLU2CGIYPUFZ4Z5OTLJCLMA5EXD3YHTMVNDE5P7ILZ324FSYSPQ")
-                .unwrap();
-        let genesis_hash_bytes = BASE64_STANDARD
-            .decode("SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=")
-            .unwrap();
-        let note_bytes = BASE64_STANDARD
-            .decode("MGFhNTBkMjctYjhmNy00ZDc3LWExZmItNTUxZmQ1NWRmMmJj")
-            .unwrap();
-
-        let header = TransactionHeader {
-            transaction_type: TransactionType::Payment,
-            sender: sender_addr,
-            fee: 1000,
-            first_valid: 50659540,
-            last_valid: 50660540,
-            genesis_hash: Some(ByteBuf::from(genesis_hash_bytes)),
-            genesis_id: Some(String::from("testnet-v1.0")),
-            note: Some(ByteBuf::from(note_bytes)),
-            rekey_to: None,
-            lease: None,
-            group: None,
-        };
-
-        let pay_fields = PayTransactionFields {
-            receiver: receiver_addr,
-            amount: 101000,
-            close_remainder_to: None,
-        };
-
-        Transaction {
-            header,
-            pay_fields: Some(pay_fields),
-            asset_transfer_fields: None,
-        }
-    }
-
     #[test]
     fn test_transaction_id_ffi() {
-        let tx_ffi = example_pay_transaction_ffi();
-
-        // Expected values from algokit_transact::tests
-        //TODO: Update from outcome of AK-244
-        let expected_id = "ENOQBKTA3UAUU54TQN2AOH7BFDLS6LDYQD2SSQLU76JUAWSQSPPQ";
-        let expected_raw_id = [
-            35, 93, 0, 170, 96, 221, 1, 74, 119, 147, 131, 116, 7, 31, 225, 40, 215, 47, 44, 120,
-            128, 245, 41, 65, 116, 255, 147, 64, 90, 80, 147, 223,
-        ];
+        let data = TestDataMother::simple_payment();
+        let tx_ffi = data.transaction.try_into().unwrap();
 
         let actual_id = get_transaction_id(&tx_ffi).unwrap();
         let actual_raw_id = get_transaction_raw_id(&tx_ffi).unwrap();
 
-        assert_eq!(actual_id, expected_id);
-        assert_eq!(actual_raw_id, expected_raw_id);
+        assert_eq!(actual_id, data.id);
+        assert_eq!(actual_raw_id, data.raw_id);
     }
 }

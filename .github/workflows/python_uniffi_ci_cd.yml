@@ -32,7 +32,7 @@ env:
 jobs:
   get_version:
     runs-on: ubuntu-latest
-    outputs: 
+    outputs:
       tag: ${{ steps.semantic_release.outputs.tag }}
       version: ${{ steps.semantic_release.outputs.version }}
       version_commit_sha: ${{ steps.set_version_commit_sha.outputs.version_commit_sha }}
@@ -110,11 +110,11 @@ jobs:
         with:
           toolchain: 1.85.0
           targets: ${{ matrix.target.name }}
-      
+
       - name: Install Poetry
         run: |
           pipx install poetry
-          
+
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -244,14 +244,13 @@ jobs:
             cd /workspace/packages/python/${{ inputs.crate }}
             poetry run pytest
         run: docker exec build-container bash -c "$RUN"
-      
+
       - name: Upload build artifacts
         if: inputs.release
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.TARGET }}-wheel
           path: target/wheels
-
 
   release:
     if: inputs.release && needs.get_version.outputs.version != ''
@@ -292,7 +291,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
         run: "bun semantic-release"
-      
+
   cleanup:
     if: inputs.release && (failure() || cancelled())
     runs-on: ubuntu-latest
@@ -310,8 +309,8 @@ jobs:
       - name: Reset branch
         if: needs.get_version.outputs.version_commit_sha != ''
         env:
-          GITHUB_TOKEN: ${{ steps.app_token.outputs.token }} 
-        run: |  
+          GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
+        run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git revert --no-commit ${{ needs.get_version.outputs.version_commit_sha }}

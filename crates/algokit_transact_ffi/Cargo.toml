@@ -2,6 +2,7 @@
 name = "algokit_transact_ffi"
 version = "0.1.0"
 edition = "2021"
+build = "build.rs"
 
 [lib]
 crate-type = ["cdylib", "staticlib"]
@@ -12,7 +13,7 @@ ffi_wasm = ["dep:wasm-bindgen", "dep:tsify-next"]
 ffi_uniffi = ["dep:uniffi"]
 
 [dependencies]
-algokit_transact = { path = "../algokit_transact" }
+algokit_transact = { path = "../algokit_transact", features = ['test_utils'] }
 ffi_macros = { path = "../ffi_macros" }
 
 thiserror = { workspace = true }
@@ -25,7 +26,6 @@ uniffi = { workspace = true, features = [
     "scaffolding-ffi-buffer-fns",
 ], optional = true }
 wasm-bindgen = { workspace = true, optional = true }
-base64 = "0.22.1"
 pretty_assertions = "1.4.1"
 
 
@@ -35,6 +35,13 @@ uniffi = { workspace = true, features = ["bindgen-tests"] }
 
 [build-dependencies]
 uniffi = { workspace = true, features = [
-    "build",
     "scaffolding-ffi-buffer-fns", # Add the "scaffolding-ffi-buffer-fns" feature to make sure things can build correctly
 ] }
+algokit_transact = { path = "../algokit_transact", features = ['test_utils'] }
+ffi_macros = { path = "../ffi_macros" }
+thiserror = { workspace = true }
+serde = { version = "1.0.216", features = ["derive"] }
+serde_bytes = "0.11.15"
+serde_json = "1.0.133"
+tsify-next = { workspace = true, optional = true }
+wasm-bindgen = { workspace = true, optional = true }

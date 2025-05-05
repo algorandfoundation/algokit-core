@@ -2,7 +2,7 @@ import Foundation
 
 @testable import AlgoKitTransact
 
-struct TestData: Codable {
+struct TransactionTestData: Codable {
     struct AddressData: Codable {
         let address: String
         let pubKey: [UInt8]
@@ -10,7 +10,7 @@ struct TestData: Codable {
 
     struct TransactionData: Codable {
         let header: HeaderData
-        let payFields: PayFieldsData
+        let payment: PaymentFieldsData
     }
 
     struct HeaderData: Codable {
@@ -23,15 +23,21 @@ struct TestData: Codable {
         let genesisId: String
     }
 
-    struct PayFieldsData: Codable {
+    struct PaymentFieldsData: Codable {
         let receiver: AddressData
         let amount: UInt64
     }
 
-    let privKey: [UInt8]
     let transaction: TransactionData
-    let expectedBytesForSigning: [UInt8]
-    let expectedSignedTxn: [UInt8]
+    let id: String
+    let rawId: [UInt8]
+    let unsignedBytes: [UInt8];
+    let signedBytes: [UInt8];
+    let signingPrivateKey: [UInt8];
+}
+
+struct TestData: Codable {
+    let simplePayment: TransactionTestData
 }
 
 func loadTestData() throws -> TestData {
@@ -41,7 +47,7 @@ func loadTestData() throws -> TestData {
     return try decoder.decode(TestData.self, from: data)
 }
 
-func makeTransaction(from testData: TestData) -> Transaction {
+func makeTransaction(from testData: TransactionTestData) -> Transaction {
     return Transaction(
         header: TransactionHeader(
             transactionType: .payment,
@@ -59,14 +65,14 @@ func makeTransaction(from testData: TestData) -> Transaction {
             lease: nil,
             group: nil
         ),
-        payFields: PayTransactionFields(
+        payment: PaymentTransactionFields(
             receiver: Address(
-                address: testData.transaction.payFields.receiver.address,
-                pubKey: Data(testData.transaction.payFields.receiver.pubKey)
+                address: testData.transaction.payment.receiver.address,
+                pubKey: Data(testData.transaction.payment.receiver.pubKey)
             ),
-            amount: testData.transaction.payFields.amount,
+            amount: testData.transaction.payment.amount,
             closeRemainderTo: nil
         ),
-        assetTransferFields: nil
+        assetTransfer: nil
     )
 }

@@ -30,7 +30,7 @@ const fields = {
   },
   receiver: tx.rcv,
   amount: tx.amt,
-} as PayTransactionFields;
+} as PaymentTransactionFields;
 
 const btyesForSigning = encodePayment(fields);
 
