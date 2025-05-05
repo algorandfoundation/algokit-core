@@ -9,11 +9,6 @@ struct TransactionTestData: Codable {
     }
 
     struct TransactionData: Codable {
-        let header: HeaderData
-        let payment: PaymentFieldsData
-    }
-
-    struct HeaderData: Codable {
         let sender: AddressData
         let fee: UInt64
         let transactionType: String
@@ -21,6 +16,11 @@ struct TransactionTestData: Codable {
         let lastValid: UInt64
         let genesisHash: [UInt8]
         let genesisId: String
+        let note: [UInt8]?
+        let rekeyTo: AddressData?
+        let lease: [UInt8]?
+        let group: [UInt8]?
+        let payment: PaymentFieldsData
     }
 
     struct PaymentFieldsData: Codable {
@@ -49,22 +49,23 @@ func loadTestData() throws -> TestData {
 
 func makeTransaction(from testData: TransactionTestData) -> Transaction {
     return Transaction(
-        header: TransactionHeader(
-            transactionType: .payment,
-            sender: Address(
-                address: testData.transaction.header.sender.address,
-                pubKey: Data(testData.transaction.header.sender.pubKey)
-            ),
-            fee: testData.transaction.header.fee,
-            firstValid: testData.transaction.header.firstValid,
-            lastValid: testData.transaction.header.lastValid,
-            genesisHash: Data(testData.transaction.header.genesisHash),
-            genesisId: testData.transaction.header.genesisId,
-            note: nil,
-            rekeyTo: nil,
-            lease: nil,
-            group: nil
+        transactionType: .payment,
+        sender: Address(
+            address: testData.transaction.sender.address,
+            pubKey: Data(testData.transaction.sender.pubKey)
         ),
+        fee: testData.transaction.fee,
+        firstValid: testData.transaction.firstValid,
+        lastValid: testData.transaction.lastValid,
+        genesisHash: Data(testData.transaction.genesisHash),
+        genesisId: testData.transaction.genesisId,
+        note: testData.transaction.note != nil ? Data(testData.transaction.note!) : nil,
+        rekeyTo: testData.transaction.rekeyTo != nil ? Address(
+            address: testData.transaction.rekeyTo!.address,
+            pubKey: Data(testData.transaction.rekeyTo!.pubKey)
+        ) : nil,
+        lease: testData.transaction.lease != nil ? Data(testData.transaction.lease!) : nil,
+        group: testData.transaction.group != nil ? Data(testData.transaction.group!) : nil,
         payment: PaymentTransactionFields(
             receiver: Address(
                 address: testData.transaction.payment.receiver.address,

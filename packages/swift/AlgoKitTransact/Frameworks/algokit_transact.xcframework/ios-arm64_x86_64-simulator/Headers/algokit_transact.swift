@@ -703,84 +703,6 @@ public func FfiConverterTypePaymentTransactionFields_lower(_ value: PaymentTrans
 
 
 public struct Transaction {
-    public var header: TransactionHeader
-    public var payment: PaymentTransactionFields?
-    public var assetTransfer: AssetTransferTransactionFields?
-
-    // Default memberwise initializers are never public by default, so we
-    // declare one manually.
-    public init(header: TransactionHeader, payment: PaymentTransactionFields? = nil, assetTransfer: AssetTransferTransactionFields? = nil) {
-        self.header = header
-        self.payment = payment
-        self.assetTransfer = assetTransfer
-    }
-}
-
-
-
-extension Transaction: Equatable, Hashable {
-    public static func ==(lhs: Transaction, rhs: Transaction) -> Bool {
-        if lhs.header != rhs.header {
-            return false
-        }
-        if lhs.payment != rhs.payment {
-            return false
-        }
-        if lhs.assetTransfer != rhs.assetTransfer {
-            return false
-        }
-        return true
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(header)
-        hasher.combine(payment)
-        hasher.combine(assetTransfer)
-    }
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public struct FfiConverterTypeTransaction: FfiConverterRustBuffer {
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Transaction {
-        return
-            try Transaction(
-                header: FfiConverterTypeTransactionHeader.read(from: &buf), 
-                payment: FfiConverterOptionTypePaymentTransactionFields.read(from: &buf), 
-                assetTransfer: FfiConverterOptionTypeAssetTransferTransactionFields.read(from: &buf)
-        )
-    }
-
-    public static func write(_ value: Transaction, into buf: inout [UInt8]) {
-        FfiConverterTypeTransactionHeader.write(value.header, into: &buf)
-        FfiConverterOptionTypePaymentTransactionFields.write(value.payment, into: &buf)
-        FfiConverterOptionTypeAssetTransferTransactionFields.write(value.assetTransfer, into: &buf)
-    }
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeTransaction_lift(_ buf: RustBuffer) throws -> Transaction {
-    return try FfiConverterTypeTransaction.lift(buf)
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeTransaction_lower(_ value: Transaction) -> RustBuffer {
-    return FfiConverterTypeTransaction.lower(value)
-}
-
-
-/**
- * The transaction header contains the fields that can be present in any transaction.
- * "Header" only indicates that these are common fields, NOT that they are the first fields in the transaction.
- */
-public struct TransactionHeader {
     /**
      * The type of transaction
      */
@@ -798,6 +720,8 @@ public struct TransactionHeader {
     public var rekeyTo: Address?
     public var lease: ByteBuf?
     public var group: ByteBuf?
+    public var payment: PaymentTransactionFields?
+    public var assetTransfer: AssetTransferTransactionFields?
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
@@ -807,7 +731,7 @@ public struct TransactionHeader {
          */transactionType: TransactionType, 
         /**
          * The sender of the transaction
-         */sender: Address, fee: UInt64, firstValid: UInt64, lastValid: UInt64, genesisHash: ByteBuf?, genesisId: String?, note: ByteBuf? = nil, rekeyTo: Address? = nil, lease: ByteBuf? = nil, group: ByteBuf? = nil) {
+         */sender: Address, fee: UInt64, firstValid: UInt64, lastValid: UInt64, genesisHash: ByteBuf?, genesisId: String?, note: ByteBuf? = nil, rekeyTo: Address? = nil, lease: ByteBuf? = nil, group: ByteBuf? = nil, payment: PaymentTransactionFields? = nil, assetTransfer: AssetTransferTransactionFields? = nil) {
         self.transactionType = transactionType
         self.sender = sender
         self.fee = fee
@@ -819,13 +743,15 @@ public struct TransactionHeader {
         self.rekeyTo = rekeyTo
         self.lease = lease
         self.group = group
+        self.payment = payment
+        self.assetTransfer = assetTransfer
     }
 }
 
 
 
-extension TransactionHeader: Equatable, Hashable {
-    public static func ==(lhs: TransactionHeader, rhs: TransactionHeader) -> Bool {
+extension Transaction: Equatable, Hashable {
+    public static func ==(lhs: Transaction, rhs: Transaction) -> Bool {
         if lhs.transactionType != rhs.transactionType {
             return false
         }
@@ -859,6 +785,12 @@ extension TransactionHeader: Equatable, Hashable {
         if lhs.group != rhs.group {
             return false
         }
+        if lhs.payment != rhs.payment {
+            return false
+        }
+        if lhs.assetTransfer != rhs.assetTransfer {
+            return false
+        }
         return true
     }
 
@@ -874,6 +806,8 @@ extension TransactionHeader: Equatable, Hashable {
         hasher.combine(rekeyTo)
         hasher.combine(lease)
         hasher.combine(group)
+        hasher.combine(payment)
+        hasher.combine(assetTransfer)
     }
 }
 
@@ -881,10 +815,10 @@ extension TransactionHeader: Equatable, Hashable {
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
-public struct FfiConverterTypeTransactionHeader: FfiConverterRustBuffer {
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> TransactionHeader {
+public struct FfiConverterTypeTransaction: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Transaction {
         return
-            try TransactionHeader(
+            try Transaction(
                 transactionType: FfiConverterTypeTransactionType.read(from: &buf), 
                 sender: FfiConverterTypeAddress.read(from: &buf), 
                 fee: FfiConverterUInt64.read(from: &buf), 
@@ -895,11 +829,13 @@ public struct FfiConverterTypeTransactionHeader: FfiConverterRustBuffer {
                 note: FfiConverterOptionTypeByteBuf.read(from: &buf), 
                 rekeyTo: FfiConverterOptionTypeAddress.read(from: &buf), 
                 lease: FfiConverterOptionTypeByteBuf.read(from: &buf), 
-                group: FfiConverterOptionTypeByteBuf.read(from: &buf)
+                group: FfiConverterOptionTypeByteBuf.read(from: &buf), 
+                payment: FfiConverterOptionTypePaymentTransactionFields.read(from: &buf), 
+                assetTransfer: FfiConverterOptionTypeAssetTransferTransactionFields.read(from: &buf)
         )
     }
 
-    public static func write(_ value: TransactionHeader, into buf: inout [UInt8]) {
+    public static func write(_ value: Transaction, into buf: inout [UInt8]) {
         FfiConverterTypeTransactionType.write(value.transactionType, into: &buf)
         FfiConverterTypeAddress.write(value.sender, into: &buf)
         FfiConverterUInt64.write(value.fee, into: &buf)
@@ -911,6 +847,8 @@ public struct FfiConverterTypeTransactionHeader: FfiConverterRustBuffer {
         FfiConverterOptionTypeAddress.write(value.rekeyTo, into: &buf)
         FfiConverterOptionTypeByteBuf.write(value.lease, into: &buf)
         FfiConverterOptionTypeByteBuf.write(value.group, into: &buf)
+        FfiConverterOptionTypePaymentTransactionFields.write(value.payment, into: &buf)
+        FfiConverterOptionTypeAssetTransferTransactionFields.write(value.assetTransfer, into: &buf)
     }
 }
 
@@ -918,15 +856,15 @@ public struct FfiConverterTypeTransactionHeader: FfiConverterRustBuffer {
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
-public func FfiConverterTypeTransactionHeader_lift(_ buf: RustBuffer) throws -> TransactionHeader {
-    return try FfiConverterTypeTransactionHeader.lift(buf)
+public func FfiConverterTypeTransaction_lift(_ buf: RustBuffer) throws -> Transaction {
+    return try FfiConverterTypeTransaction.lift(buf)
 }
 
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
-public func FfiConverterTypeTransactionHeader_lower(_ value: TransactionHeader) -> RustBuffer {
-    return FfiConverterTypeTransactionHeader.lower(value)
+public func FfiConverterTypeTransaction_lower(_ value: Transaction) -> RustBuffer {
+    return FfiConverterTypeTransaction.lower(value)
 }
 
 
