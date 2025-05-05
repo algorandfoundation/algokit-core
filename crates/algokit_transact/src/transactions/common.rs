@@ -1,6 +1,5 @@
 use crate::address::Address;
 use crate::constants::Byte32;
-use crate::traits::AlgorandMsgpack;
 use crate::utils::{
     is_empty_bytes32_opt, is_empty_string_opt, is_empty_vec_opt, is_zero, is_zero_addr,
     is_zero_addr_opt,
@@ -9,35 +8,11 @@ use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, skip_serializing_none, Bytes};
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-pub enum TransactionType {
-    #[serde(rename = "pay")]
-    Payment,
-
-    #[serde(rename = "axfer")]
-    AssetTransfer,
-
-    #[serde(rename = "afrz")]
-    AssetFreeze,
-
-    #[serde(rename = "acfg")]
-    AssetConfig,
-
-    #[serde(rename = "keyreg")]
-    KeyRegistration,
-
-    #[serde(rename = "appl")]
-    ApplicationCall,
-}
-
 #[serde_as]
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Builder)]
 #[builder(setter(strip_option))]
 pub struct TransactionHeader {
-    #[serde(rename = "type")]
-    pub transaction_type: TransactionType,
-
     #[serde(rename = "snd")]
     #[serde(skip_serializing_if = "is_zero_addr")]
     #[serde(default)]
@@ -96,5 +71,3 @@ pub struct TransactionHeader {
     #[builder(default)]
     pub group: Option<Byte32>,
 }
-
-impl AlgorandMsgpack for TransactionHeader {}

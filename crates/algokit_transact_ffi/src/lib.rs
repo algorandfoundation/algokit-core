@@ -207,25 +207,11 @@ impl TryFrom<Transaction> for algokit_transact::Transaction {
     }
 }
 
-impl From<TransactionType> for algokit_transact::TransactionType {
-    fn from(tx: TransactionType) -> Self {
-        match tx {
-            TransactionType::Payment => algokit_transact::TransactionType::Payment,
-            TransactionType::AssetTransfer => algokit_transact::TransactionType::AssetTransfer,
-            TransactionType::AssetFreeze => algokit_transact::TransactionType::AssetFreeze,
-            TransactionType::AssetConfig => algokit_transact::TransactionType::AssetConfig,
-            TransactionType::KeyRegistration => algokit_transact::TransactionType::KeyRegistration,
-            TransactionType::ApplicationCall => algokit_transact::TransactionType::ApplicationCall,
-        }
-    }
-}
-
 impl TryFrom<Transaction> for algokit_transact::TransactionHeader {
     type Error = AlgoKitTransactError;
 
     fn try_from(tx: Transaction) -> Result<Self, AlgoKitTransactError> {
         Ok(Self {
-            transaction_type: tx.transaction_type.into(),
             sender: tx.sender.try_into()?,
             fee: tx.fee,
             first_valid: tx.first_valid,
@@ -315,25 +301,22 @@ impl TryFrom<algokit_transact::Transaction> for Transaction {
         match tx {
             algokit_transact::Transaction::Payment(payment) => {
                 let payment_fields = payment.clone().into();
-                build_transaction(payment.header, Some(payment_fields), None)
+                build_transaction(
+                    payment.header,
+                    TransactionType::Payment,
+                    Some(payment_fields),
+                    None,
+                )
             }
             algokit_transact::Transaction::AssetTransfer(asset_transfer) => {
                 let asset_transfer_fields = asset_transfer.clone().into();
-                build_transaction(asset_transfer.header, None, Some(asset_transfer_fields))
+                build_transaction(
+                    asset_transfer.header,
+                    TransactionType::AssetTransfer,
+                    None,
+                    Some(asset_transfer_fields),
+                )
             }
-        }
-    }
-}
-
-impl From<algokit_transact::TransactionType> for TransactionType {
-    fn from(tx: algokit_transact::TransactionType) -> Self {
-        match tx {
-            algokit_transact::TransactionType::Payment => TransactionType::Payment,
-            algokit_transact::TransactionType::AssetTransfer => TransactionType::AssetTransfer,
-            algokit_transact::TransactionType::AssetFreeze => TransactionType::AssetFreeze,
-            algokit_transact::TransactionType::AssetConfig => TransactionType::AssetConfig,
-            algokit_transact::TransactionType::KeyRegistration => TransactionType::KeyRegistration,
-            algokit_transact::TransactionType::ApplicationCall => TransactionType::ApplicationCall,
         }
     }
 }
@@ -353,11 +336,12 @@ fn byte32_to_bytebuf(b32: Byte32) -> ByteBuf {
 
 fn build_transaction(
     header: algokit_transact::TransactionHeader,
+    transaction_type: TransactionType,
     payment: Option<PaymentTransactionFields>,
     asset_transfer: Option<AssetTransferTransactionFields>,
 ) -> Result<Transaction, AlgoKitTransactError> {
     Ok(Transaction {
-        transaction_type: header.transaction_type.into(),
+        transaction_type,
         sender: header.sender.into(),
         fee: header.fee,
         first_valid: header.first_valid,
