@@ -9,7 +9,7 @@ export async function buildSwift(crate: string) {
     macos: ["x86_64-apple-darwin", "aarch64-apple-darwin"],
   };
 
-  let cargoBuildCmd = `cargo --color always build --manifest-path crates/${crate}_ffi/Cargo.toml --no-default-features --features ffi_uniffi`;
+  let cargoBuildCmd = `cargo --color always build --manifest-path crates/${crate}_ffi/Cargo.toml`;
 
   const allTargets = [...Object.values(fatTargets).flat(), ...targets];
 

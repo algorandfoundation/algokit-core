@@ -1,12 +1,9 @@
-#[cfg(feature = "generate_test_data")]
 include!("src/lib.rs");
 
 fn main() {
-    #[cfg(feature = "generate_test_data")]
     generate_test_data()
 }
 
-#[cfg(feature = "generate_test_data")]
 fn generate_test_data() {
     use algokit_transact::test_utils;
     use serde::Serialize;

@@ -8,13 +8,12 @@ build = "build.rs"
 crate-type = ["cdylib", "staticlib"]
 
 [features]
-default = ["ffi_uniffi", "generate_test_data"]
+default = ["ffi_uniffi"]
 ffi_wasm = ["dep:wasm-bindgen", "dep:tsify-next"]
 ffi_uniffi = ["dep:uniffi"]
-generate_test_data = ["algokit_transact/test_utils"]
 
 [dependencies]
-algokit_transact = { path = "../algokit_transact" }
+algokit_transact = { path = "../algokit_transact", features = ['test_utils'] }
 ffi_macros = { path = "../ffi_macros" }
 
 thiserror = { workspace = true }
@@ -33,16 +32,16 @@ pretty_assertions = "1.4.1"
 [dev-dependencies]
 wasm-pack = "0.13.1"
 uniffi = { workspace = true, features = ["bindgen-tests"] }
-algokit_transact = { path = "../algokit_transact", features = ["test_utils"] }
 
 [build-dependencies]
 uniffi = { workspace = true, features = [
-    "build",
     "scaffolding-ffi-buffer-fns", # Add the "scaffolding-ffi-buffer-fns" feature to make sure things can build correctly
 ] }
-algokit_transact = { path = "../algokit_transact" }
+algokit_transact = { path = "../algokit_transact", features = ['test_utils'] }
 ffi_macros = { path = "../ffi_macros" }
 thiserror = { workspace = true }
 serde = { version = "1.0.216", features = ["derive"] }
 serde_bytes = "0.11.15"
 serde_json = "1.0.133"
+tsify-next = { workspace = true, optional = true }
+wasm-bindgen = { workspace = true, optional = true }
