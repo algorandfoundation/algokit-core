@@ -29,6 +29,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "algokit_msgpack"
+version = "0.1.0"
+dependencies = [
+ "rmp",
+ "rmp-serde",
+ "serde",
+ "serde_bytes",
+ "serde_json",
+ "thiserror 1.0.69",
+]
+
+[[package]]
+name = "algokit_msgpack_ffi"
+version = "0.1.0"
+dependencies = [
+ "algokit_msgpack",
+ "ffi_macros",
+ "serde",
+ "serde_bytes",
+ "serde_json",
+ "thiserror 1.0.69",
+ "tsify-next",
+ "uniffi",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "algokit_transact"
 version = "0.1.0"
 dependencies = [

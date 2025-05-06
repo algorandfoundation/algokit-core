@@ -27,6 +27,8 @@ pycryptodome = ">= 3.9.0"
 {{/hasHttpSignatureMethods}}
 pydantic = ">= 2"
 typing-extensions = ">= 4.7.1"
+algokit_msgpack = {version = "*", optional = true}
+msgpack = {version = "*", optional = true}
 
 [tool.poetry.group.dev.dependencies]
 types-python-dateutil = ">= 2.8.19.14"
@@ -39,11 +41,12 @@ pytest-cov = ">= 2.8.1"
 pytest-asyncio = "^0.26.0"
 pytest-sugar = "^1.0.0"
 algokit-utils = "4.0.0"
+algokit-msgpack = { path = "../../../packages/python/algokit_msgpack" }
 algokit-transact = { path = "../../../packages/python/algokit_transact" }
 
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.pylint.'MESSAGES CONTROL']
 extension-pkg-whitelist = "pydantic"
@@ -102,3 +105,7 @@ disallow_incomplete_defs = true
 disallow_untyped_defs = true
 no_implicit_reexport = true
 warn_return_any = true
+
+[tool.poetry.extras]
+msgpack = ["algokit_msgpack"]
+msgpack-native = ["msgpack"]

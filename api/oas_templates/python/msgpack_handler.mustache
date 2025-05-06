@@ -1,0 +1,49 @@
+"""
+Module for handling MessagePack encoding and decoding.
+"""
+
+import base64
+
+try:
+    # Try to import from our rust FFI bindings
+    from algokit_msgpack import json_to_msgpack, msgpack_to_json, is_msgpack_content_type
+    HAS_MSGPACK_FFI = True
+except ImportError:
+    # Fallback to pure Python implementation if the FFI bindings are not available
+    import json
+    try:
+        import msgpack
+        HAS_MSGPACK = True
+    except ImportError:
+        HAS_MSGPACK = False
+    HAS_MSGPACK_FFI = False
+
+    def is_msgpack_content_type(content_type):
+        return content_type in ["application/msgpack", "application/x-msgpack"]
+    
+    def json_to_msgpack(json_str):
+        if not HAS_MSGPACK:
+            raise ImportError("msgpack package is required for MessagePack support")
+        return msgpack.packb(json.loads(json_str))
+    
+    def msgpack_to_json(msgpack_bytes):
+        if not HAS_MSGPACK:
+            raise ImportError("msgpack package is required for MessagePack support")
+        return json.dumps(msgpack.unpackb(msgpack_bytes))
+
+def supports_msgpack():
+    """
+    Check if MessagePack is supported.
+    
+    Returns:
+        bool: True if MessagePack is supported, False otherwise.
+    """
+    return HAS_MSGPACK_FFI or HAS_MSGPACK 
+
+# Helper function to safely encode bytes to base64 string
+def bytes_to_b64(data: bytes | None) -> str | None:
+    return base64.b64encode(data).decode('utf-8') if data is not None else None
+
+# Helper function to safely decode base64 string to bytes
+def b64_to_bytes(data: str | None) -> bytes | None:
+    return base64.b64decode(data) if data is not None else None

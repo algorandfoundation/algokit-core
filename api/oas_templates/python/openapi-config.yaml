@@ -17,6 +17,9 @@ files:
     conftest.mustache:
         templateType: SupportingFiles
         destinationFilename: tests/conftest.py
+    msgpack_handler.mustache:
+        templateType: SupportingFiles
+        destinationFilename: algorand_algod_client/msgpack_handler.py
     # Generic supporting files
     poetry.toml.mustache:
         templateType: SupportingFiles

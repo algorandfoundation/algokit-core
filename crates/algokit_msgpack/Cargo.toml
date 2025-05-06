@@ -1,0 +1,16 @@
+[package]
+name = "algokit_msgpack"
+version = "0.1.0"
+edition = "2021"
+description = "A library for encoding and decoding MessagePack data for Algorand"
+license = "MIT"
+
+[dependencies]
+rmp = "0.8"
+rmp-serde = "1.1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "1.0"
+
+[dev-dependencies]
+serde_bytes = "0.11"

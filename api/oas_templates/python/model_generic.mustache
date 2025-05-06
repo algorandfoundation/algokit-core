@@ -2,6 +2,12 @@ from __future__ import annotations
 import pprint
 import re  # noqa: F401
 import json
+from typing import Any, Dict, List, Optional, Set, Union, ClassVar, Literal
+from typing_extensions import Self
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from {{packageName}}.msgpack_handler import (bytes_to_b64, b64_to_bytes, supports_msgpack, json_to_msgpack, msgpack_to_json)
 
 {{#vendorExtensions.x-py-other-imports}}
 {{{.}}}
@@ -34,6 +40,22 @@ class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}
     additional_properties: Dict[str, Any] = {}
 {{/isAdditionalPropertiesTrue}}
     __properties: ClassVar[List[str]] = [{{#allVars}}"{{baseName}}"{{^-last}}, {{/-last}}{{/allVars}}]
+
+    # Store schema information for type-aware serialization/deserialization
+    # Keys are field names, values are dicts with 'format' and 'x-algorand-format'
+    __schema_hints: ClassVar[Dict[str, Dict[str, str]]] = {
+        {{#vars}}
+        {{#format}}
+        "{{name}}": {"format": "{{format}}"{{#vendorExtensions.x-algorand-format}}, "x-algorand-format": "{{{.}}}"{{/vendorExtensions.x-algorand-format}}},
+        {{/format}}
+        {{^format}}
+        {{#vendorExtensions.x-algorand-format}}
+        "{{name}}": {"x-algorand-format": "{{{.}}}"},
+        {{/vendorExtensions.x-algorand-format}}
+        {{/format}}
+        {{/vars}}
+    }
+
 {{#vars}}
     {{#vendorExtensions.x-regex}}
 
@@ -97,6 +119,9 @@ class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}
         populate_by_name=True,
         validate_assignment=True,
         protected_namespaces=(),
+        json_schema_extra = {
+            "__schema_hints": __schema_hints
+        }
     )
 
 
@@ -113,7 +138,7 @@ class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}
     @classmethod
     def get_discriminator_value(cls, obj: Dict[str, Any]) -> Optional[str]:
         """Returns the discriminator value (object type) of the data"""
-        discriminator_value = obj[cls.__discriminator_property_name]
+        discriminator_value = obj.get(cls.__discriminator_property_name)
         if discriminator_value:
             return cls.__discriminator_value_class_map.get(discriminator_value)
         else:
@@ -127,13 +152,146 @@ class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}
 
     def to_json(self) -> str:
         """Returns the JSON representation of the model using alias"""
-        # TODO: pydantic v2: use .model_dump_json(by_alias=True, exclude_unset=True) instead
-        return json.dumps(self.to_dict())
+        # Use pydantic's built-in method with custom encoder for bytes
+        return self.model_dump_json(by_alias=True, exclude_unset=True)
+
+    def to_msgpack(self) -> bytes:
+        """Returns the MessagePack representation of the model using alias."""
+        if not supports_msgpack():
+            raise ImportError("msgpack is required for MessagePack support")
+        # Prepare dict specifically for msgpack (handles bytes -> b64)
+        prepared_dict = self._to_dict_for_ffi()
+        json_str = json.dumps(prepared_dict)
+        return json_to_msgpack(json_str)
 
     @classmethod
     def from_json(cls, json_str: str) -> Optional[{{^hasChildren}}Self{{/hasChildren}}{{#hasChildren}}{{#discriminator}}Union[{{#mappedModels}}{{{modelName}}}{{^-last}}, {{/-last}}{{/mappedModels}}]{{/discriminator}}{{^discriminator}}Self{{/discriminator}}{{/hasChildren}}]:
         """Create an instance of {{{classname}}} from a JSON string"""
-        return cls.from_dict(json.loads(json_str))
+        # Use pydantic's built-in method
+        return cls.model_validate_json(json_str)
+
+    @classmethod
+    def from_msgpack(cls, msgpack_data: bytes) -> Optional[{{^hasChildren}}Self{{/hasChildren}}{{#hasChildren}}{{#discriminator}}Union[{{#mappedModels}}{{{modelName}}}{{^-last}}, {{/-last}}{{/mappedModels}}]{{/discriminator}}{{^discriminator}}Self{{/discriminator}}{{/hasChildren}}]:
+        """Create an instance of {{{classname}}} from MessagePack data"""
+        if not supports_msgpack():
+            raise ImportError("msgpack is required for MessagePack support")
+        json_str = msgpack_to_json(msgpack_data)
+        data_dict = json.loads(json_str)
+        # Process the dict to handle specific format conversions (b64 -> bytes)
+        processed_dict = cls._from_dict_from_ffi(data_dict)
+        return cls.model_validate(processed_dict)
+
+    def _get_schema_hint(self, field_name: str) -> Dict[str, str]:
+        """Internal helper to get schema hints for a field."""
+        return self.model_config.get("json_schema_extra", {}).get("__schema_hints", {}).get(field_name, {})
+
+    def _needs_b64_conversion(self, hint: Dict[str, str]) -> bool:
+        """Check if a field needs base64 conversion based on hints."""
+        return hint.get("format") == "byte" or \
+               hint.get("x-algorand-format") in ["Address", "SignedTransaction", "TEALProgram"] # Add other relevant formats
+
+    def _recursive_prepare_for_ffi(self, data: Any) -> Any:
+        """Recursively prepare data for FFI (bytes -> b64)."""
+        if isinstance(data, bytes):
+            return bytes_to_b64(data)
+        elif isinstance(data, list):
+            return [self._recursive_prepare_for_ffi(item) for item in data]
+        elif isinstance(data, dict):
+            return {k: self._recursive_prepare_for_ffi(v) for k, v in data.items()}
+        elif hasattr(data, "_to_dict_for_ffi"):
+             # Handle nested models
+            return data._to_dict_for_ffi()
+        else:
+            return data
+
+    def _to_dict_for_ffi(self) -> Dict[str, Any]:
+        """Return a dictionary representation suitable for FFI (bytes to b64)."""
+        _dict = self.model_dump(by_alias=True, exclude_unset=True)
+        prepared_dict = {}
+        for field_name, value in _dict.items():
+            if value is None:
+                prepared_dict[field_name] = None
+                continue
+
+            # Get original field name if alias was used
+            original_name = field_name
+            for name, field_info in self.model_fields.items():
+                if field_info.alias == field_name:
+                    original_name = name
+                    break
+            
+            hint = self._get_schema_hint(original_name)
+            if self._needs_b64_conversion(hint):
+                 prepared_dict[field_name] = self._recursive_prepare_for_ffi(getattr(self, original_name))
+            else:
+                 prepared_dict[field_name] = self._recursive_prepare_for_ffi(value)
+
+        return prepared_dict
+
+    @classmethod
+    def _recursive_process_from_ffi(cls, data: Any, hint: Dict[str, str], target_type: Any) -> Any:
+        """Recursively process data from FFI (b64 -> bytes)."""
+        needs_b64 = hint.get("format") == "byte" or \
+                      hint.get("x-algorand-format") in ["Address", "SignedTransaction", "TEALProgram"]
+
+        if needs_b64 and isinstance(data, str):
+            return b64_to_bytes(data)
+        elif isinstance(data, list):
+            # Need hint for list items if available (complex)
+            # For now, assume items don't need special conversion unless nested model
+             # Get the item type if it's a List hint
+            item_type = Any
+            if hasattr(target_type, '__args__') and len(target_type.__args__) > 0:
+                item_type = target_type.__args__[0]
+            return [cls._recursive_process_from_ffi(item, {}, item_type) for item in data]
+        elif isinstance(data, dict):
+             # If the target type is a model, call its _from_dict_from_ffi
+            if hasattr(target_type, "_from_dict_from_ffi"):
+                 return target_type._from_dict_from_ffi(data)
+            else:
+                # Generic dict processing
+                 # Get key/value types if it's a Dict hint
+                key_type = Any
+                value_type = Any
+                if hasattr(target_type, '__args__') and len(target_type.__args__) == 2:
+                    key_type = target_type.__args__[0]
+                    value_type = target_type.__args__[1]
+                return {k: cls._recursive_process_from_ffi(v, {}, value_type) for k, v in data.items()}
+        else:
+            return data
+
+    @classmethod
+    def _from_dict_from_ffi(cls, data_dict: Dict[str, Any]) -> Dict[str, Any]:
+        """Process a dictionary received from FFI (b64 to bytes)."""
+        processed_dict = {}
+        hints = cls.model_config.get("json_schema_extra", {}).get("__schema_hints", {})
+        
+        for field_name, value in data_dict.items():
+            if value is None:
+                processed_dict[field_name] = None
+                continue
+
+            # Get original field name if alias was used (more robust needed for complex aliases)
+            original_name = field_name
+            field_type = Any
+            for name, field_info in cls.model_fields.items():
+                 # Check alias first
+                current_alias = field_info.alias
+                if current_alias == field_name:
+                    original_name = name
+                    field_type = field_info.annotation
+                    break
+                 # Check original name if no alias matches
+                if name == field_name:
+                    original_name = name
+                    field_type = field_info.annotation
+                    break
+            
+            hint = hints.get(original_name, {})
+            processed_dict[field_name] = cls._recursive_process_from_ffi(value, hint, field_type)
+            
+        return processed_dict
+
 
     def to_dict(self) -> Dict[str, Any]:
         """Return the dictionary representation of the model using alias.
@@ -160,11 +318,13 @@ class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}
             {{/isAdditionalPropertiesTrue}}
         ])
 
+        # Use pydantic's method for basic dict creation
         _dict = self.model_dump(
             by_alias=True,
             exclude=excluded_fields,
             exclude_none=True,
         )
+
         {{#allVars}}
         {{#isContainer}}
         {{#isArray}}
@@ -172,9 +332,9 @@ class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}
         {{^items.items.isPrimitiveType}}
         # override the default output from pydantic by calling `to_dict()` of each item in {{{name}}} (list of list)
         _items = []
-        if self.{{{name}}}:
+        if self.{{{name}}} is not None:
             for _item_{{{name}}} in self.{{{name}}}:
-                if _item_{{{name}}}:
+                if _item_{{{name}}} is not None:
                     _items.append(
                          [_inner_item.to_dict() for _inner_item in _item_{{{name}}} if _inner_item is not None]
                     )
@@ -186,9 +346,9 @@ class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}
         {{^items.isEnumOrRef}}
         # override the default output from pydantic by calling `to_dict()` of each item in {{{name}}} (list)
         _items = []
-        if self.{{{name}}}:
+        if self.{{{name}}} is not None:
             for _item_{{{name}}} in self.{{{name}}}:
-                if _item_{{{name}}}:
+                if _item_{{{name}}} is not None:
                     _items.append(_item_{{{name}}}.to_dict())
             _dict['{{{baseName}}}'] = _items
         {{/items.isEnumOrRef}}
@@ -200,7 +360,7 @@ class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}
         {{^items.items.isPrimitiveType}}
         # override the default output from pydantic by calling `to_dict()` of each value in {{{name}}} (dict of array)
         _field_dict_of_array = {}
-        if self.{{{name}}}:
+        if self.{{{name}}} is not None:
             for _key_{{{name}}} in self.{{{name}}}:
                 if self.{{{name}}}[_key_{{{name}}}] is not None:
                     _field_dict_of_array[_key_{{{name}}}] = [
@@ -214,7 +374,7 @@ class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}
         {{^items.isEnumOrRef}}
         # override the default output from pydantic by calling `to_dict()` of each value in {{{name}}} (dict)
         _field_dict = {}
-        if self.{{{name}}}:
+        if self.{{{name}}} is not None:
             for _key_{{{name}}} in self.{{{name}}}:
                 if self.{{{name}}}[_key_{{{name}}}]:
                     _field_dict[_key_{{{name}}}] = self.{{{name}}}[_key_{{{name}}}].to_dict()
@@ -228,7 +388,7 @@ class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}
         {{^isPrimitiveType}}
         {{^isEnumOrRef}}
         # override the default output from pydantic by calling `to_dict()` of {{{name}}}
-        if self.{{{name}}}:
+        if self.{{{name}}} is not None:
             _dict['{{{baseName}}}'] = self.{{{name}}}.to_dict()
         {{/isEnumOrRef}}
         {{/isPrimitiveType}}
@@ -259,14 +419,21 @@ class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}
         {{#discriminator}}
         # look up the object type based on discriminator mapping
         object_type = cls.get_discriminator_value(obj)
-        {{#mappedModels}}
-        if object_type ==  '{{{modelName}}}':
-            return import_module("{{packageName}}.models.{{model.classFilename}}").{{modelName}}.from_dict(obj)
-        {{/mappedModels}}
+        if object_type:
+            {{#mappedModels}}
+            if object_type ==  '{{{modelName}}}':
+                return import_module("{{packageName}}.models.{{model.classFilename}}").{{modelName}}.from_dict(obj)
+            {{/mappedModels}}
 
-        raise ValueError("{{{classname}}} failed to lookup discriminator value from " +
-                            json.dumps(obj) + ". Discriminator property name: " + cls.__discriminator_property_name +
-                            ", mapping: " + json.dumps(cls.__discriminator_value_class_map))
+        raise ValueError(
+            f"{{{classname}}} failed to lookup discriminator value from {obj}. "
+            f"Discriminator property name: {cls.__discriminator_property_name}, "
+            f"mapping: {cls.__discriminator_value_class_map}"
+        )
+        {{/discriminator}}
+        {{^discriminator}}
+        # Generic handling for non-discriminator parents (should use model_validate generally)
+        return cls.model_validate(obj)
         {{/discriminator}}
     {{/hasChildren}}
     {{^hasChildren}}
@@ -282,113 +449,28 @@ class {{classname}}({{#parent}}{{{.}}}{{/parent}}{{^parent}}BaseModel{{/parent}}
         {{#disallowAdditionalPropertiesIfNotPresent}}
         {{^isAdditionalPropertiesTrue}}
         # raise errors for additional fields in the input
-        for _key in obj.keys():
-            if _key not in cls.__properties:
-                raise ValueError("Error due to additional fields (not defined in {{classname}}) in the input: " + _key)
+        known_keys = set(cls.model_fields.keys())
+        known_aliases = {f.alias for f in cls.model_fields.values() if f.alias}
+        all_known = known_keys.union(known_aliases)
+        extra_keys = set(obj.keys()) - all_known
+        if extra_keys:
+            raise ValueError("Error due to additional fields (not defined in {{classname}}) in the input: " + ", ".join(extra_keys))
 
         {{/isAdditionalPropertiesTrue}}
         {{/disallowAdditionalPropertiesIfNotPresent}}
-        _obj = cls.model_validate({
-            {{#allVars}}
-            {{#isContainer}}
-            {{#isArray}}
-            {{#items.isArray}}
-            {{#items.items.isPrimitiveType}}
-            "{{{baseName}}}": obj.get("{{{baseName}}}"){{^-last}},{{/-last}}
-            {{/items.items.isPrimitiveType}}
-            {{^items.items.isPrimitiveType}}
-            "{{{baseName}}}": [
-                    [{{{items.items.dataType}}}.from_dict(_inner_item) for _inner_item in _item]
-                    for _item in obj["{{{baseName}}}"]
-                ] if obj.get("{{{baseName}}}") is not None else None{{^-last}},{{/-last}}
-            {{/items.items.isPrimitiveType}}
-            {{/items.isArray}}
-            {{^items.isArray}}
-            {{^items.isPrimitiveType}}
-            {{#items.isEnumOrRef}}
-            "{{{baseName}}}": obj.get("{{{baseName}}}"){{^-last}},{{/-last}}
-            {{/items.isEnumOrRef}}
-            {{^items.isEnumOrRef}}
-            "{{{baseName}}}": [{{{items.dataType}}}.from_dict(_item) for _item in obj["{{{baseName}}}"]] if obj.get("{{{baseName}}}") is not None else None{{^-last}},{{/-last}}
-            {{/items.isEnumOrRef}}
-            {{/items.isPrimitiveType}}
-            {{#items.isPrimitiveType}}
-            "{{{baseName}}}": obj.get("{{{baseName}}}"){{^-last}},{{/-last}}
-            {{/items.isPrimitiveType}}
-            {{/items.isArray}}
-            {{/isArray}}
-            {{#isMap}}
-            {{^items.isPrimitiveType}}
-            {{^items.isEnumOrRef}}
-            {{#items.isContainer}}
-            {{#items.isMap}}
-            "{{{baseName}}}": dict(
-                (_k, dict(
-                    (_ik, {{{items.items.dataType}}}.from_dict(_iv))
-                        for _ik, _iv in _v.items()
-                    )
-                    if _v is not None
-                    else None
-                )
-                for _k, _v in obj.get("{{{baseName}}}").items()
-            )
-            if obj.get("{{{baseName}}}") is not None
-            else None{{^-last}},{{/-last}}
-            {{/items.isMap}}
-            {{#items.isArray}}
-            "{{{baseName}}}": dict(
-                (_k,
-                        [{{{items.items.dataType}}}.from_dict(_item) for _item in _v]
-                        if _v is not None
-                        else None
-                )
-                for _k, _v in obj.get("{{{baseName}}}", {}).items()
-            ){{^-last}},{{/-last}}
-            {{/items.isArray}}
-            {{/items.isContainer}}
-            {{^items.isContainer}}
-            "{{{baseName}}}": dict(
-                (_k, {{{items.dataType}}}.from_dict(_v))
-                for _k, _v in obj["{{{baseName}}}"].items()
-            )
-            if obj.get("{{{baseName}}}") is not None
-            else None{{^-last}},{{/-last}}
-            {{/items.isContainer}}
-            {{/items.isEnumOrRef}}
-            {{#items.isEnumOrRef}}
-            "{{{baseName}}}": dict((_k, _v) for _k, _v in obj.get("{{{baseName}}}").items()) if obj.get("{{{baseName}}}") is not None else None{{^-last}},{{/-last}}
-            {{/items.isEnumOrRef}}
-            {{/items.isPrimitiveType}}
-            {{#items.isPrimitiveType}}
-            "{{{baseName}}}": obj.get("{{{baseName}}}"){{^-last}},{{/-last}}
-            {{/items.isPrimitiveType}}
-            {{/isMap}}
-            {{/isContainer}}
-            {{^isContainer}}
-            {{^isPrimitiveType}}
-            {{^isEnumOrRef}}
-            "{{{baseName}}}": {{{dataType}}}.from_dict(obj["{{{baseName}}}"]) if obj.get("{{{baseName}}}") is not None else None{{^-last}},{{/-last}}
-            {{/isEnumOrRef}}
-            {{#isEnumOrRef}}
-            "{{{baseName}}}": obj.get("{{{baseName}}}"){{#defaultValue}} if obj.get("{{baseName}}") is not None else {{defaultValue}}{{/defaultValue}}{{^-last}},{{/-last}}
-            {{/isEnumOrRef}}
-            {{/isPrimitiveType}}
-            {{#isPrimitiveType}}
-            {{#defaultValue}}
-            "{{{baseName}}}": obj.get("{{{baseName}}}") if obj.get("{{{baseName}}}") is not None else {{{defaultValue}}}{{^-last}},{{/-last}}
-            {{/defaultValue}}
-            {{^defaultValue}}
-            "{{{baseName}}}": obj.get("{{{baseName}}}"){{^-last}},{{/-last}}
-            {{/defaultValue}}
-            {{/isPrimitiveType}}
-            {{/isContainer}}
-            {{/allVars}}
-        })
+
+        # Use Pydantic's validation method which handles aliases and type conversions
+        _obj = cls.model_validate(obj)
+
         {{#isAdditionalPropertiesTrue}}
         # store additional fields in additional_properties
+        known_keys = set(cls.model_fields.keys())
+        known_aliases = {f.alias for f in cls.model_fields.values() if f.alias}
+        all_known = known_keys.union(known_aliases)
         for _key in obj.keys():
-            if _key not in cls.__properties:
-                _obj.additional_properties[_key] = obj.get(_key)
+            if _key not in all_known:
+                if hasattr(_obj, 'additional_properties'):
+                    _obj.additional_properties[_key] = obj.get(_key)
 
         {{/isAdditionalPropertiesTrue}}
         return _obj
