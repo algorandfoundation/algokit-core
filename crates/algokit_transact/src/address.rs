@@ -45,14 +45,8 @@ impl Address {
     /// * `address` - A 58-character base32-encoded Algorand address string
     ///
     /// # Returns
-    /// A Result containing the Address.
-    ///
-    /// # Errors
-    /// Returns an error if the string cannot be decoded, including if:
-    /// - The string is not 58 characters long
-    /// - The string cannot be decoded as base32
-    /// - The decoded data does not contain a valid 32-byte public key and 4-byte checksum
-    /// - The checksum does not match the calculated checksum for the public key
+    /// The Address or an error if the string is invalid (wrong length, invalid base32,
+    /// invalid format, or checksum mismatch, etc.).
     pub fn from_string(address: &str) -> Result<Self, AlgoKitTransactError> {
         if address.len() != ALGORAND_ADDRESS_LENGTH {
             return Err(AlgoKitTransactError::InvalidAddress(

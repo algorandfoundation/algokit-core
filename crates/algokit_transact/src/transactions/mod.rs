@@ -45,10 +45,7 @@ impl AlgorandMsgpack for Transaction {
     /// Encodes a transaction into MessagePack format.
     ///
     /// # Returns
-    /// A Result containing the encoded bytes.
-    /// 
-    /// # Errors
-    /// If the transaction type is not recognized or if encoding fails.
+    /// The encoded bytes or an error if the transaction type is not recognized or encoding fails.
     fn encode(&self) -> Result<Vec<u8>, AlgoKitTransactError> {
         match self {
             Transaction::Payment(tx) => tx.encode(),
@@ -62,10 +59,7 @@ impl AlgorandMsgpack for Transaction {
     /// * `bytes` - The MessagePack encoded transaction bytes
     ///
     /// # Returns
-    /// A Result containing the decoded Transaction.
-    /// 
-    /// # Errors
-    /// If the decoding fails or if the transaction type is not recognized.
+    /// The decoded Transaction or an error if decoding fails or the transaction type is not recognized.
     fn decode(bytes: &[u8]) -> Result<Self, AlgoKitTransactError> {
         let header = TransactionHeader::decode(bytes)?;
 
@@ -112,10 +106,7 @@ impl AlgorandMsgpack for SignedTransaction {
     /// * `bytes` - The MessagePack encoded signed transaction bytes
     ///
     /// # Returns
-    /// A Result containing the decoded SignedTransaction.
-    /// 
-    /// # Errors
-    /// If the decoding fails or if the transaction type is not recognized.
+    /// The decoded SignedTransaction or an error if decoding fails or the transaction type is not recognized.
     // Since we provide default values for all transaction fields, serde will not know which
     // transaction type the bytes actually correspond with. To fix this we need to manually
     // decode the transaction using Transaction::decode (which does check the type) and
@@ -154,11 +145,9 @@ impl TransactionId for SignedTransaction {
     /// Generates the raw transaction ID as a hash of the transaction data.
     ///
     /// # Returns
-    /// A Result containing the transaction ID as a byte array.
-    /// 
-    /// # Errors
-    /// If the transaction ID cannot be generated.
+    /// The transaction ID as a byte array or an error if generation fails.
     fn raw_id(&self) -> Result<[u8; HASH_BYTES_LENGTH], AlgoKitTransactError> {
         self.transaction.raw_id()
     }
 }
+
