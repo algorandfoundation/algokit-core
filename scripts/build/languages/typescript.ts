@@ -25,7 +25,7 @@ async function build(
       await wasmPack(crate, "web", cwd);
       break;
     case "cjs":
-      await wasmPack(crate, "nodejs", cwd);
+      await wasmPack(crate, "web", cwd);
       break;
     case "wasm2js":
       await wasmPack(crate, "bundler", cwd);
