@@ -58,8 +58,11 @@ pub struct AssetTransferTransactionFields {
     /// If provided, this indicates that the transaction is a clawback operation,
     /// where the sender is the asset clawback address and is forcibly moving assets
     /// from this account to the receiver.
-    // FIXME: This description is untouched from what Claude wrote.
-    // We should assess if asset_sender should be part of a basic asset transfer (probably not).
+    // FIXME: We should assess if asset_sender should be part of a basic asset transfer.
+    //  Using this as a bit of discussion, we generally agree that we want both a
+    //  high fidelity representation of the transaction types and a higher abstraction that
+    //  gives each transaction type a single and unambiguous effect.
+    //  We still need to define what is the right place for this higher-level abstraction.
     #[serde(rename = "asnd")]
     #[serde(skip_serializing_if = "is_zero_addr_opt")]
     #[serde(default)]
@@ -71,7 +74,6 @@ pub struct AssetTransferTransactionFields {
     /// If specified, this indicates that the sender is closing out their position in the asset,
     /// and all remaining units of this asset owned by the sender will be transferred to this address.
     /// This effectively removes the asset from the sender's account.
-    // FIXME: Same as above.
     #[serde(rename = "aclose")]
     #[serde(skip_serializing_if = "is_zero_addr_opt")]
     #[serde(default)]
