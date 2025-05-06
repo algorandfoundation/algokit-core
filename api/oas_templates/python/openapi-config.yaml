@@ -1,0 +1,26 @@
+templateDir: oas_templates/python
+additionalProperties:
+    packageVersion: 0.1.0
+    packageName: algokit_algod_api_py 
+
+openapiNormalizer:
+    SET_TAGS_FOR_ALL_OPERATIONS: Algod
+
+files:
+    # Section for dropping custom tests
+    custom_tests/test_transactions.mustache:
+        templateType: SupportingFiles
+        destinationFilename: tests/api/test_transactions.py
+    custom_tests/__init__.mustache:
+        templateType: SupportingFiles
+        destinationFilename: tests/api/__init__.py
+    conftest.mustache:
+        templateType: SupportingFiles
+        destinationFilename: tests/conftest.py
+    # Generic supporting files
+    poetry.toml.mustache:
+        templateType: SupportingFiles
+        destinationFilename: poetry.toml
+    pytest_ini.mustache:
+        templateType: SupportingFiles
+        destinationFilename: pytest.ini
