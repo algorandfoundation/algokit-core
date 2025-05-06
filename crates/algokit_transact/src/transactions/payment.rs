@@ -4,7 +4,6 @@
 //! which are used to transfer ALGO between accounts.
 
 use crate::address::Address;
-use crate::traits::{AlgorandMsgpack, TransactionId};
 use crate::transactions::common::TransactionHeader;
 use crate::utils::{is_zero, is_zero_addr, is_zero_addr_opt};
 use derive_builder::Builder;
@@ -50,6 +49,3 @@ pub struct PaymentTransactionFields {
     #[builder(default)]
     pub close_remainder_to: Option<Address>,
 }
-
-impl AlgorandMsgpack for PaymentTransactionFields {}
-impl TransactionId for PaymentTransactionFields {}

@@ -1,11 +1,10 @@
 //! Common types and structures for Algorand transactions.
-//! 
+//!
 //! This module provides the fundamental transaction types and headers used
 //! across different transaction types.
 
 use crate::address::Address;
 use crate::constants::Byte32;
-use crate::traits::AlgorandMsgpack;
 use crate::utils::{
     is_empty_bytes32_opt, is_empty_string_opt, is_empty_vec_opt, is_zero, is_zero_addr,
     is_zero_addr_opt,
@@ -13,34 +12,6 @@ use crate::utils::{
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, skip_serializing_none, Bytes};
-
-/// Enumeration of the string identifier related to each type of transaction.
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-pub enum TransactionType {
-    /// Standard payment transaction for transferring ALGO between accounts.
-    #[serde(rename = "pay")]
-    Payment,
-
-    /// Transaction for transferring ASAs (Algorand Standard Assets) between accounts.
-    #[serde(rename = "axfer")]
-    AssetTransfer,
-
-    /// Transaction to freeze or unfreeze an asset in a specific account.
-    #[serde(rename = "afrz")]
-    AssetFreeze,
-
-    /// Transaction to create, configure, or destroy an ASA.
-    #[serde(rename = "acfg")]
-    AssetConfig,
-
-    /// Transaction for participation key registration and voting.
-    #[serde(rename = "keyreg")]
-    KeyRegistration,
-
-    /// Transaction to create, call, or manage Algorand Smart Contracts.
-    #[serde(rename = "appl")]
-    ApplicationCall,
-}
 
 /// Common header fields shared by all transaction types.
 ///
@@ -51,10 +22,6 @@ pub enum TransactionType {
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Builder)]
 #[builder(setter(strip_option))]
 pub struct TransactionHeader {
-    /// The type of transaction.
-    #[serde(rename = "type")]
-    pub transaction_type: TransactionType,
-
     /// The account that authorized the transaction.
     ///
     /// Fees are deducted from this account.
@@ -144,5 +111,3 @@ pub struct TransactionHeader {
     #[builder(default)]
     pub group: Option<Byte32>,
 }
-
-impl AlgorandMsgpack for TransactionHeader {}

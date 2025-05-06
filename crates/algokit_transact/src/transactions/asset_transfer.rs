@@ -3,7 +3,6 @@
 //! This module provides functionality for creating and managing asset transfer transactions.
 
 use crate::address::Address;
-use crate::traits::{AlgorandMsgpack, TransactionId};
 use crate::transactions::common::TransactionHeader;
 use crate::utils::{is_zero, is_zero_addr, is_zero_addr_opt};
 use derive_builder::Builder;
@@ -80,6 +79,3 @@ pub struct AssetTransferTransactionFields {
     #[builder(default)]
     pub close_remainder_to: Option<Address>,
 }
-
-impl AlgorandMsgpack for AssetTransferTransactionFields {}
-impl TransactionId for AssetTransferTransactionFields {}

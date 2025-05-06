@@ -10,7 +10,7 @@ mod payment;
 
 use asset_transfer::AssetTransferTransactionBuilderError;
 pub use asset_transfer::{AssetTransferTransactionBuilder, AssetTransferTransactionFields};
-pub use common::{TransactionHeader, TransactionHeaderBuilder, TransactionType};
+pub use common::{TransactionHeader, TransactionHeaderBuilder};
 use payment::PaymentTransactionBuilderError;
 pub use payment::{PaymentTransactionBuilder, PaymentTransactionFields};
 
@@ -23,60 +23,40 @@ use std::any::Any;
 
 /// Enumeration of all transaction types.
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-#[serde(untagged)]
+#[serde(tag = "type")]
 pub enum Transaction {
+    #[serde(rename = "pay")]
     Payment(PaymentTransactionFields),
+
+    #[serde(rename = "axfer")]
     AssetTransfer(AssetTransferTransactionFields),
+    // All the below transaction variants will be implemented in the future
+    // #[serde(rename = "afrz")]
+    // AssetFreeze(...),
+
+    // #[serde(rename = "acfg")]
+    // AssetConfig(...),
+
+    // #[serde(rename = "keyreg")]
+    // KeyRegistration(...),
+
+    // #[serde(rename = "appl")]
+    // ApplicationCall(...),
 }
 
 impl PaymentTransactionBuilder {
     pub fn build(&self) -> Result<Transaction, PaymentTransactionBuilderError> {
-        self.build_fields().map(|t| Transaction::Payment(t))
+        self.build_fields().map(|d| Transaction::Payment(d))
     }
 }
 
 impl AssetTransferTransactionBuilder {
     pub fn build(&self) -> Result<Transaction, AssetTransferTransactionBuilderError> {
-        self.build_fields().map(|t| Transaction::AssetTransfer(t))
+        self.build_fields().map(|d| Transaction::AssetTransfer(d))
     }
 }
 
-impl AlgorandMsgpack for Transaction {
-    /// Encodes a transaction into MessagePack format.
-    ///
-    /// # Returns
-    /// The encoded bytes or an error if the transaction type is not recognized or encoding fails.
-    fn encode(&self) -> Result<Vec<u8>, AlgoKitTransactError> {
-        match self {
-            Transaction::Payment(tx) => tx.encode(),
-            Transaction::AssetTransfer(tx) => tx.encode(),
-        }
-    }
-
-    /// Decodes MessagePack bytes into a Transaction.
-    ///
-    /// # Parameters
-    /// * `bytes` - The MessagePack encoded transaction bytes
-    ///
-    /// # Returns
-    /// The decoded Transaction or an error if decoding fails or the transaction type is not recognized.
-    fn decode(bytes: &[u8]) -> Result<Self, AlgoKitTransactError> {
-        let header = TransactionHeader::decode(bytes)?;
-
-        match header.transaction_type {
-            TransactionType::Payment => Ok(Transaction::Payment(PaymentTransactionFields::decode(
-                bytes,
-            )?)),
-            TransactionType::AssetTransfer => Ok(Transaction::AssetTransfer(
-                AssetTransferTransactionFields::decode(bytes)?,
-            )),
-            _ => Err(AlgoKitTransactError::UnknownTransactionType(format!(
-                "{:?}",
-                header.transaction_type
-            ))),
-        }
-    }
-}
+impl AlgorandMsgpack for Transaction {}
 impl TransactionId for Transaction {}
 
 /// A signed transaction.
@@ -147,4 +127,3 @@ impl TransactionId for SignedTransaction {
         self.transaction.raw_id()
     }
 }
-

@@ -16,7 +16,7 @@ pub use traits::{AlgorandMsgpack, TransactionId};
 pub use transactions::{
     AssetTransferTransactionBuilder, AssetTransferTransactionFields, PaymentTransactionBuilder,
     PaymentTransactionFields, SignedTransaction, Transaction, TransactionHeader,
-    TransactionHeaderBuilder, TransactionType,
+    TransactionHeaderBuilder,
 };
 
 #[cfg(test)]
