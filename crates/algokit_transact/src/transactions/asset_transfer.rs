@@ -1,4 +1,4 @@
-//! Asset transfer transaction module for Algokit Core.
+//! Asset transfer transaction module for AlgoKit Core.
 //!
 //! This module provides functionality for creating and managing asset transfer transactions.
 

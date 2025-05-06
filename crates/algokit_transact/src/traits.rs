@@ -1,4 +1,4 @@
-//! Traits for Algokit Core data encoding and transaction identification.
+//! Traits for AlgoKit Core data encoding and transaction identification.
 //!
 //! This module provides traits for standardized MessagePack encoding/decoding of
 //! Algorand data structures and for calculating transaction identifiers.

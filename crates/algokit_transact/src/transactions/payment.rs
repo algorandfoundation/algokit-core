@@ -1,4 +1,4 @@
-//! Payment transaction module for Algokit Core.
+//! Payment transaction module for AlgoKit Core.
 //!
 //! This module provides functionality for creating and managing payment transactions,
 //! which are used to transfer ALGO between accounts.
