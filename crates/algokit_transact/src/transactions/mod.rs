@@ -99,9 +99,6 @@ impl AlgorandMsgpack for SignedTransaction {
 
     /// Decodes MessagePack bytes into a SignedTransaction.
     ///
-    /// This implementation handles the complexity of determining the transaction type
-    /// correctly during deserialization.
-    ///
     /// # Parameters
     /// * `bytes` - The MessagePack encoded signed transaction bytes
     ///
