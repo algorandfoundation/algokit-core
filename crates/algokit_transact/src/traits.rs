@@ -52,7 +52,21 @@ pub trait AlgorandMsgpack: Serialize + for<'de> Deserialize<'de> {
         Ok(final_buf)
     }
 
-    /// Decode the bytes into Self. `PREFIX` is ignored if present
+    /// Decodes MessagePack bytes into an instance of this same type.
+    ///
+    /// If the bytes start with the expected PREFIX for this type, the prefix is
+    /// automatically removed before decoding.
+    ///
+    /// # Parameters
+    /// * `bytes` - The MessagePack encoded bytes
+    ///
+    /// # Returns
+    /// A Result containing the decoded instance.
+    ///
+    /// # Errors
+    /// Returns an error if:
+    /// - The input byte array is empty
+    /// - Deserialization fails
     fn decode(bytes: &[u8]) -> Result<Self, AlgoKitTransactError> {
         if bytes.is_empty() {
             return Err(AlgoKitTransactError::InputError(
@@ -73,9 +87,18 @@ pub trait AlgorandMsgpack: Serialize + for<'de> Deserialize<'de> {
         }
     }
 
-    /// msgpack encoding of the transaction with keys sorted and empty fields omitted
-    /// To get the raw bytes without any domain separator (such as "TX" for transactions), use
-    /// `encode_raw`
+    /// Encodes the object to MessagePack format with the appropriate prefix.
+    ///
+    /// This method performs canonical encoding and prepends the domain separation
+    /// prefix defined by the PREFIX constant.
+    /// 
+    /// Use `encode_raw()` if you want to encode without the prefix.
+    ///
+    /// # Returns
+    /// A Result containing the encoded bytes with prefix.
+    ///
+    /// # Errors
+    /// Returns an error if serialization fails.
     fn encode(&self) -> Result<Vec<u8>, AlgoKitTransactError> {
         let encoded = self.encode_raw()?;
         if Self::PREFIX.is_empty() {
@@ -89,7 +112,22 @@ pub trait AlgorandMsgpack: Serialize + for<'de> Deserialize<'de> {
     }
 }
 
+/// Trait for generating transaction IDs.
+///
+/// This trait provides methods for calculating and representing transaction IDs,
+/// which are Sha512_256 hashes of the encoded transaction data. These IDs are used
+/// to uniquely identify transactions in the Algorand blockchain.
 pub trait TransactionId: AlgorandMsgpack {
+    /// Generates the raw transaction ID as a hash of the transaction data.
+    ///
+    /// Computes a Sha512_256 hash of the MessagePack-encoded transaction
+    /// (including the appropriate domain prefix).
+    ///
+    /// # Returns
+    /// A Result containing the transaction ID as a 32-byte array.
+    ///
+    /// # Errors
+    /// Returns an error if the transaction encoding fails.
     fn raw_id(&self) -> Result<[u8; HASH_BYTES_LENGTH], AlgoKitTransactError> {
         let mut hasher = Sha512_256::new();
         hasher.update(self.encode()?);
@@ -99,6 +137,16 @@ pub trait TransactionId: AlgorandMsgpack {
         Ok(hash)
     }
 
+    /// Converts the transaction ID to a base32-encoded string.
+    ///
+    /// This creates the standard human-readable representation of a transaction ID
+    /// as it would appear in block explorers, APIs, and other interfaces.
+    ///
+    /// # Returns
+    /// A Result containing the base32-encoded transaction ID string.
+    ///
+    /// # Errors
+    /// Returns an error if the raw transaction ID calculation fails.
     fn id(&self) -> Result<String, AlgoKitTransactError> {
         let hash = self.raw_id()?;
 
