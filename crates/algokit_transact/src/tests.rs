@@ -67,11 +67,11 @@ fn test_asset_transfer_transaction_encoding() {
 fn test_zero_address() {
     let addr = AddressMother::zero_address();
     assert_eq!(
-        addr.address(),
+        addr.to_string(),
         "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
     );
 
-    let addr_from_str = Address::from_string(&addr.address()).unwrap();
+    let addr_from_str = addr.to_string().parse::<Address>().unwrap();
     assert_eq!(addr, addr_from_str);
 }
 
@@ -79,11 +79,11 @@ fn test_zero_address() {
 fn test_address() {
     let addr = AddressMother::address();
     assert_eq!(
-        addr.address(),
+        addr.to_string(),
         "RIMARGKZU46OZ77OLPDHHPUJ7YBSHRTCYMQUC64KZCCMESQAFQMYU6SL2Q"
     );
 
-    let addr_from_str = Address::from_string(&addr.address()).unwrap();
+    let addr_from_str = addr.to_string().parse::<Address>().unwrap();
     assert_eq!(addr, addr_from_str);
 }
 
