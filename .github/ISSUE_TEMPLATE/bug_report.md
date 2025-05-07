@@ -1,9 +1,9 @@
 ---
 name: "\U0001F41C Bug report"
 about: Report a reproducible bug.
-title: ''
+title: ""
 labels: bug
-assignees: ''
+assignees: ""
 ---
 
 ### Subject of the issue

@@ -1,7 +1,7 @@
 templateDir: oas_templates/python
 additionalProperties:
     packageVersion: 0.1.0
-    packageName: algokit_algod_api_py 
+    packageName: algokit_algod_api_py
 
 openapiNormalizer:
     SET_TAGS_FOR_ALL_OPERATIONS: Algod

@@ -8,7 +8,7 @@ import ed25519swift
 
 // Polytest Group: Transaction Tests
 
-@Test("Payment: example") 
+@Test("Payment: example")
 func paymentExample() throws {
     let aliceKeyPair = Ed25519.generateKeyPair()
     let alice = try addressFromPubKey(pubKey: Data(aliceKeyPair.publicKey))
@@ -41,7 +41,7 @@ func paymentExample() throws {
     #expect(signedTxn.count > 0)
 }
 
-@Test("Payment: get encoded transaction type") 
+@Test("Payment: get encoded transaction type")
 func paymentGetEncodedTransactionType() throws {
     let testData = try loadTestData()
     let simplePayment = testData.simplePayment
@@ -49,7 +49,7 @@ func paymentGetEncodedTransactionType() throws {
     #expect(txType == .payment)
 }
 
-@Test("Payment: decode without prefix") 
+@Test("Payment: decode without prefix")
 func paymentDecodeWithoutPrefix() throws {
     let testData = try loadTestData()
     let simplePayment = testData.simplePayment
@@ -59,7 +59,7 @@ func paymentDecodeWithoutPrefix() throws {
     #expect(decoded == transaction)
 }
 
-@Test("Payment: decode with prefix") 
+@Test("Payment: decode with prefix")
 func paymentDecodeWithPrefix() throws {
     let testData = try loadTestData()
     let simplePayment = testData.simplePayment
@@ -68,7 +68,7 @@ func paymentDecodeWithPrefix() throws {
     #expect(decoded == transaction)
 }
 
-@Test("Payment: encode with signature") 
+@Test("Payment: encode with signature")
 func paymentEncodeWithSignature() throws {
     let testData = try loadTestData()
     let simplePayment = testData.simplePayment
@@ -81,7 +81,7 @@ func paymentEncodeWithSignature() throws {
     #expect([UInt8](signedTx) == simplePayment.signedBytes)
 }
 
-@Test("Payment: encode") 
+@Test("Payment: encode")
 func paymentEncode() throws {
     let testData = try loadTestData()
     let simplePayment = testData.simplePayment
