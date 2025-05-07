@@ -8,26 +8,26 @@ import commonjs from "@rollup/plugin-commonjs";
 import esmShim from "@rollup/plugin-esm-shim";
 
 export default {
-    input: "src/index.ts",
-    output: {
-        file: "dist/algokit_transact.node.cjs",
-        sourcemap: false,
-        format: "commonjs",
-    },
-    plugins: [
-        esmShim(),
-        commonjs(),
-        wasm({
-            targetEnv: "auto-inline",
-            sync: ["pkg/algokit_transact_ffi_bg.wasm"],
-        }),
-        nodeResolve(),
-        typescript({
-            sourceMap: false,
-            declaration: false,
-            declarationMap: false,
-            inlineSources: false,
-            tsconfig: "./tsconfig.rollup.json",
-        }),
-    ],
+  input: "src/index.ts",
+  output: {
+    file: "dist/algokit_transact.node.cjs",
+    sourcemap: false,
+    format: "commonjs",
+  },
+  plugins: [
+    esmShim(),
+    commonjs(),
+    wasm({
+      targetEnv: "auto-inline",
+      sync: ["pkg/algokit_transact_ffi_bg.wasm"],
+    }),
+    nodeResolve(),
+    typescript({
+      sourceMap: false,
+      declaration: false,
+      declarationMap: false,
+      inlineSources: false,
+      tsconfig: "./tsconfig.rollup.json",
+    }),
+  ],
 };

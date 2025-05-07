@@ -1,4 +1,3 @@
-
 pub const HASH_BYTES_LENGTH: usize = 32;
 pub const ALGORAND_CHECKSUM_BYTE_LENGTH: usize = 4;
 pub const ALGORAND_ADDRESS_LENGTH: usize = 58;

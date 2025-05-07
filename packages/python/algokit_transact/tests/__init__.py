@@ -11,6 +11,7 @@ from algokit_transact import (
 )
 from nacl.signing import SigningKey
 
+
 @dataclass
 class TransactionTestData:
     transaction: Transaction
@@ -20,10 +21,12 @@ class TransactionTestData:
     signed_bytes: bytes
     signing_private_key: SigningKey
 
+
 @dataclass
 class TestData:
     simple_payment: TransactionTestData
     opt_in_asset_transfer: TransactionTestData
+
 
 def convert_values(obj):
     if isinstance(obj, dict):
@@ -68,19 +71,21 @@ def load_test_data():
     with open(test_data_path) as f:
         data = json.load(f)
 
-    data = convert_values(
-        convert_case_recursive(data)
-    )
+    data = convert_values(convert_case_recursive(data))
 
     simple_payment_txn = data["simple_payment"].pop("transaction")
     _ = simple_payment_txn.pop("transaction_type")
     simple_payment_txn_data = simple_payment_txn.pop("payment")
-    simple_payment_signing_private_key = data["simple_payment"].pop("signing_private_key")
+    simple_payment_signing_private_key = data["simple_payment"].pop(
+        "signing_private_key"
+    )
 
     opt_in_asset_transfer_txn = data["opt_in_asset_transfer"].pop("transaction")
     _ = opt_in_asset_transfer_txn.pop("transaction_type")
     opt_in_asset_transfer_txn_data = opt_in_asset_transfer_txn.pop("asset_transfer")
-    opt_in_asset_transfer_signing_private_key = data["opt_in_asset_transfer"].pop("signing_private_key")
+    opt_in_asset_transfer_signing_private_key = data["opt_in_asset_transfer"].pop(
+        "signing_private_key"
+    )
 
     return TestData(
         simple_payment=TransactionTestData(
@@ -97,10 +102,13 @@ def load_test_data():
             transaction=Transaction(
                 **opt_in_asset_transfer_txn,
                 transaction_type=TransactionType.ASSET_TRANSFER,
-                asset_transfer=AssetTransferTransactionFields(**opt_in_asset_transfer_txn_data),
+                asset_transfer=AssetTransferTransactionFields(
+                    **opt_in_asset_transfer_txn_data
+                ),
             ),
-            signing_private_key=SigningKey(opt_in_asset_transfer_signing_private_key)
+            signing_private_key=SigningKey(opt_in_asset_transfer_signing_private_key),
         ),
     )
-    
+
+
 TEST_DATA = load_test_data()

@@ -1,9 +1,9 @@
 ---
 name: "\U0001F514 Feature Request"
 about: Suggestions for how we can improve the algorand platform.
-title: ''
+title: ""
 labels: enhancement
-assignees: ''
+assignees: ""
 ---
 
 ## Problem
