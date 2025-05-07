@@ -5,7 +5,7 @@
   "author": "OpenAPI-Generator Contributors",
   "repository": {
     "type": "git",
-    "url": "https://github.com/GIT_USER_ID/GIT_REPO_ID.git"
+    "url": "https://github.com/algorandfoundation/algokit-core.git"
   },
   "keywords": [
     "fetch",
@@ -45,11 +45,11 @@
   ],
   "scripts": {
     "test": "vitest",
-    "build": "npm run clean && npm run build:esm && npm run build:cjs",
+    "build": "bun run clean && bun run build:esm && bun run build:cjs",
     "build:esm": "tsc -p tsconfig.esm.json",
     "build:cjs": "tsc -p tsconfig.cjs.json",
     "clean": "rimraf dist",
-    "prepare": "npm run build"
+    "prepare": "bun run build"
   },
   "dependencies": {
     "whatwg-fetch": "^3.0.0",
@@ -57,7 +57,7 @@
   },
   "devDependencies": {
     "@algorandfoundation/algokit-utils": "^9.0.1",
-    "algokit_transact": "file:../../../packages/typescript/algokit_transact",
+    "algokit_transact": "file:../algokit_transact",
     "algosdk": "^3.2.0",
     "rimraf": "^6.0.1",
     "typescript": "^5.0.0",
