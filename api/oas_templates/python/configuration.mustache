@@ -437,6 +437,10 @@ conf = {{{packageName}}}.Configuration(
         """date format
         """
 
+        self._default_accepts_header = "application/json, application/msgpack"
+        """Default accept header to support both JSON and MessagePack formats
+        """
+
     def __deepcopy__(self, memo:  Dict[int, Any]) -> Self:
         cls = self.__class__
         result = cls.__new__(cls)
@@ -778,3 +782,26 @@ conf = {{{packageName}}}.Configuration(
         """Fix base path."""
         self._base_path = value
         self.server_index = None
+
+    @property
+    def default_accepts_header(self) -> str:
+        """Get the default Accept header.
+        
+        By default, this includes support for both JSON and MessagePack formats.
+        The client will automatically detect and handle responses in either format.
+        
+        :return: The default Accept header value
+        """
+        return self._default_accepts_header
+
+    @default_accepts_header.setter
+    def default_accepts_header(self, value: str) -> None:
+        """Sets the header for accepting content.
+        
+        By default, this includes support for both JSON and MessagePack formats.
+        To override this, provide a specific value. To reset to default, pass None.
+
+        Args:
+            value (str): The value of the header, or None to use default.
+        """
+        self._default_accepts_header = value if value else "application/json, application/msgpack"

@@ -10,7 +10,6 @@ import ssl
 import urllib3
 
 from {{packageName}}.exceptions import ApiException, ApiValueError
-from {{packageName}} import msgpack_handler
 
 SUPPORTED_SOCKS_PROXIES = {"socks5", "socks5h", "socks4", "socks4a"}
 RESTResponseType = urllib3.HTTPResponse
@@ -162,36 +161,9 @@ class RESTClientObject:
             # For `POST`, `PUT`, `PATCH`, `OPTIONS`, `DELETE`
             if method in ['POST', 'PUT', 'PATCH', 'OPTIONS', 'DELETE']:
 
-                content_type = headers.get('Content-Type')
-                # Handle MessagePack content type
-                if content_type and msgpack_handler.is_msgpack_content_type(content_type):
-                    if msgpack_handler.supports_msgpack() and body is not None:
-                        if isinstance(body, str):
-                            # Convert JSON string to MessagePack
-                            request_body = msgpack_handler.json_to_msgpack(body)
-                        elif hasattr(body, 'to_msgpack'):
-                            # Use model's to_msgpack method if available
-                            request_body = body.to_msgpack()
-                        elif isinstance(body, dict):
-                            # Convert dict to JSON then to MessagePack
-                            request_body = msgpack_handler.json_to_msgpack(json.dumps(body))
-                        else:
-                            # Try to use the object directly
-                            request_body = msgpack_handler.json_to_msgpack(json.dumps(body))
-                            
-                        r = self.pool_manager.request(
-                            method,
-                            url,
-                            body=request_body,
-                            timeout=timeout,
-                            headers=headers,
-                            preload_content=False
-                        )
-                    else:
-                        msg = "MessagePack encoding requested but not available"
-                        raise ApiException(status=0, reason=msg)
                 # no content type provided or payload is json
-                elif (
+                content_type = headers.get('Content-Type')
+                if (
                     not content_type
                     or re.search('json', content_type, re.IGNORECASE)
                 ):

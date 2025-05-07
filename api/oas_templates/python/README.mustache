@@ -34,6 +34,93 @@ Then import the package:
 import {{{packageName}}}
 ```
 
+### MessagePack Support
+
+This package uses `algokit_msgpack` to provide efficient and safe MessagePack serialization/deserialization. The Rust-based `algokit_msgpack` package provides improved performance and safety compared to native Python MessagePack libraries.
+
+#### Installation
+
+The `algokit_msgpack` package is automatically installed as a dependency. If you need to install it manually:
+
+```bash
+pip install algokit_msgpack
+```
+
+#### Usage
+
+MessagePack is a binary serialization format similar to JSON but more compact and typically faster to process. When making API calls that produce or consume MessagePack data:
+
+- MessagePack responses will be automatically detected by content-type
+- Use the `serialize_to_msgpack` method on `ApiClient` to convert objects to MessagePack format
+- For handling raw MessagePack binary data, use the `deserialize_msgpack_raw` method
+
+Example of serializing to MessagePack:
+```python
+import {{{packageName}}}
+
+with {{{packageName}}}.ApiClient() as api_client:
+    # Convert an object to MessagePack format
+    data = {"example": "data"}
+    msgpack_bytes = api_client.serialize_to_msgpack(data)
+    
+    # The API client will automatically deserialize MessagePack responses
+    # based on the content-type header
+```
+
+Example of handling raw MessagePack binary data:
+```python
+import {{{packageName}}}
+
+with {{{packageName}}}.ApiClient() as api_client:
+    # Deserialize a raw MessagePack binary response
+    # This is particularly useful for Algorand API responses
+    with open('some_msgpack_file.bin', 'rb') as f:
+        binary_data = f.read()
+    
+    deserialized_data = api_client.deserialize_msgpack_raw(binary_data)
+```
+
+The client will automatically choose the correct format based on the `Content-Type` and `Accept` headers. For example, with Algorand APIs, you can specify the format as 'msgpack':
+
+```python
+# Request MessagePack format from an Algorand endpoint
+response = algod_client.account_information(
+    address="...",
+    format='msgpack'  # Request MessagePack format
+)
+```
+
+#### Specifying Format Preferences
+
+You can explicitly request MessagePack or JSON formats for API requests by using these helper methods:
+
+```python
+import {{{packageName}}}
+
+with {{{packageName}}}.ApiClient() as api_client:
+    # Request MessagePack format
+    headers = api_client.set_msgpack_accept_header()
+    
+    # Or request JSON format
+    headers = api_client.set_json_accept_header()
+    
+    # Then use the headers in your API call
+    response = api_instance.some_operation(
+        param1="value1",
+        _headers=headers
+    )
+```
+
+Some APIs (like Algorand) also allow specifying the format as a query parameter:
+
+```python
+# Request MessagePack format from an Algorand endpoint
+response = algod_client.account_information(
+    address="...",
+    format='msgpack'  # Request MessagePack format
+)
+```
+
 ### Tests
 
 Execute `pytest` to run the tests.
