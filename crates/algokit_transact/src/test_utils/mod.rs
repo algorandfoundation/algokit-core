@@ -1,5 +1,4 @@
 use std::fs::File;
-
 use crate::{
     transactions::{AssetTransferTransactionBuilder, PaymentTransactionBuilder},
     Address, AlgorandMsgpack, Byte32, SignedTransaction, Transaction, TransactionHeaderBuilder,
@@ -57,8 +56,8 @@ impl TransactionMother {
             .header(TransactionHeaderMother::simple_testnet().build().unwrap())
             .amount(101000)
             .receiver(
-                Address::from_string("VXH5UP6JLU2CGIYPUFZ4Z5OTLJCLMA5EXD3YHTMVNDE5P7ILZ324FSYSPQ")
-                    .unwrap(),
+                "VXH5UP6JLU2CGIYPUFZ4Z5OTLJCLMA5EXD3YHTMVNDE5P7ILZ324FSYSPQ".parse::<Address>()
+                    .unwrap()
             )
             .to_owned()
     }
@@ -84,10 +83,8 @@ impl TransactionMother {
             .header(
                 TransactionHeaderMother::simple_testnet()
                     .sender(
-                        Address::from_string(
-                            "JB3K6HTAXODO4THESLNYTSG6GQUFNEVIQG7A6ZYVDACR6WA3ZF52TKU5NA",
-                        )
-                        .unwrap(),
+                        "JB3K6HTAXODO4THESLNYTSG6GQUFNEVIQG7A6ZYVDACR6WA3ZF52TKU5NA".parse::<Address>()
+                            .unwrap()
                     )
                     .first_valid(51183672)
                     .last_valid(51183872)
@@ -97,8 +94,8 @@ impl TransactionMother {
             .asset_id(107686045)
             .amount(0)
             .receiver(
-                Address::from_string("JB3K6HTAXODO4THESLNYTSG6GQUFNEVIQG7A6ZYVDACR6WA3ZF52TKU5NA")
-                    .unwrap(),
+                "JB3K6HTAXODO4THESLNYTSG6GQUFNEVIQG7A6ZYVDACR6WA3ZF52TKU5NA".parse::<Address>()
+                    .unwrap()
             )
             .to_owned()
     }
@@ -111,7 +108,8 @@ impl AddressMother {
     }
 
     pub fn address() -> Address {
-        Address::from_string("RIMARGKZU46OZ77OLPDHHPUJ7YBSHRTCYMQUC64KZCCMESQAFQMYU6SL2Q").unwrap()
+        "RIMARGKZU46OZ77OLPDHHPUJ7YBSHRTCYMQUC64KZCCMESQAFQMYU6SL2Q".parse::<Address>()
+            .unwrap()
     }
 }
 

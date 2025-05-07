@@ -11,6 +11,8 @@ use crate::error::AlgoKitTransactError;
 use crate::utils::pub_key_to_checksum;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, Bytes};
+use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::str::FromStr;
 
 /// Represents an address.
 ///
@@ -39,21 +41,33 @@ impl Address {
         Address { pub_key: *pub_key }
     }
 
+    /// Calculates the 4-byte checksum for this address's public key.
+    ///
+    /// # Returns
+    /// A 4-byte array containing the checksum.
+    pub fn checksum(&self) -> [u8; ALGORAND_CHECKSUM_BYTE_LENGTH] {
+        pub_key_to_checksum(&self.pub_key)
+    }
+}
+
+impl FromStr for Address {
+    type Err = AlgoKitTransactError;
+
     /// Creates a new Address from a base32-encoded string.
     ///
     /// # Parameters
-    /// * `address` - A 58-character base32-encoded Algorand address string
+    /// * `s` - A 58-character base32-encoded Algorand address string
     ///
     /// # Returns
     /// The Address or an error if the string is invalid (wrong length, invalid base32,
     /// invalid format, or checksum mismatch, etc.).
-    pub fn from_string(address: &str) -> Result<Self, AlgoKitTransactError> {
-        if address.len() != ALGORAND_ADDRESS_LENGTH {
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.len() != ALGORAND_ADDRESS_LENGTH {
             return Err(AlgoKitTransactError::InvalidAddress(
                 "address length is not 58".to_string(),
             ));
         }
-        let decoded = base32::decode(base32::Alphabet::Rfc4648 { padding: false }, address)
+        let decoded = base32::decode(base32::Alphabet::Rfc4648 { padding: false }, s)
             .expect("decoded value should exist");
 
         let pub_key: [u8; 32] = decoded[..ALGORAND_PUBLIC_KEY_BYTE_LENGTH]
@@ -82,23 +96,17 @@ impl Address {
 
         Ok(Self { pub_key })
     }
+}
 
-    /// Calculates the 4-byte checksum for this address's public key.
+impl Display for Address {
+    /// Formats the address as a base32-encoded string.
+    ///
+    /// # Parameters
+    /// * `f` - The formatter
     ///
     /// # Returns
-    /// A 4-byte array containing the checksum.
-    pub fn checksum(&self) -> [u8; ALGORAND_CHECKSUM_BYTE_LENGTH] {
-        pub_key_to_checksum(&self.pub_key)
-    }
-
-    /// Converts the Address to its standard base32-encoded string representation.
-    ///
-    /// # Returns
-    /// A string containing the base32-encoded address.
-    // FIXME: Address.address? Is this the right name? Is there a canonical way to convert an
-    // object to a printable human-readable string?
-    // I suppose a related question is how to print the public key.
-    pub fn address(&self) -> String {
+    /// A formatting result with a string containing the base32-encoded address or error
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let mut address_bytes = [0u8; 36]; // 32 bytes pub_key + 4 bytes checksum
 
         address_bytes[..32].copy_from_slice(&self.pub_key);
@@ -106,6 +114,7 @@ impl Address {
         let checksum = self.checksum();
         address_bytes[32..].copy_from_slice(&checksum);
 
-        base32::encode(base32::Alphabet::Rfc4648 { padding: false }, &address_bytes)
+        let result = base32::encode(base32::Alphabet::Rfc4648 { padding: false }, &address_bytes);
+        write!(f, "{}", result)
     }
 }
