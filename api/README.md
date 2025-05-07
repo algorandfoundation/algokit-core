@@ -31,15 +31,13 @@ The converted spec will be available at `specs/algod.oas3.json`.
 Generates TypeScript and Python API clients based on the OpenAPI spec:
 
 ```bash
-bun run generate-algod-clients
-# or
-bun run scripts/generate-algod-clients.ts --target {python|typescript}
+bun run generate:{algod}:{py|ts}
 ```
 
-The generated clients will be available in the `../generated/` directory:
+The generated API clients will be available in the `./packages/` directory:
 
-- `../generated/typescript/` - TypeScript client
-- `../generated/python/` - Python client
+- `./packages/typescript/algod_api/` - algod TypeScript client
+- `./packages/python/algod_api/` - algod Python client
 
 ## OpenAPI Specs for algorand apis
 
@@ -53,14 +51,14 @@ The client generation is configured with the following options:
 
 ### TypeScript Client
 
-- Package name: `@algorandfoundation/algokit-algod-api-ts`
+- Package name: `@algorandfoundation/algokit-algod-api`
 - ES6 support: true
 - Manually refined tsconfig setup to build cjs, esm clients along with browser support.
 - Custom tests defined in `oas_templates/typescript/custom-tests/` that implement tests for initial batch of transaction endpoints. More endpoint tests are to be added in the future.
 
 ### Python Client
 
-- Package name: `algokit_algod_api_py`
+- Package name: `algokit_algod_api`
 - Ignoring various unneeded supporting files like tox.ini, git_push.sh, etc.
 - Various improvements to make auto generated code compatible with poetry and more modern python conventions and practices.
 - Custom tests defined in `oas_templates/python/custom-tests/` that implement tests for initial batch of transaction endpoints. More endpoint tests are to be added in the future.
