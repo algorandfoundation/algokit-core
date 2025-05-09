@@ -54,7 +54,7 @@ jobs:
 
       - working-directory: api
         run: bun install --frozen-lockfile
-      - name: Generate algod clients
+      - name: Generate client
         working-directory: api
         run: bun run generate:${{ inputs.api }}:ts
       - name: Check generated clients have been reviewed

@@ -12,7 +12,9 @@ module.exports = {
     const { language, package_name } = opts;
     const assets = opts.assets || [];
     return {
-      branches: ["release", { name: "main", prerelease: "alpha" }],
+      branches: ["release", { name: "feat/package-api", prerelease: "alpha" }],
+      // TODO: NC - Revert this back after testing
+      // branches: ["release", { name: "main", prerelease: "alpha" }],
       repositoryUrl: "https://github.com/algorandfoundation/algokit-core",
       tagFormat: `${language}/${package_name}` + "@${version}",
       plugins: [
