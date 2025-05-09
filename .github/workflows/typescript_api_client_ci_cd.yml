@@ -1,12 +1,12 @@
-name: TypeScript WASM CI/CD
+name: TypeScript API Client CI/CD
 
 on:
   workflow_call:
     inputs:
-      crate:
+      api:
         required: true
         type: string
-        description: "The name of the crate to build and publish"
+        description: "The name of the api client to build and publish"
       release:
         required: false
         type: boolean
@@ -25,7 +25,7 @@ permissions:
   pull-requests: write # to be able to comment on released pull requests
 
 env:
-  PACKAGE_DIR: packages/typescript/${{ inputs.crate }}
+  PACKAGE_DIR: packages/typescript/${{ inputs.api }}
 
 jobs:
   build_and_test:
@@ -46,15 +46,42 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: 1.85.0
+
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
       - run: bun install --frozen-lockfile
+
+      - working-directory: api
+        run: bun install --frozen-lockfile
+      - name: Generate algod clients
+        working-directory: api
+        run: bun run generate:${{ inputs.api }}:ts
+      - name: Check generated clients have been reviewed
+        shell: bash
+        run: |
+          # Add untracked files as empty so they come up in diff
+          git add -N ${{ env.PACKAGE_DIR }}
+          # Look for changes in generated templates and error if there are any
+          git diff --exit-code --minimal ${{ env.PACKAGE_DIR }}
+
+      - name: Build TypeScript algokit_transact
+        run: bun build:algokit_transact:ts
+
+      - working-directory: ${{ env.PACKAGE_DIR }}
+        run: bun install --frozen-lockfile
       - name: Build
-        run: bun build:${{ inputs.crate }}:ts
+        working-directory: ${{ env.PACKAGE_DIR }}
+        run: bun run build
+
+      - name: Install AlgoKit
+        run: pipx install algokit
+      - name: Start localnet
+        run: algokit localnet start
       - name: Test
         working-directory: ${{ env.PACKAGE_DIR }}
-        run: bun test
+        run: bun run test
+
       - name: Release
         if: inputs.release
         env:

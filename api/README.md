@@ -31,7 +31,7 @@ The converted spec will be available at `specs/algod.oas3.json`.
 Generates TypeScript and Python API clients based on the OpenAPI spec:
 
 ```bash
-bun run generate:{algod}:{py|ts}
+bun run generate:{algod_api}:{py|ts}
 ```
 
 The generated API clients will be available in the `./packages/` directory:

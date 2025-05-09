@@ -1,11 +1,12 @@
 name: API Clients CI
+# TODO: NC - Delete this workflow when done
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "api/**"
-      - ".github/workflows/api_clients_ci.yml"
+  # pull_request:
+  #   branches: [main]
+  #   paths:
+  #     - "api/**"
+  #     - ".github/workflows/api_clients_ci.yml"
   workflow_dispatch:
 
 env:
@@ -28,7 +29,7 @@ jobs:
 
       - name: Generate algod clients
         working-directory: api
-        run: bun run generate:algod:all
+        run: bun run generate:algod_api:all
 
       - name: Check generated clients have been reviewed
         shell: bash
