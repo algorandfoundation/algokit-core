@@ -1,10 +1,8 @@
 const releaseUtils = require("../../../utils/semantic-release.cjs");
 
-const config = releaseUtils.getConfig({
+module.exports = releaseUtils.getConfig({
   language: "python",
-  package_name: "algod_api",
+  packageName: "algod_api",
+  isNative: true,
+  assets: ["../../../artifacts/algokit_algod_api*.whl"],
 });
-
-config.plugins = [...config.plugins, ["@semantic-release/npm", { npmPublish: false }]];
-
-module.exports = config;

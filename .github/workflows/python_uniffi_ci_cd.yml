@@ -28,6 +28,7 @@ env:
   # Python >= 3.8 is needed to support manylinux_x_y tags (unless you want to manually update pip)
   # Python 3.10 was chosen because it is currently the most popular according to https://mayeut.github.io/manylinux-timeline/
   PYTHON_VERSION: "3.10"
+  PACKAGE_DIR: packages/python/${{ inputs.crate }}
 
 jobs:
   get_version:
@@ -38,7 +39,7 @@ jobs:
       version_commit_sha: ${{ steps.set_version_commit_sha.outputs.version_commit_sha }}
     defaults:
       run:
-        working-directory: ./packages/python/${{ inputs.crate }}/
+        working-directory: ${{ env.PACKAGE_DIR }}
     steps:
       - uses: actions/create-github-app-token@v1
         if: inputs.release
@@ -54,17 +55,24 @@ jobs:
         if: inputs.release
         with:
           bun-version: latest
-      - run: cd ../../../ && bun install
+      - working-directory: '.'
+        run: bun install
         if: inputs.release
       - name: Semantic Release (dry-run)
         if: inputs.release
         id: semantic_release
         env:
           GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
-        run: "bun semantic-release --dry-run"
+        run: bun semantic-release --dry-run
+      - name: Convert to Python Version
+        if: steps.semantic_release.outputs.version != ''
+        id: convert_version
+        uses: ./.github/actions/as-python-version
+        with:
+          version: ${{ steps.semantic_release.outputs.version }}
       - name: Update version in pyproject.toml
         if: steps.semantic_release.outputs.version != ''
-        run: sed -i 's/version = .*/version = "${{ steps.semantic_release.outputs.version }}"/' pyproject.toml
+        run: sed -i '0,/version = .*/s//version = "${{ steps.convert_version.outputs.version }}"/' pyproject.toml
       - name: Commit version bump
         if: steps.semantic_release.outputs.version != ''
         env:
@@ -119,27 +127,23 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: "poetry"
-          cache-dependency-path: packages/python/${{ inputs.crate }}/poetry.lock
+          cache-dependency-path: ${{ env.PACKAGE_DIR }}/poetry.lock
 
       - name: Poetry install
-        run: |
-          cd packages/python/${{ inputs.crate }}
-          poetry install --with dev
+        working-directory: ${{ env.PACKAGE_DIR }}
+        run: poetry install --with dev
 
       - name: Build wheel
-        run: |
-          cd packages/python/${{ inputs.crate }}
-          poetry run maturin build --release --features ffi_uniffi
+        working-directory: ${{ env.PACKAGE_DIR }}
+        run: poetry run maturin build --release --features ffi_uniffi
 
       - name: Install wheel
-        run: |
-          cd packages/python/${{ inputs.crate }}
-          poetry run pip install ../../../target/wheels/*.whl --force-reinstall
+        working-directory: ${{ env.PACKAGE_DIR }}
+        run: poetry run pip install ../../../target/wheels/*.whl --force-reinstall
 
       - name: pytest
-        run: |
-          cd packages/python/${{ inputs.crate }}
-          poetry run pytest
+        working-directory: ${{ env.PACKAGE_DIR }}
+        run: poetry run pytest
 
       - name: Upload build artifacts
         if: inputs.release
@@ -219,7 +223,7 @@ jobs:
         env:
           RUN: |
             set -e
-            cd /workspace/packages/python/${{ inputs.crate }}
+            cd /workspace/${{ env.PACKAGE_DIR }}
             poetry env use python${{ env.PYTHON_VERSION }}
             poetry install --with dev
         run: docker exec build-container bash -c "$RUN"
@@ -227,21 +231,21 @@ jobs:
       - name: maturin build
         env:
           RUN: |
-            cd /workspace/packages/python/${{ inputs.crate }}
+            cd /workspace/${{ env.PACKAGE_DIR }}
             poetry run maturin build --release --target ${{ env.TARGET }} --compatibility ${{ env.MANYLINUX }} --features ffi_uniffi
         run: docker exec build-container bash -c "$RUN"
 
       - name: Install wheel
         env:
           RUN: |
-            cd /workspace/packages/python/${{ inputs.crate }}
+            cd /workspace/${{ env.PACKAGE_DIR }}
             poetry run pip install /workspace/target/wheels/*.whl
         run: docker exec build-container bash -c "$RUN"
 
       - name: pytest
         env:
           RUN: |
-            cd /workspace/packages/python/${{ inputs.crate }}
+            cd /workspace/${{ env.PACKAGE_DIR }}
             poetry run pytest
         run: docker exec build-container bash -c "$RUN"
 
@@ -258,11 +262,10 @@ jobs:
       - get_version
       - build_and_test
       - linux_build_and_test
-
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./packages/python/${{ inputs.crate }}/
+        working-directory: ${{ env.PACKAGE_DIR }}
     steps:
       - uses: actions/create-github-app-token@v1
         id: app_token
@@ -284,18 +287,23 @@ jobs:
         with:
           bun-version: latest
 
-      - run: cd ../../../ && bun install
+      - working-directory: '.'
+        run: bun install
 
       - name: Semantic Release
         id: semantic_release
         env:
           GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
-        run: "bun semantic-release"
+        run: bun semantic-release
 
   cleanup:
     if: inputs.release && (failure() || cancelled())
     runs-on: ubuntu-latest
-    needs: [get_version, build_and_test, linux_build_and_test, release]
+    needs:
+      - get_version
+      - build_and_test
+      - linux_build_and_test
+      - release
     steps:
       - uses: actions/create-github-app-token@v1
         id: app_token

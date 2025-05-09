@@ -16,5 +16,8 @@
     "semantic-release": "^24.2.3",
     "semantic-release-gha-output": "^1.1.1",
     "semantic-release-scope-filter": "1.0.0"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   }
 }

@@ -28,7 +28,7 @@ env:
   PACKAGE_DIR: packages/typescript/${{ inputs.api }}
 
 jobs:
-  build_and_test:
+  build_test_release:
     defaults:
       run:
         shell: bash
@@ -52,11 +52,11 @@ jobs:
           bun-version: latest
       - run: bun install --frozen-lockfile
 
-      - working-directory: api
-        run: bun install --frozen-lockfile
-      - name: Generate algod clients
+      - name: Generate client
         working-directory: api
-        run: bun run generate:${{ inputs.api }}:ts
+        run: |
+          bun install --frozen-lockfile
+          bun run generate:${{ inputs.api }}:ts
       - name: Check generated clients have been reviewed
         shell: bash
         run: |
@@ -68,11 +68,11 @@ jobs:
       - name: Build TypeScript algokit_transact
         run: bun build:algokit_transact:ts
 
-      - working-directory: ${{ env.PACKAGE_DIR }}
-        run: bun install --frozen-lockfile
       - name: Build
         working-directory: ${{ env.PACKAGE_DIR }}
-        run: bun run build
+        run: |
+          bun install --frozen-lockfile
+          bun run build
 
       - name: Install AlgoKit
         run: pipx install algokit
@@ -84,6 +84,8 @@ jobs:
 
       - name: Release
         if: inputs.release
+        working-directory: ${{ env.PACKAGE_DIR }}
         env:
           GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
+          NPM_TOKEN: ${{ steps.app_token.outputs.token }}
         run: bun semantic-release

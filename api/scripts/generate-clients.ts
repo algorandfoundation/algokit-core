@@ -41,7 +41,7 @@ if (!existsSync(OUTPUT_DIR)) {
  */
 function prepareOutputDirectory(directory: string) {
   // Remove the directory if it exists
-  const fileIgnoreList = ["release.config.cjs", "bun.lock"];
+  const fileIgnoreList = ["release.config.cjs", "bun.lock", "poetry.lock"];
   if (existsSync(directory)) {
     const files = readdirSync(directory);
     for (const file of files.filter((f) => !fileIgnoreList.includes(f))) {

@@ -28,7 +28,7 @@ env:
   PACKAGE_DIR: packages/typescript/${{ inputs.crate }}
 
 jobs:
-  build_and_test:
+  build_test_release:
     defaults:
       run:
         shell: bash
@@ -57,6 +57,8 @@ jobs:
         run: bun test
       - name: Release
         if: inputs.release
+        working-directory: ${{ env.PACKAGE_DIR }}
         env:
           GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
+          NPM_TOKEN: ${{ steps.app_token.outputs.token }}
         run: bun semantic-release
