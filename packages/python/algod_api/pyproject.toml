@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "algokit_algod_api"
-version = "0.1.0"
+version = "1.0.0a1"
 description = "Algod REST API."
 authors = ["algorand <contact@algorand.com>"]
 license = "NoLicense"
