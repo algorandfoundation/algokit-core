@@ -22,15 +22,11 @@ describe("Payment", () => {
     // Polytest Group: Transaction Tests
 
     test("decode without prefix", () => {
-      expect(decodeTransaction(simplePayment.unsignedBytes.slice(2))).toEqual(
-        simplePayment.transaction
-      );
+      expect(decodeTransaction(simplePayment.unsignedBytes.slice(2))).toEqual(simplePayment.transaction);
     });
 
     test("decode with prefix", () => {
-      expect(decodeTransaction(simplePayment.unsignedBytes)).toEqual(
-        simplePayment.transaction
-      );
+      expect(decodeTransaction(simplePayment.unsignedBytes)).toEqual(simplePayment.transaction);
     });
 
     test("example", async () => {
@@ -38,9 +34,7 @@ describe("Payment", () => {
       const alicePubKey = await ed.getPublicKeyAsync(aliceSk);
       const alice = addressFromPubKey(alicePubKey);
 
-      const bob = addressFromString(
-        "B72WNFFEZ7EOGMQPP7ROHYS3DSLL5JW74QASYNWGZGQXWRPJECJJLJIJ2Y"
-      );
+      const bob = addressFromString("B72WNFFEZ7EOGMQPP7ROHYS3DSLL5JW74QASYNWGZGQXWRPJECJJLJIJ2Y");
 
       const txn: Transaction = {
         transactionType: "Payment",
@@ -62,33 +56,22 @@ describe("Payment", () => {
     });
 
     test("get encoded transaction type", () => {
-      expect(getEncodedTransactionType(simplePayment.unsignedBytes)).toBe(
-        simplePayment.transaction.transactionType
-      );
+      expect(getEncodedTransactionType(simplePayment.unsignedBytes)).toBe(simplePayment.transaction.transactionType);
     });
 
     test("encode with signature", async () => {
-      const sig = await ed.signAsync(
-        simplePayment.unsignedBytes,
-        simplePayment.signingPrivateKey
-      );
+      const sig = await ed.signAsync(simplePayment.unsignedBytes, simplePayment.signingPrivateKey);
       const signedTx = attachSignature(simplePayment.unsignedBytes, sig);
       expect(signedTx).toEqual(simplePayment.signedBytes);
     });
 
     test("encode", () => {
-      expect(encodeTransaction(simplePayment.transaction)).toEqual(
-        simplePayment.unsignedBytes
-      );
+      expect(encodeTransaction(simplePayment.transaction)).toEqual(simplePayment.unsignedBytes);
     });
 
     test("get transaction id", () => {
-      expect(getTransactionRawId(simplePayment.transaction)).toEqual(
-        simplePayment.rawId
-      );
-      expect(getTransactionId(simplePayment.transaction)).toEqual(
-        simplePayment.id
-      );
+      expect(getTransactionRawId(simplePayment.transaction)).toEqual(simplePayment.rawId);
+      expect(getTransactionId(simplePayment.transaction)).toEqual(simplePayment.id);
     });
   });
 });

@@ -19,7 +19,6 @@ jobs:
       - id: set_ffi_packages
         run: echo 'ffi_packages=["algokit_transact"]' >> $GITHUB_OUTPUT
 
-
   typescript_wasm_ci_cd:
     concurrency: ${{ github.event_name == 'push' && format('cd-{0}', github.ref) || format('ci-typescript_wasm-{0}', github.run_id) }}
     needs: setup
@@ -33,7 +32,7 @@ jobs:
     secrets:
       BOT_ID: ${{ secrets.BOT_ID }}
       BOT_SK: ${{ secrets.BOT_SK }}
-  
+
   python_uniffi_ci_cd:
     concurrency: ${{ github.event_name == 'push' && format('cd-{0}', github.ref) || format('ci-python_uniffi-{0}', github.run_id) }}
     needs: setup

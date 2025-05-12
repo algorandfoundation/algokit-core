@@ -33,13 +33,13 @@ function prepareOutputDirectory(directory: string) {
     if (existsSync(directory)) {
         rmSync(directory, { recursive: true, force: true });
     }
-    
+
     // Create a fresh directory
     mkdirSync(directory, { recursive: true });
-    
+
     const gitkeepPath = join(directory, ".gitkeep");
     writeFileSync(gitkeepPath, "");
-    
+
     console.log(`Prepared clean directory: ${directory}`);
 }
 
@@ -99,17 +99,17 @@ function main() {
             prepareOutputDirectory(TYPESCRIPT_OUTPUT);
             generateTypescriptClient();
         }
-        
+
         if (target === 'all' || target === 'python') {
             prepareOutputDirectory(PYTHON_OUTPUT);
             generatePythonClient();
         }
-        
+
         if (target !== 'all' && target !== 'typescript' && target !== 'python') {
             console.error(`Invalid target: ${target}. Valid options are 'typescript', 'python', or 'all'`);
             process.exit(1);
         }
-        
+
         console.log("Client generation completed!");
     } catch (error) {
         console.error("Error generating clients:", error);

@@ -7,7 +7,7 @@ import Testing
 
 // Polytest Group: Generic Transaction Tests
 
-@Test("Generic Transaction: malformed bytes") 
+@Test("Generic Transaction: malformed bytes")
 func genericTransactionMalformedBytes() throws {
     let testData = try loadTestData()
     let simplePayment = testData.simplePayment
@@ -21,7 +21,7 @@ func genericTransactionMalformedBytes() throws {
     }
 }
 
-@Test("Generic Transaction: encode 0 bytes") 
+@Test("Generic Transaction: encode 0 bytes")
 func genericTransactionEncode0Bytes() throws {
     do {
         _ = try decodeTransaction(bytes: Data())

@@ -1,10 +1,10 @@
 # glibc and musl Support
 
-One of the difficulties of shipping binaries is deciding which C standard library versions to support. This document goes over the options and how we might want to decide which versions to support. 
+One of the difficulties of shipping binaries is deciding which C standard library versions to support. This document goes over the options and how we might want to decide which versions to support.
 
 ## musl vs glibc
 
-The main difference between musl and glibc is that glibc includes non-standard gnu-specific features whereas musl only supports POSIX standards. This results in musl being smaller but glibc being more compatible with modern Linux systems. Despite this, musl should still be supported because it is used in size-oriented distros, such as Alpine, which are commonly used in docker containers. 
+The main difference between musl and glibc is that glibc includes non-standard gnu-specific features whereas musl only supports POSIX standards. This results in musl being smaller but glibc being more compatible with modern Linux systems. Despite this, musl should still be supported because it is used in size-oriented distros, such as Alpine, which are commonly used in docker containers.
 
 ## glibc Versions
 

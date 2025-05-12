@@ -46,7 +46,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-      - run: bun install --frozen-lockfile 
+      - run: bun install --frozen-lockfile
       - name: Build
         run: bun scripts/build ${{ inputs.CRATE }} typescript
       - name: Test

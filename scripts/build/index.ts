@@ -17,11 +17,7 @@ export function toPascalCase(string: string): string {
     .join("");
 }
 
-export function run(
-  command: string,
-  cwd: string | null = null,
-  env: Record<string, string> = {},
-): Promise<void> {
+export function run(command: string, cwd: string | null = null, env: Record<string, string> = {}): Promise<void> {
   return new Promise<void>((resolvePromise) => {
     console.log(`Running '${command}'`);
 
@@ -74,9 +70,7 @@ if (positionals.length !== 2) {
 const [crate, language] = positionals;
 
 if (language !== "all" && !Object.keys(languages).includes(language)) {
-  throw new Error(
-    "Language must be one of: all, " + Object.keys(languages).join(", "),
-  );
+  throw new Error("Language must be one of: all, " + Object.keys(languages).join(", "));
 }
 
 if (!crates.includes(crate)) {

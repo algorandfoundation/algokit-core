@@ -76,13 +76,13 @@ The OpenAPI generator uses Mustache templates for code generation. We utilize cu
 OpenAPI Generator looks for templates in the following order (simplified from the [oas generator docs](https://openapi-generator.tech/docs/templating#retrieving-templates)):
 
 ```ascii
-+--------------------------+ (api/oas_templates/{lang}/) 
++--------------------------+ (api/oas_templates/{lang}/)
 | 1. User Lib Path         | (custom/.../libraries/...)
 +------------+-------------+
               | (Not found fetch from next level up)
               v
 +--------------------------+
-| 2. Base Template content 
+| 2. Base Template content
 | and other embedded files | (base template files in oas generators)
 +------------+-------------+
 ```
