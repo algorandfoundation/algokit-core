@@ -23,7 +23,7 @@ serde_bytes = "0.11.15"
 
 tsify-next = { workspace = true, optional = true }
 uniffi = { workspace = true, features = [
-    "scaffolding-ffi-buffer-fns",
+  "scaffolding-ffi-buffer-fns",
 ], optional = true }
 wasm-bindgen = { workspace = true, optional = true }
 pretty_assertions = "1.4.1"
@@ -35,7 +35,7 @@ uniffi = { workspace = true, features = ["bindgen-tests"] }
 
 [build-dependencies]
 uniffi = { workspace = true, features = [
-    "scaffolding-ffi-buffer-fns", # Add the "scaffolding-ffi-buffer-fns" feature to make sure things can build correctly
+  "scaffolding-ffi-buffer-fns", # Add the "scaffolding-ffi-buffer-fns" feature to make sure things can build correctly
 ] }
 algokit_transact = { path = "../algokit_transact", features = ['test_utils'] }
 ffi_macros = { path = "../ffi_macros" }

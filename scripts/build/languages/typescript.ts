@@ -1,11 +1,7 @@
 import { run } from "..";
 import * as fs from "fs";
 
-async function wasmPack(
-  crate: string,
-  target: "web" | "nodejs" | "bundler",
-  cwd: string
-) {
+async function wasmPack(crate: string, target: "web" | "nodejs" | "bundler", cwd: string) {
   const cmd = `npx wasm-pack build --out-dir ../../packages/typescript/algokit_transact/pkg --mode normal --release --target ${target} ../../../crates/${crate}_ffi --no-default-features --features ffi_wasm`;
 
   await run(cmd, cwd, {
@@ -15,11 +11,7 @@ async function wasmPack(
   });
 }
 
-async function build(
-  crate: string,
-  mode: "esm" | "cjs" | "wasm2js",
-  cwd: string
-) {
+async function build(crate: string, mode: "esm" | "cjs" | "wasm2js", cwd: string) {
   switch (mode) {
     case "esm":
       await wasmPack(crate, "web", cwd);
@@ -29,20 +21,14 @@ async function build(
       break;
     case "wasm2js":
       await wasmPack(crate, "bundler", cwd);
-      await run(
-        `npx wasm2js -O pkg/${crate}_ffi_bg.wasm -o pkg/${crate}_ffi_bg.wasm.js`,
-        cwd
-      );
+      await run(`npx wasm2js -O pkg/${crate}_ffi_bg.wasm -o pkg/${crate}_ffi_bg.wasm.js`, cwd);
 
       // Replace references to the wasm file with the wasm2js file
       [".js", "_bg.js"].forEach((ext) => {
         const file = `${cwd}/pkg/${crate}_ffi${ext}`;
         const content = fs.readFileSync(file, "utf-8");
 
-        fs.writeFileSync(
-          file,
-          content.replace(`${crate}_ffi_bg.wasm`, `${crate}_ffi_bg.wasm.js`)
-        );
+        fs.writeFileSync(file, content.replace(`${crate}_ffi_bg.wasm`, `${crate}_ffi_bg.wasm.js`));
       });
 
       // When decoding, rust is passing numbers when it should be BigInt
@@ -50,13 +36,7 @@ async function build(
       const bgJs = `${cwd}/pkg/${crate}_ffi_bg.js`;
       const content = fs.readFileSync(bgJs, "utf-8");
 
-      fs.writeFileSync(
-        bgJs,
-        content.replace(
-          "BigInt.asUintN(64, arg0)",
-          "BigInt.asUintN(64, BigInt(arg0))"
-        )
-      );
+      fs.writeFileSync(bgJs, content.replace("BigInt.asUintN(64, arg0)", "BigInt.asUintN(64, BigInt(arg0))"));
 
       break;
     default:
@@ -88,8 +68,5 @@ export async function buildTypescript(crate: string) {
   await build(crate, "esm", cwd);
   await build(crate, "cjs", cwd);
 
-  fs.copyFileSync(
-    `packages/typescript/${crate}/pkg/${crate}_ffi.d.ts`,
-    `packages/typescript/${crate}/dist/index.d.ts`
-  );
+  fs.copyFileSync(`packages/typescript/${crate}/pkg/${crate}_ffi.d.ts`, `packages/typescript/${crate}/dist/index.d.ts`);
 }

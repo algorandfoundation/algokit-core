@@ -41,7 +41,7 @@ jobs:
           action: none
           platform: macOS
       - name: Install iOS Simulator
-        run: xcodebuild -downloadPlatform iOS 
+        run: xcodebuild -downloadPlatform iOS
       - name: Build
         run: bun scripts/build ${{ env.CRATE }} swift
       # Ideally we'd use a matrix for the platforms, but due to the limitations of Mac runners on GitHub it's probably better to just have a single job with multiple steps

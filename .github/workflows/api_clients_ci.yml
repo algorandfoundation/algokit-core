@@ -2,10 +2,10 @@ name: API Clients CI
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths:
-      - 'api/**'
-      - '.github/workflows/api_clients_ci.yml'
+      - "api/**"
+      - ".github/workflows/api_clients_ci.yml"
   workflow_dispatch:
 
 env:
@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
@@ -29,7 +29,7 @@ jobs:
       - name: Generate TypeScript client
         working-directory: api
         run: bun run scripts/generate-algod-clients.ts --target typescript
-      
+
       - name: Upload TypeScript client
         uses: actions/upload-artifact@v4
         with:
@@ -40,7 +40,7 @@ jobs:
       - name: Generate Python client
         working-directory: api
         run: bun run scripts/generate-algod-clients.ts --target python
-      
+
       - name: Upload Python client
         uses: actions/upload-artifact@v4
         with:
@@ -62,7 +62,7 @@ jobs:
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-      
+
       - name: Download TypeScript client
         uses: actions/download-artifact@v4
         with:
@@ -71,7 +71,7 @@ jobs:
 
       - name: Install AlgoKit
         run: pipx install algokit
-          
+
       - name: Start localnet
         run: algokit localnet start
 
@@ -79,8 +79,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
-          cache-dependency-path: 'api/api_clients/typescript/package.json'
+          cache: "npm"
+          cache-dependency-path: "api/api_clients/typescript/package.json"
 
       - name: Build TypeScript ffi package
         run: bun scripts/build ${{ env.CRATE }} typescript
@@ -100,16 +100,16 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: 1.85.0
-      
+
       - name: Download Python client
         uses: actions/download-artifact@v4
         with:
           name: algokit-algod-api-py
           path: api/api_clients/python
-          
+
       - name: Install AlgoKit
         run: pipx install algokit
-          
+
       - name: Start localnet
         run: algokit localnet start
 
@@ -119,10 +119,10 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
       - name: Test Python client
         working-directory: api/api_clients/python
         run: |
           poetry install
-          poetry run pytest 
+          poetry run pytest
