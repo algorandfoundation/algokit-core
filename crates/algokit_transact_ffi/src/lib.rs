@@ -106,7 +106,7 @@ pub struct Address {
 impl From<algokit_transact::Address> for Address {
     fn from(value: algokit_transact::Address) -> Self {
         return Self {
-            address: value.address(),
+            address: value.to_string(),
             pub_key: value.pub_key.to_vec().into(),
         };
     }
@@ -418,7 +418,7 @@ pub fn address_from_pub_key(pub_key: &[u8]) -> Result<Address, AlgoKitTransactEr
 
 #[ffi_func]
 pub fn address_from_string(address: &str) -> Result<Address, AlgoKitTransactError> {
-    algokit_transact::Address::from_string(address)
+    address.parse::<algokit_transact::Address>()
         .map(Into::into)
         .map_err(|e| AlgoKitTransactError::EncodingError(e.to_string()))
 }
