@@ -1,3 +1,4 @@
+use algokit_transact::constants;
 use algokit_transact::{AlgorandMsgpack, Byte32, TransactionId, ALGORAND_SIGNATURE_BYTE_LENGTH};
 use ffi_macros::{ffi_func, ffi_record};
 use serde::{Deserialize, Serialize};
@@ -440,6 +441,42 @@ pub fn get_transaction_raw_id(tx: &Transaction) -> Result<Vec<u8>, AlgoKitTransa
 pub fn get_transaction_id(tx: &Transaction) -> Result<String, AlgoKitTransactError> {
     let tx_internal: algokit_transact::Transaction = tx.clone().try_into()?;
     Ok(tx_internal.id()?)
+}
+
+#[ffi_func]
+pub fn get_hash_bytes_length() -> u64 {
+    constants::HASH_BYTES_LENGTH.try_into().unwrap()
+}
+
+#[ffi_func]
+pub fn get_algorand_checksum_byte_length() -> u64 {
+    constants::ALGORAND_CHECKSUM_BYTE_LENGTH.try_into().unwrap()
+}
+
+#[ffi_func]
+pub fn get_algorand_address_length() -> u64 {
+    constants::ALGORAND_ADDRESS_LENGTH.try_into().unwrap()
+}
+
+#[ffi_func]
+pub fn get_algorand_public_key_byte_length() -> u64 {
+    constants::ALGORAND_PUBLIC_KEY_BYTE_LENGTH
+        .try_into()
+        .unwrap()
+}
+
+#[ffi_func]
+pub fn get_algorand_secret_key_byte_length() -> u64 {
+    constants::ALGORAND_SECRET_KEY_BYTE_LENGTH
+        .try_into()
+        .unwrap()
+}
+
+#[ffi_func]
+pub fn get_algorand_signature_byte_length() -> u64 {
+    constants::ALGORAND_SIGNATURE_BYTE_LENGTH
+        .try_into()
+        .unwrap()
 }
 
 #[cfg(test)]
