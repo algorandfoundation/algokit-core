@@ -9,7 +9,8 @@ mod utils;
 pub use address::Address;
 pub use constants::{
     Byte32, ALGORAND_ADDRESS_LENGTH, ALGORAND_CHECKSUM_BYTE_LENGTH,
-    ALGORAND_PUBLIC_KEY_BYTE_LENGTH, HASH_BYTES_LENGTH,
+    ALGORAND_PUBLIC_KEY_BYTE_LENGTH, ALGORAND_SECRET_KEY_BYTE_LENGTH,
+    ALGORAND_SIGNATURE_BYTE_LENGTH, HASH_BYTES_LENGTH,
 };
 pub use error::AlgoKitTransactError;
 pub use traits::{AlgorandMsgpack, TransactionId};
