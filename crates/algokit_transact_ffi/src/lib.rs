@@ -407,6 +407,25 @@ pub fn attach_signature(
 }
 
 #[ffi_func]
+/// Return the size of the transaction in bytes as if it was already signed and encoded.
+/// This is useful for estimating the fee for the transaction.
+pub fn estimate_transaction_size(transaction: &Transaction) -> Result<u64, AlgoKitTransactError> {
+    let core_tx: algokit_transact::Transaction = transaction.clone().try_into()?;
+    // We are simulating a signature on this transaction in order to encode it, and get the size
+    //  with which we will be able to estimate the fee.
+    let signed_tx = algokit_transact::SignedTransaction {
+        transaction: core_tx,
+        // Avoiding a zero signature just in case it's compressed or removed in the encoding.
+        signature: [1; 64],
+    };
+    return Ok(signed_tx
+        .encode()?
+        .len()
+        .try_into()
+        .expect("size should fit in u64"));
+}
+
+#[ffi_func]
 pub fn address_from_pub_key(pub_key: &[u8]) -> Result<Address, AlgoKitTransactError> {
     Ok(
         algokit_transact::Address::from_pubkey(pub_key.try_into().map_err(|_| {
