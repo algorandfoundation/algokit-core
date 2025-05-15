@@ -10,7 +10,7 @@ module.exports = {
    * @returns {import('semantic-release').GlobalConfig}
    */
   getConfig: (opts) => {
-    const { language, packageName,  } = opts;
+    const { language, packageName } = opts;
     const assets = opts.assets || [];
     const isNative = opts.isNative || false;
 
