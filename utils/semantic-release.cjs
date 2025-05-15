@@ -34,10 +34,42 @@ module.exports = {
         [
           "@semantic-release/commit-analyzer",
           {
-            preset: "angular",
+            preset: "conventionalcommits",
+            releaseRules: [
+              {
+                type: "build",
+                release: "patch",
+              },
+              {
+                type: "chore",
+                release: "patch",
+              },
+            ],
           },
         ],
-        "@semantic-release/release-notes-generator",
+        [
+          "@semantic-release/release-notes-generator",
+          {
+            preset: "conventionalcommits",
+            presetConfig: {
+              types: [
+                {
+                  type: "feat",
+                  section: "Features",
+                },
+                {
+                  type: "fix",
+                  section: "Bug Fixes",
+                },
+                {
+                  type: "build",
+                  section: "Dependencies and Other Build Updates",
+                  hidden: false,
+                },
+              ],
+            },
+          },
+        ],
         [
           "@semantic-release/github",
           {
