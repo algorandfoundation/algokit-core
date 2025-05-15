@@ -6,6 +6,6 @@ const config = releaseUtils.getConfig({
   isNative: true,
 });
 
-config.plugins = [...config.plugins, ["@semantic-release/npm", { npmPublish: false }]];
+config.plugins = [...config.plugins, ["@semantic-release/npm", { npmPublish: true }]];
 
 module.exports = config;
