@@ -2,6 +2,7 @@ templateDir: oas_templates/python
 additionalProperties:
     packageVersion: "1.0.0a1"
     packageName: algokit_algod_api
+    licenseInfo: MIT
 
 openapiNormalizer:
     SET_TAGS_FOR_ALL_OPERATIONS: Algod
