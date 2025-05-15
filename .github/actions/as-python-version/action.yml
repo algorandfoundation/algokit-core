@@ -1,0 +1,42 @@
+name: Convert to Python Version
+description: Converts a semantic version to Python PEP 440 format
+inputs:
+  version:
+    description: The semantic version to convert
+    required: true
+outputs:
+  version:
+    description: The version in Python PEP 440 format
+    value: ${{ steps.convert_version.outputs.version }}
+runs:
+  using: "composite"
+  steps:
+    - id: convert_version
+      shell: bash
+      run: |
+        NPMVER="${{ inputs.version }}"
+        # Convert common prerelease formats
+        # 1.2.3-alpha.1 -> 1.2.3a1
+        # 1.2.3-beta.2 -> 1.2.3b2
+        # 1.2.3-rc.1 -> 1.2.3rc1
+        if [[ $NPMVER =~ ^([0-9]+\.[0-9]+\.[0-9]+)-([a-z]+)\.([0-9]+)$ ]]; then
+          PREFIX=${BASH_REMATCH[1]}
+          TYPE=${BASH_REMATCH[2]}
+          NUM=${BASH_REMATCH[3]}
+
+          if [[ $TYPE == "alpha" ]]; then
+            PYVER="${PREFIX}a${NUM}"
+          elif [[ $TYPE == "beta" ]]; then
+            PYVER="${PREFIX}b${NUM}"
+          elif [[ $TYPE == "rc" ]]; then
+            PYVER="${PREFIX}rc${NUM}"
+          else
+            # Handle other prerelease designations as dev releases
+            PYVER="${PREFIX}.dev${NUM}"
+          fi
+        else
+          # If it's a simple version like 1.2.3, use as-is
+          PYVER="$NPMVER"
+        fi
+        echo "version=$PYVER" >> $GITHUB_OUTPUT
+
