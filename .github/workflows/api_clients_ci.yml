@@ -26,26 +26,30 @@ jobs:
         working-directory: api
         run: bun install
 
-      - name: Generate TypeScript client
+      - name: Generate algod clients
         working-directory: api
-        run: bun run scripts/generate-algod-clients.ts --target typescript
+        run: bun run generate:algod:all
 
-      - name: Upload TypeScript client
+      - name: Check generated clients have been reviewed
+        shell: bash
+        run: |
+          # Add untracked files as empty so they come up in diff
+          git add -N ./packages/**/algod_api
+          # Look for changes in generated templates and error if there are any
+          git diff --exit-code --minimal ./packages/**/algod_api
+
+      - name: Upload algod TypeScript client
         uses: actions/upload-artifact@v4
         with:
           name: algokit-algod-api-ts
-          path: api/api_clients/typescript
+          path: packages/typescript/algod_api
           retention-days: 1
 
-      - name: Generate Python client
-        working-directory: api
-        run: bun run scripts/generate-algod-clients.ts --target python
-
-      - name: Upload Python client
+      - name: Upload algod Python client
         uses: actions/upload-artifact@v4
         with:
           name: algokit-algod-api-py
-          path: api/api_clients/python
+          path: packages/python/algod_api
           retention-days: 1
 
   algokit-algod-api-ts:
@@ -63,11 +67,11 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Download TypeScript client
+      - name: Download algod TypeScript client
         uses: actions/download-artifact@v4
         with:
           name: algokit-algod-api-ts
-          path: api/api_clients/typescript
+          path: packages/typescript/algod_api
 
       - name: Install AlgoKit
         run: pipx install algokit
@@ -75,21 +79,14 @@ jobs:
       - name: Start localnet
         run: algokit localnet start
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: "npm"
-          cache-dependency-path: "api/api_clients/typescript/package.json"
-
       - name: Build TypeScript ffi package
         run: bun scripts/build ${{ env.CRATE }} typescript
 
-      - name: Test TypeScript client
-        working-directory: api/api_clients/typescript
+      - name: Test algod TypeScript client
+        working-directory: packages/typescript/algod_api
         run: |
-          npm install
-          npm run test
+          bun install
+          bun run test
 
   algokit-algod-api-py:
     needs: setup
@@ -101,11 +98,11 @@ jobs:
         with:
           toolchain: 1.85.0
 
-      - name: Download Python client
+      - name: Download algod Python client
         uses: actions/download-artifact@v4
         with:
           name: algokit-algod-api-py
-          path: api/api_clients/python
+          path: packages/typescript/algod_api
 
       - name: Install AlgoKit
         run: pipx install algokit
@@ -121,8 +118,8 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Test Python client
-        working-directory: api/api_clients/python
+      - name: Test algod Python client
+        working-directory: packages/python/algod_api
         run: |
           poetry install
           poetry run pytest

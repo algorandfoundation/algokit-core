@@ -5,8 +5,11 @@
   "private": true,
   "scripts": {
     "generate": "openapi-generator-cli generate",
-    "generate-algod-clients": "bun run scripts/generate-algod-clients.ts",
-    "convert-openapi": "bun run scripts/convert-openapi.ts"
+    "generate:algod": "bun generate:algod:all",
+    "generate:algod:all": "bun scripts/generate-clients.ts algod all",
+    "generate:algod:ts": "bun scripts/generate-clients.ts algod typescript",
+    "generate:algod:py": "bun scripts/generate-clients.ts algod python",
+    "convert-openapi": "bun scripts/convert-openapi.ts"
   },
   "devDependencies": {
     "@openapitools/openapi-generator-cli": "2.19.1",
