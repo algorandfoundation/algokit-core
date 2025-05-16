@@ -14,7 +14,7 @@ pub use common::{TransactionHeader, TransactionHeaderBuilder};
 use payment::PaymentTransactionBuilderError;
 pub use payment::{PaymentTransactionBuilder, PaymentTransactionFields};
 
-use crate::constants::HASH_BYTES_LENGTH;
+use crate::constants::{ALGORAND_SIGNATURE_ENCODING_INCR, HASH_BYTES_LENGTH};
 use crate::error::AlgoKitTransactError;
 use crate::traits::{AlgorandMsgpack, EstimateTransactionSize, TransactionId};
 use serde::{Deserialize, Serialize};
@@ -61,14 +61,7 @@ impl TransactionId for Transaction {}
 
 impl EstimateTransactionSize for Transaction {
     fn estimate_size(&self) -> Result<usize, AlgoKitTransactError> {
-        // We are simulating a signature on this transaction in order to encode it, and get the size
-        //  with which we will be able to estimate the fee.
-        let signed_tx = SignedTransaction {
-            transaction: self.clone(),
-            // Avoiding a zero signature just in case it's compressed or removed in the encoding.
-            signature: [1; 64],
-        };
-        return Ok(signed_tx.encode()?.len());
+        return Ok(self.encode()?.len() + ALGORAND_SIGNATURE_ENCODING_INCR);
     }
 }
 
