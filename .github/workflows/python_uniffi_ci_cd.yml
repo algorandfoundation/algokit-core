@@ -315,6 +315,7 @@ jobs:
         with:
           ref: ${{ github.ref }}
           fetch-depth: 0
+          token: ${{ steps.app_token.outputs.token }}
       - name: Reset branch
         if: needs.get_version.outputs.version_commit_sha != ''
         env:

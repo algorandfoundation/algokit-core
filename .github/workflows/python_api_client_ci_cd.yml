@@ -39,6 +39,7 @@ jobs:
         working-directory: ${{ env.PACKAGE_DIR }}
     steps:
       - uses: actions/create-github-app-token@v1
+        if: inputs.release
         id: app_token
         with:
           app-id: ${{ secrets.BOT_ID }}
@@ -47,7 +48,9 @@ jobs:
         with:
           ref: ${{ github.ref }}
           token: ${{ steps.app_token.outputs.token }}
+        if: inputs.release
       - uses: oven-sh/setup-bun@v2
+        if: inputs.release
         with:
           bun-version: latest
       - working-directory: "."
@@ -71,6 +74,7 @@ jobs:
         run: |
           sed -i 's/packageVersion: .*/packageVersion: "${{ steps.convert_version.outputs.version }}"/' api/oas_templates/python/openapi-config.yaml
       - working-directory: api
+        if: steps.semantic_release.outputs.version != ''
         run: |
           bun install --frozen-lockfile
           bun run generate:${{ inputs.api }}:py
@@ -217,6 +221,7 @@ jobs:
         with:
           ref: ${{ github.ref }}
           fetch-depth: 0
+          token: ${{ steps.app_token.outputs.token }}
       - name: Reset branch
         if: needs.get_version.outputs.version_commit_sha != ''
         env:
