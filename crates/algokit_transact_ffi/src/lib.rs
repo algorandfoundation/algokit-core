@@ -1,4 +1,5 @@
-use algokit_transact::{AlgorandMsgpack, Byte32, TransactionId};
+use algokit_transact::constants;
+use algokit_transact::{AlgorandMsgpack, Byte32, TransactionId, ALGORAND_SIGNATURE_BYTE_LENGTH};
 use ffi_macros::{ffi_func, ffi_record};
 use serde::{Deserialize, Serialize};
 use serde_bytes::ByteBuf;
@@ -401,7 +402,10 @@ pub fn attach_signature(
     let encoded_tx = algokit_transact::Transaction::decode(encoded_tx)?;
     let signed_tx = algokit_transact::SignedTransaction {
         transaction: encoded_tx,
-        signature: signature.try_into().expect("signature should be 64 bytes"),
+        signature: signature.try_into().expect(&format!(
+            "signature should be {} bytes",
+            ALGORAND_SIGNATURE_BYTE_LENGTH
+        )),
     };
     Ok(signed_tx.encode()?)
 }
@@ -418,7 +422,8 @@ pub fn address_from_pub_key(pub_key: &[u8]) -> Result<Address, AlgoKitTransactEr
 
 #[ffi_func]
 pub fn address_from_string(address: &str) -> Result<Address, AlgoKitTransactError> {
-    address.parse::<algokit_transact::Address>()
+    address
+        .parse::<algokit_transact::Address>()
         .map(Into::into)
         .map_err(|e| AlgoKitTransactError::EncodingError(e.to_string()))
 }
@@ -436,6 +441,42 @@ pub fn get_transaction_raw_id(tx: &Transaction) -> Result<Vec<u8>, AlgoKitTransa
 pub fn get_transaction_id(tx: &Transaction) -> Result<String, AlgoKitTransactError> {
     let tx_internal: algokit_transact::Transaction = tx.clone().try_into()?;
     Ok(tx_internal.id()?)
+}
+
+#[ffi_func]
+pub fn get_hash_bytes_length() -> u64 {
+    constants::HASH_BYTES_LENGTH.try_into().unwrap()
+}
+
+#[ffi_func]
+pub fn get_algorand_checksum_byte_length() -> u64 {
+    constants::ALGORAND_CHECKSUM_BYTE_LENGTH.try_into().unwrap()
+}
+
+#[ffi_func]
+pub fn get_algorand_address_length() -> u64 {
+    constants::ALGORAND_ADDRESS_LENGTH.try_into().unwrap()
+}
+
+#[ffi_func]
+pub fn get_algorand_public_key_byte_length() -> u64 {
+    constants::ALGORAND_PUBLIC_KEY_BYTE_LENGTH
+        .try_into()
+        .unwrap()
+}
+
+#[ffi_func]
+pub fn get_algorand_secret_key_byte_length() -> u64 {
+    constants::ALGORAND_SECRET_KEY_BYTE_LENGTH
+        .try_into()
+        .unwrap()
+}
+
+#[ffi_func]
+pub fn get_algorand_signature_byte_length() -> u64 {
+    constants::ALGORAND_SIGNATURE_BYTE_LENGTH
+        .try_into()
+        .unwrap()
 }
 
 #[cfg(test)]
