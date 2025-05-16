@@ -58,7 +58,7 @@ pub trait AlgorandMsgpack: Serialize + for<'de> Deserialize<'de> {
     /// * `bytes` - The MessagePack encoded bytes
     ///
     /// # Returns
-    /// The decoded instance or an AlgoKitTransactError if the input is empty or 
+    /// The decoded instance or an AlgoKitTransactError if the input is empty or
     /// deserialization fails.
     fn decode(bytes: &[u8]) -> Result<Self, AlgoKitTransactError> {
         if bytes.is_empty() {
@@ -84,7 +84,7 @@ pub trait AlgorandMsgpack: Serialize + for<'de> Deserialize<'de> {
     ///
     /// This method performs canonical encoding and prepends the domain separation
     /// prefix defined by the PREFIX constant.
-    /// 
+    ///
     /// Use `encode_raw()` if you want to encode without the prefix.
     ///
     /// # Returns
@@ -139,4 +139,8 @@ pub trait TransactionId: AlgorandMsgpack {
             &hash,
         ))
     }
+}
+
+pub trait EstimateTransactionSize: AlgorandMsgpack {
+    fn estimate_size(&self) -> Result<usize, AlgoKitTransactError>;
 }
