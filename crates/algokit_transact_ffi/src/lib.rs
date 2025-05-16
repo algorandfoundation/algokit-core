@@ -1,4 +1,4 @@
-use algokit_transact::{AlgorandMsgpack, Byte32, TransactionId};
+use algokit_transact::{AlgorandMsgpack, Byte32, EstimateTransactionSize, TransactionId};
 use ffi_macros::{ffi_func, ffi_record};
 use serde::{Deserialize, Serialize};
 use serde_bytes::ByteBuf;
@@ -407,6 +407,25 @@ pub fn attach_signature(
 }
 
 #[ffi_func]
+/// Return the size of the transaction in bytes as if it was already signed and encoded.
+/// This is useful for estimating the fee for the transaction.
+pub fn estimate_transaction_size(transaction: &Transaction) -> Result<u64, AlgoKitTransactError> {
+    let core_tx: algokit_transact::Transaction = transaction.clone().try_into()?;
+    return core_tx
+        .estimate_size()
+        .map_err(|e| {
+            AlgoKitTransactError::EncodingError(format!(
+                "Failed to estimate transaction size: {}",
+                e
+            ))
+        })?
+        .try_into()
+        .map_err(|_| {
+            AlgoKitTransactError::EncodingError("Failed to convert size to u64".to_string())
+        });
+}
+
+#[ffi_func]
 pub fn address_from_pub_key(pub_key: &[u8]) -> Result<Address, AlgoKitTransactError> {
     Ok(
         algokit_transact::Address::from_pubkey(pub_key.try_into().map_err(|_| {
@@ -418,7 +437,8 @@ pub fn address_from_pub_key(pub_key: &[u8]) -> Result<Address, AlgoKitTransactEr
 
 #[ffi_func]
 pub fn address_from_string(address: &str) -> Result<Address, AlgoKitTransactError> {
-    address.parse::<algokit_transact::Address>()
+    address
+        .parse::<algokit_transact::Address>()
         .map(Into::into)
         .map_err(|e| AlgoKitTransactError::EncodingError(e.to_string()))
 }

@@ -12,7 +12,7 @@ pub use constants::{
     ALGORAND_PUBLIC_KEY_BYTE_LENGTH, HASH_BYTES_LENGTH,
 };
 pub use error::AlgoKitTransactError;
-pub use traits::{AlgorandMsgpack, TransactionId};
+pub use traits::{AlgorandMsgpack, EstimateTransactionSize, TransactionId};
 pub use transactions::{
     AssetTransferTransactionBuilder, AssetTransferTransactionFields, PaymentTransactionBuilder,
     PaymentTransactionFields, SignedTransaction, Transaction, TransactionHeader,
