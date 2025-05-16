@@ -13,6 +13,7 @@
   "dependencies": {
     "@actions/core": "^1.11.1",
     "@semantic-release/changelog": "^6.0.3",
+    "conventional-changelog-conventionalcommits": "^8.0.0",
     "semantic-release": "^24.2.3",
     "semantic-release-gha-output": "^1.1.1",
     "semantic-release-scope-filter": "1.0.0"
