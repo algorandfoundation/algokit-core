@@ -39,7 +39,6 @@ jobs:
         working-directory: ${{ env.PACKAGE_DIR }}
     steps:
       - uses: actions/create-github-app-token@v1
-        if: inputs.release
         id: app_token
         with:
           app-id: ${{ secrets.BOT_ID }}
