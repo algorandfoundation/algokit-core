@@ -23,6 +23,9 @@ from algosdk.transaction import SignedTransaction
 
 from algokit_algod_api.api.algod_api import AlgodApi
 from algokit_algod_api.exceptions import ApiException
+from algokit_algod_api.models.simulate_request import SimulateRequest
+from algokit_algod_api.models.simulate_request_transaction_group import SimulateRequestTransactionGroup
+from algokit_algod_api.models.simulate_trace_config import SimulateTraceConfig
 from algokit_algod_api.models.transaction_params200_response import TransactionParams200Response
 from algokit_transact import (
     encode_transaction,
@@ -199,6 +202,49 @@ class TestTransactionAPI:
             assert "confirmed-round" in response_dict
             assert "pool-error" in response_dict
             
+        except ApiException as e:
+            handle_api_exception(e)
+        except Exception as e:
+            pytest.fail(f"Exception when calling AlgodApi->pending_transaction_information: {e}")
+
+    def test_simulate_transaction(
+        self,
+        bob: SigningAccount,
+        algod_instance: AlgodApi,
+        headers: Dict[str, str],
+        transaction_params: TransactionParams200Response,
+    ) -> None:
+        """Test case for PendingTransactions"""
+        try:
+            signed_txn = create_test_transaction(bob, bob, transaction_params)
+
+            empty_txn_group = SimulateRequestTransactionGroup(txns=[base64.b64encode(signed_txn).decode()])
+            # Use unpacked dict with correct field names (with hyphens)
+            trace_config = SimulateTraceConfig(
+                enable=True,
+                **{"stack-change": True, "state-change": True, "scratch-change": True}
+            )
+
+            request = SimulateRequest.from_dict(
+                {
+                    "allow-empty-signatures": True,
+                    "allow-more-logging": True,
+                    "allow-unnamed-resources": True,
+                    "txn-groups": [empty_txn_group],
+                    "exec-trace-config": trace_config
+                }
+            )
+
+            assert request is not None
+
+            response = algod_instance.simulate_transaction(
+                request=request,
+                format="json",
+                _content_type="application/msgpack",
+                _headers=headers
+            )
+
+            assert response is not None
         except ApiException as e:
             handle_api_exception(e)
         except Exception as e:
