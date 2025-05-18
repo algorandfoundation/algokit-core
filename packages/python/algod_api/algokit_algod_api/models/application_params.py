@@ -17,6 +17,20 @@ from __future__ import annotations
 import pprint
 import re  # noqa: F401
 import json
+# Optional support for Algorand compact MessagePack via the `algokit_msgpack`
+# Python bindings (built from the Rust crate). We do the import lazily so that
+# the generated client can still function even if the optional binary wheel is
+# not available on the target platform.
+try:
+    from algokit_msgpack import (
+        encode_json_to_msgpack_ffi as _ak_encode_msgpack,
+        decode_msgpack_to_json_ffi as _ak_decode_msgpack,
+        ModelType as _AkModelType,
+    )
+except ModuleNotFoundError:  # pragma: no cover – optional dependency
+    _ak_encode_msgpack = None  # type: ignore
+    _ak_decode_msgpack = None  # type: ignore
+    _AkModelType = None  # type: ignore
 
 from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, List, Optional, Union
@@ -126,5 +140,60 @@ class ApplicationParams(BaseModel):
             "global-state": [TealKeyValue.from_dict(_item) for _item in obj["global-state"]] if obj.get("global-state") is not None else None
         })
         return _obj
+
+    def to_msgpack(self) -> bytes:  # pragma: no cover – thin wrapper
+        """Return the compact Algorand MessagePack representation of this model.
+
+        Requires the optional ``algokit_msgpack`` binary package to be
+        installed. If the model is not one of the types supported by that
+        package (for example *SimulateRequest* or *SimulateTransaction200Response*)
+        a :class:`NotImplementedError` is raised.
+        """
+        if _ak_encode_msgpack is None or _AkModelType is None:
+            raise RuntimeError(
+                "algokit_msgpack is not available — install the extra binary wheel "
+                "to use MessagePack helpers"
+            )
+
+        try:
+            model_type = _AkModelType[self.__class__.__name__]
+        except KeyError as exc:  # pragma: no cover
+            # Fallback: convert CamelCase -> UPPER_SNAKE_CASE (SimulateRequest -> SIMULATE_REQUEST)
+            variant_name = re.sub(r'(?<!^)(?=[A-Z])', '_', self.__class__.__name__).upper()
+            try:
+                model_type = _AkModelType[variant_name]
+            except KeyError as exc:  # pragma: no cover
+                raise NotImplementedError(
+                    f"Model {self.__class__.__name__} ({variant_name}) is not supported by algokit_msgpack"
+                ) from exc
+
+        return _ak_encode_msgpack(model_type, self.to_json())  # type: ignore[arg-type]
+
+    @classmethod
+    def from_msgpack(cls, data: bytes) -> "Self":  # pragma: no cover – thin wrapper
+        """Create a new instance from Algorand MessagePack *data*.
+
+        The inverse of :pymeth:`to_msgpack`. Requires
+        ``algokit_msgpack`` to be importable.
+        """
+        if _ak_decode_msgpack is None or _AkModelType is None:
+            raise RuntimeError(
+                "algokit_msgpack is not available — install the extra binary wheel "
+                "to use MessagePack helpers"
+            )
+
+        try:
+            model_type = _AkModelType[cls.__name__]
+        except KeyError as exc:  # pragma: no cover
+            variant_name = re.sub(r'(?<!^)(?=[A-Z])', '_', cls.__name__).upper()
+            try:
+                model_type = _AkModelType[variant_name]
+            except KeyError as exc:  # pragma: no cover
+                raise NotImplementedError(
+                    f"Model {cls.__name__} ({variant_name}) is not supported by algokit_msgpack"
+                ) from exc
+
+        json_str = _ak_decode_msgpack(model_type, data)  # type: ignore[arg-type]
+        return cls.from_json(json_str)
 
 
