@@ -3,6 +3,8 @@ resolver = "2"
 members = [
   "crates/algokit_transact",
   "crates/algokit_transact_ffi",
+  "crates/algokit_msgpack",
+  "crates/algokit_msgpack_ffi",
   "crates/ffi_macros",
   "crates/uniffi-bindgen",
   "tools/cargo-bin",
