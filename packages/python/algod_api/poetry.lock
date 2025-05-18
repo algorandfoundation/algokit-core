@@ -5,6 +5,26 @@ name = "algokit-transact"
 version = "1.0.0a8"
 description = ""
 optional = false
+python-versions = ">=3.7"
+groups = ["main"]
+files = []
+develop = false
+
+[package.dependencies]
+pynacl = ">=1.5.0"
+
+[package.extras]
+dev = ["maturin (>=1.8.2) ; platform_system != \"Linux\"", "maturin[patchelf] (>=1.8.2) ; platform_system == \"Linux\"", "pynacl (>=1.5.0)", "pytest (>=7.4.4)"]
+
+[package.source]
+type = "directory"
+url = "../algokit_msgpack"
+
+[[package]]
+name = "algokit-transact"
+version = "1.0.0a3"
+description = ""
+optional = false
 python-versions = ">=3.8,<4.0"
 groups = ["test"]
 files = []
@@ -86,7 +106,7 @@ version = "1.17.1"
 description = "Foreign Function Interface for Python calling C code."
 optional = false
 python-versions = ">=3.8"
-groups = ["test"]
+groups = ["main", "test"]
 files = [
     {file = "cffi-1.17.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:df8b1c11f177bc2313ec4b2d46baec87a5f3e71fc8b45dab2ee7cae86d9aba14"},
     {file = "cffi-1.17.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:8f2cdc858323644ab277e9bb925ad72ae0e67f69e804f4898c070998d50b1a67"},
@@ -544,7 +564,7 @@ version = "2.22"
 description = "C parser in Python"
 optional = false
 python-versions = ">=3.8"
-groups = ["test"]
+groups = ["main", "test"]
 files = [
     {file = "pycparser-2.22-py3-none-any.whl", hash = "sha256:c3702b6d3dd8c7abc1afa565d7e63d53a1d0bd86cdc24edd75470f4de499cfcc"},
     {file = "pycparser-2.22.tar.gz", hash = "sha256:491c8be9c040f5390f5bf44a5b07752bd07f56edf992381b05c701439eec10f6"},
@@ -729,7 +749,7 @@ version = "1.5.0"
 description = "Python binding to the Networking and Cryptography (NaCl) library"
 optional = false
 python-versions = ">=3.6"
-groups = ["test"]
+groups = ["main", "test"]
 files = [
     {file = "PyNaCl-1.5.0-cp36-abi3-macosx_10_10_universal2.whl", hash = "sha256:401002a4aaa07c9414132aaed7f6836ff98f59277a234704ff66878c2ee4a0d1"},
     {file = "PyNaCl-1.5.0-cp36-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_24_aarch64.whl", hash = "sha256:52cb72a79269189d4e0dc537556f4740f7f0a9ec41c1322598799b0bdad4ef92"},
@@ -1034,4 +1054,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<4.0"
-content-hash = "c56b64e2ba92685e234630e757c518f5d6285ac258655c85d2b883f842d16df1"
+content-hash = "098e80d5abb6e9a4c0276deede1e4390f5f2453e9dcfbaa98a6862714cc00abf"
