@@ -14,9 +14,9 @@ pub use common::{TransactionHeader, TransactionHeaderBuilder};
 use payment::PaymentTransactionBuilderError;
 pub use payment::{PaymentTransactionBuilder, PaymentTransactionFields};
 
-use crate::constants::{ALGORAND_SIGNATURE_BYTE_LENGTH, HASH_BYTES_LENGTH};
+use crate::constants::{ALGORAND_SIGNATURE_ENCODING_INCR, ALGORAND_SIGNATURE_BYTE_LENGTH, HASH_BYTES_LENGTH};
 use crate::error::AlgoKitTransactError;
-use crate::traits::{AlgorandMsgpack, TransactionId};
+use crate::traits::{AlgorandMsgpack, EstimateTransactionSize, TransactionId};
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, Bytes};
 use std::any::Any;
@@ -58,6 +58,12 @@ impl AssetTransferTransactionBuilder {
 
 impl AlgorandMsgpack for Transaction {}
 impl TransactionId for Transaction {}
+
+impl EstimateTransactionSize for Transaction {
+    fn estimate_size(&self) -> Result<usize, AlgoKitTransactError> {
+        return Ok(self.encode_raw()?.len() + ALGORAND_SIGNATURE_ENCODING_INCR);
+    }
+}
 
 /// A signed transaction.
 #[serde_as]
@@ -125,5 +131,11 @@ impl TransactionId for SignedTransaction {
     /// The transaction ID as a byte array or an error if generation fails.
     fn raw_id(&self) -> Result<[u8; HASH_BYTES_LENGTH], AlgoKitTransactError> {
         self.transaction.raw_id()
+    }
+}
+
+impl EstimateTransactionSize for SignedTransaction {
+    fn estimate_size(&self) -> Result<usize, AlgoKitTransactError> {
+        return Ok(self.encode()?.len());
     }
 }

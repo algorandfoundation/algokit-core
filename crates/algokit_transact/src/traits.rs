@@ -140,3 +140,7 @@ pub trait TransactionId: AlgorandMsgpack {
         ))
     }
 }
+
+pub trait EstimateTransactionSize: AlgorandMsgpack {
+    fn estimate_size(&self) -> Result<usize, AlgoKitTransactError>;
+}

@@ -1,11 +1,13 @@
-[tool.poetry]
+[project]
 name = "{{{packageName}}}"
 version = "{{{packageVersion}}}"
+
+[tool.poetry]
 description = "{{{appName}}}"
 authors = ["{{infoName}}{{^infoName}}OpenAPI Generator Community{{/infoName}} <{{infoEmail}}{{^infoEmail}}team@openapitools.org{{/infoEmail}}>"]
 license = "{{{licenseInfo}}}{{^licenseInfo}}NoLicense{{/licenseInfo}}"
 readme = "README.md"
-repository = "https://{{{gitHost}}}/{{{gitUserId}}}/{{{gitRepoId}}}"
+repository = "https://github.com/algorandfoundation/algokit-core"
 keywords = ["OpenAPI", "OpenAPI-Generator", "{{{appName}}}"]
 include = ["{{packageName}}/py.typed"]
 

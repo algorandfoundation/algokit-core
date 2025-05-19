@@ -1,7 +1,7 @@
 templateDir: oas_templates/typescript
 additionalProperties:
     npmVersion: 0.0.1
-    npmName: "@algorandfoundation/algokit-algod-api-ts"
+    npmName: "@algorandfoundation/algokit-algod-api"
     supportsES6: true
     useRxJS: false
     platform: browser

@@ -1,5 +1,5 @@
 use algokit_transact::constants;
-use algokit_transact::{AlgorandMsgpack, Byte32, TransactionId, ALGORAND_SIGNATURE_BYTE_LENGTH};
+use algokit_transact::{AlgorandMsgpack, Byte32, EstimateTransactionSize, TransactionId, ALGORAND_SIGNATURE_BYTE_LENGTH};
 use ffi_macros::{ffi_func, ffi_record};
 use serde::{Deserialize, Serialize};
 use serde_bytes::ByteBuf;
@@ -408,6 +408,25 @@ pub fn attach_signature(
         )),
     };
     Ok(signed_tx.encode()?)
+}
+
+#[ffi_func]
+/// Return the size of the transaction in bytes as if it was already signed and encoded.
+/// This is useful for estimating the fee for the transaction.
+pub fn estimate_transaction_size(transaction: &Transaction) -> Result<u64, AlgoKitTransactError> {
+    let core_tx: algokit_transact::Transaction = transaction.clone().try_into()?;
+    return core_tx
+        .estimate_size()
+        .map_err(|e| {
+            AlgoKitTransactError::EncodingError(format!(
+                "Failed to estimate transaction size: {}",
+                e
+            ))
+        })?
+        .try_into()
+        .map_err(|_| {
+            AlgoKitTransactError::EncodingError("Failed to convert size to u64".to_string())
+        });
 }
 
 #[ffi_func]
