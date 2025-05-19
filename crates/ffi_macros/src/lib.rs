@@ -3,7 +3,7 @@
 use convert_case::{Case, Casing};
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
-use syn::{parse_macro_input, Field, Fields, ItemFn, ItemStruct, Type, TypePath};
+use syn::{parse_macro_input, Field, Fields, ItemEnum, ItemFn, ItemStruct, Type, TypePath};
 
 #[proc_macro_attribute]
 pub fn ffi_func(_attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -50,6 +50,30 @@ pub fn ffi_record(_attr: TokenStream, item: TokenStream) -> TokenStream {
     // Combine original attributes with new ones
     let combined = quote! {
         #struct_attrs
+        #input
+    };
+
+    combined.into()
+}
+
+#[proc_macro_attribute]
+pub fn ffi_enum(_attr: TokenStream, item: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(item as ItemEnum);
+
+    let enum_attrs = quote! {
+        #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+        #[cfg_attr(feature = "ffi_wasm", derive(Tsify))]
+        #[cfg_attr(
+            feature = "ffi_wasm",
+            tsify(into_wasm_abi, from_wasm_abi, large_number_types_as_bigints)
+        )]
+        #[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
+        #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Enum))]
+    };
+
+    // Combine original attributes with new ones
+    let combined = quote! {
+        #enum_attrs
         #input
     };
 

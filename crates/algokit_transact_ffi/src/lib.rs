@@ -1,6 +1,6 @@
 use algokit_transact::constants::*;
 use algokit_transact::{AlgorandMsgpack, Byte32, EstimateTransactionSize, TransactionId};
-use ffi_macros::{ffi_func, ffi_record};
+use ffi_macros::{ffi_enum, ffi_func, ffi_record};
 use serde::{Deserialize, Serialize};
 use serde_bytes::ByteBuf;
 
@@ -476,7 +476,7 @@ pub fn get_transaction_id(tx: &Transaction) -> Result<String, AlgoKitTransactErr
 }
 
 /// Enum containing all constants used in this crate.
-#[derive(uniffi::Enum, Debug, Clone, Copy, PartialEq, Eq)]
+#[ffi_enum]
 pub enum AlgorandConstant {
     /// Length of hash digests (32)
     HashLength,
