@@ -61,7 +61,7 @@ impl TransactionId for Transaction {}
 
 impl EstimateTransactionSize for Transaction {
     fn estimate_size(&self) -> Result<usize, AlgoKitTransactError> {
-        return Ok(self.encode()?.len() + ALGORAND_SIGNATURE_ENCODING_INCR);
+        return Ok(self.encode_raw()?.len() + ALGORAND_SIGNATURE_ENCODING_INCR);
     }
 }
 
