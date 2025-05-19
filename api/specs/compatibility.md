@@ -55,3 +55,23 @@
 | GET /v2/experimental                                     | ❌               | N/A           | ✅            | N/A        |
 | GET /v2/devmode/blocks/offset                            | ❌               | N/A           | ✅            | N/A        |
 | POST /v2/devmode/blocks/offset/{offset}                  | ❌               | N/A           | ✅            | N/A        |
+
+| Abstraction                         | Supports msgpack Encoding | Supports msgpack Decoding |
+| ----------------------------------- | ------------------------- | ------------------------- |
+| Account                             | No                        | Yes                       |
+| AccountAssetResponse                | No                        | Yes                       |
+| AccountApplicationResponse          | No                        | Yes                       |
+| AssetHolding                        | No                        | Yes                       |
+| ApplicationLocalState               | No                        | Yes                       |
+| BlockResponse                       | No                        | Yes                       |
+| PendingTransactions                 | No                        | Yes                       |
+| PendingTransactionResponse          | No                        | Yes                       |
+| LedgerStateDelta                    | No                        | Yes                       |
+| LedgerStateDeltaForTransactionGroup | No                        | Yes                       |
+| SimulateRequest                     | Yes                       | No                        |
+| SimulateResponse                    | No                        | Yes                       |
+| DryrunRequest                       | Yes                       | No                        |
+| DryrunResponse                      | No                        | Yes                       |
+| ErrorResponse                       | No                        | Yes                       |
+
+This table shows that while many abstractions in the Algorand API support msgpack decoding (receiving msgpack from the API), only two abstractions - SimulateRequest and DryrunRequest - support msgpack encoding (sending msgpack to the API).
