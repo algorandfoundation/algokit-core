@@ -1,22 +1,30 @@
 {
   "description": "This package.json contains the workspaces for scripts and the dependencies for semantic-release",
   "workspaces": [
-    "scripts/build"
+    "scripts/build",
+    "api"
   ],
   "type": "module",
   "scripts": {
     "build:algokit_transact:py": "bun scripts/build algokit_transact python",
     "build:algokit_transact:swift": "bun scripts/build algokit_transact swift",
     "build:algokit_transact:ts": "bun scripts/build algokit_transact typescript",
-    "build:algokit_transact:all": "bun scripts/build algokit_transact all"
+    "build:algokit_transact:all": "bun scripts/build algokit_transact all",
+    "build:algokit_msgpack:ts": "bun scripts/build algokit_msgpack typescript",
+    "build:algokit_msgpack:py": "bun scripts/build algokit_msgpack python",
+    "build:algokit_msgpack:all": "bun scripts/build algokit_msgpack all",
+    "build:algod_api:ts": "bun run --filter api generate:algod_api:ts",
+    "build:algod_api:py": "bun run --filter api generate:algod_api:py",
+    "build:algod_api:all": "bun run --filter api generate:algod_api:all",
+    "build:all": "bun scripts/build algokit_transact all && bun scripts/build algokit_msgpack all && bun run --filter api generate:algod_api:all"
   },
   "dependencies": {
     "@actions/core": "^1.11.1",
     "@semantic-release/changelog": "^6.0.3",
     "conventional-changelog-conventionalcommits": "^8.0.0",
     "ms": "^2.1.3",
-    "semantic-release": "^24.2.3",
-    "semantic-release-gha-output": "^1.1.1",
+    "semantic-release": "^24.2.4",
+    "semantic-release-gha-output": "^1.1.2",
     "semantic-release-scope-filter": "1.0.0"
   }
 }
