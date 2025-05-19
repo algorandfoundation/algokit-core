@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "strict": true,
+    "rootDir": ".",
     /* Basic Options */
     "target": "es6",
     "module": "ESNext",

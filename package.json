@@ -1,7 +1,17 @@
 {
   "description": "This package.json contains the dependencies for semantic-release and serving the docs",
+  "workspaces": [
+    "api"
+  ],
   "type": "module",
   "scripts": {
+    "build:algokit_msgpack:ts": "bun scripts/build algokit_msgpack typescript",
+    "build:algokit_msgpack:py": "bun scripts/build algokit_msgpack python",
+    "build:algokit_msgpack:all": "bun scripts/build algokit_msgpack all",
+    "build:algod_api:ts": "bun run --filter api generate:algod_api:ts",
+    "build:algod_api:py": "bun run --filter api generate:algod_api:py",
+    "build:algod_api:all": "bun run --filter api generate:algod_api:all",
+    "build:all": "bun scripts/build algokit_transact all && bun scripts/build algokit_msgpack all && bun run --filter api generate:algod_api:all",
     "docs:build": "cargo run --bin build-docs --manifest-path docs/Cargo.toml",
     "docs:serve": "bunx serve target/doc -p 8000",
     "docs:dev": "bun run docs:build && bun run docs:serve"
