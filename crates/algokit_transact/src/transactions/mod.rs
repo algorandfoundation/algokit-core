@@ -14,7 +14,9 @@ pub use common::{TransactionHeader, TransactionHeaderBuilder};
 use payment::PaymentTransactionBuilderError;
 pub use payment::{PaymentTransactionBuilder, PaymentTransactionFields};
 
-use crate::constants::{ALGORAND_SIGNATURE_ENCODING_INCR, ALGORAND_SIGNATURE_BYTE_LENGTH, HASH_BYTES_LENGTH};
+use crate::constants::{
+    ALGORAND_SIGNATURE_BYTE_LENGTH, ALGORAND_SIGNATURE_ENCODING_INCR, HASH_BYTES_LENGTH,
+};
 use crate::error::AlgoKitTransactError;
 use crate::traits::{AlgorandMsgpack, EstimateTransactionSize, TransactionId};
 use serde::{Deserialize, Serialize};
