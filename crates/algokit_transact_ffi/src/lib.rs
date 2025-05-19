@@ -1,7 +1,5 @@
-use algokit_transact::{constants, ALGORAND_PUBLIC_KEY_BYTE_LENGTH};
-use algokit_transact::{
-    AlgorandMsgpack, Byte32, EstimateTransactionSize, TransactionId, ALGORAND_SIGNATURE_BYTE_LENGTH,
-};
+use algokit_transact::constants::*;
+use algokit_transact::{AlgorandMsgpack, Byte32, EstimateTransactionSize, TransactionId};
 use ffi_macros::{ffi_func, ffi_record};
 use serde::{Deserialize, Serialize};
 use serde_bytes::ByteBuf;
@@ -477,47 +475,51 @@ pub fn get_transaction_id(tx: &Transaction) -> Result<String, AlgoKitTransactErr
     Ok(tx_internal.id()?)
 }
 
-#[ffi_func]
-pub fn get_hash_bytes_length() -> u64 {
-    constants::HASH_BYTES_LENGTH.try_into().unwrap()
+/// Enum containing all constants used in this crate.
+#[derive(uniffi::Enum, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AlgorandConstant {
+    /// Length of hash digests (32)
+    HashLength,
+
+    /// Length of the checksum used in Algorand addresses (4)
+    ChecksumLength,
+
+    /// Length of a base32-encoded Algorand address (58)
+    AddressLength,
+
+    /// Length of an Algorand public key in bytes (32)
+    PublicKeyLength,
+
+    /// Length of an Algorand secret key in bytes (32)
+    SecretKeyLength,
+
+    /// Length of an Algorand signature in bytes (64)
+    SignatureLength,
+
+    /// Increment in the encoded byte size when a signature is attached to a transaction (75)
+    SignatureEncodingIncrLength,
+}
+
+impl AlgorandConstant {
+    /// Get the numeric value of the constant
+    pub fn value(&self) -> u64 {
+        match self {
+            AlgorandConstant::HashLength => HASH_BYTES_LENGTH as u64,
+            AlgorandConstant::ChecksumLength => ALGORAND_CHECKSUM_BYTE_LENGTH as u64,
+            AlgorandConstant::AddressLength => ALGORAND_ADDRESS_LENGTH as u64,
+            AlgorandConstant::PublicKeyLength => ALGORAND_PUBLIC_KEY_BYTE_LENGTH as u64,
+            AlgorandConstant::SecretKeyLength => ALGORAND_SECRET_KEY_BYTE_LENGTH as u64,
+            AlgorandConstant::SignatureLength => ALGORAND_SIGNATURE_BYTE_LENGTH as u64,
+            AlgorandConstant::SignatureEncodingIncrLength => {
+                ALGORAND_SIGNATURE_ENCODING_INCR as u64
+            }
+        }
+    }
 }
 
 #[ffi_func]
-pub fn get_algorand_checksum_byte_length() -> u64 {
-    constants::ALGORAND_CHECKSUM_BYTE_LENGTH.try_into().unwrap()
-}
-
-#[ffi_func]
-pub fn get_algorand_address_length() -> u64 {
-    constants::ALGORAND_ADDRESS_LENGTH.try_into().unwrap()
-}
-
-#[ffi_func]
-pub fn get_algorand_public_key_byte_length() -> u64 {
-    constants::ALGORAND_PUBLIC_KEY_BYTE_LENGTH
-        .try_into()
-        .unwrap()
-}
-
-#[ffi_func]
-pub fn get_algorand_secret_key_byte_length() -> u64 {
-    constants::ALGORAND_SECRET_KEY_BYTE_LENGTH
-        .try_into()
-        .unwrap()
-}
-
-#[ffi_func]
-pub fn get_algorand_signature_byte_length() -> u64 {
-    constants::ALGORAND_SIGNATURE_BYTE_LENGTH
-        .try_into()
-        .unwrap()
-}
-
-#[ffi_func]
-pub fn get_algorand_signature_encoding_incr() -> u64 {
-    constants::ALGORAND_SIGNATURE_ENCODING_INCR
-        .try_into()
-        .unwrap()
+pub fn get_algorand_constant(constant: AlgorandConstant) -> u64 {
+    constant.value()
 }
 
 #[cfg(test)]
