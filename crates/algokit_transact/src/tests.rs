@@ -131,7 +131,7 @@ fn test_estimate_transaction_size() {
 
     let signed_tx = SignedTransaction {
         transaction: payment_tx.clone(),
-        signature: [0; 64],
+        signature: [0; ALGORAND_SIGNATURE_BYTE_LENGTH],
     };
     let actual_size = signed_tx.encode().unwrap().len();
 

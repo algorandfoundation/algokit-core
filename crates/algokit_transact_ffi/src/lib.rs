@@ -500,6 +500,13 @@ pub fn get_algorand_signature_byte_length() -> u64 {
         .unwrap()
 }
 
+#[ffi_func]
+pub fn get_algorand_signature_encoding_incr() -> u64 {
+    constants::ALGORAND_SIGNATURE_ENCODING_INCR
+        .try_into()
+        .unwrap()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
