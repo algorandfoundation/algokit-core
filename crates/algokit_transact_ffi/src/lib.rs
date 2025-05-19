@@ -1,4 +1,4 @@
-use algokit_transact::constants;
+use algokit_transact::{constants, ALGORAND_PUBLIC_KEY_BYTE_LENGTH};
 use algokit_transact::{
     AlgorandMsgpack, Byte32, EstimateTransactionSize, TransactionId, ALGORAND_SIGNATURE_BYTE_LENGTH,
 };
@@ -119,9 +119,16 @@ impl TryFrom<Address> for algokit_transact::Address {
     type Error = AlgoKitTransactError;
 
     fn try_from(value: Address) -> Result<Self, Self::Error> {
-        let pub_key: [u8; 32] = value.pub_key.to_vec().try_into().map_err(|_| {
-            AlgoKitTransactError::EncodingError("public key should be 32 bytes".to_string())
-        })?;
+        let pub_key: [u8; ALGORAND_PUBLIC_KEY_BYTE_LENGTH] =
+            value.pub_key.to_vec().try_into().map_err(|_| {
+                AlgoKitTransactError::EncodingError(
+                    format!(
+                        "public key should be {} bytes",
+                        ALGORAND_PUBLIC_KEY_BYTE_LENGTH
+                    )
+                    .to_string(),
+                )
+            })?;
 
         Ok(algokit_transact::Address::from_pubkey(&pub_key))
     }
@@ -435,7 +442,13 @@ pub fn estimate_transaction_size(transaction: &Transaction) -> Result<u64, AlgoK
 pub fn address_from_pub_key(pub_key: &[u8]) -> Result<Address, AlgoKitTransactError> {
     Ok(
         algokit_transact::Address::from_pubkey(pub_key.try_into().map_err(|_| {
-            AlgoKitTransactError::EncodingError("public key should be 32 bytes".to_string())
+            AlgoKitTransactError::EncodingError(
+                format!(
+                    "public key should be {} bytes",
+                    ALGORAND_PUBLIC_KEY_BYTE_LENGTH
+                )
+                .to_string(),
+            )
         })?)
         .into(),
     )

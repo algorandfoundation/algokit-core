@@ -1,5 +1,6 @@
 use crate::address::Address;
 use crate::constants::{Byte32, ALGORAND_CHECKSUM_BYTE_LENGTH, HASH_BYTES_LENGTH};
+use crate::ALGORAND_PUBLIC_KEY_BYTE_LENGTH;
 use sha2::{Digest, Sha512_256};
 use std::collections::BTreeMap;
 
@@ -37,7 +38,7 @@ pub fn is_zero(n: &u64) -> bool {
 }
 
 pub fn is_zero_addr(addr: &Address) -> bool {
-    addr.pub_key == [0u8; 32]
+    addr.pub_key == [0u8; ALGORAND_PUBLIC_KEY_BYTE_LENGTH]
 }
 
 pub fn is_zero_addr_opt(addr: &Option<Address>) -> bool {

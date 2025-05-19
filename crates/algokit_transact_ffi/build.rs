@@ -1,3 +1,5 @@
+use algokit_transact::{ALGORAND_SECRET_KEY_BYTE_LENGTH, HASH_BYTES_LENGTH};
+
 include!("src/lib.rs");
 
 fn main() {
@@ -11,12 +13,12 @@ fn generate_test_data() {
 
     #[derive(Serialize)]
     struct TransactionTestData {
-        signing_private_key: [u8; 32],
+        signing_private_key: [u8; ALGORAND_SECRET_KEY_BYTE_LENGTH],
         transaction: Transaction,
         unsigned_bytes: Vec<u8>,
         signed_bytes: Vec<u8>,
         id: String,
-        raw_id: [u8; 32],
+        raw_id: [u8; HASH_BYTES_LENGTH],
     }
 
     test_utils::TestDataMother::export(
