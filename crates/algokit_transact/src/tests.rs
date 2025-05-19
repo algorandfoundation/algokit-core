@@ -1,8 +1,9 @@
 use crate::{
     test_utils::{AddressMother, TransactionMother},
-    Address, AlgorandMsgpack, SignedTransaction, Transaction, TransactionId,
+    Address, AlgorandMsgpack, SignedTransaction, Transaction, TransactionId, EstimateTransactionSize
 };
 use pretty_assertions::assert_eq;
+use crate::constants::ALGORAND_SIGNATURE_ENCODING_INCR;
 
 #[test]
 fn test_payment_transaction_encoding() {
@@ -118,4 +119,21 @@ fn test_pay_transaction_id() {
 
     assert_eq!(payment_tx.id().unwrap(), expected_tx_id);
     assert_eq!(signed_tx.id().unwrap(), expected_tx_id);
+}
+
+#[test]
+fn test_estimate_transaction_size() {
+    let tx_builder = TransactionMother::simple_payment();
+    let payment_tx = tx_builder.build().unwrap();
+    let encoding_length = payment_tx.encode_raw().unwrap().len();
+    let estimation = payment_tx.estimate_size().unwrap();
+    
+    let signed_tx = SignedTransaction {
+        transaction: payment_tx.clone(),
+        signature: [0; 64],
+    };
+    let actual_size = signed_tx.encode().unwrap().len();
+
+    assert_eq!(estimation, encoding_length + ALGORAND_SIGNATURE_ENCODING_INCR);
+    assert_eq!(estimation, actual_size);
 }
