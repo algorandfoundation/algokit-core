@@ -2,7 +2,7 @@ import { run } from "..";
 import * as fs from "fs";
 
 async function wasmPack(crate: string, target: "web" | "nodejs" | "bundler", cwd: string) {
-  const cmd = `npx wasm-pack build --out-dir ../../packages/typescript/algokit_transact/pkg --mode normal --release --target ${target} ../../../crates/${crate}_ffi --no-default-features --features ffi_wasm`;
+  const cmd = `npx wasm-pack build --out-dir ../../packages/typescript/${crate}/pkg --mode normal --release --target ${target} ../../../crates/${crate}_ffi --no-default-features --features ffi_wasm`;
 
   await run(cmd, cwd, {
     // Needed due to Rust 1.82+ using LLVM with reference-types enabled by default, which makes the WASM binary incompatible with wasm2js
@@ -17,7 +17,7 @@ async function build(crate: string, mode: "esm" | "cjs" | "wasm2js", cwd: string
       await wasmPack(crate, "web", cwd);
       break;
     case "cjs":
-      await wasmPack(crate, "nodejs", cwd);
+      await wasmPack(crate, "web", cwd);
       break;
     case "wasm2js":
       await wasmPack(crate, "bundler", cwd);
@@ -49,7 +49,7 @@ async function build(crate: string, mode: "esm" | "cjs" | "wasm2js", cwd: string
 export async function buildTypescript(crate: string) {
   const cwd = `packages/typescript/${crate}`;
 
-  await run("npm i", cwd);
+  await run("bun install", cwd);
 
   fs.rmSync(`packages/typescript/${crate}/pkg`, {
     recursive: true,
