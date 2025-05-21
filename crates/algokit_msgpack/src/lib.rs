@@ -1,8 +1,9 @@
+use base64::engine::general_purpose::STANDARD as BASE64;
+use base64::Engine;
 use rmp::encode::{self as rmp_encode, ValueWriteError};
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::Value;
-use std::collections::BTreeMap;
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use thiserror::Error;
 
 mod models;
@@ -12,25 +13,18 @@ pub use models::*;
 pub enum MsgPackError {
     #[error("Serialization error: {0}")]
     SerializationError(#[from] serde_json::Error),
-
     #[error("MessagePack encoding error: {0}")]
     MsgPackEncodeError(#[from] rmp_serde::encode::Error),
-
     #[error("MessagePack decoding error: {0}")]
     MsgPackDecodeError(#[from] rmp_serde::decode::Error),
-
     #[error("Base64 decode error: {0}")]
     Base64DecodeError(#[from] base64::DecodeError),
-
     #[error("MessagePack write error: {0}")]
     MsgPackWriteError(String),
-
     #[error("Unknown model type: {0}")]
     UnknownModelError(String),
-
     #[error("IO error: {0}")]
     IoError(String),
-
     #[error("Value write error: {0}")]
     ValueWriteError(String),
 }
@@ -49,66 +43,44 @@ impl From<ValueWriteError> for MsgPackError {
 
 pub type Result<T> = std::result::Result<T, MsgPackError>;
 
-/// Trait for types that can be converted to MessagePack format
 pub trait ToMsgPack: Serialize {
-    /// Convert to MessagePack bytes
     fn to_msg_pack(&self) -> Result<Vec<u8>> {
-        // First serialize to JSON Value
         let json_value = serde_json::to_value(self)?;
-
-        // Apply sorting and zero-value filtering
         let processed_value = sort_and_filter_json(json_value)?;
-
-        // Serialize the processed value to MessagePack
-        // Use rmp::encode directly for more compact encoding instead of rmp_serde::to_vec_named
         let mut buf = Vec::new();
         encode_value_to_msgpack(&processed_value, &mut buf)?;
         Ok(buf)
     }
 
-    /// Convert to MessagePack bytes and then encode to base64
     fn to_msg_pack_base64(&self) -> Result<String> {
         let bytes = self.to_msg_pack()?;
-        Ok(base64::encode(&bytes))
+        Ok(BASE64.encode(&bytes))
     }
 }
 
-/// Sorts JSON object keys alphabetically and removes zero-value fields
 pub fn sort_and_filter_json(value: Value) -> Result<Value> {
     match value {
         Value::Object(map) => {
-            // Use BTreeMap for automatic sorting of keys
             let mut sorted_map = BTreeMap::new();
-
             for (key, val) in map {
-                // Recursively sort nested objects
                 let processed_val = sort_and_filter_json(val)?;
-
-                // Skip zero values
                 if !is_zero_value(&processed_val) {
                     sorted_map.insert(key, processed_val);
                 }
             }
-
             Ok(Value::Object(serde_json::Map::from_iter(sorted_map)))
         }
         Value::Array(arr) => {
             let mut new_arr = Vec::with_capacity(arr.len());
-
             for item in arr {
-                // Process each item in the array
                 new_arr.push(sort_and_filter_json(item)?);
             }
-
-            // Keep empty arrays; filtering is handled by `is_zero_value` at the object level.
             Ok(Value::Array(new_arr))
         }
-        // Primitive values are returned as is
         _ => Ok(value),
     }
 }
 
-/// Check if a JSON value is considered a "zero value" that should be excluded
 fn is_zero_value(value: &Value) -> bool {
     match value {
         Value::Null => true,
@@ -130,10 +102,6 @@ fn is_zero_value(value: &Value) -> bool {
     }
 }
 
-/// Helper function to efficiently encode `serde_json::Value` into the most compact
-/// MessagePack representation we can manage. This is useful in a handful of
-/// places across the crate, so we expose it as `pub(crate)` to avoid having
-/// multiple bespoke implementations that inevitably drift apart over time.
 pub(crate) fn encode_value_to_msgpack(value: &Value, buf: &mut Vec<u8>) -> Result<()> {
     match value {
         Value::Null => rmp_encode::write_nil(buf)?,
@@ -149,7 +117,6 @@ pub(crate) fn encode_value_to_msgpack(value: &Value, buf: &mut Vec<u8>) -> Resul
         }
         Value::String(s) => rmp_encode::write_str(buf, s)?,
         Value::Array(arr) => {
-            // Detect arrays of bytes (0-255) and encode them using the binary format.
             if arr.iter().all(
                 |item| matches!(item, Value::Number(n) if n.is_u64() && n.as_u64().unwrap() <= 255),
             ) {
@@ -157,11 +124,9 @@ pub(crate) fn encode_value_to_msgpack(value: &Value, buf: &mut Vec<u8>) -> Resul
                     .iter()
                     .filter_map(|v| v.as_u64().map(|n| n as u8))
                     .collect();
-
                 rmp_encode::write_bin(buf, &bin_data)?;
                 return Ok(());
             }
-
             rmp_encode::write_array_len(buf, arr.len() as u32)?;
             for item in arr {
                 encode_value_to_msgpack(item, buf)?;
@@ -178,7 +143,6 @@ pub(crate) fn encode_value_to_msgpack(value: &Value, buf: &mut Vec<u8>) -> Resul
     Ok(())
 }
 
-/// A registry of model types that can be encoded or decoded
 pub struct ModelRegistry {
     registry: HashMap<ModelType, Box<dyn ModelHandler>>,
 }
@@ -228,7 +192,7 @@ impl ModelRegistry {
         json_str: &str,
     ) -> Result<String> {
         let msgpack_bytes = self.encode_json_to_msgpack(model_type, json_str)?;
-        Ok(base64::encode(&msgpack_bytes))
+        Ok(BASE64.encode(&msgpack_bytes))
     }
 
     pub fn decode_base64_msgpack_to_json(
@@ -236,7 +200,7 @@ impl ModelRegistry {
         model_type: ModelType,
         base64_str: &str,
     ) -> Result<String> {
-        let msgpack_bytes = base64::decode(base64_str)?;
+        let msgpack_bytes = BASE64.decode(base64_str)?;
         self.decode_msgpack_to_json(model_type, &msgpack_bytes)
     }
 
@@ -248,19 +212,16 @@ impl ModelRegistry {
 impl Default for ModelRegistry {
     fn default() -> Self {
         let mut registry = Self::new();
-        // Register Algorand models here
         models::register_all_models(&mut registry);
         registry
     }
 }
 
-/// Handler interface for msgpack encoding and decoding
 trait ModelHandler {
     fn encode_json_to_msgpack(&self, json_str: &str) -> Result<Vec<u8>>;
     fn decode_msgpack_to_json(&self, msgpack_bytes: &[u8]) -> Result<String>;
 }
 
-/// Type-specific implementation of ModelHandler
 struct TypedModelHandler<T>
 where
     T: DeserializeOwned + Serialize,
@@ -294,21 +255,11 @@ where
     }
 }
 
-/// Enum representing the supported model types
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ModelType {
-    /// SimulateRequest related models
     SimulateRequest,
-    SimulateRequestTransactionGroup,
-    SimulateTraceConfig,
-    // Simulation response models
-    SimulateUnnamedResourcesAccessed,
-    SimulationTransactionExecTrace,
-    SimulationEvalOverrides,
-    SimulateInitialStates,
-    SimulateTransactionResult,
-    SimulateTransactionGroupResult,
     SimulateTransaction200Response,
+    Account,
 }
 
 impl ModelType {
@@ -316,15 +267,8 @@ impl ModelType {
     pub fn as_str(&self) -> &'static str {
         match self {
             ModelType::SimulateRequest => "SimulateRequest",
-            ModelType::SimulateRequestTransactionGroup => "SimulateRequestTransactionGroup",
-            ModelType::SimulateTraceConfig => "SimulateTraceConfig",
-            ModelType::SimulateUnnamedResourcesAccessed => "SimulateUnnamedResourcesAccessed",
-            ModelType::SimulationTransactionExecTrace => "SimulationTransactionExecTrace",
-            ModelType::SimulationEvalOverrides => "SimulationEvalOverrides",
-            ModelType::SimulateInitialStates => "SimulateInitialStates",
-            ModelType::SimulateTransactionResult => "SimulateTransactionResult",
-            ModelType::SimulateTransactionGroupResult => "SimulateTransactionGroupResult",
             ModelType::SimulateTransaction200Response => "SimulateTransaction200Response",
+            ModelType::Account => "Account",
         }
     }
 
@@ -333,15 +277,8 @@ impl ModelType {
     pub fn from_str(s: &str) -> Option<Self> {
         match s {
             "SimulateRequest" => Some(ModelType::SimulateRequest),
-            "SimulateRequestTransactionGroup" => Some(ModelType::SimulateRequestTransactionGroup),
-            "SimulateTraceConfig" => Some(ModelType::SimulateTraceConfig),
-            "SimulateUnnamedResourcesAccessed" => Some(ModelType::SimulateUnnamedResourcesAccessed),
-            "SimulationTransactionExecTrace" => Some(ModelType::SimulationTransactionExecTrace),
-            "SimulationEvalOverrides" => Some(ModelType::SimulationEvalOverrides),
-            "SimulateInitialStates" => Some(ModelType::SimulateInitialStates),
-            "SimulateTransactionResult" => Some(ModelType::SimulateTransactionResult),
-            "SimulateTransactionGroupResult" => Some(ModelType::SimulateTransactionGroupResult),
             "SimulateTransaction200Response" => Some(ModelType::SimulateTransaction200Response),
+            "Account" => Some(ModelType::Account),
             _ => None,
         }
     }
@@ -350,15 +287,8 @@ impl ModelType {
     pub fn all() -> Vec<ModelType> {
         vec![
             ModelType::SimulateRequest,
-            ModelType::SimulateRequestTransactionGroup,
-            ModelType::SimulateTraceConfig,
-            ModelType::SimulateUnnamedResourcesAccessed,
-            ModelType::SimulationTransactionExecTrace,
-            ModelType::SimulationEvalOverrides,
-            ModelType::SimulateInitialStates,
-            ModelType::SimulateTransactionResult,
-            ModelType::SimulateTransactionGroupResult,
             ModelType::SimulateTransaction200Response,
+            ModelType::Account,
         ]
     }
 }

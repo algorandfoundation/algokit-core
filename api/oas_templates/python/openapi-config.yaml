@@ -12,12 +12,21 @@ files:
     custom_tests/test_transactions.mustache:
         templateType: SupportingFiles
         destinationFilename: tests/api/test_transactions.py
+    custom_tests/test_accounts.mustache:
+        templateType: SupportingFiles
+        destinationFilename: tests/api/test_accounts.py
     custom_tests/__init__.mustache:
         templateType: SupportingFiles
         destinationFilename: tests/api/__init__.py
     conftest.mustache:
         templateType: SupportingFiles
         destinationFilename: tests/conftest.py
+    custom_tests/utils.mustache:
+        templateType: SupportingFiles
+        destinationFilename: tests/utils.py
+    custom_tests/artifacts/dummy_app.arc56.mustache:
+        templateType: SupportingFiles
+        destinationFilename: tests/artifacts/dummy_app.arc56.json
     # Generic supporting files
     poetry.toml.mustache:
         templateType: SupportingFiles
@@ -25,3 +34,6 @@ files:
     pytest_ini.mustache:
         templateType: SupportingFiles
         destinationFilename: pytest.ini
+    .vscode/settings.mustache:
+        templateType: SupportingFiles
+        destinationFilename: .vscode/settings.json
