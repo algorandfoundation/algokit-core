@@ -4,9 +4,9 @@ build-backend = "maturin"
 
 [project]
 name = "algokit_msgpack"
-version = "0.1.0"
-requires-python = ">=3.7"
-dependencies = ["pynacl>=1.5.0"]
+version = "1.0.0"
+requires-python = ">=3.8,<4.0"
+dependencies = ["cffi>=1.17.1"]
 
 [tool.maturin]
 manifest-path = "../../../crates/algokit_msgpack_ffi/Cargo.toml"
@@ -16,10 +16,12 @@ module-name = "_algokit_msgpack"
 include = ["algokit_msgpack/py.typed", "algokit_msgpack/__init__.py"]
 
 
-[project.optional-dependencies]
-dev = [
-  'maturin>=1.8.2 ; platform_system != "Linux"',
-  'maturin[patchelf]>=1.8.2 ; platform_system == "Linux"',
-  "pynacl>=1.5.0",
-  "pytest>=7.4.4",
+[tool.poetry.group.dev.dependencies]
+maturin = [
+  { version = ">=1.8.2", markers = "platform_system != 'Linux'" },
+  { version = ">=1.8.2", extras = [
+    "patchelf",
+  ], markers = "platform_system == 'Linux'" },
 ]
+pynacl = ">=1.5.0,<2.0.0"
+pytest = ">=7.4.4"

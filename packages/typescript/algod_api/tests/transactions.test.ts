@@ -109,7 +109,7 @@ describe("Transaction API Tests", () => {
     expect(pendingTxnsResult).toBeDefined();
   });
 
-  test("should simulate transaction with msgpack", async () => {
+  test.each(["json", "msgpack"])("should simulate transaction with format %s", async (format) => {
     const { testAccount: sender } = fixture.context;
 
     const suggestedParams = await algodApi.transactionParams();
@@ -139,8 +139,8 @@ describe("Transaction API Tests", () => {
       "execTraceConfig": traceConfig,
     }
 
-    const result = await algodApi.simulateTransaction(simulateRequest, "msgpack", {
-      headers: { "Content-Type": "application/msgpack" },
+    const result = await algodApi.simulateTransaction(simulateRequest, format as "msgpack" | "json", {
+      headers: { "Content-Type": `application/${format}` },
     } as any);
 
     expect(result).toBeDefined();

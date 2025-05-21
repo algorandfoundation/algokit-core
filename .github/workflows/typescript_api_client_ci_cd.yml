@@ -71,6 +71,9 @@ jobs:
       - name: Build TypeScript algokit_transact
         run: bun build:algokit_transact:ts
 
+      - name: Build TypeScript algokit_msgpack
+        run: bun build:algokit_msgpack:ts
+
       - name: Build
         working-directory: ${{ env.PACKAGE_DIR }}
         run: |
