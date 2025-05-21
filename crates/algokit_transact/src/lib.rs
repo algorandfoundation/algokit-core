@@ -1,6 +1,7 @@
 mod address;
 mod constants;
 mod error;
+mod suggested_params;
 mod traits;
 mod transactions;
 mod utils;
@@ -12,6 +13,7 @@ pub use constants::{
     ALGORAND_PUBLIC_KEY_BYTE_LENGTH, HASH_BYTES_LENGTH,
 };
 pub use error::AlgoKitTransactError;
+pub use suggested_params::SuggestedParams;
 pub use traits::{AlgorandMsgpack, EstimateTransactionSize, TransactionId};
 pub use transactions::{
     AssetTransferTransactionBuilder, AssetTransferTransactionFields, PaymentTransactionBuilder,

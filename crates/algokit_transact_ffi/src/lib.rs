@@ -458,6 +458,48 @@ pub fn get_transaction_id(tx: &Transaction) -> Result<String, AlgoKitTransactErr
     Ok(tx_internal.id()?)
 }
 
+#[ffi_record]
+pub struct SuggestedParams {
+    pub flat_fee: bool,
+    pub fee: u64,
+    pub min_fee: u64,
+    pub first_valid: u64,
+    pub last_valid: u64,
+    pub genesis_id: String,
+    pub genesis_hash: ByteBuf,
+    pub consensus_version: String,
+}
+
+impl From<algokit_transact::SuggestedParams> for SuggestedParams {
+    fn from(params: algokit_transact::SuggestedParams) -> Self {
+        Self {
+            flat_fee: params.flat_fee,
+            fee: params.fee,
+            min_fee: params.min_fee,
+            first_valid: params.first_valid,
+            last_valid: params.last_valid,
+            genesis_id: params.genesis_id,
+            genesis_hash: ByteBuf::from(params.genesis_hash),
+            consensus_version: params.consensus_version,
+        }
+    }
+}
+
+impl From<SuggestedParams> for algokit_transact::SuggestedParams {
+    fn from(params: SuggestedParams) -> Self {
+        Self {
+            flat_fee: params.flat_fee,
+            fee: params.fee,
+            min_fee: params.min_fee,
+            first_valid: params.first_valid,
+            last_valid: params.last_valid,
+            genesis_id: params.genesis_id,
+            genesis_hash: params.genesis_hash.into_vec(),
+            consensus_version: params.consensus_version,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
