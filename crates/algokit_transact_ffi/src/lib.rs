@@ -1,5 +1,6 @@
+use algokit_transact::constants::*;
 use algokit_transact::{AlgorandMsgpack, Byte32, EstimateTransactionSize, TransactionId};
-use ffi_macros::{ffi_func, ffi_record};
+use ffi_macros::{ffi_enum, ffi_func, ffi_record};
 use serde::{Deserialize, Serialize};
 use serde_bytes::ByteBuf;
 
@@ -116,9 +117,16 @@ impl TryFrom<Address> for algokit_transact::Address {
     type Error = AlgoKitTransactError;
 
     fn try_from(value: Address) -> Result<Self, Self::Error> {
-        let pub_key: [u8; 32] = value.pub_key.to_vec().try_into().map_err(|_| {
-            AlgoKitTransactError::EncodingError("public key should be 32 bytes".to_string())
-        })?;
+        let pub_key: [u8; ALGORAND_PUBLIC_KEY_BYTE_LENGTH] =
+            value.pub_key.to_vec().try_into().map_err(|_| {
+                AlgoKitTransactError::EncodingError(
+                    format!(
+                        "public key should be {} bytes",
+                        ALGORAND_PUBLIC_KEY_BYTE_LENGTH
+                    )
+                    .to_string(),
+                )
+            })?;
 
         Ok(algokit_transact::Address::from_pubkey(&pub_key))
     }
@@ -401,7 +409,10 @@ pub fn attach_signature(
     let encoded_tx = algokit_transact::Transaction::decode(encoded_tx)?;
     let signed_tx = algokit_transact::SignedTransaction {
         transaction: encoded_tx,
-        signature: signature.try_into().expect("signature should be 64 bytes"),
+        signature: signature.try_into().expect(&format!(
+            "signature should be {} bytes",
+            ALGORAND_SIGNATURE_BYTE_LENGTH
+        )),
     };
     Ok(signed_tx.encode()?)
 }
@@ -429,7 +440,13 @@ pub fn estimate_transaction_size(transaction: &Transaction) -> Result<u64, AlgoK
 pub fn address_from_pub_key(pub_key: &[u8]) -> Result<Address, AlgoKitTransactError> {
     Ok(
         algokit_transact::Address::from_pubkey(pub_key.try_into().map_err(|_| {
-            AlgoKitTransactError::EncodingError("public key should be 32 bytes".to_string())
+            AlgoKitTransactError::EncodingError(
+                format!(
+                    "public key should be {} bytes",
+                    ALGORAND_PUBLIC_KEY_BYTE_LENGTH
+                )
+                .to_string(),
+            )
         })?)
         .into(),
     )
@@ -456,6 +473,53 @@ pub fn get_transaction_raw_id(tx: &Transaction) -> Result<Vec<u8>, AlgoKitTransa
 pub fn get_transaction_id(tx: &Transaction) -> Result<String, AlgoKitTransactError> {
     let tx_internal: algokit_transact::Transaction = tx.clone().try_into()?;
     Ok(tx_internal.id()?)
+}
+
+/// Enum containing all constants used in this crate.
+#[ffi_enum]
+pub enum AlgorandConstant {
+    /// Length of hash digests (32)
+    HashLength,
+
+    /// Length of the checksum used in Algorand addresses (4)
+    ChecksumLength,
+
+    /// Length of a base32-encoded Algorand address (58)
+    AddressLength,
+
+    /// Length of an Algorand public key in bytes (32)
+    PublicKeyLength,
+
+    /// Length of an Algorand secret key in bytes (32)
+    SecretKeyLength,
+
+    /// Length of an Algorand signature in bytes (64)
+    SignatureLength,
+
+    /// Increment in the encoded byte size when a signature is attached to a transaction (75)
+    SignatureEncodingIncrLength,
+}
+
+impl AlgorandConstant {
+    /// Get the numeric value of the constant
+    pub fn value(&self) -> u64 {
+        match self {
+            AlgorandConstant::HashLength => HASH_BYTES_LENGTH as u64,
+            AlgorandConstant::ChecksumLength => ALGORAND_CHECKSUM_BYTE_LENGTH as u64,
+            AlgorandConstant::AddressLength => ALGORAND_ADDRESS_LENGTH as u64,
+            AlgorandConstant::PublicKeyLength => ALGORAND_PUBLIC_KEY_BYTE_LENGTH as u64,
+            AlgorandConstant::SecretKeyLength => ALGORAND_SECRET_KEY_BYTE_LENGTH as u64,
+            AlgorandConstant::SignatureLength => ALGORAND_SIGNATURE_BYTE_LENGTH as u64,
+            AlgorandConstant::SignatureEncodingIncrLength => {
+                ALGORAND_SIGNATURE_ENCODING_INCR as u64
+            }
+        }
+    }
+}
+
+#[ffi_func]
+pub fn get_algorand_constant(constant: AlgorandConstant) -> u64 {
+    constant.value()
 }
 
 #[cfg(test)]

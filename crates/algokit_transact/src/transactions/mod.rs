@@ -14,7 +14,9 @@ pub use common::{TransactionHeader, TransactionHeaderBuilder};
 use payment::PaymentTransactionBuilderError;
 pub use payment::{PaymentTransactionBuilder, PaymentTransactionFields};
 
-use crate::constants::{ALGORAND_SIGNATURE_ENCODING_INCR, HASH_BYTES_LENGTH};
+use crate::constants::{
+    ALGORAND_SIGNATURE_BYTE_LENGTH, ALGORAND_SIGNATURE_ENCODING_INCR, HASH_BYTES_LENGTH,
+};
 use crate::error::AlgoKitTransactError;
 use crate::traits::{AlgorandMsgpack, EstimateTransactionSize, TransactionId};
 use serde::{Deserialize, Serialize};
@@ -76,7 +78,7 @@ pub struct SignedTransaction {
     /// The Ed25519 signature authorizing the transaction.
     #[serde(rename = "sig")]
     #[serde_as(as = "Bytes")]
-    pub signature: [u8; 64],
+    pub signature: [u8; ALGORAND_SIGNATURE_BYTE_LENGTH],
 }
 
 impl AlgorandMsgpack for SignedTransaction {

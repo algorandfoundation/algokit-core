@@ -70,7 +70,8 @@ impl FromStr for Address {
         let decoded = base32::decode(base32::Alphabet::Rfc4648 { padding: false }, s)
             .expect("decoded value should exist");
 
-        let pub_key: [u8; 32] = decoded[..ALGORAND_PUBLIC_KEY_BYTE_LENGTH]
+        let pub_key: [u8; ALGORAND_PUBLIC_KEY_BYTE_LENGTH] = decoded
+            [..ALGORAND_PUBLIC_KEY_BYTE_LENGTH]
             .try_into()
             .map_err(|_| {
                 AlgoKitTransactError::InvalidAddress(
@@ -107,12 +108,13 @@ impl Display for Address {
     /// # Returns
     /// A formatting result with a string containing the base32-encoded address or error
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        let mut address_bytes = [0u8; 36]; // 32 bytes pub_key + 4 bytes checksum
+        let mut address_bytes =
+            [0u8; ALGORAND_PUBLIC_KEY_BYTE_LENGTH + ALGORAND_CHECKSUM_BYTE_LENGTH];
 
-        address_bytes[..32].copy_from_slice(&self.pub_key);
+        address_bytes[..ALGORAND_PUBLIC_KEY_BYTE_LENGTH].copy_from_slice(&self.pub_key);
 
         let checksum = self.checksum();
-        address_bytes[32..].copy_from_slice(&checksum);
+        address_bytes[ALGORAND_PUBLIC_KEY_BYTE_LENGTH..].copy_from_slice(&checksum);
 
         let result = base32::encode(base32::Alphabet::Rfc4648 { padding: false }, &address_bytes);
         write!(f, "{}", result)

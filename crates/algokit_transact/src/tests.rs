@@ -1,4 +1,4 @@
-use crate::constants::ALGORAND_SIGNATURE_ENCODING_INCR;
+use crate::constants::{ALGORAND_SIGNATURE_BYTE_LENGTH, ALGORAND_SIGNATURE_ENCODING_INCR};
 use crate::{
     test_utils::{AddressMother, TransactionMother},
     Address, AlgorandMsgpack, EstimateTransactionSize, SignedTransaction, Transaction,
@@ -19,7 +19,7 @@ fn test_payment_transaction_encoding() {
 
     let signed_tx = SignedTransaction {
         transaction: payment_tx.clone(),
-        signature: [0; 64],
+        signature: [0; ALGORAND_SIGNATURE_BYTE_LENGTH],
     };
     let encoded_stx = signed_tx.encode().unwrap();
     let decoded_stx = SignedTransaction::decode(&encoded_stx).unwrap();
@@ -50,7 +50,7 @@ fn test_asset_transfer_transaction_encoding() {
 
     let signed_tx = SignedTransaction {
         transaction: asset_transfer_tx.clone(),
-        signature: [0; 64],
+        signature: [0; ALGORAND_SIGNATURE_BYTE_LENGTH],
     };
     let encoded_stx = signed_tx.encode().unwrap();
     let decoded_stx = SignedTransaction::decode(&encoded_stx).unwrap();
@@ -100,7 +100,7 @@ fn test_pay_transaction_raw_id() {
     let payment_tx = tx_builder.build().unwrap();
     let signed_tx = SignedTransaction {
         transaction: payment_tx.clone(),
-        signature: [0; 64],
+        signature: [0; ALGORAND_SIGNATURE_BYTE_LENGTH],
     };
 
     assert_eq!(payment_tx.raw_id().unwrap(), expected_tx_id);
@@ -115,7 +115,7 @@ fn test_pay_transaction_id() {
     let payment_tx = tx_builder.build().unwrap();
     let signed_tx = SignedTransaction {
         transaction: payment_tx.clone(),
-        signature: [0; 64],
+        signature: [0; ALGORAND_SIGNATURE_BYTE_LENGTH],
     };
 
     assert_eq!(payment_tx.id().unwrap(), expected_tx_id);
@@ -131,7 +131,7 @@ fn test_estimate_transaction_size() {
 
     let signed_tx = SignedTransaction {
         transaction: payment_tx.clone(),
-        signature: [0; 64],
+        signature: [0; ALGORAND_SIGNATURE_BYTE_LENGTH],
     };
     let actual_size = signed_tx.encode().unwrap().len();
 

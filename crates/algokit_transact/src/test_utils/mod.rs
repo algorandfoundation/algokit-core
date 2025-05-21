@@ -1,7 +1,7 @@
 use crate::{
     transactions::{AssetTransferTransactionBuilder, PaymentTransactionBuilder},
     Address, AlgorandMsgpack, Byte32, SignedTransaction, Transaction, TransactionHeaderBuilder,
-    TransactionId,
+    TransactionId, ALGORAND_PUBLIC_KEY_BYTE_LENGTH, HASH_BYTES_LENGTH,
 };
 use base64::{prelude::BASE64_STANDARD, Engine};
 use convert_case::{Case, Casing};
@@ -107,7 +107,7 @@ impl TransactionMother {
 pub struct AddressMother {}
 impl AddressMother {
     pub fn zero_address() -> Address {
-        Address::from_pubkey(&[0; 32])
+        Address::from_pubkey(&[0; ALGORAND_PUBLIC_KEY_BYTE_LENGTH])
     }
 
     pub fn address() -> Address {
@@ -131,7 +131,7 @@ impl TransactionTestData {
     pub fn new(transaction: Transaction, signing_private_key: Byte32) -> Self {
         let signing_key: SigningKey = SigningKey::from_bytes(&signing_private_key);
         let id = transaction.id().unwrap();
-        let raw_id: [u8; 32] = transaction.raw_id().unwrap();
+        let raw_id: [u8; HASH_BYTES_LENGTH] = transaction.raw_id().unwrap();
         let unsigned_bytes = transaction.encode().unwrap();
         let signature = signing_key.sign(&unsigned_bytes);
         let signed_txn = SignedTransaction {
