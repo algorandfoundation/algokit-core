@@ -1,9 +1,12 @@
 use crate::constants::{ALGORAND_SIGNATURE_BYTE_LENGTH, ALGORAND_SIGNATURE_ENCODING_INCR};
+use crate::test_utils::{TransactionGroupMother, TransactionHeaderMother};
+use crate::MAX_TX_GROUP_SIZE;
 use crate::{
     test_utils::{AddressMother, TransactionMother},
     Address, AlgorandMsgpack, EstimateTransactionSize, SignedTransaction, Transaction,
-    TransactionId,
+    TransactionGroup, TransactionId,
 };
+use base64::{prelude::BASE64_STANDARD, Engine};
 use pretty_assertions::assert_eq;
 
 #[test]
@@ -128,4 +131,117 @@ fn test_estimate_transaction_size() {
         encoding_length + ALGORAND_SIGNATURE_ENCODING_INCR
     );
     assert_eq!(estimation, actual_size);
+}
+
+#[test]
+fn test_multi_transaction_group() {
+    let expected_group: [u8; 32] = BASE64_STANDARD
+        .decode(String::from("uJA6BWzZ5g7Ve0FersqCLWsrEstt6p0+F3bNGEKH3I4="))
+        .unwrap()
+        .try_into()
+        .unwrap();
+    let txs = TransactionGroupMother::testnet_payment_group();
+
+    let grouped_txs = txs.assign_group().unwrap();
+
+    assert_eq!(grouped_txs.len(), txs.len());
+    for (original_tx, grouped_tx) in txs.iter().zip(grouped_txs.iter()) {
+        if let (Transaction::Payment(original_pay_tx), Transaction::Payment(grouped_pay_tx)) =
+            (original_tx, grouped_tx)
+        {
+            assert_eq!(original_pay_tx.header.group, None);
+            assert_eq!(grouped_pay_tx.header.group.unwrap(), expected_group);
+        } else {
+            panic!(
+                "Expected Payment transactions, but got: {:?}, {:?}",
+                original_tx, grouped_tx
+            );
+        }
+    }
+    assert_eq!(
+        &grouped_txs[0].id().unwrap(),
+        "6SIXGV2TELA2M5RHZ72CVKLBSJ2OPUAKYFTUUE27O23RN6TFMGHQ"
+    );
+    assert_eq!(
+        &grouped_txs[1].id().unwrap(),
+        "7OY3VQXJCDSKPMGEFJMNJL2L3XIOMRM2U7DM2L54CC7QM5YBFQEA"
+    );
+}
+
+#[test]
+fn test_single_transaction_group() {
+    let expected_group: [u8; 32] = BASE64_STANDARD
+        .decode(String::from("LLW3AwgyXbwoMMBNfLSAGHtqoKtj/c7MjNMR0MGW6sg="))
+        .unwrap()
+        .try_into()
+        .unwrap();
+    let txs: Vec<Transaction> = TransactionGroupMother::group_of(1);
+
+    let grouped_txs = txs.assign_group().unwrap();
+
+    assert_eq!(grouped_txs.len(), txs.len());
+    for (original_tx, grouped_tx) in txs.iter().zip(grouped_txs.iter()) {
+        if let (Transaction::Payment(original_pay_tx), Transaction::Payment(grouped_pay_tx)) =
+            (original_tx, grouped_tx)
+        {
+            assert_eq!(original_pay_tx.header.group, None);
+            assert_eq!(grouped_pay_tx.header.group.unwrap(), expected_group);
+        } else {
+            panic!(
+                "Expected Payment transactions, but got: {:?}, {:?}",
+                original_tx, grouped_tx
+            );
+        }
+    }
+}
+
+#[test]
+fn test_transaction_group_too_big() {
+    let txs: Vec<Transaction> = TransactionGroupMother::group_of(MAX_TX_GROUP_SIZE + 1);
+
+    let result = txs.assign_group();
+
+    let error = result.unwrap_err();
+    assert!(error
+        .to_string()
+        .starts_with("Transaction group size exceeds the max limit"));
+}
+
+#[test]
+fn test_transaction_group_too_small() {
+    let txs: Vec<Transaction> = TransactionGroupMother::group_of(0);
+
+    let result = txs.assign_group();
+
+    let error = result.unwrap_err();
+    assert!(error
+        .to_string()
+        .starts_with("Transaction group size cannot be 0"));
+}
+
+#[test]
+fn test_transaction_group_already_set() {
+    let tx: Transaction = TransactionMother::simple_payment()
+        .header(
+            TransactionHeaderMother::simple_testnet()
+                .group(
+                    BASE64_STANDARD
+                        .decode(String::from("y1Hz6KZhHJI4TZLwZqXO3TFgXVQdD/1+c6BLk3wTW6Q="))
+                        .unwrap()
+                        .try_into()
+                        .unwrap(),
+                )
+                .build()
+                .unwrap(),
+        )
+        .to_owned()
+        .build()
+        .unwrap();
+
+    let result = vec![tx].assign_group();
+
+    let error = result.unwrap_err();
+    assert!(error
+        .to_string()
+        .starts_with("Transactions must not be already grouped"));
 }

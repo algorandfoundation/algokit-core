@@ -16,9 +16,11 @@ pub use payment::{PaymentTransactionBuilder, PaymentTransactionFields};
 
 use crate::constants::{
     ALGORAND_SIGNATURE_BYTE_LENGTH, ALGORAND_SIGNATURE_ENCODING_INCR, HASH_BYTES_LENGTH,
+    MAX_TX_GROUP_SIZE,
 };
 use crate::error::AlgoKitTransactError;
-use crate::traits::{AlgorandMsgpack, EstimateTransactionSize, TransactionId};
+use crate::traits::{AlgorandMsgpack, EstimateTransactionSize, TransactionGroup, TransactionId};
+use crate::utils::compute_group_id;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, Bytes};
 use std::any::Any;
@@ -58,7 +60,9 @@ impl AssetTransferTransactionBuilder {
     }
 }
 
-impl AlgorandMsgpack for Transaction {}
+impl AlgorandMsgpack for Transaction {
+    const PREFIX: &'static [u8] = b"TX";
+}
 impl TransactionId for Transaction {}
 
 impl EstimateTransactionSize for Transaction {
@@ -82,9 +86,6 @@ pub struct SignedTransaction {
 }
 
 impl AlgorandMsgpack for SignedTransaction {
-    /// The prefix used for MessagePack encoding, empty for signed transactions.
-    const PREFIX: &'static [u8] = b"";
-
     /// Decodes MessagePack bytes into a SignedTransaction.
     ///
     /// # Parameters
@@ -139,5 +140,40 @@ impl TransactionId for SignedTransaction {
 impl EstimateTransactionSize for SignedTransaction {
     fn estimate_size(&self) -> Result<usize, AlgoKitTransactError> {
         return Ok(self.encode()?.len());
+    }
+}
+
+impl TransactionGroup for Vec<Transaction> {
+    /// Groups a vector of transactions by calculating and assigning the group to each transaction.
+    ///
+    /// # Returns
+    /// A result containing the transactions with group assign or an error if grouping fails.
+    fn assign_group(&self) -> Result<Vec<Transaction>, AlgoKitTransactError> {
+        if self.len() > MAX_TX_GROUP_SIZE {
+            return Err(AlgoKitTransactError::InputError(format!(
+                "Transaction group size exceeds the max limit of {}",
+                MAX_TX_GROUP_SIZE
+            )));
+        }
+
+        if self.len() == 0 {
+            return Err(AlgoKitTransactError::InputError(String::from(
+                "Transaction group size cannot be 0",
+            )));
+        }
+
+        let group_id = compute_group_id(&self)?;
+        Ok(self
+            .iter()
+            .map(|tx| {
+                let mut tx = tx.clone();
+                let header = match &mut tx {
+                    Transaction::Payment(ref mut fields) => &mut fields.header,
+                    Transaction::AssetTransfer(ref mut fields) => &mut fields.header,
+                };
+                header.group = Some(group_id);
+                tx
+            })
+            .collect())
     }
 }
