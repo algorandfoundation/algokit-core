@@ -1,6 +1,10 @@
 use crate::address::Address;
-use crate::constants::{Byte32, ALGORAND_CHECKSUM_BYTE_LENGTH, HASH_BYTES_LENGTH};
-use crate::ALGORAND_PUBLIC_KEY_BYTE_LENGTH;
+use crate::constants::{
+    Byte32, ALGORAND_CHECKSUM_BYTE_LENGTH, ALGORAND_PUBLIC_KEY_BYTE_LENGTH, HASH_BYTES_LENGTH,
+};
+use crate::{AlgoKitTransactError, AlgorandMsgpack, Transaction, TransactionId};
+use serde::{Deserialize, Serialize};
+use serde_with::{serde_as, skip_serializing_none, Bytes};
 use sha2::{Digest, Sha512_256};
 use std::collections::BTreeMap;
 
@@ -73,4 +77,48 @@ pub fn pub_key_to_checksum(pub_key: &Byte32) -> [u8; ALGORAND_CHECKSUM_BYTE_LENG
     checksum
         .copy_from_slice(&hasher.finalize()[(HASH_BYTES_LENGTH - ALGORAND_CHECKSUM_BYTE_LENGTH)..]);
     checksum
+}
+
+pub fn hash(bytes: &Vec<u8>) -> Byte32 {
+    let mut hasher = Sha512_256::new();
+    hasher.update(&bytes);
+
+    let mut group = [0u8; HASH_BYTES_LENGTH];
+    group.copy_from_slice(&hasher.finalize()[..HASH_BYTES_LENGTH]);
+    group
+}
+
+pub fn compute_group_id(txs: &[Transaction]) -> Result<Byte32, AlgoKitTransactError> {
+    let tx_hashes: Result<Vec<Byte32>, AlgoKitTransactError> = txs
+        .iter()
+        .map(|tx| {
+            if tx.header().group.is_some() {
+                return Err(AlgoKitTransactError::InputError(
+                    "Transactions must not already be grouped".to_string(),
+                ));
+            }
+            tx.id_raw()
+        })
+        .collect();
+    let grouped = (GroupedTransactions {
+        tx_hashes: tx_hashes?,
+    })
+    .encode()
+    .unwrap();
+
+    Ok(hash(&grouped))
+}
+
+// This struct is only used internally for generating the group id
+#[serde_as]
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+struct GroupedTransactions {
+    #[serde(rename = "txlist")]
+    #[serde_as(as = "Vec<Bytes>")]
+    pub tx_hashes: Vec<Byte32>,
+}
+
+impl AlgorandMsgpack for GroupedTransactions {
+    const PREFIX: &'static [u8] = b"TG";
 }
