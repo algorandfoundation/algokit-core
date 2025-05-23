@@ -1,5 +1,7 @@
 use algokit_transact::constants::*;
-use algokit_transact::{AlgorandMsgpack, Byte32, EstimateTransactionSize, TransactionId};
+use algokit_transact::{
+    AlgorandMsgpack, Byte32, EstimateTransactionSize, TransactionId, Transactions,
+};
 use ffi_macros::{ffi_enum, ffi_func, ffi_record};
 use serde::{Deserialize, Serialize};
 use serde_bytes::ByteBuf;
@@ -518,6 +520,23 @@ pub fn get_transaction_id(tx: &Transaction) -> Result<String, AlgoKitTransactErr
     Ok(tx_internal.id()?)
 }
 
+/// Groups a collection of transactions by calculating and assigning the group to each transaction.
+#[ffi_func]
+pub fn group_transactions(txs: Vec<Transaction>) -> Result<Vec<Transaction>, AlgoKitTransactError> {
+    let txs_internal: Vec<algokit_transact::Transaction> = txs
+        .into_iter()
+        .map(|tx| tx.try_into())
+        .collect::<Result<Vec<_>, _>>()?;
+
+    let grouped_txs: Vec<Transaction> = txs_internal
+        .assign_group()?
+        .into_iter()
+        .map(|tx| tx.try_into())
+        .collect::<Result<Vec<_>, _>>()?;
+
+    Ok(grouped_txs)
+}
+
 /// Enum containing all constants used in this crate.
 #[ffi_enum]
 pub enum AlgorandConstant {
@@ -541,6 +560,9 @@ pub enum AlgorandConstant {
 
     /// Increment in the encoded byte size when a signature is attached to a transaction (75)
     SignatureEncodingIncrLength,
+
+    // The maximum number of transactions in a group (16)
+    MaxTxGroupSize,
 }
 
 impl AlgorandConstant {
@@ -556,6 +578,7 @@ impl AlgorandConstant {
             AlgorandConstant::SignatureEncodingIncrLength => {
                 ALGORAND_SIGNATURE_ENCODING_INCR as u64
             }
+            AlgorandConstant::MaxTxGroupSize => MAX_TX_GROUP_SIZE as u64,
         }
     }
 }
@@ -651,5 +674,29 @@ mod tests {
 
         assert_eq!(actual_id, data.id);
         assert_eq!(actual_id_raw, data.id_raw);
+    }
+
+    #[test]
+    fn test_group_transactions_ffi() {
+        let expected_group = [
+            202, 79, 82, 7, 197, 237, 213, 55, 117, 226, 131, 74, 221, 85, 86, 215, 64, 133, 212,
+            7, 58, 234, 248, 162, 222, 53, 161, 29, 141, 101, 133, 49,
+        ];
+        let tx1 = TestDataMother::simple_payment()
+            .transaction
+            .try_into()
+            .unwrap();
+        let tx2 = TestDataMother::opt_in_asset_transfer()
+            .transaction
+            .try_into()
+            .unwrap();
+        let txs = vec![tx1, tx2];
+
+        let grouped_txs = group_transactions(txs.clone()).unwrap();
+
+        assert_eq!(grouped_txs.len(), txs.len());
+        for grouped_tx in grouped_txs.into_iter() {
+            assert_eq!(grouped_tx.group.unwrap(), &expected_group);
+        }
     }
 }
