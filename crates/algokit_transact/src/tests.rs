@@ -324,5 +324,5 @@ fn test_transaction_group_already_set() {
     let error = result.unwrap_err();
     assert!(error
         .to_string()
-        .starts_with("Transactions must not already be grouped"));
+        .starts_with("Transactions must not be already grouped"));
 }
