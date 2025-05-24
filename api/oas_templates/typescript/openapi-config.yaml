@@ -19,3 +19,9 @@ files:
     custom_tests/transactions.test.mustache:
         templateType: SupportingFiles
         destinationFilename: tests/transactions.test.ts
+    custom_tests/accounts.test.mustache:
+        templateType: SupportingFiles
+        destinationFilename: tests/accounts.test.ts
+    custom_tests/artifacts/dummy_app.arc56.mustache:
+        templateType: SupportingFiles
+        destinationFilename: tests/artifacts/dummy_app.arc56.json

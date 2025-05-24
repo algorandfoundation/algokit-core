@@ -31,7 +31,7 @@ export class HttpException extends Error {
 /**
  * Represents the body of an outgoing HTTP request.
  */
-export type RequestBody = undefined | string | FormData | URLSearchParams;
+export type RequestBody = undefined | string | FormData | URLSearchParams | Uint8Array;
 
 type Headers = Record<string, string>;
 

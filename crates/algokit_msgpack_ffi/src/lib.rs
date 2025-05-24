@@ -1,0 +1,140 @@
+use algokit_msgpack::{
+    decode_base64_msgpack_to_json, decode_msgpack_to_json, encode_json_to_base64_msgpack,
+    encode_json_to_msgpack, ModelType as InternalModelType, MsgPackError,
+};
+use ffi_macros::ffi_func;
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, thiserror::Error)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
+pub enum AlgoKitMsgPackError {
+    #[error("SerializationError: {0}")]
+    SerializationError(String),
+    #[error("MsgPackEncodeError: {0}")]
+    MsgPackEncodeError(String),
+    #[error("MsgPackDecodeError: {0}")]
+    MsgPackDecodeError(String),
+    #[error("Base64DecodeError: {0}")]
+    Base64DecodeError(String),
+    #[error("MsgPackWriteError: {0}")]
+    MsgPackWriteError(String),
+    #[error("UnknownModelError: {0}")]
+    UnknownModelError(String),
+}
+
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::*;
+
+#[cfg(feature = "ffi_wasm")]
+impl From<AlgoKitMsgPackError> for JsValue {
+    fn from(e: AlgoKitMsgPackError) -> Self {
+        JsValue::from(e.to_string())
+    }
+}
+
+impl From<MsgPackError> for AlgoKitMsgPackError {
+    fn from(e: MsgPackError) -> Self {
+        match e {
+            MsgPackError::SerializationError(e) => {
+                AlgoKitMsgPackError::SerializationError(e.to_string())
+            }
+            MsgPackError::MsgPackEncodeError(e) => {
+                AlgoKitMsgPackError::MsgPackEncodeError(e.to_string())
+            }
+            MsgPackError::MsgPackDecodeError(e) => {
+                AlgoKitMsgPackError::MsgPackDecodeError(e.to_string())
+            }
+            MsgPackError::Base64DecodeError(e) => {
+                AlgoKitMsgPackError::Base64DecodeError(e.to_string())
+            }
+            MsgPackError::MsgPackWriteError(s) => AlgoKitMsgPackError::MsgPackWriteError(s),
+            MsgPackError::UnknownModelError(s) => AlgoKitMsgPackError::UnknownModelError(s),
+            MsgPackError::IoError(s) => AlgoKitMsgPackError::MsgPackWriteError(s),
+            MsgPackError::ValueWriteError(s) => AlgoKitMsgPackError::MsgPackEncodeError(s),
+        }
+    }
+}
+
+#[cfg(feature = "ffi_uniffi")]
+use uniffi::{self};
+
+#[cfg(feature = "ffi_uniffi")]
+uniffi::setup_scaffolding!();
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
+#[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Enum))]
+pub enum ModelType {
+    SimulateRequest,
+    SimulateTransaction200Response,
+    Account,
+}
+
+impl From<ModelType> for InternalModelType {
+    fn from(model_type: ModelType) -> Self {
+        match model_type {
+            ModelType::SimulateRequest => InternalModelType::SimulateRequest,
+            ModelType::SimulateTransaction200Response => {
+                InternalModelType::SimulateTransaction200Response
+            }
+            ModelType::Account => InternalModelType::Account,
+        }
+    }
+}
+
+impl From<InternalModelType> for ModelType {
+    fn from(model_type: InternalModelType) -> Self {
+        match model_type {
+            InternalModelType::SimulateRequest => ModelType::SimulateRequest,
+            InternalModelType::SimulateTransaction200Response => {
+                ModelType::SimulateTransaction200Response
+            }
+            InternalModelType::Account => ModelType::Account,
+        }
+    }
+}
+
+#[ffi_func]
+pub fn encode_json_to_msgpack_ffi(
+    model_type: ModelType,
+    json_str: &str,
+) -> Result<Vec<u8>, AlgoKitMsgPackError> {
+    let internal_type: InternalModelType = model_type.into();
+    Ok(encode_json_to_msgpack(internal_type, json_str)?)
+}
+
+#[ffi_func]
+pub fn decode_msgpack_to_json_ffi(
+    model_type: ModelType,
+    msgpack_bytes: &[u8],
+) -> Result<String, AlgoKitMsgPackError> {
+    let internal_type: InternalModelType = model_type.into();
+    Ok(decode_msgpack_to_json(internal_type, msgpack_bytes)?)
+}
+
+#[ffi_func]
+pub fn encode_json_to_base64_msgpack_ffi(
+    model_type: ModelType,
+    json_str: &str,
+) -> Result<String, AlgoKitMsgPackError> {
+    let internal_type: InternalModelType = model_type.into();
+    Ok(encode_json_to_base64_msgpack(internal_type, json_str)?)
+}
+
+#[ffi_func]
+pub fn decode_base64_msgpack_to_json_ffi(
+    model_type: ModelType,
+    base64_str: &str,
+) -> Result<String, AlgoKitMsgPackError> {
+    let internal_type: InternalModelType = model_type.into();
+    Ok(decode_base64_msgpack_to_json(internal_type, base64_str)?)
+}
+
+#[ffi_func]
+pub fn list_supported_models_ffi() -> Vec<ModelType> {
+    algokit_msgpack::list_supported_models()
+        .into_iter()
+        .map(Into::into)
+        .collect()
+}
