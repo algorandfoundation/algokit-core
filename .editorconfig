@@ -17,5 +17,8 @@ trim_trailing_whitespace = false
 [*.py]
 indent_size = 4
 
+[*.rs]
+indent_size = 4
+
 [*.mustache]
 trim_trailing_whitespace = false
