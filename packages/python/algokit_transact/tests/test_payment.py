@@ -11,7 +11,7 @@ from algokit_transact import (
     address_from_string,
     address_from_pub_key,
     get_transaction_id,
-    get_transaction_raw_id,
+    get_transaction_id_raw,
 )
 from nacl.signing import SigningKey
 
@@ -97,4 +97,4 @@ def test_get_transaction_id():
     """A transaction id can be obtained from a transaction"""
 
     assert get_transaction_id(simple_payment.transaction) == simple_payment.id
-    assert get_transaction_raw_id(simple_payment.transaction) == simple_payment.raw_id
+    assert get_transaction_id_raw(simple_payment.transaction) == simple_payment.id_raw

@@ -9,7 +9,7 @@ import {
   Transaction,
   addressFromPubKey,
   addressFromString,
-  getTransactionRawId,
+  getTransactionIdRaw,
   getTransactionId,
 } from "../src/index";
 
@@ -70,7 +70,7 @@ describe("Payment", () => {
     });
 
     test("get transaction id", () => {
-      expect(getTransactionRawId(simplePayment.transaction)).toEqual(simplePayment.rawId);
+      expect(getTransactionIdRaw(simplePayment.transaction)).toEqual(simplePayment.idRaw);
       expect(getTransactionId(simplePayment.transaction)).toEqual(simplePayment.id);
     });
   });

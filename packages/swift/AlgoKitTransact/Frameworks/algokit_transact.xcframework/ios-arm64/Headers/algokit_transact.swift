@@ -934,6 +934,129 @@ extension AlgoKitTransactError: Foundation.LocalizedError {
 
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+/**
+ * Enum containing all constants used in this crate.
+ */
+
+public enum AlgorandConstant {
+    
+    /**
+     * Length of hash digests (32)
+     */
+    case hashLength
+    /**
+     * Length of the checksum used in Algorand addresses (4)
+     */
+    case checksumLength
+    /**
+     * Length of a base32-encoded Algorand address (58)
+     */
+    case addressLength
+    /**
+     * Length of an Algorand public key in bytes (32)
+     */
+    case publicKeyLength
+    /**
+     * Length of an Algorand secret key in bytes (32)
+     */
+    case secretKeyLength
+    /**
+     * Length of an Algorand signature in bytes (64)
+     */
+    case signatureLength
+    /**
+     * Increment in the encoded byte size when a signature is attached to a transaction (75)
+     */
+    case signatureEncodingIncrLength
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeAlgorandConstant: FfiConverterRustBuffer {
+    typealias SwiftType = AlgorandConstant
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> AlgorandConstant {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .hashLength
+        
+        case 2: return .checksumLength
+        
+        case 3: return .addressLength
+        
+        case 4: return .publicKeyLength
+        
+        case 5: return .secretKeyLength
+        
+        case 6: return .signatureLength
+        
+        case 7: return .signatureEncodingIncrLength
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: AlgorandConstant, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case .hashLength:
+            writeInt(&buf, Int32(1))
+        
+        
+        case .checksumLength:
+            writeInt(&buf, Int32(2))
+        
+        
+        case .addressLength:
+            writeInt(&buf, Int32(3))
+        
+        
+        case .publicKeyLength:
+            writeInt(&buf, Int32(4))
+        
+        
+        case .secretKeyLength:
+            writeInt(&buf, Int32(5))
+        
+        
+        case .signatureLength:
+            writeInt(&buf, Int32(6))
+        
+        
+        case .signatureEncodingIncrLength:
+            writeInt(&buf, Int32(7))
+        
+        }
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeAlgorandConstant_lift(_ buf: RustBuffer) throws -> AlgorandConstant {
+    return try FfiConverterTypeAlgorandConstant.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeAlgorandConstant_lower(_ value: AlgorandConstant) -> RustBuffer {
+    return FfiConverterTypeAlgorandConstant.lower(value)
+}
+
+
+
+extension AlgorandConstant: Equatable, Hashable {}
+
+
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 
 public enum TransactionType {
     
@@ -1238,6 +1361,24 @@ public func encodeTransactionRaw(tx: Transaction)throws  -> Data {
 })
 }
 /**
+ * Return the size of the transaction in bytes as if it was already signed and encoded.
+ * This is useful for estimating the fee for the transaction.
+ */
+public func estimateTransactionSize(transaction: Transaction)throws  -> UInt64 {
+    return try  FfiConverterUInt64.lift(try rustCallWithError(FfiConverterTypeAlgoKitTransactError.lift) {
+    uniffi_algokit_transact_ffi_fn_func_estimate_transaction_size(
+        FfiConverterTypeTransaction.lower(transaction),$0
+    )
+})
+}
+public func getAlgorandConstant(constant: AlgorandConstant) -> UInt64 {
+    return try!  FfiConverterUInt64.lift(try! rustCall() {
+    uniffi_algokit_transact_ffi_fn_func_get_algorand_constant(
+        FfiConverterTypeAlgorandConstant.lower(constant),$0
+    )
+})
+}
+/**
  * Get the transaction type from the encoded transaction.
  * This is particularly useful when decoding a transaction that has an unknown type
  */
@@ -1261,9 +1402,9 @@ public func getTransactionId(tx: Transaction)throws  -> String {
 /**
  * Get the raw 32-byte transaction ID for a transaction.
  */
-public func getTransactionRawId(tx: Transaction)throws  -> Data {
+public func getTransactionIdRaw(tx: Transaction)throws  -> Data {
     return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeAlgoKitTransactError.lift) {
-    uniffi_algokit_transact_ffi_fn_func_get_transaction_raw_id(
+    uniffi_algokit_transact_ffi_fn_func_get_transaction_id_raw(
         FfiConverterTypeTransaction.lower(tx),$0
     )
 })
@@ -1302,13 +1443,19 @@ private let initializationResult: InitializationResult = {
     if (uniffi_algokit_transact_ffi_checksum_func_encode_transaction_raw() != 1774) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_algokit_transact_ffi_checksum_func_estimate_transaction_size() != 60858) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_algokit_transact_ffi_checksum_func_get_algorand_constant() != 49400) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_algokit_transact_ffi_checksum_func_get_encoded_transaction_type() != 9866) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_algokit_transact_ffi_checksum_func_get_transaction_id() != 20463) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_algokit_transact_ffi_checksum_func_get_transaction_raw_id() != 15873) {
+    if (uniffi_algokit_transact_ffi_checksum_func_get_transaction_id_raw() != 37098) {
         return InitializationResult.apiChecksumMismatch
     }
 

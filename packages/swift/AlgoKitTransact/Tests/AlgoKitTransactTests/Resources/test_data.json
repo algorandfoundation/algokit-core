@@ -1,7 +1,7 @@
 {
   "optInAssetTransfer": {
     "id": "JIDBHDPLBASULQZFI4EY5FJWR6VQRMPPFSGYBKE2XKW65N3UQJXA",
-    "rawId": [
+    "idRaw": [
       74,
       6,
       19,
@@ -624,7 +624,7 @@
   },
   "simplePayment": {
     "id": "TZM3P4ZL4DLIEZ3WOEP67MQ6JITTO4D3NJN3RCA5YDBC3V4LA5LA",
-    "rawId": [
+    "idRaw": [
       158,
       89,
       183,

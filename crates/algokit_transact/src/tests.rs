@@ -90,25 +90,11 @@ fn test_address() {
 }
 
 #[test]
-fn test_pay_transaction_raw_id() {
-    let expected_tx_id = [
+fn test_pay_transaction_id() {
+    let expected_tx_id_raw = [
         35, 93, 0, 170, 96, 221, 1, 74, 119, 147, 131, 116, 7, 31, 225, 40, 215, 47, 44, 120, 128,
         245, 41, 65, 116, 255, 147, 64, 90, 80, 147, 223,
     ];
-
-    let tx_builder = TransactionMother::payment_with_note();
-    let payment_tx = tx_builder.build().unwrap();
-    let signed_tx = SignedTransaction {
-        transaction: payment_tx.clone(),
-        signature: [0; ALGORAND_SIGNATURE_BYTE_LENGTH],
-    };
-
-    assert_eq!(payment_tx.raw_id().unwrap(), expected_tx_id);
-    assert_eq!(signed_tx.raw_id().unwrap(), expected_tx_id);
-}
-
-#[test]
-fn test_pay_transaction_id() {
     let expected_tx_id = "ENOQBKTA3UAUU54TQN2AOH7BFDLS6LDYQD2SSQLU76JUAWSQSPPQ";
 
     let tx_builder = TransactionMother::payment_with_note();
@@ -119,7 +105,9 @@ fn test_pay_transaction_id() {
     };
 
     assert_eq!(payment_tx.id().unwrap(), expected_tx_id);
+    assert_eq!(payment_tx.id_raw().unwrap(), expected_tx_id_raw);
     assert_eq!(signed_tx.id().unwrap(), expected_tx_id);
+    assert_eq!(signed_tx.id_raw().unwrap(), expected_tx_id_raw);
 }
 
 #[test]

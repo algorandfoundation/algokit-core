@@ -16,7 +16,7 @@ from nacl.signing import SigningKey
 class TransactionTestData:
     transaction: Transaction
     id: str
-    raw_id: bytes
+    id_raw: bytes
     unsigned_bytes: bytes
     signed_bytes: bytes
     signing_private_key: SigningKey
