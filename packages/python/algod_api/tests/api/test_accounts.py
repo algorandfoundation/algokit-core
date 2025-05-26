@@ -28,7 +28,7 @@ from algokit_utils import (
 from algokit_algod_api.api.algod_api import AlgodApi
 from algokit_algod_api.exceptions import ApiException
 from algokit_algod_api.models.account import Account
-from tests.utils import create_random_asset, handle_api_exception
+from tests.utils import create_random_asset
 
 
 @pytest.fixture
@@ -92,8 +92,6 @@ class TestAccountsAPI:
             # Check the account status is a valid string value
             assert response_dict["status"] in ["Offline", "Online", "NotParticipating"]
 
-        except ApiException as e:
-            handle_api_exception(e)
         except Exception as e:
             pytest.fail(f"Exception when calling AlgodApi->account_information: {e}")
 
@@ -116,8 +114,6 @@ class TestAccountsAPI:
             assert response is not None
             assert isinstance(response, Account)
 
-        except ApiException as e:
-            handle_api_exception(e)
         except Exception as e:
             pytest.fail(f"Exception when calling AlgodApi->account_information: {e}")
 
@@ -147,7 +143,5 @@ class TestAccountsAPI:
             assert "apps-local-state" not in response_dict
             assert "created-apps" not in response_dict
 
-        except ApiException as e:
-            handle_api_exception(e)
         except Exception as e:
             pytest.fail(f"Exception when calling AlgodApi->account_information: {e}")
