@@ -1,6 +1,7 @@
 use algokit_msgpack::{
     decode_base64_msgpack_to_json, decode_msgpack_to_json, encode_json_to_base64_msgpack,
-    encode_json_to_msgpack, ModelType as InternalModelType, MsgPackError,
+    encode_json_to_msgpack, AlgoKitMsgPackError as InternalMsgPackError,
+    ModelType as InternalModelType,
 };
 use ffi_macros::ffi_func;
 use serde::{Deserialize, Serialize};
@@ -32,25 +33,25 @@ impl From<AlgoKitMsgPackError> for JsValue {
     }
 }
 
-impl From<MsgPackError> for AlgoKitMsgPackError {
-    fn from(e: MsgPackError) -> Self {
+impl From<InternalMsgPackError> for AlgoKitMsgPackError {
+    fn from(e: InternalMsgPackError) -> Self {
         match e {
-            MsgPackError::SerializationError(e) => {
+            InternalMsgPackError::SerializationError(e) => {
                 AlgoKitMsgPackError::SerializationError(e.to_string())
             }
-            MsgPackError::MsgPackEncodeError(e) => {
+            InternalMsgPackError::MsgpackEncodingError(e) => {
                 AlgoKitMsgPackError::MsgPackEncodeError(e.to_string())
             }
-            MsgPackError::MsgPackDecodeError(e) => {
+            InternalMsgPackError::MsgpackDecodingError(e) => {
                 AlgoKitMsgPackError::MsgPackDecodeError(e.to_string())
             }
-            MsgPackError::Base64DecodeError(e) => {
+            InternalMsgPackError::Base64DecodingError(e) => {
                 AlgoKitMsgPackError::Base64DecodeError(e.to_string())
             }
-            MsgPackError::MsgPackWriteError(s) => AlgoKitMsgPackError::MsgPackWriteError(s),
-            MsgPackError::UnknownModelError(s) => AlgoKitMsgPackError::UnknownModelError(s),
-            MsgPackError::IoError(s) => AlgoKitMsgPackError::MsgPackWriteError(s),
-            MsgPackError::ValueWriteError(s) => AlgoKitMsgPackError::MsgPackEncodeError(s),
+            InternalMsgPackError::MsgpackWriteError(s) => AlgoKitMsgPackError::MsgPackWriteError(s),
+            InternalMsgPackError::UnknownModelError(s) => AlgoKitMsgPackError::UnknownModelError(s),
+            InternalMsgPackError::IoError(s) => AlgoKitMsgPackError::MsgPackWriteError(s),
+            InternalMsgPackError::ValueWriteError(s) => AlgoKitMsgPackError::MsgPackEncodeError(s),
         }
     }
 }

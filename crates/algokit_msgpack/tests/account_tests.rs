@@ -1,4 +1,4 @@
-use algokit_msgpack::{Account, ModelType, MsgPackError};
+use algokit_msgpack::{Account, AlgoKitMsgPackError, ModelType};
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::Engine;
 
@@ -25,10 +25,10 @@ fn test_account_decoding_error() {
     // Test error response for encoding
     let result = algokit_msgpack::encode_json_to_msgpack(ModelType::Account, &json);
     assert!(result.is_err());
-    if let Err(MsgPackError::MsgPackWriteError(msg)) = result {
-        assert!(msg.contains("not implemented"));
+    if let Err(AlgoKitMsgPackError::MsgpackWriteError(msg)) = result {
+        assert!(msg.contains("not supported"));
     } else {
-        panic!("Expected MsgPackWriteError");
+        panic!("Expected MsgpackWriteError");
     }
 }
 

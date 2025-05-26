@@ -1,4 +1,4 @@
-use crate::{ModelHandler, MsgPackError, Result};
+use crate::{AlgoKitMsgPackError, ModelHandler, Result};
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::Engine;
 use serde::{Deserialize, Serialize};
@@ -182,8 +182,8 @@ impl ModelHandler for AccountHandler {
     /// not needed. The algod API only returns account data in MessagePack format, it doesn't
     /// accept account data as input.
     fn encode_json_to_msgpack(&self, _json_str: &str) -> Result<Vec<u8>> {
-        Err(MsgPackError::MsgPackWriteError(
-            "Account encoding is not implemented".into(),
+        Err(AlgoKitMsgPackError::MsgpackWriteError(
+            "Account encoding is not supported".into(),
         ))
     }
 
@@ -506,7 +506,7 @@ impl ModelHandler for AccountHandler {
 
                 Ok(serde_json::to_string(&account)?)
             }
-            Err(e) => Err(MsgPackError::IoError(e.to_string())),
+            Err(e) => Err(AlgoKitMsgPackError::IoError(e.to_string())),
         }
     }
 }
