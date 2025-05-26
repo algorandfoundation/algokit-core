@@ -131,8 +131,8 @@ impl TransactionId for SignedTransaction {
     ///
     /// # Returns
     /// The transaction ID as a byte array or an error if generation fails.
-    fn raw_id(&self) -> Result<[u8; HASH_BYTES_LENGTH], AlgoKitTransactError> {
-        self.transaction.raw_id()
+    fn id_raw(&self) -> Result<[u8; HASH_BYTES_LENGTH], AlgoKitTransactError> {
+        self.transaction.id_raw()
     }
 }
 

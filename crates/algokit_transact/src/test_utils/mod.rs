@@ -121,7 +121,7 @@ impl AddressMother {
 pub struct TransactionTestData {
     pub transaction: Transaction,
     pub id: String,
-    pub raw_id: Byte32,
+    pub id_raw: Byte32,
     pub unsigned_bytes: Vec<u8>,
     pub signing_private_key: Byte32,
     pub signed_bytes: Vec<u8>,
@@ -131,7 +131,7 @@ impl TransactionTestData {
     pub fn new(transaction: Transaction, signing_private_key: Byte32) -> Self {
         let signing_key: SigningKey = SigningKey::from_bytes(&signing_private_key);
         let id = transaction.id().unwrap();
-        let raw_id: [u8; HASH_BYTES_LENGTH] = transaction.raw_id().unwrap();
+        let id_raw: [u8; HASH_BYTES_LENGTH] = transaction.id_raw().unwrap();
         let unsigned_bytes = transaction.encode().unwrap();
         let signature = signing_key.sign(&unsigned_bytes);
         let signed_txn = SignedTransaction {
@@ -143,7 +143,7 @@ impl TransactionTestData {
         Self {
             transaction,
             id,
-            raw_id,
+            id_raw,
             unsigned_bytes,
             signing_private_key,
             signed_bytes,
@@ -228,7 +228,7 @@ mod tests {
             String::from("TZM3P4ZL4DLIEZ3WOEP67MQ6JITTO4D3NJN3RCA5YDBC3V4LA5LA")
         );
         assert_eq!(
-            data.raw_id,
+            data.id_raw,
             [
                 158, 89, 183, 243, 43, 224, 214, 130, 103, 118, 113, 31, 239, 178, 30, 74, 39, 55,
                 112, 123, 106, 91, 184, 136, 29, 192, 194, 45, 215, 139, 7, 86
@@ -278,7 +278,7 @@ mod tests {
             String::from("JIDBHDPLBASULQZFI4EY5FJWR6VQRMPPFSGYBKE2XKW65N3UQJXA")
         );
         assert_eq!(
-            data.raw_id,
+            data.id_raw,
             [
                 74, 6, 19, 141, 235, 8, 37, 69, 195, 37, 71, 9, 142, 149, 54, 143, 171, 8, 177,
                 239, 44, 141, 128, 168, 154, 186, 173, 238, 183, 116, 130, 110

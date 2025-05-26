@@ -30,7 +30,7 @@ struct TransactionTestData: Codable {
 
     let transaction: TransactionData
     let id: String
-    let rawId: [UInt8]
+    let idRaw: [UInt8]
     let unsignedBytes: [UInt8];
     let signedBytes: [UInt8];
     let signingPrivateKey: [UInt8];

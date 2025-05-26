@@ -115,7 +115,7 @@ pub trait TransactionId: AlgorandMsgpack {
     ///
     /// # Returns
     /// The transaction ID as a 32-byte array or an AlgoKitTransactError if encoding fails.
-    fn raw_id(&self) -> Result<[u8; HASH_BYTES_LENGTH], AlgoKitTransactError> {
+    fn id_raw(&self) -> Result<[u8; HASH_BYTES_LENGTH], AlgoKitTransactError> {
         let mut hasher = Sha512_256::new();
         hasher.update(self.encode()?);
 
@@ -132,7 +132,7 @@ pub trait TransactionId: AlgorandMsgpack {
     /// # Returns
     /// The base32-encoded transaction ID string or an AlgoKitTransactError if ID calculation fails.
     fn id(&self) -> Result<String, AlgoKitTransactError> {
-        let hash = self.raw_id()?;
+        let hash = self.id_raw()?;
 
         Ok(base32::encode(
             base32::Alphabet::Rfc4648 { padding: false },

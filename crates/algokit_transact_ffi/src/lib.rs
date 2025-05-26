@@ -462,10 +462,10 @@ pub fn address_from_string(address: &str) -> Result<Address, AlgoKitTransactErro
 
 /// Get the raw 32-byte transaction ID for a transaction.
 #[ffi_func]
-pub fn get_transaction_raw_id(tx: &Transaction) -> Result<Vec<u8>, AlgoKitTransactError> {
+pub fn get_transaction_id_raw(tx: &Transaction) -> Result<Vec<u8>, AlgoKitTransactError> {
     let tx_internal: algokit_transact::Transaction = tx.clone().try_into()?;
-    let raw_id = tx_internal.raw_id()?;
-    Ok(raw_id.to_vec())
+    let id_raw = tx_internal.id_raw()?;
+    Ok(id_raw.to_vec())
 }
 
 /// Get the base32 transaction ID string for a transaction.
@@ -550,9 +550,9 @@ mod tests {
         let tx_ffi = data.transaction.try_into().unwrap();
 
         let actual_id = get_transaction_id(&tx_ffi).unwrap();
-        let actual_raw_id = get_transaction_raw_id(&tx_ffi).unwrap();
+        let actual_id_raw = get_transaction_id_raw(&tx_ffi).unwrap();
 
         assert_eq!(actual_id, data.id);
-        assert_eq!(actual_raw_id, data.raw_id);
+        assert_eq!(actual_id_raw, data.id_raw);
     }
 }

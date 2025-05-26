@@ -22,7 +22,7 @@ export const parseJson = <T = any>(json: string, reviver: (_: string, value: unk
 type TransactionTestData = {
   transaction: Transaction;
   id: string;
-  rawId: Uint8Array;
+  idRaw: Uint8Array;
   unsignedBytes: Uint8Array;
   signedBytes: Uint8Array;
   signingPrivateKey: Uint8Array;

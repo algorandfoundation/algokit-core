@@ -18,7 +18,7 @@ fn generate_test_data() {
         unsigned_bytes: Vec<u8>,
         signed_bytes: Vec<u8>,
         id: String,
-        raw_id: [u8; HASH_BYTES_LENGTH],
+        id_raw: [u8; HASH_BYTES_LENGTH],
     }
 
     test_utils::TestDataMother::export(
@@ -29,7 +29,7 @@ fn generate_test_data() {
             unsigned_bytes: d.unsigned_bytes.clone(),
             signed_bytes: d.signed_bytes.clone(),
             id: d.id.clone(),
-            raw_id: d.raw_id,
+            id_raw: d.id_raw,
         }),
     );
 }
