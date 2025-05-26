@@ -46,7 +46,7 @@ from algokit_algod_api.exceptions import (
 # ---------------------------------------------------------------------------
 try:
     from algokit_msgpack import (
-        decode_msgpack_to_json_ffi as _ak_decode_msgpack,
+        decode_msgpack_to_json as _ak_decode_msgpack,
         ModelType as _AkModelType,
     )
 except ModuleNotFoundError:  # pragma: no cover
@@ -245,8 +245,8 @@ class ApiClient:
             if content_type_hdr.startswith('application/msgpack') and hasattr(body, 'to_msgpack'):
                 try:
                     body = body.to_msgpack()  # type: ignore[attr-defined]
-                except Exception:  # pragma: no cover – fall back to JSON
-                    body = self.sanitize_for_serialization(body)
+                except Exception as e:  # pragma: no cover – raise MessagePack encoding error
+                    raise e 
             else:
                 body = self.sanitize_for_serialization(body)
 

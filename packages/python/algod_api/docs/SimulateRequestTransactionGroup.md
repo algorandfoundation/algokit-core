@@ -6,7 +6,7 @@ A transaction group to simulate.
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**txns** | **List[str]** | An atomic transaction group. | 
+**txns** | **List[str]** | An atomic transaction group. Each transaction must be provided as a base64-encoded, canonically encoded SignedTransaction object. Note: This differs from algosdk&#39;s simulateTransaction method, which takes an array of SignedTransaction objects and handles the encoding internally. | 
 
 ## Example
 

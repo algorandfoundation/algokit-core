@@ -99,24 +99,6 @@ def create_test_transaction(
 
     return attach_signature(encoded_txn, base64.b64decode(sig))
 
-
-def handle_api_exception(e: ApiException) -> None:
-    """
-    Handle API exceptions consistently.
-
-    Args:
-        e: API exception to handle
-    """
-    if e.status == 401:
-        pytest.skip(f"Authentication required or failed: {e}")
-    elif e.status == 404:
-        pytest.skip(f"Endpoint not available or resource not found: {e}")
-    elif e.status == 501:
-        pytest.skip(f"API not implemented: {e}")
-    else:
-        pytest.fail(f"API Exception: {e}")
-
-
 class TestTransactionAPI:
     """Specialized tests for transaction endpoints"""
 
@@ -141,8 +123,6 @@ class TestTransactionAPI:
             for field in required_fields:
                 assert field in response_dict
 
-        except ApiException as e:
-            handle_api_exception(e)
         except Exception as e:
             pytest.fail(f"Exception when calling AlgodApi->transaction_params: {e}")
 
@@ -174,8 +154,6 @@ class TestTransactionAPI:
             assert 'txId' in response_dict
             assert len(response_dict['txId']) > 0
 
-        except ApiException as e:
-            handle_api_exception(e)
         except Exception as e:
             pytest.fail(f"Exception when calling AlgodApi->raw_transaction: {e}")
 
@@ -206,8 +184,6 @@ class TestTransactionAPI:
             assert "confirmed-round" in response_dict
             assert "pool-error" in response_dict
 
-        except ApiException as e:
-            handle_api_exception(e)
         except Exception as e:
             pytest.fail(f"Exception when calling AlgodApi->pending_transaction_information: {e}")
 
@@ -251,7 +227,5 @@ class TestTransactionAPI:
             )
 
             assert response is not None
-        except ApiException as e:
-            handle_api_exception(e)
         except Exception as e:
             pytest.fail(f"Exception when calling AlgodApi->pending_transaction_information: {e}")
