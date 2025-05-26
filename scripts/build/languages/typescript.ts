@@ -2,7 +2,7 @@ import { run } from "..";
 import * as fs from "fs";
 
 async function wasmPack(crate: string, target: "web" | "nodejs" | "bundler", cwd: string) {
-  const cmd = `npx wasm-pack build --out-dir ../../packages/typescript/${crate}/pkg --mode normal --release --target ${target} ../../../crates/${crate}_ffi --no-default-features --features ffi_wasm`;
+  const cmd = `bunx wasm-pack build --out-dir ../../packages/typescript/${crate}/pkg --mode normal --release --target ${target} ../../../crates/${crate}_ffi --no-default-features --features ffi_wasm`;
 
   await run(cmd, cwd, {
     // Needed due to Rust 1.82+ using LLVM with reference-types enabled by default, which makes the WASM binary incompatible with wasm2js
@@ -21,7 +21,7 @@ async function build(crate: string, mode: "esm" | "cjs" | "wasm2js", cwd: string
       break;
     case "wasm2js":
       await wasmPack(crate, "bundler", cwd);
-      await run(`npx wasm2js -O pkg/${crate}_ffi_bg.wasm -o pkg/${crate}_ffi_bg.wasm.js`, cwd);
+      await run(`bunx wasm2js -O pkg/${crate}_ffi_bg.wasm -o pkg/${crate}_ffi_bg.wasm.js`, cwd);
 
       // Replace references to the wasm file with the wasm2js file
       [".js", "_bg.js"].forEach((ext) => {
@@ -43,7 +43,7 @@ async function build(crate: string, mode: "esm" | "cjs" | "wasm2js", cwd: string
       throw new Error(`Unknown mode ${mode}`);
   }
 
-  await run(`npx rollup -c rollup.config.${mode}.mjs`, cwd);
+  await run(`bunx rollup -c rollup.config.${mode}.mjs`, cwd);
 }
 
 export async function buildTypescript(crate: string) {
