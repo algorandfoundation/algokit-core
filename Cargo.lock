@@ -39,9 +39,9 @@ dependencies = [
 
 [[package]]
 name = "algokit_msgpack"
-version = "0.5.0"
+version = "0.1.0"
 dependencies = [
- "base64 0.13.1",
+ "base64 0.22.1",
  "rand",
  "rmp",
  "rmp-serde",
@@ -58,9 +58,8 @@ name = "algokit_msgpack_ffi"
 version = "0.1.0"
 dependencies = [
  "algokit_msgpack",
- "base64 0.13.1",
+ "base64 0.22.1",
  "ffi_macros",
- "pretty_assertions",
  "serde",
  "serde_bytes",
  "serde_json",
@@ -76,7 +75,7 @@ version = "0.1.0"
 dependencies = [
  "algokit_transact",
  "base32",
- "base64",
+ "base64 0.22.1",
  "convert_case",
  "derive_builder",
  "ed25519-dalek",
@@ -268,6 +267,12 @@ name = "base32"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "022dfe9eb35f19ebbcb51e0b40a5ab759f46ad60cadf7297e0bd085afb50e076"
+
+[[package]]
+name = "base64"
+version = "0.21.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9d297deb1925b89f2ccc13d7635fa0714f12c87adce1c75356b39ca9b7178567"
 
 [[package]]
 name = "base64"
@@ -2783,7 +2788,7 @@ version = "3.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8e28bdad6db2b8340e449f7108f020b3b092e8583a9e3fb82713e1d4e71fe817"
 dependencies = [
- "base64",
+ "base64 0.22.1",
  "chrono",
  "hex",
  "indexmap 1.9.3",
@@ -3583,7 +3588,7 @@ version = "2.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "02d1a66277ed75f640d608235660df48c8e3c19f3b4edb6a263315626cc3c01d"
 dependencies = [
- "base64",
+ "base64 0.22.1",
  "flate2",
  "log",
  "once_cell",

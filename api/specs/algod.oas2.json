@@ -3517,7 +3517,7 @@
             "required": ["txns"],
             "properties": {
                 "txns": {
-                    "description": "An atomic transaction group.",
+                    "description": "An atomic transaction group. Each transaction must be provided as a base64-encoded, canonically encoded SignedTransaction object. Note: This differs from algosdk's simulateTransaction method, which takes an array of SignedTransaction objects and handles the encoding internally.",
                     "type": "array",
                     "items": {
                         "description": "SignedTxn object. Must be canonically encoded.",
