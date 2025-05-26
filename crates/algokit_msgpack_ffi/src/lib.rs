@@ -1,7 +1,9 @@
 use algokit_msgpack::{
-    decode_base64_msgpack_to_json, decode_msgpack_to_json, encode_json_to_base64_msgpack,
-    encode_json_to_msgpack, AlgoKitMsgPackError as InternalMsgPackError,
-    ModelType as InternalModelType,
+    decode_base64_msgpack_to_json as internal_decode_base64_msgpack_to_json,
+    decode_msgpack_to_json as internal_decode_msgpack_to_json,
+    encode_json_to_base64_msgpack as internal_encode_json_to_base64_msgpack,
+    encode_json_to_msgpack as internal_encode_json_to_msgpack,
+    AlgoKitMsgPackError as InternalMsgPackError, ModelType as InternalModelType,
 };
 use ffi_macros::ffi_func;
 use serde::{Deserialize, Serialize};
@@ -97,44 +99,53 @@ impl From<InternalModelType> for ModelType {
 }
 
 #[ffi_func]
-pub fn encode_json_to_msgpack_ffi(
+pub fn encode_json_to_msgpack(
     model_type: ModelType,
     json_str: &str,
 ) -> Result<Vec<u8>, AlgoKitMsgPackError> {
     let internal_type: InternalModelType = model_type.into();
-    Ok(encode_json_to_msgpack(internal_type, json_str)?)
+    Ok(internal_encode_json_to_msgpack(internal_type, json_str)?)
 }
 
 #[ffi_func]
-pub fn decode_msgpack_to_json_ffi(
+pub fn decode_msgpack_to_json(
     model_type: ModelType,
     msgpack_bytes: &[u8],
 ) -> Result<String, AlgoKitMsgPackError> {
     let internal_type: InternalModelType = model_type.into();
-    Ok(decode_msgpack_to_json(internal_type, msgpack_bytes)?)
+    Ok(internal_decode_msgpack_to_json(
+        internal_type,
+        msgpack_bytes,
+    )?)
 }
 
 #[ffi_func]
-pub fn encode_json_to_base64_msgpack_ffi(
+pub fn encode_json_to_base64_msgpack(
     model_type: ModelType,
     json_str: &str,
 ) -> Result<String, AlgoKitMsgPackError> {
     let internal_type: InternalModelType = model_type.into();
-    Ok(encode_json_to_base64_msgpack(internal_type, json_str)?)
+    Ok(internal_encode_json_to_base64_msgpack(
+        internal_type,
+        json_str,
+    )?)
 }
 
 #[ffi_func]
-pub fn decode_base64_msgpack_to_json_ffi(
+pub fn decode_base64_msgpack_to_json(
     model_type: ModelType,
     base64_str: &str,
 ) -> Result<String, AlgoKitMsgPackError> {
     let internal_type: InternalModelType = model_type.into();
-    Ok(decode_base64_msgpack_to_json(internal_type, base64_str)?)
+    Ok(internal_decode_base64_msgpack_to_json(
+        internal_type,
+        base64_str,
+    )?)
 }
 
 #[ffi_func]
-pub fn list_supported_models_ffi() -> Vec<ModelType> {
-    algokit_msgpack::list_supported_models()
+pub fn supported_models() -> Vec<ModelType> {
+    algokit_msgpack::supported_models()
         .into_iter()
         .map(Into::into)
         .collect()

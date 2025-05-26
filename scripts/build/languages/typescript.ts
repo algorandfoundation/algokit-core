@@ -73,14 +73,4 @@ export async function buildTypescript(crate: string) {
     `packages/typescript/${crate}/pkg/${crate}_ffi.d.ts`,
     `packages/typescript/${crate}/dist/index.d.ts`,
   );
-
-  // Ensure the raw wasm blob is present next to the *.node.cjs bundle that
-  // Node (and Vitest when transpiling to CommonJS) will load via
-  //   readFileSync(path.join(__dirname, '<crate>_ffi_bg.wasm'))
-  // Rollup's CJS output does not inline the bytes, so we need to ship the
-  // file.  Copy it from the wasm-pack output directory into dist/.
-  fs.copyFileSync(
-    `packages/typescript/${crate}/pkg/${crate}_ffi_bg.wasm`,
-    `packages/typescript/${crate}/dist/${crate}_ffi_bg.wasm`,
-  );
 }

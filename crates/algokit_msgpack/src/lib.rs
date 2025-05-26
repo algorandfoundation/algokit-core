@@ -314,7 +314,7 @@ pub fn decode_base64_msgpack_to_json(model_type: ModelType, base64_str: &str) ->
     registry.decode_base64_msgpack_to_json(model_type, base64_str)
 }
 
-pub fn list_supported_models() -> Vec<ModelType> {
+pub fn supported_models() -> Vec<ModelType> {
     let registry = ModelRegistry::default();
     registry.list_models()
 }
