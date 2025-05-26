@@ -57,7 +57,7 @@ const languages = {
   typescript: buildTypescript,
 };
 
-const crates = ["algokit_transact"];
+const crates = ["algokit_transact", "algokit_msgpack"];
 
 const { positionals } = parseArgs({
   allowPositionals: true,

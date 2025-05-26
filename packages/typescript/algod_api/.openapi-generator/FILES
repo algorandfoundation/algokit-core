@@ -90,6 +90,8 @@ models/all.ts
 package.json
 rxjsStub.ts
 servers.ts
+tests/accounts.test.ts
+tests/artifacts/dummy_app.arc56.json
 tests/transactions.test.ts
 tsconfig.cjs.json
 tsconfig.esm.json
