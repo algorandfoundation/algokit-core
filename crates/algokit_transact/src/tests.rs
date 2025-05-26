@@ -1,11 +1,11 @@
 use crate::constants::{ALGORAND_SIGNATURE_BYTE_LENGTH, ALGORAND_SIGNATURE_ENCODING_INCR};
 use crate::test_utils::{TransactionGroupMother, TransactionHeaderMother};
-use crate::MAX_TX_GROUP_SIZE;
 use crate::{
     test_utils::{AddressMother, TransactionMother},
     Address, AlgorandMsgpack, EstimateTransactionSize, SignedTransaction, Transaction,
-    TransactionGroup, TransactionId,
+    TransactionId, Transactions,
 };
+use crate::{SignedTransactions, MAX_TX_GROUP_SIZE};
 use base64::{prelude::BASE64_STANDARD, Engine};
 use pretty_assertions::assert_eq;
 
@@ -244,4 +244,49 @@ fn test_transaction_group_already_set() {
     assert!(error
         .to_string()
         .starts_with("Transactions must not be already grouped"));
+}
+
+#[test]
+fn test_transaction_group_encoding() {
+    let grouped_txs = TransactionGroupMother::testnet_payment_group()
+        .assign_group()
+        .unwrap();
+
+    let encoded_group = grouped_txs.encode().unwrap();
+    let decoded_group = Vec::<Transaction>::decode(&encoded_group).unwrap();
+
+    for (grouped_tx, encoded_tx) in grouped_txs.iter().zip(encoded_group.iter().cloned()) {
+        assert_eq!(encoded_tx, grouped_tx.encode().unwrap());
+    }
+    for (grouped_tx, decoded_tx) in grouped_txs.iter().zip(decoded_group.iter()) {
+        assert_eq!(decoded_tx, grouped_tx);
+    }
+}
+
+#[test]
+fn test_signed_transaction_group_encoding() {
+    let signed_grouped_txs = TransactionGroupMother::testnet_payment_group()
+        .assign_group()
+        .unwrap()
+        .iter()
+        .map(|tx| SignedTransaction {
+            transaction: tx.clone(),
+            signature: [0; ALGORAND_SIGNATURE_BYTE_LENGTH],
+        })
+        .collect::<Vec<SignedTransaction>>();
+
+    let encoded_signed_group = signed_grouped_txs.encode().unwrap();
+    let decoded_signed_group = Vec::<SignedTransaction>::decode(&encoded_signed_group).unwrap();
+
+    for (signed_grouped_tx, encoded_signed_tx) in signed_grouped_txs
+        .iter()
+        .zip(encoded_signed_group.iter().cloned())
+    {
+        assert_eq!(encoded_signed_tx, signed_grouped_tx.encode().unwrap());
+    }
+    for (signed_grouped_tx, decoded_signed_tx) in
+        signed_grouped_txs.iter().zip(decoded_signed_group.iter())
+    {
+        assert_eq!(decoded_signed_tx, signed_grouped_tx);
+    }
 }

@@ -5,8 +5,8 @@
 
 use crate::error::AlgoKitTransactError;
 use crate::utils::sort_msgpack_value;
-use crate::Transaction;
 use crate::{constants::HASH_BYTES_LENGTH, utils::hash};
+use crate::{SignedTransaction, Transaction};
 use serde::{Deserialize, Serialize};
 
 /// Trait for Algorand MessagePack encoding and decoding.
@@ -141,10 +141,20 @@ pub trait EstimateTransactionSize: AlgorandMsgpack {
 }
 
 /// Trait for grouping transactions into an atomic transaction group.
-pub trait TransactionGroup {
+pub trait Transactions {
     /// Groups a vector of transactions by calculating and assigning the group to each transaction.
     ///
     /// # Returns
     /// A result containing the transactions with group assign or an error if grouping fails.
     fn assign_group(&self) -> Result<Vec<Transaction>, AlgoKitTransactError>;
+
+    // TODO: NC - Document this
+    fn encode(&self) -> Result<Vec<Vec<u8>>, AlgoKitTransactError>;
+    fn decode(bytes: &Vec<Vec<u8>>) -> Result<Vec<Transaction>, AlgoKitTransactError>;
+}
+
+pub trait SignedTransactions {
+    // TODO: NC - Document this
+    fn encode(&self) -> Result<Vec<Vec<u8>>, AlgoKitTransactError>;
+    fn decode(bytes: &Vec<Vec<u8>>) -> Result<Vec<SignedTransaction>, AlgoKitTransactError>;
 }

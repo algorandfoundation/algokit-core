@@ -19,8 +19,9 @@ use crate::constants::{
     MAX_TX_GROUP_SIZE,
 };
 use crate::error::AlgoKitTransactError;
-use crate::traits::{AlgorandMsgpack, EstimateTransactionSize, TransactionGroup, TransactionId};
+use crate::traits::{AlgorandMsgpack, EstimateTransactionSize, TransactionId, Transactions};
 use crate::utils::compute_group_id;
+use crate::SignedTransactions;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, Bytes};
 use std::any::Any;
@@ -111,10 +112,10 @@ impl AlgorandMsgpack for SignedTransaction {
                 let mut txn_buf = Vec::new();
                 rmpv::encode::write_value(&mut txn_buf, &txn_value)?;
 
-                let txn = Transaction::decode(&txn_buf)?;
-                let mut stxn: SignedTransaction = rmp_serde::from_slice(bytes)?;
-
-                stxn.transaction = txn;
+                let stxn = SignedTransaction {
+                    transaction: Transaction::decode(&txn_buf)?,
+                    ..rmp_serde::from_slice(bytes)?
+                };
 
                 return Ok(stxn);
             }
@@ -143,7 +144,28 @@ impl EstimateTransactionSize for SignedTransaction {
     }
 }
 
-impl TransactionGroup for Vec<Transaction> {
+impl Transactions for Vec<Transaction> {
+    fn encode(&self) -> Result<Vec<Vec<u8>>, AlgoKitTransactError> {
+        self.iter()
+            .map(|tx| tx.encode())
+            .collect::<Result<Vec<Vec<u8>>, AlgoKitTransactError>>()
+    }
+
+    fn decode(encoded: &Vec<Vec<u8>>) -> Result<Vec<Transaction>, AlgoKitTransactError> {
+        if encoded.is_empty() {
+            return Err(AlgoKitTransactError::InputError(
+                "attempted to decode 0 bytes".to_string(),
+            ));
+        }
+
+        let txs = encoded
+            .iter()
+            .map(|bytes| Transaction::decode(bytes))
+            .collect::<Result<Vec<Transaction>, AlgoKitTransactError>>()?;
+
+        Ok(txs)
+    }
+
     /// Groups a vector of transactions by calculating and assigning the group to each transaction.
     ///
     /// # Returns
@@ -175,5 +197,28 @@ impl TransactionGroup for Vec<Transaction> {
                 tx
             })
             .collect())
+    }
+}
+
+impl SignedTransactions for Vec<SignedTransaction> {
+    fn encode(&self) -> Result<Vec<Vec<u8>>, AlgoKitTransactError> {
+        self.iter()
+            .map(|stx| stx.encode())
+            .collect::<Result<Vec<Vec<u8>>, AlgoKitTransactError>>()
+    }
+
+    fn decode(encoded: &Vec<Vec<u8>>) -> Result<Vec<SignedTransaction>, AlgoKitTransactError> {
+        if encoded.is_empty() {
+            return Err(AlgoKitTransactError::InputError(
+                "attempted to decode 0 bytes".to_string(),
+            ));
+        }
+
+        let stxs = encoded
+            .iter()
+            .map(|bytes| SignedTransaction::decode(bytes))
+            .collect::<Result<Vec<SignedTransaction>, AlgoKitTransactError>>()?;
+
+        Ok(stxs)
     }
 }

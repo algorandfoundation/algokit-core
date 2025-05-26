@@ -1,6 +1,6 @@
 use algokit_transact::constants::*;
 use algokit_transact::{
-    AlgorandMsgpack, Byte32, EstimateTransactionSize, TransactionGroup, TransactionId,
+    AlgorandMsgpack, Byte32, EstimateTransactionSize, TransactionId, Transactions,
 };
 use ffi_macros::{ffi_enum, ffi_func, ffi_record};
 use serde::{Deserialize, Serialize};
