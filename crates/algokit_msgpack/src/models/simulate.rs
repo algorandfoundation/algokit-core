@@ -1,4 +1,4 @@
-use crate::{ModelHandler, ModelRegistry, ModelType, MsgPackError, Result};
+use crate::{AlgoKitMsgPackError, ModelHandler, ModelRegistry, ModelType, Result};
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::Engine;
 use serde::{Deserialize, Serialize};
@@ -184,7 +184,7 @@ impl ModelHandler for SimulateRequestHandler {
                 }
             }
             _ => {
-                return Err(MsgPackError::MsgPackWriteError(
+                return Err(AlgoKitMsgPackError::MsgpackWriteError(
                     "Expected JSON object".into(),
                 ))
             }
@@ -192,15 +192,10 @@ impl ModelHandler for SimulateRequestHandler {
         Ok(buf)
     }
 
-    fn decode_msgpack_to_json(&self, msgpack_bytes: &[u8]) -> Result<String> {
-        use rmpv::Value as RmpvValue;
-        use std::io::Cursor;
-        let mut cursor = Cursor::new(msgpack_bytes);
-        let root: RmpvValue = rmpv::decode::read_value(&mut cursor)
-            .map_err(|e| MsgPackError::IoError(e.to_string()))?;
-        let mut json_value = Self::rmpv_to_json(&root);
-        Self::postprocess_txn_groups(&mut json_value)?;
-        Ok(serde_json::to_string(&json_value)?)
+    fn decode_msgpack_to_json(&self, _msgpack_bytes: &[u8]) -> Result<String> {
+        Err(AlgoKitMsgPackError::MsgpackWriteError(
+            "Simulate request decoding is not supported".into(),
+        ))
     }
 }
 
@@ -238,27 +233,6 @@ impl SimulateRequestHandler {
             }
         } else {
             crate::encode_value_to_msgpack(value, buf)?;
-        }
-        Ok(())
-    }
-
-    fn postprocess_txn_groups(value: &mut serde_json::Value) -> Result<()> {
-        if let serde_json::Value::Object(obj) = value {
-            if let Some(serde_json::Value::Array(groups)) = obj.get_mut("txn-groups") {
-                for group in groups {
-                    if let serde_json::Value::Object(map) = group {
-                        if let Some(serde_json::Value::Array(arr)) = map.get_mut("txns") {
-                            for txn in arr.iter_mut() {
-                                if !txn.is_string() {
-                                    let mut buf = Vec::new();
-                                    crate::encode_value_to_msgpack(txn, &mut buf)?;
-                                    *txn = serde_json::Value::String(BASE64.encode(&buf));
-                                }
-                            }
-                        }
-                    }
-                }
-            }
         }
         Ok(())
     }
@@ -309,7 +283,7 @@ impl ModelHandler for SimulateResponseHandler {
         use std::io::Cursor;
         let mut cursor = Cursor::new(msgpack_bytes);
         let root: rmpv::Value = rmpv::decode::read_value(&mut cursor)
-            .map_err(|e| MsgPackError::IoError(e.to_string()))?;
+            .map_err(|e| AlgoKitMsgPackError::IoError(e.to_string()))?;
         let json_val = SimulateRequestHandler::rmpv_to_json(&root);
         Ok(serde_json::to_string(&json_val)?)
     }

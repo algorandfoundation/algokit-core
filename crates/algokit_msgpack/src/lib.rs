@@ -9,39 +9,39 @@ use thiserror::Error;
 mod models;
 pub use models::*;
 
-#[derive(Error, Debug)]
-pub enum MsgPackError {
-    #[error("Serialization error: {0}")]
+#[derive(Debug, Error)]
+pub enum AlgoKitMsgPackError {
+    #[error("Error occurred during serialization: {0}")]
     SerializationError(#[from] serde_json::Error),
-    #[error("MessagePack encoding error: {0}")]
-    MsgPackEncodeError(#[from] rmp_serde::encode::Error),
-    #[error("MessagePack decoding error: {0}")]
-    MsgPackDecodeError(#[from] rmp_serde::decode::Error),
-    #[error("Base64 decode error: {0}")]
-    Base64DecodeError(#[from] base64::DecodeError),
-    #[error("MessagePack write error: {0}")]
-    MsgPackWriteError(String),
+    #[error("Error occurred during msgpack encoding: {0}")]
+    MsgpackEncodingError(#[from] rmp_serde::encode::Error),
+    #[error("Error occurred during msgpack decoding: {0}")]
+    MsgpackDecodingError(#[from] rmp_serde::decode::Error),
+    #[error("Error occurred during base64 decoding: {0}")]
+    Base64DecodingError(#[from] base64::DecodeError),
+    #[error("Error occurred during msgpack writing: {0}")]
+    MsgpackWriteError(String),
     #[error("Unknown model type: {0}")]
     UnknownModelError(String),
     #[error("IO error: {0}")]
     IoError(String),
-    #[error("Value write error: {0}")]
+    #[error("Error occurred during value writing: {0}")]
     ValueWriteError(String),
 }
 
-impl From<std::io::Error> for MsgPackError {
+impl From<std::io::Error> for AlgoKitMsgPackError {
     fn from(err: std::io::Error) -> Self {
-        MsgPackError::IoError(err.to_string())
+        AlgoKitMsgPackError::IoError(err.to_string())
     }
 }
 
-impl From<ValueWriteError> for MsgPackError {
+impl From<ValueWriteError> for AlgoKitMsgPackError {
     fn from(err: ValueWriteError) -> Self {
-        MsgPackError::ValueWriteError(format!("{:?}", err))
+        AlgoKitMsgPackError::ValueWriteError(format!("{:?}", err))
     }
 }
 
-pub type Result<T> = std::result::Result<T, MsgPackError>;
+pub type Result<T> = std::result::Result<T, AlgoKitMsgPackError>;
 
 pub trait ToMsgPack: Serialize {
     fn to_msg_pack(&self) -> Result<Vec<u8>> {
@@ -166,7 +166,7 @@ impl ModelRegistry {
         if let Some(handler) = self.registry.get(&model_type) {
             handler.encode_json_to_msgpack(json_str)
         } else {
-            Err(MsgPackError::UnknownModelError(
+            Err(AlgoKitMsgPackError::UnknownModelError(
                 model_type.as_str().to_string(),
             ))
         }
@@ -180,7 +180,7 @@ impl ModelRegistry {
         if let Some(handler) = self.registry.get(&model_type) {
             handler.decode_msgpack_to_json(msgpack_bytes)
         } else {
-            Err(MsgPackError::UnknownModelError(
+            Err(AlgoKitMsgPackError::UnknownModelError(
                 model_type.as_str().to_string(),
             ))
         }
