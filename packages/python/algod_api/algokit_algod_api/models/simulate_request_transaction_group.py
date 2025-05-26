@@ -23,8 +23,8 @@ import json
 # not available on the target platform.
 try:
     from algokit_msgpack import (
-        encode_json_to_msgpack_ffi as _ak_encode_msgpack,
-        decode_msgpack_to_json_ffi as _ak_decode_msgpack,
+        encode_json_to_msgpack as _ak_encode_msgpack,
+        decode_msgpack_to_json as _ak_decode_msgpack,
         ModelType as _AkModelType,
     )
 except ModuleNotFoundError:  # pragma: no cover – optional dependency
@@ -41,7 +41,7 @@ class SimulateRequestTransactionGroup(BaseModel):
     """
     A transaction group to simulate.
     """ # noqa: E501
-    txns: List[StrictStr] = Field(description="An atomic transaction group.")
+    txns: List[StrictStr] = Field(description="An atomic transaction group. Each transaction must be provided as a base64-encoded, canonically encoded SignedTransaction object. Note: This differs from algosdk's simulateTransaction method, which takes an array of SignedTransaction objects and handles the encoding internally.")
     __properties: ClassVar[List[str]] = ["txns"]
 
     model_config = ConfigDict(
@@ -109,7 +109,7 @@ class SimulateRequestTransactionGroup(BaseModel):
         """
         if _ak_encode_msgpack is None or _AkModelType is None:
             raise RuntimeError(
-                "algokit_msgpack is not available — install the extra binary wheel "
+                "algokit_msgpack is not available — install the algokit_msgpack package"
                 "to use MessagePack helpers"
             )
 
@@ -136,7 +136,7 @@ class SimulateRequestTransactionGroup(BaseModel):
         """
         if _ak_decode_msgpack is None or _AkModelType is None:
             raise RuntimeError(
-                "algokit_msgpack is not available — install the extra binary wheel "
+                "algokit_msgpack is not available — install the algokit_msgpack package"
                 "to use MessagePack helpers"
             )
 

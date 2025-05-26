@@ -6,22 +6,6 @@ from algokit_utils import AlgorandClient, AssetCreateParams, SigningAccount
 from algokit_algod_api.exceptions import ApiException
 
 
-def handle_api_exception(e: ApiException) -> None:
-    """
-    Handle API exceptions consistently.
-
-    Args:
-        e: API exception to handle
-    """
-    if e.status == 401:
-        pytest.skip(f"Authentication required or failed: {e}")
-    elif e.status == 404:
-        pytest.skip(f"Endpoint not available or resource not found: {e}")
-    elif e.status == 501:
-        pytest.skip(f"API not implemented: {e}")
-    else:
-        pytest.fail(f"API Exception: {e}")
-
 def create_random_asset(algorand: AlgorandClient, creator: SigningAccount) -> int:
     """
     Create a random asset for testing purposes.

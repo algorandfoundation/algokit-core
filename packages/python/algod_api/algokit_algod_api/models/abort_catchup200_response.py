@@ -23,8 +23,8 @@ import json
 # not available on the target platform.
 try:
     from algokit_msgpack import (
-        encode_json_to_msgpack_ffi as _ak_encode_msgpack,
-        decode_msgpack_to_json_ffi as _ak_decode_msgpack,
+        encode_json_to_msgpack as _ak_encode_msgpack,
+        decode_msgpack_to_json as _ak_decode_msgpack,
         ModelType as _AkModelType,
     )
 except ModuleNotFoundError:  # pragma: no cover – optional dependency
@@ -109,7 +109,7 @@ class AbortCatchup200Response(BaseModel):
         """
         if _ak_encode_msgpack is None or _AkModelType is None:
             raise RuntimeError(
-                "algokit_msgpack is not available — install the extra binary wheel "
+                "algokit_msgpack is not available — install the algokit_msgpack package"
                 "to use MessagePack helpers"
             )
 
@@ -136,7 +136,7 @@ class AbortCatchup200Response(BaseModel):
         """
         if _ak_decode_msgpack is None or _AkModelType is None:
             raise RuntimeError(
-                "algokit_msgpack is not available — install the extra binary wheel "
+                "algokit_msgpack is not available — install the algokit_msgpack package"
                 "to use MessagePack helpers"
             )
 
