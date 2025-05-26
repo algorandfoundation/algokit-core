@@ -325,11 +325,11 @@ export class ObjectSerializer {
         if (isMsgpackMimeType(mediaType)) {
             try {
                 const jsonStr = JSON.stringify(data);
-                const modelEnum = typeHint && (algokit_msgpack.listSupportedModelsFfi() as unknown as string[]).indexOf(typeHint) !== -1
+                const modelEnum = typeHint && (algokit_msgpack.supportedModels() as unknown as string[]).indexOf(typeHint) !== -1
                     ? typeHint as algokit_msgpack.ModelType
                     : undefined;
 
-                return modelEnum ? algokit_msgpack.encodeJsonToMsgpackFfi(modelEnum, jsonStr) : jsonStr;
+                return modelEnum ? algokit_msgpack.encodeJsonToMsgpack(modelEnum, jsonStr) : jsonStr;
             } catch (err) {
                 console.error(err);
                 // Fall through to default handling below
@@ -372,7 +372,7 @@ export class ObjectSerializer {
                     bytes = Uint8Array.from(rawData as any);
                 }
 
-                const modelEnum = typeHint && (algokit_msgpack.listSupportedModelsFfi() as unknown as string[]).indexOf(typeHint) !== -1
+                const modelEnum = typeHint && (algokit_msgpack.supportedModels() as unknown as string[]).indexOf(typeHint) !== -1
                     ? typeHint as algokit_msgpack.ModelType
                     : undefined;
 
@@ -380,7 +380,7 @@ export class ObjectSerializer {
                     throw new Error("No model enum found for type hint: " + typeHint);
                 }
 
-                const jsonStr = algokit_msgpack.decodeMsgpackToJsonFfi(modelEnum, bytes);
+                const jsonStr = algokit_msgpack.decodeMsgpackToJson(modelEnum, bytes);
                 return JSON.parse(jsonStr);
             } catch (err) {
                 // Fall through to the default handling below so that we can surface

@@ -120,6 +120,9 @@ describe("Transaction API Tests", () => {
       suggestedParams,
     );
 
+    // Note: This implementation differs from algosdk's simulateTransaction method.
+    // Here we manually convert the signed transaction to base64-encoded string,
+    // while algosdk takes an array of SignedTransaction objects and handles the encoding internally.
     const emptyTxnGroup: algodPackage.SimulateRequestTransactionGroup = {
       "txns": [Buffer.from(await signedTxnFile.arrayBuffer()).toString("base64")],
     }
