@@ -4,7 +4,7 @@ Utilities for converting between Algorand OpenAPI JSON payloads and the compact 
 
 ## Why
 
-Various Algorand API endpoints (e.g. `/v2/teal/simulate`) support **MessagePack** alongside plain JSON.  Re-implementing the encoding rules in every language is error-prone and hard to maintain. This crate centralises that logic in a small Rust library that is surfaced to other runtimes via [`algokit_msgpack_ffi`](../algokit_msgpack_ffi/).
+Various Algorand API endpoints (e.g. `/v2/transactions/simulate`) support **MessagePack** alongside plain JSON.  Re-implementing the encoding rules in every language is error-prone and hard to maintain. This crate centralises that logic in a small Rust library that is surfaced to other runtimes via [`algokit_msgpack_ffi`](../algokit_msgpack_ffi/).
 
 ## Highlights
 
@@ -26,9 +26,22 @@ Encoding a **SimulateRequest** body:
 ```rust
 use algokit_msgpack::{ModelType, encode_json_to_msgpack};
 
-let json = r#"{ "txn": { "snd": "AAAA…", "fee": 1000, "type": "pay", "amt": 123 } }"#;
+let json = r#"{
+  "txn-groups": [{
+    "txns": ["gqNzaWfEQC0RQ1E6Y+/iS6luFP6Q9c6Veo838jRIABcV+jSzetx61nlrmasonRDbxN02mbCESJw98o7IfKgQvSMvk9kE0gqjdHhuiaNhbXTOAA9CQKNmZWXNA+iiZnYzo2dlbqxkb2NrZXJuZXQtdjGiZ2jEIEeJCm8ejvOqNCXVH+4GP95TdhioDiMH0wMRTIiwAmAUomx2zQQbo3JjdsQg/x0nrFM+VxALq2Buu1UscgDBy0OKIY2MGnDzg8xkNaOjc25kxCD/HSesUz5XEAurYG67VSxyAMHLQ4ohjYwacPODzGQ1o6R0eXBlo3BheQ=="]
+  }],
+  "allow-empty-signatures": true,
+  "allow-more-logging": true,
+  "allow-unnamed-resources": true,
+  "exec-trace-config": {
+    "enable": true,
+    "stack-change": true,
+    "scratch-change": true,
+    "state-change": true
+  }
+}"#;
 let bytes = encode_json_to_msgpack(ModelType::SimulateRequest, json)?;
-// `bytes` can now be POSTed to algod.
+// `bytes` can now be POSTed to algod's /v2/transactions/simulate endpoint.
 ```
 
 ### Base64-encoded MessagePack

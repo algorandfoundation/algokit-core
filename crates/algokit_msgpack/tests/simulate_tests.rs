@@ -1,6 +1,6 @@
 use algokit_msgpack::{
     decode_base64_msgpack_to_json, encode_json_to_base64_msgpack, encode_json_to_msgpack,
-    ModelType, SimulateRequest, SimulateTransaction200Response,
+    ModelType, SimulateTransaction200Response,
 };
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::Engine;
@@ -49,11 +49,17 @@ fn test_decode() {
         encode_json_to_base64_msgpack(ModelType::SimulateRequest, simulate_request_json)
             .expect("Failed to encode SimulateRequest");
 
-    let decoded_json = decode_base64_msgpack_to_json(ModelType::SimulateRequest, &msgpack_bytes)
-        .expect("Failed to decode SimulateRequest");
+    // SimulateRequest decoding is intentionally not supported
+    let result = decode_base64_msgpack_to_json(ModelType::SimulateRequest, &msgpack_bytes);
+    assert!(
+        result.is_err(),
+        "SimulateRequest decoding should return an error"
+    );
 
-    let loaded_json: SimulateRequest =
-        serde_json::from_str(&decoded_json).expect("Failed to parse decoded JSON");
-
-    println!("Decoded JSON: {:?}", loaded_json);
+    if let Err(e) = result {
+        assert!(
+            e.to_string().contains("not supported"),
+            "Error should mention 'not supported'"
+        );
+    }
 }
