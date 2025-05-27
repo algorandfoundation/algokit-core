@@ -43,8 +43,8 @@ algokit-utils = "4.0.0"
 algokit-transact = { path = "../../../packages/python/algokit_transact" }
 
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.pylint.'MESSAGES CONTROL']
 extension-pkg-whitelist = "pydantic"
