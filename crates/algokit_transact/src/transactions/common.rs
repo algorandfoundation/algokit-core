@@ -7,7 +7,7 @@ use crate::address::Address;
 use crate::constants::Byte32;
 use crate::utils::{
     is_empty_bytes32_opt, is_empty_string_opt, is_empty_vec_opt, is_zero, is_zero_addr,
-    is_zero_addr_opt,
+    is_zero_addr_opt, is_zero_opt,
 };
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
@@ -30,10 +30,12 @@ pub struct TransactionHeader {
     #[serde(default)]
     pub sender: Address,
 
-    /// Transaction fee in microALGO.
-    #[serde(skip_serializing_if = "is_zero")]
+    /// Optional transaction fee in microALGO.
+    ///
+    /// When None, the fee will be interpreted as 0 by the network.
+    #[serde(skip_serializing_if = "is_zero_opt")]
     #[serde(default)]
-    pub fee: u64,
+    pub fee: Option<u64>,
 
     /// First round for when the transaction is valid.
     #[serde(rename = "fv")]

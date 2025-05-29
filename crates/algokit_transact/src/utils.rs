@@ -37,6 +37,10 @@ pub fn is_zero(n: &u64) -> bool {
     *n == 0u64
 }
 
+pub fn is_zero_opt(n: &Option<u64>) -> bool {
+    n.as_ref().map_or(true, is_zero)
+}
+
 pub fn is_zero_addr(addr: &Address) -> bool {
     addr.pub_key == [0u8; ALGORAND_PUBLIC_KEY_BYTE_LENGTH]
 }

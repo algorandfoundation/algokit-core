@@ -13,6 +13,8 @@ pub enum AlgoKitTransactError {
     EncodingError(String),
     #[error("DecodingError: {0}")]
     DecodingError(String),
+    #[error("{0}")]
+    InputError(String),
 }
 
 // For now, in WASM we just throw the string, hence the error
@@ -45,7 +47,7 @@ impl From<algokit_transact::AlgoKitTransactError> for AlgoKitTransactError {
                 AlgoKitTransactError::DecodingError(e.to_string())
             }
             algokit_transact::AlgoKitTransactError::InputError(e) => {
-                AlgoKitTransactError::DecodingError(e.to_string())
+                AlgoKitTransactError::InputError(e.to_string())
             }
             algokit_transact::AlgoKitTransactError::InvalidAddress(_) => {
                 AlgoKitTransactError::DecodingError(e.to_string())
@@ -133,6 +135,14 @@ impl TryFrom<Address> for algokit_transact::Address {
 }
 
 #[ffi_record]
+pub struct FeeParams {
+    fee_per_byte: u64,
+    min_fee: u64,
+    extra_fee: Option<u64>,
+    max_fee: Option<u64>,
+}
+
+#[ffi_record]
 pub struct PaymentTransactionFields {
     receiver: Address,
 
@@ -162,7 +172,10 @@ pub struct Transaction {
     /// The sender of the transaction
     sender: Address,
 
-    fee: u64,
+    /// Optional transaction fee in microALGO.
+    ///
+    /// If not set, the fee will be interpreted as 0 by the network.
+    fee: Option<u64>,
 
     first_valid: u64,
 
@@ -520,6 +533,32 @@ impl AlgorandConstant {
 #[ffi_func]
 pub fn get_algorand_constant(constant: AlgorandConstant) -> u64 {
     constant.value()
+}
+
+impl TryFrom<FeeParams> for algokit_transact::FeeParams {
+    type Error = AlgoKitTransactError;
+
+    fn try_from(value: FeeParams) -> Result<Self, Self::Error> {
+        Ok(Self {
+            fee_per_byte: value.fee_per_byte,
+            min_fee: value.min_fee,
+            extra_fee: value.extra_fee,
+            max_fee: value.max_fee,
+        })
+    }
+}
+
+#[ffi_func]
+pub fn assign_fee(
+    txn: Transaction,
+    fee_params: FeeParams,
+) -> Result<Transaction, AlgoKitTransactError> {
+    let txn_internal: algokit_transact::Transaction = txn.try_into()?;
+    let fee_params_internal: algokit_transact::FeeParams = fee_params.try_into()?;
+
+    let updated_txn = txn_internal.assign_fee(fee_params_internal)?;
+
+    Ok(updated_txn.try_into()?)
 }
 
 #[cfg(test)]

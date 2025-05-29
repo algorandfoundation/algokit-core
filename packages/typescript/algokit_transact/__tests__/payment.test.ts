@@ -11,6 +11,7 @@ import {
   addressFromString,
   getTransactionIdRaw,
   getTransactionId,
+  assignFee,
 } from "../src/index";
 
 const simplePayment = testData.simplePayment;
@@ -39,7 +40,6 @@ describe("Payment", () => {
       const txn: Transaction = {
         transactionType: "Payment",
         sender: alice,
-        fee: 1000n,
         firstValid: 1337n,
         lastValid: 1347n,
         genesisHash: new Uint8Array(32).fill(65), // pretend this is a valid hash
@@ -50,8 +50,15 @@ describe("Payment", () => {
         },
       };
 
-      const sig = await ed.signAsync(encodeTransaction(txn), aliceSk);
-      const signedTxn = attachSignature(encodeTransaction(txn), sig);
+      const txnWithFee = assignFee(txn, {
+        feePerByte: 0n,
+        minFee: 1000n,
+      });
+
+      expect(txnWithFee.fee).toBe(1000n);
+
+      const sig = await ed.signAsync(encodeTransaction(txnWithFee), aliceSk);
+      const signedTxn = attachSignature(encodeTransaction(txnWithFee), sig);
       expect(signedTxn.length).toBeGreaterThan(0);
     });
 

@@ -1,6 +1,8 @@
 import pytest
 from . import TEST_DATA
 from algokit_transact import (
+    FeeParams,
+    assign_fee,
     encode_transaction,
     PaymentTransactionFields,
     TransactionType,
@@ -33,7 +35,6 @@ def test_example():
 
     txn = Transaction(
         transaction_type=TransactionType.PAYMENT,
-        fee=1000,
         first_valid=1337,
         last_valid=1347,
         sender=alice,
@@ -42,8 +43,10 @@ def test_example():
         payment=PaymentTransactionFields(amount=1337, receiver=bob),
     )
 
-    sig = alice_keypair.sign(encode_transaction(txn)).signature
-    signed_txn = attach_signature(encode_transaction(txn), sig)
+    txn_with_fee = assign_fee(txn, FeeParams(fee_per_byte=0, min_fee=1000))
+
+    sig = alice_keypair.sign(encode_transaction(txn_with_fee)).signature
+    signed_txn = attach_signature(encode_transaction(txn_with_fee), sig)
     assert len(signed_txn) > 0
 
 

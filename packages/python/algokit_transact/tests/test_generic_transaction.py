@@ -24,6 +24,6 @@ def test_malformed_bytes():
 def test_encode_0_bytes():
     """Ensure a helpful error message is thrown when attempting to encode 0 bytes"""
     with pytest.raises(
-        AlgoKitTransactError.DecodingError, match="attempted to decode 0 bytes"
+        AlgoKitTransactError.InputError, match="attempted to decode 0 bytes"
     ):
         decode_transaction(bytes())

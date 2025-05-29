@@ -1,4 +1,5 @@
 use crate::constants::{ALGORAND_SIGNATURE_BYTE_LENGTH, ALGORAND_SIGNATURE_ENCODING_INCR};
+use crate::FeeParams;
 use crate::{
     test_utils::{AddressMother, TransactionMother},
     Address, AlgorandMsgpack, EstimateTransactionSize, SignedTransaction, Transaction,
@@ -128,4 +129,71 @@ fn test_estimate_transaction_size() {
         encoding_length + ALGORAND_SIGNATURE_ENCODING_INCR
     );
     assert_eq!(estimation, actual_size);
+}
+
+#[test]
+fn test_min_fee() {
+    let txn: Transaction = TransactionMother::simple_payment().build().unwrap();
+
+    let updated_transaction = txn
+        .assign_fee(FeeParams {
+            fee_per_byte: 0,
+            min_fee: 1000,
+            extra_fee: None,
+            max_fee: None,
+        })
+        .unwrap();
+    assert_eq!(updated_transaction.header().fee, Some(1000));
+}
+
+#[test]
+fn test_extra_fee() {
+    let txn: Transaction = TransactionMother::simple_payment().build().unwrap();
+
+    let updated_transaction = txn
+        .assign_fee(FeeParams {
+            fee_per_byte: 1,
+            min_fee: 1000,
+            extra_fee: Some(500),
+            max_fee: None,
+        })
+        .unwrap();
+    assert_eq!(updated_transaction.header().fee, Some(1500));
+}
+
+#[test]
+fn test_max_fee() {
+    let txn: Transaction = TransactionMother::simple_payment().build().unwrap();
+
+    let result = txn.assign_fee(FeeParams {
+        fee_per_byte: 10,
+        min_fee: 500,
+        extra_fee: None,
+        max_fee: Some(1000),
+    });
+
+    assert!(result.is_err());
+    let err = result.unwrap_err();
+    let msg = format!("{}", err);
+    assert!(
+        msg == "Calculated transaction fee 2470 µALGO is greater than max fee 1000 µALGO",
+        "Unexpected error message: {}",
+        msg
+    );
+}
+
+#[test]
+fn test_calculate_fee() {
+    let txn: Transaction = TransactionMother::simple_payment().build().unwrap();
+
+    let updated_transaction = txn
+        .assign_fee(FeeParams {
+            fee_per_byte: 5,
+            min_fee: 1000,
+            extra_fee: None,
+            max_fee: None,
+        })
+        .unwrap();
+
+    assert_eq!(updated_transaction.header().fee, Some(1235));
 }
