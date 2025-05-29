@@ -46,6 +46,61 @@ pub enum Transaction {
     // ApplicationCall(...),
 }
 
+pub struct FeeParams {
+    pub fee_per_byte: u64,
+    pub min_fee: u64,
+    pub extra_fee: Option<u64>,
+    pub max_fee: Option<u64>,
+}
+
+impl Transaction {
+    pub fn header(&self) -> &TransactionHeader {
+        match self {
+            Transaction::Payment(p) => &p.header,
+            Transaction::AssetTransfer(a) => &a.header,
+        }
+    }
+
+    pub fn header_mut(&mut self) -> &mut TransactionHeader {
+        match self {
+            Transaction::Payment(p) => &mut p.header,
+            Transaction::AssetTransfer(a) => &mut a.header,
+        }
+    }
+
+    pub fn assign_fee(&self, request: FeeParams) -> Result<Transaction, AlgoKitTransactError> {
+        let mut tx = self.clone();
+        let mut calculated_fee: u64 = 0;
+
+        if request.fee_per_byte > 0 {
+            let estimated_size = tx.estimate_size()?;
+            calculated_fee = request.fee_per_byte * estimated_size as u64;
+        }
+
+        if calculated_fee < request.min_fee {
+            calculated_fee = request.min_fee;
+        }
+
+        if let Some(extra_fee) = request.extra_fee {
+            calculated_fee += extra_fee;
+        }
+
+        if let Some(max_fee) = request.max_fee {
+            if calculated_fee > max_fee {
+                return Err(AlgoKitTransactError::InputError(format!(
+                    "Transaction fee {} µALGO is greater than max fee {} µALGO",
+                    calculated_fee, max_fee
+                )));
+            }
+        }
+
+        let header = tx.header_mut();
+        header.fee = Some(calculated_fee);
+
+        return Ok(tx);
+    }
+}
+
 impl PaymentTransactionBuilder {
     pub fn build(&self) -> Result<Transaction, PaymentTransactionBuilderError> {
         self.build_fields().map(|d| Transaction::Payment(d))
