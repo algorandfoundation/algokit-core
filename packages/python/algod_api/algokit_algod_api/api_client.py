@@ -25,7 +25,6 @@ import tempfile
 
 from urllib.parse import quote
 from typing import Tuple, Optional, List, Dict, Union
-from pydantic import SecretStr
 
 from algokit_algod_api.configuration import Configuration
 from algokit_algod_api.api_response import ApiResponse, T as ApiResponseT
@@ -41,17 +40,24 @@ from algokit_algod_api.exceptions import (
     ServiceException
 )
 
-# ---------------------------------------------------------------------------
-# Optional Algorand MessagePack support (binary wheels built from Rust)
-# ---------------------------------------------------------------------------
+# Import msgpack encoding/decoding functions from algokit_msgpack
 try:
     from algokit_msgpack import (
-        decode_msgpack_to_json as _ak_decode_msgpack,
-        ModelType as _AkModelType,
+        # Endpoint-level encoding functions
+        encode_account,
+        encode_simulate_request,
+        encode_dryrun_request,
+        # Endpoint-level decoding functions
+        decode_account,
+        decode_error_response,
+        decode_pending_transaction_response,
+        decode_ledger_state_delta_for_transaction_group,
+        # Error handling
+        MsgpackError
     )
-except ModuleNotFoundError:  # pragma: no cover
-    _ak_decode_msgpack = None  # type: ignore
-    _AkModelType = None  # type: ignore
+    MSGPACK_AVAILABLE = True
+except ImportError:
+    MSGPACK_AVAILABLE = False
 
 RequestSerialized = Tuple[str, str, Dict[str, str], Optional[str], List[str]]
 
@@ -239,14 +245,27 @@ class ApiClient:
 
         # body
         if body:
-            # If the request will be sent as MessagePack and the model exposes
-            # `to_msgpack`, use it for compact binary encoding.
+            # If the request will be sent as MessagePack, use specific encoding functions
             content_type_hdr = header_params.get('Content-Type', '') if header_params else ''
-            if content_type_hdr.startswith('application/msgpack') and hasattr(body, 'to_msgpack'):
+            if content_type_hdr.startswith('application/msgpack') and MSGPACK_AVAILABLE:
                 try:
-                    body = body.to_msgpack()  # type: ignore[attr-defined]
-                except Exception as e:  # pragma: no cover – raise MessagePack encoding error
-                    raise e 
+                    # Use specific encoding functions based on model type
+                    if hasattr(body, '__class__'):
+                        model_name = body.__class__.__name__
+                        if model_name == 'SimulateRequest':
+                            body = encode_simulate_request(body)
+                        elif model_name == 'DryrunRequest':
+                            body = encode_dryrun_request(body)
+                        elif model_name == 'Account':
+                            body = encode_account(body)
+                        else:
+                            # Fallback to JSON serialization for unsupported models
+                            body = self.sanitize_for_serialization(body)
+                    else:
+                        body = self.sanitize_for_serialization(body)
+                except (MsgpackError, Exception) as e:
+                    # Fallback to JSON serialization on encoding errors
+                    body = self.sanitize_for_serialization(body)
             else:
                 body = self.sanitize_for_serialization(body)
 
@@ -339,14 +358,22 @@ class ApiClient:
                 encoding = match.group(1) if match else "utf-8"
                 if content_type and content_type.lower().startswith('application/msgpack'):
                     # Attempt to decode via algokit_msgpack if available and model supports it
-                    if _ak_decode_msgpack and _AkModelType:
+                    if MSGPACK_AVAILABLE:
                         try:
-                            variant_name = re.sub(r'(?<!^)(?=[A-Z])', '_', response_type).upper()
-                            model_type = _AkModelType[variant_name]
-                            json_str = _ak_decode_msgpack(model_type, response_data.data)  # type: ignore[arg-type]
-                            return_data = self.deserialize(json_str, response_type, 'application/json')
-                        except KeyError:
-                            # Fall back to returning raw bytes if model not mapped
+                            # Use specific decoding functions based on response type
+                            if response_type == 'Account':
+                                return_data = decode_account(response_data.data)
+                            elif response_type == 'ErrorResponse':
+                                return_data = decode_error_response(response_data.data)
+                            elif response_type == 'PendingTransactionResponse':
+                                return_data = decode_pending_transaction_response(response_data.data)
+                            elif response_type == 'LedgerStateDeltaForTransactionGroup':
+                                return_data = decode_ledger_state_delta_for_transaction_group(response_data.data)
+                            else:
+                                # Fall back to returning raw bytes if model not supported for msgpack decoding
+                                return_data = response_data.data
+                        except (MsgpackError, Exception):
+                            # Fall back to returning raw bytes on decoding errors
                             return_data = response_data.data
                     else:
                         return_data = response_data.data
@@ -372,7 +399,6 @@ class ApiClient:
         """Builds a JSON POST object.
 
         If obj is None, return None.
-        If obj is SecretStr, return obj.get_secret_value()
         If obj is str, int, long, float, bool, return directly.
         If obj is datetime.datetime, datetime.date
             convert to string in iso8601 format.
@@ -388,8 +414,6 @@ class ApiClient:
             return None
         elif isinstance(obj, Enum):
             return obj.value
-        elif isinstance(obj, SecretStr):
-            return obj.get_secret_value()
         elif isinstance(obj, self.PRIMITIVE_TYPES):
             return obj
         elif isinstance(obj, list):
@@ -413,7 +437,29 @@ class ApiClient:
             # and attributes which value is not None.
             # Convert attribute name to json key in
             # model definition for request.
-            if hasattr(obj, 'to_dict') and callable(getattr(obj, 'to_dict')):
+            
+            # Check if this is an FFI model from algokit_msgpack
+            if hasattr(obj, '__module__') and 'algokit_msgpack' in str(obj.__module__):
+                # Try to use the model's to_dict method if available
+                if hasattr(obj, 'to_dict') and callable(getattr(obj, 'to_dict')):
+                    try:
+                        obj_dict = obj.to_dict()
+                    except:
+                        # Fallback to __dict__ if to_dict fails
+                        obj_dict = obj.__dict__
+                elif hasattr(obj, 'to_json') and callable(getattr(obj, 'to_json')):
+                    try:
+                        # Convert to JSON and back to dict
+                        import json
+                        json_str = obj.to_json()
+                        obj_dict = json.loads(json_str)
+                    except:
+                        # Fallback to __dict__ if to_json fails
+                        obj_dict = obj.__dict__
+                else:
+                    # Fallback for FFI models: use __dict__ directly
+                    obj_dict = obj.__dict__
+            elif hasattr(obj, 'to_dict') and callable(getattr(obj, 'to_dict')):
                 obj_dict = obj.to_dict()
             else:
                 obj_dict = obj.__dict__
@@ -615,9 +661,11 @@ class ApiClient:
         if not accepts:
             return None
 
-        for accept in accepts:
-            if 'msgpack' in accept:
-                return accept
+        # Prefer MessagePack if available and supported
+        if MSGPACK_AVAILABLE:
+            for accept in accepts:
+                if 'msgpack' in accept:
+                    return accept
 
         for accept in accepts:
             if re.search('json', accept, re.IGNORECASE):
@@ -634,9 +682,11 @@ class ApiClient:
         if not content_types:
             return None
 
-        for content_type in content_types:
-            if 'msgpack' in content_type:
-                return content_type
+        # Prefer MessagePack if available and supported
+        if MSGPACK_AVAILABLE:
+            for content_type in content_types:
+                if 'msgpack' in content_type:
+                    return content_type
 
         for content_type in content_types:
             if re.search('json', content_type, re.IGNORECASE):
@@ -837,5 +887,34 @@ class ApiClient:
         :param klass: class literal.
         :return: model object.
         """
-
+        
+        # Check if this is an FFI model from algokit_msgpack that uses serde JSON
+        # These models don't have from_dict but can be deserialized from JSON
+        if hasattr(klass, '__module__') and 'algokit_msgpack' in str(klass.__module__):
+            import json
+            try:
+                # Convert dict to JSON string and let the FFI model deserialize it
+                json_str = json.dumps(data)
+                # Try to use the model's JSON deserialization if available
+                if hasattr(klass, 'from_json'):
+                    return klass.from_json(json_str)
+                elif hasattr(klass, '__init__') and hasattr(klass, '__dict__'):
+                    # Fallback: create instance and set attributes directly
+                    instance = klass.__new__(klass)
+                    for key, value in data.items():
+                        # Convert hyphenated keys to underscored for Python attributes
+                        attr_name = key.replace('-', '_')
+                        setattr(instance, attr_name, value)
+                    return instance
+                else:
+                    # Last resort: try calling constructor with data as kwargs
+                    return klass(**data)
+            except Exception as e:
+                # If FFI deserialization fails, fall back to from_dict if available
+                if hasattr(klass, 'from_dict'):
+                    return klass.from_dict(data)
+                else:
+                    raise Exception(f"Failed to deserialize FFI model {klass}: {e}")
+        
+        # Standard OpenAPI model deserialization
         return klass.from_dict(data)

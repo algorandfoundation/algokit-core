@@ -1,0 +1,12 @@
+# AssetHoldingReference
+
+## Properties
+
+Name | Type | Description | Notes
+------------ | ------------- | ------------- | -------------
+**account** | **String** | Address of the account holding the asset. | 
+**asset** | **i32** | Asset ID of the holding. | 
+
+[[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
+
+

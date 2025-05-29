@@ -415,7 +415,8 @@
                     "created-asset": {
                       "$ref": "#/components/schemas/AssetParams"
                     }
-                  }
+                  },
+                  "x-algorand-msgpack-decodable": true
                 }
               },
               "application/msgpack": {
@@ -435,7 +436,8 @@
                     "created-asset": {
                       "$ref": "#/components/schemas/AssetParams"
                     }
-                  }
+                  },
+                  "x-algorand-msgpack-decodable": true
                 }
               }
             }
@@ -659,7 +661,8 @@
                     "created-app": {
                       "$ref": "#/components/schemas/ApplicationParams"
                     }
-                  }
+                  },
+                  "x-algorand-msgpack-decodable": true
                 }
               },
               "application/msgpack": {
@@ -679,7 +682,8 @@
                     "created-app": {
                       "$ref": "#/components/schemas/ApplicationParams"
                     }
-                  }
+                  },
+                  "x-algorand-msgpack-decodable": true
                 }
               }
             }
@@ -803,7 +807,8 @@
                       "description": "Total number of transactions in the pool."
                     }
                   },
-                  "description": "PendingTransactions is an array of signed transactions exactly as they were submitted."
+                  "description": "PendingTransactions is an array of signed transactions exactly as they were submitted.",
+                  "x-algorand-msgpack-decodable": true
                 }
               },
               "application/msgpack": {
@@ -828,7 +833,8 @@
                       "description": "Total number of transactions in the pool."
                     }
                   },
-                  "description": "PendingTransactions is an array of signed transactions exactly as they were submitted."
+                  "description": "PendingTransactions is an array of signed transactions exactly as they were submitted.",
+                  "x-algorand-msgpack-decodable": true
                 }
               }
             }
@@ -963,7 +969,8 @@
                       "description": "Optional certificate object. This is only included when the format is set to message pack.",
                       "x-algorand-format": "BlockCertificate"
                     }
-                  }
+                  },
+                  "x-algorand-msgpack-decodable": true
                 }
               },
               "application/msgpack": {
@@ -985,7 +992,8 @@
                       "description": "Optional certificate object. This is only included when the format is set to message pack.",
                       "x-algorand-format": "BlockCertificate"
                     }
-                  }
+                  },
+                  "x-algorand-msgpack-decodable": true
                 }
               }
             }
@@ -2658,7 +2666,8 @@
                     "initial-states": {
                       "$ref": "#/components/schemas/SimulateInitialStates"
                     }
-                  }
+                  },
+                  "x-algorand-msgpack-decodable": true
                 }
               },
               "application/msgpack": {
@@ -2694,7 +2703,8 @@
                     "initial-states": {
                       "$ref": "#/components/schemas/SimulateInitialStates"
                     }
-                  }
+                  },
+                  "x-algorand-msgpack-decodable": true
                 }
               }
             }
@@ -2917,7 +2927,8 @@
                       "description": "Total number of transactions in the pool."
                     }
                   },
-                  "description": "PendingTransactions is an array of signed transactions exactly as they were submitted."
+                  "description": "PendingTransactions is an array of signed transactions exactly as they were submitted.",
+                  "x-algorand-msgpack-decodable": true
                 }
               },
               "application/msgpack": {
@@ -2942,7 +2953,8 @@
                       "description": "Total number of transactions in the pool."
                     }
                   },
-                  "description": "PendingTransactions is an array of signed transactions exactly as they were submitted."
+                  "description": "PendingTransactions is an array of signed transactions exactly as they were submitted.",
+                  "x-algorand-msgpack-decodable": true
                 }
               }
             }
@@ -3281,7 +3293,8 @@
                         "$ref": "#/components/schemas/LedgerStateDeltaForTransactionGroup"
                       }
                     }
-                  }
+                  },
+                  "x-algorand-msgpack-decodable": true
                 }
               },
               "application/msgpack": {
@@ -3297,7 +3310,8 @@
                         "$ref": "#/components/schemas/LedgerStateDeltaForTransactionGroup"
                       }
                     }
-                  }
+                  },
+                  "x-algorand-msgpack-decodable": true
                 }
               }
             }
@@ -3844,7 +3858,7 @@
                     "boxes": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/Box"
+                        "$ref": "#/components/schemas/AlgorandBox"
                       }
                     }
                   }
@@ -3924,7 +3938,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Box"
+                  "$ref": "#/components/schemas/AlgorandBox"
                 }
               }
             }
@@ -4885,7 +4899,8 @@
       "LedgerStateDelta": {
         "type": "object",
         "description": "Ledger StateDelta object",
-        "x-algorand-format": "StateDelta"
+        "x-algorand-format": "StateDelta",
+        "x-algorand-msgpack-decodable": true
       },
       "LedgerStateDeltaForTransactionGroup": {
         "required": [
@@ -4904,7 +4919,8 @@
             }
           }
         },
-        "description": "Contains a ledger delta for a single transaction group"
+        "description": "Contains a ledger delta for a single transaction group",
+        "x-algorand-msgpack-decodable": true
       },
       "Account": {
         "required": [
@@ -5048,7 +5064,9 @@
             "description": "The round in which this account last went online, or explicitly renewed their online status."
           }
         },
-        "description": "Account information at a given round.\n\nDefinition:\ndata/basics/userBalance.go : AccountData\n"
+        "description": "Account information at a given round.\n\nDefinition:\ndata/basics/userBalance.go : AccountData\n",
+        "x-algorand-msgpack-encodable": true,
+        "x-algorand-msgpack-decodable": true
       },
       "AccountAssetHolding": {
         "required": [
@@ -5106,7 +5124,9 @@
             "format": "byte"
           }
         },
-        "description": "AccountParticipation describes the parameters used by this account in consensus protocol."
+        "description": "AccountParticipation describes the parameters used by this account in consensus protocol.",
+        "x-algorand-msgpack-encodable": true,
+        "x-algorand-msgpack-decodable": true
       },
       "Asset": {
         "required": [
@@ -5123,7 +5143,9 @@
             "$ref": "#/components/schemas/AssetParams"
           }
         },
-        "description": "Specifies both the unique identifier and the parameters for an asset"
+        "description": "Specifies both the unique identifier and the parameters for an asset",
+        "x-algorand-msgpack-encodable": true,
+        "x-algorand-msgpack-decodable": true
       },
       "AssetHolding": {
         "required": [
@@ -5148,7 +5170,9 @@
             "description": "\\[f\\] whether or not the holding is frozen."
           }
         },
-        "description": "Describes an asset held by an account.\n\nDefinition:\ndata/basics/userBalance.go : AssetHolding"
+        "description": "Describes an asset held by an account.\n\nDefinition:\ndata/basics/userBalance.go : AssetHolding",
+        "x-algorand-msgpack-encodable": true,
+        "x-algorand-msgpack-decodable": true
       },
       "AssetParams": {
         "required": [
@@ -5230,7 +5254,9 @@
             "format": "byte"
           }
         },
-        "description": "AssetParams specifies the parameters for an asset.\n\n\\[apar\\] when part of an AssetConfig transaction.\n\nDefinition:\ndata/transactions/asset.go : AssetParams"
+        "description": "AssetParams specifies the parameters for an asset.\n\n\\[apar\\] when part of an AssetConfig transaction.\n\nDefinition:\ndata/transactions/asset.go : AssetParams",
+        "x-algorand-msgpack-encodable": true,
+        "x-algorand-msgpack-decodable": true
       },
       "AssetHoldingReference": {
         "required": [
@@ -5250,7 +5276,8 @@
             "x-algorand-format": "uint64"
           }
         },
-        "description": "References an asset held by an account."
+        "description": "References an asset held by an account.",
+        "x-algorand-msgpack-decodable": true
       },
       "ApplicationLocalReference": {
         "required": [
@@ -5270,7 +5297,8 @@
             "x-algorand-format": "uint64"
           }
         },
-        "description": "References an account's local state for an application."
+        "description": "References an account's local state for an application.",
+        "x-algorand-msgpack-decodable": true
       },
       "ApplicationStateSchema": {
         "required": [
@@ -5288,7 +5316,9 @@
             "description": "\\[nbs\\] num of byte slices."
           }
         },
-        "description": "Specifies maximums on the number of each type that may be stored."
+        "description": "Specifies maximums on the number of each type that may be stored.",
+        "x-algorand-msgpack-encodable": true,
+        "x-algorand-msgpack-decodable": true
       },
       "ApplicationLocalState": {
         "required": [
@@ -5308,7 +5338,9 @@
             "$ref": "#/components/schemas/TealKeyValueStore"
           }
         },
-        "description": "Stores local state associated with an application."
+        "description": "Stores local state associated with an application.",
+        "x-algorand-msgpack-encodable": true,
+        "x-algorand-msgpack-decodable": true
       },
       "ParticipationKey": {
         "required": [
@@ -5360,7 +5392,9 @@
         "description": "Represents a key-value store for use in an application.",
         "items": {
           "$ref": "#/components/schemas/TealKeyValue"
-        }
+        },
+        "x-algorand-msgpack-encodable": true,
+        "x-algorand-msgpack-decodable": true
       },
       "TealKeyValue": {
         "required": [
@@ -5376,7 +5410,9 @@
             "$ref": "#/components/schemas/TealValue"
           }
         },
-        "description": "Represents a key-value pair in an application store."
+        "description": "Represents a key-value pair in an application store.",
+        "x-algorand-msgpack-encodable": true,
+        "x-algorand-msgpack-decodable": true
       },
       "TealValue": {
         "required": [
@@ -5400,7 +5436,9 @@
             "x-algorand-format": "uint64"
           }
         },
-        "description": "Represents a TEAL value."
+        "description": "Represents a TEAL value.",
+        "x-algorand-msgpack-encodable": true,
+        "x-algorand-msgpack-decodable": true
       },
       "AvmValue": {
         "required": [
@@ -5422,7 +5460,8 @@
             "x-algorand-format": "uint64"
           }
         },
-        "description": "Represents an AVM value."
+        "description": "Represents an AVM value.",
+        "x-algorand-msgpack-decodable": true
       },
       "AvmKeyValue": {
         "required": [
@@ -5440,14 +5479,16 @@
             "$ref": "#/components/schemas/AvmValue"
           }
         },
-        "description": "Represents an AVM key-value pair in an application store."
+        "description": "Represents an AVM key-value pair in an application store.",
+        "x-algorand-msgpack-decodable": true
       },
       "StateDelta": {
         "type": "array",
         "description": "Application state delta.",
         "items": {
           "$ref": "#/components/schemas/EvalDeltaKeyValue"
-        }
+        },
+        "x-algorand-msgpack-decodable": true
       },
       "AccountStateDelta": {
         "required": [
@@ -5463,7 +5504,8 @@
             "$ref": "#/components/schemas/StateDelta"
           }
         },
-        "description": "Application state delta."
+        "description": "Application state delta.",
+        "x-algorand-msgpack-decodable": true
       },
       "EvalDeltaKeyValue": {
         "required": [
@@ -5479,7 +5521,8 @@
             "$ref": "#/components/schemas/EvalDelta"
           }
         },
-        "description": "Key-value pairs for StateDelta."
+        "description": "Key-value pairs for StateDelta.",
+        "x-algorand-msgpack-decodable": true
       },
       "EvalDelta": {
         "required": [
@@ -5501,7 +5544,8 @@
             "x-algorand-format": "uint64"
           }
         },
-        "description": "Represents a TEAL value delta."
+        "description": "Represents a TEAL value delta.",
+        "x-algorand-msgpack-decodable": true
       },
       "Application": {
         "required": [
@@ -5518,7 +5562,9 @@
             "$ref": "#/components/schemas/ApplicationParams"
           }
         },
-        "description": "Application index and its parameters"
+        "description": "Application index and its parameters",
+        "x-algorand-msgpack-encodable": true,
+        "x-algorand-msgpack-decodable": true
       },
       "ApplicationParams": {
         "required": [
@@ -5561,7 +5607,9 @@
             "$ref": "#/components/schemas/TealKeyValueStore"
           }
         },
-        "description": "Stores the global information associated with an application."
+        "description": "Stores the global information associated with an application.",
+        "x-algorand-msgpack-encodable": true,
+        "x-algorand-msgpack-decodable": true
       },
       "DryrunState": {
         "required": [
@@ -5684,7 +5732,8 @@
             "type": "string"
           }
         },
-        "description": "An error response with optional data field."
+        "description": "An error response with optional data field.",
+        "x-algorand-msgpack-decodable": true
       },
       "DryrunRequest": {
         "required": [
@@ -5740,7 +5789,8 @@
             }
           }
         },
-        "description": "Request data type for dryrun endpoint. Given the Transactions and simulated ledger state upload, run TEAL scripts and return debugging information."
+        "description": "Request data type for dryrun endpoint. Given the Transactions and simulated ledger state upload, run TEAL scripts and return debugging information.",
+        "x-algorand-msgpack-encodable": true
       },
       "DryrunSource": {
         "required": [
@@ -5766,7 +5816,8 @@
             "x-algorand-format": "uint64"
           }
         },
-        "description": "DryrunSource is TEAL source text that gets uploaded, compiled, and inserted into transactions or application state."
+        "description": "DryrunSource is TEAL source text that gets uploaded, compiled, and inserted into transactions or application state.",
+        "x-algorand-msgpack-encodable": true
       },
       "SimulateRequest": {
         "required": [
@@ -5809,7 +5860,8 @@
             "description": "If true, signers for transactions that are missing signatures will be fixed during evaluation."
           }
         },
-        "description": "Request type for simulation endpoint."
+        "description": "Request type for simulation endpoint.",
+        "x-algorand-msgpack-encodable": true
       },
       "SimulateRequestTransactionGroup": {
         "required": [
@@ -5828,7 +5880,8 @@
             }
           }
         },
-        "description": "A transaction group to simulate."
+        "description": "A transaction group to simulate.",
+        "x-algorand-msgpack-encodable": true
       },
       "SimulateTraceConfig": {
         "type": "object",
@@ -5850,9 +5903,11 @@
             "description": "A boolean option enabling returning application state changes (global, local, and box changes) with the execution trace during simulation."
           }
         },
-        "description": "An object that configures simulation execution trace."
+        "description": "An object that configures simulation execution trace.",
+        "x-algorand-msgpack-encodable": true,
+        "x-algorand-msgpack-decodable": true
       },
-      "Box": {
+      "AlgorandBox": {
         "required": [
           "name",
           "value"
@@ -5896,7 +5951,8 @@
             "format": "byte"
           }
         },
-        "description": "References a box of an application."
+        "description": "References a box of an application.",
+        "x-algorand-msgpack-decodable": true
       },
       "Version": {
         "title": "Version contains the current algod version.",
@@ -6056,7 +6112,8 @@
             "x-algorand-format": "SignedTransaction"
           }
         },
-        "description": "Details about a pending transaction. If the transaction was recently confirmed, includes confirmation details like the round and reward details."
+        "description": "Details about a pending transaction. If the transaction was recently confirmed, includes confirmation details like the round and reward details.",
+        "x-algorand-msgpack-decodable": true
       },
       "SimulateTransactionGroupResult": {
         "required": [
@@ -6094,7 +6151,8 @@
             "$ref": "#/components/schemas/SimulateUnnamedResourcesAccessed"
           }
         },
-        "description": "Simulation result for an atomic transaction group"
+        "description": "Simulation result for an atomic transaction group",
+        "x-algorand-msgpack-decodable": true
       },
       "SimulateTransactionResult": {
         "required": [
@@ -6125,7 +6183,8 @@
             "x-algorand-format": "Address"
           }
         },
-        "description": "Simulation result for an individual transaction"
+        "description": "Simulation result for an individual transaction",
+        "x-algorand-msgpack-decodable": true
       },
       "StateProof": {
         "required": [
@@ -6239,7 +6298,8 @@
             "description": "If true, signers for transactions that are missing signatures will be fixed during evaluation."
           }
         },
-        "description": "The set of parameters and limits override during simulation. If this set of parameters is present, then evaluation parameters may differ from standard evaluation in certain ways."
+        "description": "The set of parameters and limits override during simulation. If this set of parameters is present, then evaluation parameters may differ from standard evaluation in certain ways.",
+        "x-algorand-msgpack-decodable": true
       },
       "ScratchChange": {
         "required": [
@@ -6256,7 +6316,8 @@
             "$ref": "#/components/schemas/AvmValue"
           }
         },
-        "description": "A write operation into a scratch slot."
+        "description": "A write operation into a scratch slot.",
+        "x-algorand-msgpack-decodable": true
       },
       "ApplicationStateOperation": {
         "required": [
@@ -6289,7 +6350,8 @@
             "x-algorand-format": "Address"
           }
         },
-        "description": "An operation against an application's global/local/box state."
+        "description": "An operation against an application's global/local/box state.",
+        "x-algorand-msgpack-decodable": true
       },
       "ApplicationKVStorage": {
         "required": [
@@ -6310,7 +6372,8 @@
             "x-algorand-format": "Address"
           }
         },
-        "description": "An application's global/local/box state."
+        "description": "An application's global/local/box state.",
+        "x-algorand-msgpack-decodable": true
       },
       "ApplicationInitialStates": {
         "required": [
@@ -6337,7 +6400,8 @@
             "$ref": "#/components/schemas/ApplicationKVStorage"
           }
         },
-        "description": "An application's initial global/local/box states that were accessed during simulation."
+        "description": "An application's initial global/local/box states that were accessed during simulation.",
+        "x-algorand-msgpack-decodable": true
       },
       "SimulationOpcodeTraceUnit": {
         "required": [
@@ -6382,7 +6446,8 @@
             }
           }
         },
-        "description": "The set of trace information and effect from evaluating a single opcode."
+        "description": "The set of trace information and effect from evaluating a single opcode.",
+        "x-algorand-msgpack-decodable": true
       },
       "SimulationTransactionExecTrace": {
         "type": "object",
@@ -6442,7 +6507,8 @@
             }
           }
         },
-        "description": "The execution trace of calling an app or a logic sig, containing the inner app call trace in a recursive way."
+        "description": "The execution trace of calling an app or a logic sig, containing the inner app call trace in a recursive way.",
+        "x-algorand-msgpack-decodable": true
       },
       "SimulateUnnamedResourcesAccessed": {
         "type": "object",
@@ -6497,7 +6563,8 @@
             }
           }
         },
-        "description": "These are resources that were accessed by this group that would normally have caused failure, but were allowed in simulation. Depending on where this object is in the response, the unnamed resources it contains may or may not qualify for group resource sharing. If this is a field in SimulateTransactionGroupResult, the resources do qualify, but if this is a field in SimulateTransactionResult, they do not qualify. In order to make this group valid for actual submission, resources that qualify for group sharing can be made available by any transaction of the group; otherwise, resources must be placed in the same transaction which accessed them."
+        "description": "These are resources that were accessed by this group that would normally have caused failure, but were allowed in simulation. Depending on where this object is in the response, the unnamed resources it contains may or may not qualify for group resource sharing. If this is a field in SimulateTransactionGroupResult, the resources do qualify, but if this is a field in SimulateTransactionResult, they do not qualify. In order to make this group valid for actual submission, resources that qualify for group sharing can be made available by any transaction of the group; otherwise, resources must be placed in the same transaction which accessed them.",
+        "x-algorand-msgpack-decodable": true
       },
       "SimulateInitialStates": {
         "type": "object",
@@ -6510,7 +6577,8 @@
             }
           }
         },
-        "description": "Initial states of resources that were accessed during simulation."
+        "description": "Initial states of resources that were accessed during simulation.",
+        "x-algorand-msgpack-decodable": true
       },
       "AppCallLogs": {
         "required": [
@@ -6606,7 +6674,8 @@
                     "$ref": "#/components/schemas/LedgerStateDeltaForTransactionGroup"
                   }
                 }
-              }
+              },
+              "x-algorand-msgpack-decodable": true
             }
           }
         }
@@ -6671,7 +6740,8 @@
                 "created-asset": {
                   "$ref": "#/components/schemas/AssetParams"
                 }
-              }
+              },
+              "x-algorand-msgpack-decodable": true
             }
           }
         }
@@ -6725,7 +6795,8 @@
                 "created-app": {
                   "$ref": "#/components/schemas/ApplicationParams"
                 }
-              }
+              },
+              "x-algorand-msgpack-decodable": true
             }
           }
         }
@@ -6752,7 +6823,8 @@
                   "description": "Optional certificate object. This is only included when the format is set to message pack.",
                   "x-algorand-format": "BlockCertificate"
                 }
-              }
+              },
+              "x-algorand-msgpack-decodable": true
             }
           }
         }
@@ -7037,7 +7109,8 @@
                   "description": "Total number of transactions in the pool."
                 }
               },
-              "description": "PendingTransactions is an array of signed transactions exactly as they were submitted."
+              "description": "PendingTransactions is an array of signed transactions exactly as they were submitted.",
+              "x-algorand-msgpack-decodable": true
             }
           }
         }
@@ -7139,7 +7212,8 @@
                 "initial-states": {
                   "$ref": "#/components/schemas/SimulateInitialStates"
                 }
-              }
+              },
+              "x-algorand-msgpack-decodable": true
             }
           }
         }
@@ -7274,7 +7348,7 @@
                 "boxes": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Box"
+                    "$ref": "#/components/schemas/AlgorandBox"
                   }
                 }
               }
@@ -7287,7 +7361,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/Box"
+              "$ref": "#/components/schemas/AlgorandBox"
             }
           }
         }

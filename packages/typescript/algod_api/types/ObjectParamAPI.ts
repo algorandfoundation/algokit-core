@@ -11,6 +11,7 @@ import { AccountAssetsInformation200Response } from '../models/AccountAssetsInfo
 import { AccountParticipation } from '../models/AccountParticipation';
 import { AccountStateDelta } from '../models/AccountStateDelta';
 import { AddParticipationKey200Response } from '../models/AddParticipationKey200Response';
+import { AlgorandBox } from '../models/AlgorandBox';
 import { AppCallLogs } from '../models/AppCallLogs';
 import { Application } from '../models/Application';
 import { ApplicationInitialStates } from '../models/ApplicationInitialStates';
@@ -26,7 +27,6 @@ import { AssetHoldingReference } from '../models/AssetHoldingReference';
 import { AssetParams } from '../models/AssetParams';
 import { AvmKeyValue } from '../models/AvmKeyValue';
 import { AvmValue } from '../models/AvmValue';
-import { Box } from '../models/Box';
 import { BoxReference } from '../models/BoxReference';
 import { BuildVersion } from '../models/BuildVersion';
 import { DebugSettingsProf } from '../models/DebugSettingsProf';
@@ -933,7 +933,7 @@ export class ObjectAlgodApi {
      * Get box information for a given application.
      * @param param the request object
      */
-    public getApplicationBoxByName(param: AlgodApiGetApplicationBoxByNameRequest, options?: ConfigurationOptions): Promise<Box> {
+    public getApplicationBoxByName(param: AlgodApiGetApplicationBoxByNameRequest, options?: ConfigurationOptions): Promise<AlgorandBox> {
         return this.api.getApplicationBoxByName(param.applicationId, param.name,  options).toPromise();
     }
 

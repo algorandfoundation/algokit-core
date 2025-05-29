@@ -902,7 +902,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **get_application_box_by_name**
-> Box get_application_box_by_name(application_id, name)
+> AlgorandBox get_application_box_by_name(application_id, name)
 
 Get box information for a given application.
 
@@ -914,7 +914,7 @@ Given an application ID and box name, it returns the round, box name, and value 
 
 ```python
 import algokit_algod_api
-from algokit_algod_api.models.box import Box
+from algokit_algod_api.models.algorand_box import AlgorandBox
 from algokit_algod_api.rest import ApiException
 from pprint import pprint
 
@@ -963,7 +963,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**Box**](Box.md)
+[**AlgorandBox**](AlgorandBox.md)
 
 ### Authorization
 

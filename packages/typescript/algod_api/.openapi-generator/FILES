@@ -20,6 +20,7 @@ models/AccountAssetsInformation200Response.ts
 models/AccountParticipation.ts
 models/AccountStateDelta.ts
 models/AddParticipationKey200Response.ts
+models/AlgorandBox.ts
 models/AppCallLogs.ts
 models/Application.ts
 models/ApplicationInitialStates.ts
@@ -35,7 +36,6 @@ models/AssetHoldingReference.ts
 models/AssetParams.ts
 models/AvmKeyValue.ts
 models/AvmValue.ts
-models/Box.ts
 models/BoxReference.ts
 models/BuildVersion.ts
 models/DebugSettingsProf.ts

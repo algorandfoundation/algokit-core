@@ -18,6 +18,7 @@ from random import randbytes
 from typing import Dict
 
 import pytest
+from algokit_msgpack import Account
 from algokit_utils import (
     AlgorandClient,
     AppFactory,
@@ -26,8 +27,6 @@ from algokit_utils import (
 )
 
 from algokit_algod_api.api.algod_api import AlgodApi
-from algokit_algod_api.exceptions import ApiException
-from algokit_algod_api.models.account import Account
 from tests.utils import create_random_asset
 
 

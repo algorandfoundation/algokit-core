@@ -27,7 +27,6 @@ tornado = ">=4.2, <5"
 pem = ">= 19.3.0"
 pycryptodome = ">= 3.9.0"
 {{/hasHttpSignatureMethods}}
-pydantic = ">= 2"
 typing-extensions = ">= 4.7.1"
 algokit_msgpack = { path = "../../../packages/python/algokit_msgpack" }
 
@@ -47,9 +46,6 @@ algokit-transact = { path = "../../../packages/python/algokit_transact" }
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
-
-[tool.pylint.'MESSAGES CONTROL']
-extension-pkg-whitelist = "pydantic"
 
 [tool.mypy]
 files = [

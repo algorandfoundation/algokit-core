@@ -1,0 +1,31 @@
+{
+  "name": "simulate-request-example",
+  "version": "1.0.0",
+  "description": "Example TypeScript project demonstrating SimulateRequest base64 encoding using js-algorand-sdk",
+  "main": "simulate-request-example.ts",
+  "scripts": {
+    "build": "tsc simulate-request-example.ts",
+    "start": "node simulate-request-example.js",
+    "dev": "ts-node simulate-request-example.ts"
+  },
+  "dependencies": {
+    "algosdk": "^3.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.5",
+    "typescript": "^5.3.3",
+    "ts-node": "^10.9.2"
+  },
+  "keywords": [
+    "algorand",
+    "typescript",
+    "simulation",
+    "msgpack",
+    "base64"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

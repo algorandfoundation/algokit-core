@@ -13,10 +13,17 @@
 """  # noqa: E501
 
 
+
 import base64
 from typing import Dict, cast
 
 import pytest
+from algokit_msgpack import (
+    SimulateRequest,
+    SimulateRequestTransactionGroup,
+    SimulateTraceConfig,
+    TransactionParams200Response,
+)
 from algokit_transact import (
     Address,
     PaymentTransactionFields,
@@ -30,15 +37,6 @@ from algosdk.encoding import msgpack_decode
 from algosdk.transaction import SignedTransaction
 
 from algokit_algod_api.api.algod_api import AlgodApi
-from algokit_algod_api.exceptions import ApiException
-from algokit_algod_api.models.simulate_request import SimulateRequest
-from algokit_algod_api.models.simulate_request_transaction_group import (
-    SimulateRequestTransactionGroup,
-)
-from algokit_algod_api.models.simulate_trace_config import SimulateTraceConfig
-from algokit_algod_api.models.transaction_params200_response import (
-    TransactionParams200Response,
-)
 
 
 @pytest.fixture
@@ -205,17 +203,17 @@ class TestTransactionAPI:
             # Use unpacked dict with correct field names (with hyphens)
             trace_config = SimulateTraceConfig(
                 enable=True,
-                **{"stack-change": True, "state-change": True, "scratch-change": True}
+                stack_change=True,
+                state_change=True,
+                scratch_change=True
             )
 
-            request = SimulateRequest.from_dict(
-                {
-                    "allow-empty-signatures": True,
-                    "allow-more-logging": True,
-                    "allow-unnamed-resources": True,
-                    "txn-groups": [empty_txn_group],
-                    "exec-trace-config": trace_config
-                }
+            request = SimulateRequest(
+                allow_empty_signatures=True,
+                allow_more_logging=True,
+                allow_unnamed_resources=True,
+                txn_groups=[empty_txn_group],
+                exec_trace_config=trace_config
             )
 
             assert request is not None

@@ -10,7 +10,7 @@
  * Do not edit the class manually.
  */
 
-import { Box } from '../models/Box';
+import { AlgorandBox } from '../models/AlgorandBox';
 import { HttpFile } from '../http/http';
 
 export class GetApplicationBoxes200Response {
@@ -22,7 +22,7 @@ export class GetApplicationBoxes200Response {
     * Used for pagination, when making another request provide this token with the next parameter.
     */
     'nextToken'?: string;
-    'boxes': Array<Box>;
+    'boxes': Array<AlgorandBox>;
 
     static readonly discriminator: string | undefined = undefined;
 
@@ -44,7 +44,7 @@ export class GetApplicationBoxes200Response {
         {
             "name": "boxes",
             "baseName": "boxes",
-            "type": "Array<Box>",
+            "type": "Array<AlgorandBox>",
             "format": ""
         }    ];
 

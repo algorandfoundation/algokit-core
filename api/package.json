@@ -9,6 +9,7 @@
     "generate:algod_api:all": "bun scripts/generate-clients.ts algod all",
     "generate:algod_api:ts": "bun scripts/generate-clients.ts algod typescript",
     "generate:algod_api:py": "bun scripts/generate-clients.ts algod python",
+    "generate:algod_api:rust-ffi": "bun scripts/generate-clients.ts algod rust-ffi",
     "convert-openapi": "bun scripts/convert-openapi.ts"
   },
   "devDependencies": {

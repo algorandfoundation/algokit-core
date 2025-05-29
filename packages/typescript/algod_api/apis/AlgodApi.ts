@@ -14,9 +14,9 @@ import { AccountApplicationInformation200Response } from '../models/AccountAppli
 import { AccountAssetInformation200Response } from '../models/AccountAssetInformation200Response';
 import { AccountAssetsInformation200Response } from '../models/AccountAssetsInformation200Response';
 import { AddParticipationKey200Response } from '../models/AddParticipationKey200Response';
+import { AlgorandBox } from '../models/AlgorandBox';
 import { Application } from '../models/Application';
 import { Asset } from '../models/Asset';
-import { Box } from '../models/Box';
 import { DebugSettingsProf } from '../models/DebugSettingsProf';
 import { DryrunRequest } from '../models/DryrunRequest';
 import { ErrorResponse } from '../models/ErrorResponse';
@@ -2861,13 +2861,13 @@ export class AlgodApiResponseProcessor {
      * @params response Response returned by the server for a request to getApplicationBoxByName
      * @throws ApiException if the response code was not in [200, 299]
      */
-     public async getApplicationBoxByNameResponse(response: ResponseContext): Promise<Box > {
+     public async getApplicationBoxByNameResponse(response: ResponseContext): Promise<AlgorandBox > {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
-            const body: Box = ObjectSerializer.deserialize(
-                await decodeResponseBody(response, "Box", contentType),
-                "Box", ""
-            ) as Box;
+            const body: AlgorandBox = ObjectSerializer.deserialize(
+                await decodeResponseBody(response, "AlgorandBox", contentType),
+                "AlgorandBox", ""
+            ) as AlgorandBox;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
@@ -2904,10 +2904,10 @@ export class AlgodApiResponseProcessor {
 
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
-            const body: Box = ObjectSerializer.deserialize(
-                await decodeResponseBody(response, "Box", contentType),
-                "Box", ""
-            ) as Box;
+            const body: AlgorandBox = ObjectSerializer.deserialize(
+                await decodeResponseBody(response, "AlgorandBox", contentType),
+                "AlgorandBox", ""
+            ) as AlgorandBox;
             return body;
         }
 

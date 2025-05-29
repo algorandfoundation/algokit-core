@@ -458,6 +458,52 @@ pub fn get_transaction_id(tx: &Transaction) -> Result<String, AlgoKitTransactErr
     Ok(tx_internal.id()?)
 }
 
+#[ffi_record]
+pub struct SignedTransaction {
+    /// The transaction that has been signed.
+    transaction: Transaction,
+
+    /// The Ed25519 signature authorizing the transaction (64 bytes).
+    signature: ByteBuf,
+}
+
+impl SignedTransaction {
+    /// Create a new SignedTransaction
+    pub fn new(transaction: Transaction, signature: ByteBuf) -> Self {
+        Self {
+            transaction,
+            signature,
+        }
+    }
+}
+
+impl From<algokit_transact::SignedTransaction> for SignedTransaction {
+    fn from(value: algokit_transact::SignedTransaction) -> Self {
+        Self {
+            transaction: value
+                .transaction
+                .try_into()
+                .expect("Failed to convert transaction"),
+            signature: value.signature.to_vec().into(),
+        }
+    }
+}
+
+impl TryFrom<SignedTransaction> for algokit_transact::SignedTransaction {
+    type Error = AlgoKitTransactError;
+
+    fn try_from(value: SignedTransaction) -> Result<Self, Self::Error> {
+        let signature: [u8; 64] = value.signature.to_vec().try_into().map_err(|_| {
+            AlgoKitTransactError::EncodingError("Signature must be exactly 64 bytes".to_string())
+        })?;
+
+        Ok(Self {
+            transaction: value.transaction.try_into()?,
+            signature,
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -13,49 +13,10 @@
 """  # noqa: E501
 
 import warnings
-from pydantic import validate_call, Field, StrictFloat, StrictStr, StrictInt
 from typing import Any, Dict, List, Optional, Tuple, Union
-from typing_extensions import Annotated
 
-from pydantic import Field, StrictBool, StrictBytes, StrictInt, StrictStr, field_validator
-from typing import Any, Dict, List, Optional, Tuple, Union
-from typing_extensions import Annotated
-from algokit_algod_api.models.abort_catchup200_response import AbortCatchup200Response
-from algokit_algod_api.models.account import Account
-from algokit_algod_api.models.account_application_information200_response import AccountApplicationInformation200Response
-from algokit_algod_api.models.account_asset_information200_response import AccountAssetInformation200Response
-from algokit_algod_api.models.account_assets_information200_response import AccountAssetsInformation200Response
-from algokit_algod_api.models.add_participation_key200_response import AddParticipationKey200Response
-from algokit_algod_api.models.application import Application
-from algokit_algod_api.models.asset import Asset
-from algokit_algod_api.models.box import Box
-from algokit_algod_api.models.debug_settings_prof import DebugSettingsProf
-from algokit_algod_api.models.dryrun_request import DryrunRequest
-from algokit_algod_api.models.get_application_boxes200_response import GetApplicationBoxes200Response
-from algokit_algod_api.models.get_block200_response import GetBlock200Response
-from algokit_algod_api.models.get_block_hash200_response import GetBlockHash200Response
-from algokit_algod_api.models.get_block_logs200_response import GetBlockLogs200Response
-from algokit_algod_api.models.get_block_time_stamp_offset200_response import GetBlockTimeStampOffset200Response
-from algokit_algod_api.models.get_block_txids200_response import GetBlockTxids200Response
-from algokit_algod_api.models.get_pending_transactions_by_address200_response import GetPendingTransactionsByAddress200Response
-from algokit_algod_api.models.get_status200_response import GetStatus200Response
-from algokit_algod_api.models.get_supply200_response import GetSupply200Response
-from algokit_algod_api.models.get_sync_round200_response import GetSyncRound200Response
-from algokit_algod_api.models.get_transaction_group_ledger_state_deltas_for_round200_response import GetTransactionGroupLedgerStateDeltasForRound200Response
-from algokit_algod_api.models.get_transaction_proof200_response import GetTransactionProof200Response
-from algokit_algod_api.models.light_block_header_proof import LightBlockHeaderProof
-from algokit_algod_api.models.participation_key import ParticipationKey
-from algokit_algod_api.models.pending_transaction_response import PendingTransactionResponse
-from algokit_algod_api.models.raw_transaction200_response import RawTransaction200Response
-from algokit_algod_api.models.simulate_request import SimulateRequest
-from algokit_algod_api.models.simulate_transaction200_response import SimulateTransaction200Response
-from algokit_algod_api.models.start_catchup200_response import StartCatchup200Response
-from algokit_algod_api.models.state_proof import StateProof
-from algokit_algod_api.models.teal_compile200_response import TealCompile200Response
-from algokit_algod_api.models.teal_disassemble200_response import TealDisassemble200Response
-from algokit_algod_api.models.teal_dryrun200_response import TealDryrun200Response
-from algokit_algod_api.models.transaction_params200_response import TransactionParams200Response
-from algokit_algod_api.models.version import Version
+# Import all models from the models package (which imports from algokit_msgpack)
+from algokit_algod_api.models import *
 
 from algokit_algod_api.api_client import ApiClient, RequestSerialized
 from algokit_algod_api.api_response import ApiResponse
@@ -75,22 +36,21 @@ class AlgodApi:
         self.api_client = api_client
 
 
-    @validate_call
     def abort_catchup(
         self,
-        catchpoint: Annotated[str, Field(strict=True, description="A catch point")],
+        catchpoint: str,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> AbortCatchup200Response:
         """Aborts a catchpoint catchup.
 
@@ -133,7 +93,8 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -145,22 +106,21 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def abort_catchup_with_http_info(
         self,
-        catchpoint: Annotated[str, Field(strict=True, description="A catch point")],
+        catchpoint: str,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[AbortCatchup200Response]:
         """Aborts a catchpoint catchup.
 
@@ -203,7 +163,8 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -215,22 +176,21 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def abort_catchup_without_preload_content(
         self,
-        catchpoint: Annotated[str, Field(strict=True, description="A catch point")],
+        catchpoint: str,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Aborts a catchpoint catchup.
 
@@ -273,7 +233,8 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -345,24 +306,23 @@ class AlgodApi:
 
 
 
-    @validate_call
     def account_application_information(
         self,
-        address: Annotated[str, Field(strict=True, description="An account public key")],
-        application_id: Annotated[StrictInt, Field(description="An application identifier")],
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
+        address: str,
+        application_id: int,
+        format: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> AccountApplicationInformation200Response:
         """Get account information about a given app.
 
@@ -411,7 +371,8 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -423,24 +384,23 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def account_application_information_with_http_info(
         self,
-        address: Annotated[str, Field(strict=True, description="An account public key")],
-        application_id: Annotated[StrictInt, Field(description="An application identifier")],
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
+        address: str,
+        application_id: int,
+        format: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[AccountApplicationInformation200Response]:
         """Get account information about a given app.
 
@@ -489,7 +449,8 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -501,24 +462,23 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def account_application_information_without_preload_content(
         self,
-        address: Annotated[str, Field(strict=True, description="An account public key")],
-        application_id: Annotated[StrictInt, Field(description="An application identifier")],
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
+        address: str,
+        application_id: int,
+        format: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Get account information about a given app.
 
@@ -567,7 +527,8 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -648,24 +609,23 @@ class AlgodApi:
 
 
 
-    @validate_call
     def account_asset_information(
         self,
-        address: Annotated[str, Field(strict=True, description="An account public key")],
-        asset_id: Annotated[StrictInt, Field(description="An asset identifier")],
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
+        address: str,
+        asset_id: int,
+        format: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> AccountAssetInformation200Response:
         """Get account information about a given asset.
 
@@ -714,7 +674,8 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -726,24 +687,23 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def account_asset_information_with_http_info(
         self,
-        address: Annotated[str, Field(strict=True, description="An account public key")],
-        asset_id: Annotated[StrictInt, Field(description="An asset identifier")],
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
+        address: str,
+        asset_id: int,
+        format: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[AccountAssetInformation200Response]:
         """Get account information about a given asset.
 
@@ -792,7 +752,8 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -804,24 +765,23 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def account_asset_information_without_preload_content(
         self,
-        address: Annotated[str, Field(strict=True, description="An account public key")],
-        asset_id: Annotated[StrictInt, Field(description="An asset identifier")],
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
+        address: str,
+        asset_id: int,
+        format: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Get account information about a given asset.
 
@@ -870,7 +830,8 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -951,24 +912,23 @@ class AlgodApi:
 
 
 
-    @validate_call
     def account_assets_information(
         self,
-        address: Annotated[str, Field(strict=True, description="An account public key")],
-        limit: Annotated[Optional[StrictInt], Field(description="Maximum number of results to return.")] = None,
-        next: Annotated[Optional[StrictStr], Field(description="The next page of results. Use the next token provided by the previous results.")] = None,
+        address: str,
+        limit: int = None,
+        next: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> AccountAssetsInformation200Response:
         """Get a list of assets held by an account, inclusive of asset params.
 
@@ -1017,7 +977,8 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -1029,24 +990,23 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def account_assets_information_with_http_info(
         self,
-        address: Annotated[str, Field(strict=True, description="An account public key")],
-        limit: Annotated[Optional[StrictInt], Field(description="Maximum number of results to return.")] = None,
-        next: Annotated[Optional[StrictStr], Field(description="The next page of results. Use the next token provided by the previous results.")] = None,
+        address: str,
+        limit: int = None,
+        next: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[AccountAssetsInformation200Response]:
         """Get a list of assets held by an account, inclusive of asset params.
 
@@ -1095,7 +1055,8 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -1107,24 +1068,23 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def account_assets_information_without_preload_content(
         self,
-        address: Annotated[str, Field(strict=True, description="An account public key")],
-        limit: Annotated[Optional[StrictInt], Field(description="Maximum number of results to return.")] = None,
-        next: Annotated[Optional[StrictStr], Field(description="The next page of results. Use the next token provided by the previous results.")] = None,
+        address: str,
+        limit: int = None,
+        next: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Get a list of assets held by an account, inclusive of asset params.
 
@@ -1173,7 +1133,8 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -1255,24 +1216,23 @@ class AlgodApi:
 
 
 
-    @validate_call
     def account_information(
         self,
-        address: Annotated[str, Field(strict=True, description="An account public key")],
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
-        exclude: Annotated[Optional[StrictStr], Field(description="When set to `all` will exclude asset holdings, application local state, created asset parameters, any created application parameters. Defaults to `none`.")] = None,
+        address: str,
+        format: str = None,
+        exclude: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> Account:
         """Get account information.
 
@@ -1321,7 +1281,8 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -1333,24 +1294,23 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def account_information_with_http_info(
         self,
-        address: Annotated[str, Field(strict=True, description="An account public key")],
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
-        exclude: Annotated[Optional[StrictStr], Field(description="When set to `all` will exclude asset holdings, application local state, created asset parameters, any created application parameters. Defaults to `none`.")] = None,
+        address: str,
+        format: str = None,
+        exclude: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[Account]:
         """Get account information.
 
@@ -1399,7 +1359,8 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -1411,24 +1372,23 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def account_information_without_preload_content(
         self,
-        address: Annotated[str, Field(strict=True, description="An account public key")],
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
-        exclude: Annotated[Optional[StrictStr], Field(description="When set to `all` will exclude asset holdings, application local state, created asset parameters, any created application parameters. Defaults to `none`.")] = None,
+        address: str,
+        format: str = None,
+        exclude: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Get account information.
 
@@ -1477,7 +1437,8 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -1560,22 +1521,21 @@ class AlgodApi:
 
 
 
-    @validate_call
     def add_participation_key(
         self,
-        participationkey: Annotated[Union[StrictBytes, StrictStr, Tuple[StrictStr, StrictBytes]], Field(description="The participation key to add to the node")],
+        participationkey: bytearray,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> AddParticipationKey200Response:
         """Add a participation key to the node
 
@@ -1619,7 +1579,8 @@ class AlgodApi:
             '404': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -1631,22 +1592,21 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def add_participation_key_with_http_info(
         self,
-        participationkey: Annotated[Union[StrictBytes, StrictStr, Tuple[StrictStr, StrictBytes]], Field(description="The participation key to add to the node")],
+        participationkey: bytearray,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[AddParticipationKey200Response]:
         """Add a participation key to the node
 
@@ -1690,7 +1650,8 @@ class AlgodApi:
             '404': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -1702,22 +1663,21 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def add_participation_key_without_preload_content(
         self,
-        participationkey: Annotated[Union[StrictBytes, StrictStr, Tuple[StrictStr, StrictBytes]], Field(description="The participation key to add to the node")],
+        participationkey: bytearray,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Add a participation key to the node
 
@@ -1761,7 +1721,8 @@ class AlgodApi:
             '404': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -1854,23 +1815,22 @@ class AlgodApi:
 
 
 
-    @validate_call
     def append_keys(
         self,
-        participation_id: StrictStr,
-        keymap: Annotated[Union[StrictBytes, StrictStr, Tuple[StrictStr, StrictBytes]], Field(description="The state proof keys to add to an existing participation ID")],
+        participation_id: str,
+        keymap: bytearray,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ParticipationKey:
         """Append state proof keys to a participation key
 
@@ -1917,7 +1877,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -1929,23 +1890,22 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def append_keys_with_http_info(
         self,
-        participation_id: StrictStr,
-        keymap: Annotated[Union[StrictBytes, StrictStr, Tuple[StrictStr, StrictBytes]], Field(description="The state proof keys to add to an existing participation ID")],
+        participation_id: str,
+        keymap: bytearray,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[ParticipationKey]:
         """Append state proof keys to a participation key
 
@@ -1992,7 +1952,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -2004,23 +1965,22 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def append_keys_without_preload_content(
         self,
-        participation_id: StrictStr,
-        keymap: Annotated[Union[StrictBytes, StrictStr, Tuple[StrictStr, StrictBytes]], Field(description="The state proof keys to add to an existing participation ID")],
+        participation_id: str,
+        keymap: bytearray,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Append state proof keys to a participation key
 
@@ -2067,7 +2027,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -2163,22 +2124,21 @@ class AlgodApi:
 
 
 
-    @validate_call
     def delete_participation_key_by_id(
         self,
-        participation_id: StrictStr,
+        participation_id: str,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> None:
         """Delete a given participation key by ID
 
@@ -2222,7 +2182,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -2234,22 +2195,21 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def delete_participation_key_by_id_with_http_info(
         self,
-        participation_id: StrictStr,
+        participation_id: str,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[None]:
         """Delete a given participation key by ID
 
@@ -2293,7 +2253,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -2305,22 +2266,21 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def delete_participation_key_by_id_without_preload_content(
         self,
-        participation_id: StrictStr,
+        participation_id: str,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Delete a given participation key by ID
 
@@ -2364,7 +2324,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -2436,21 +2397,20 @@ class AlgodApi:
 
 
 
-    @validate_call
     def experimental_check(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> None:
         """Returns OK if experimental API is enabled.
 
@@ -2487,7 +2447,8 @@ class AlgodApi:
         _response_types_map: Dict[str, Optional[str]] = {
             '200': None,
             '404': None,
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -2499,21 +2460,20 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def experimental_check_with_http_info(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[None]:
         """Returns OK if experimental API is enabled.
 
@@ -2550,7 +2510,8 @@ class AlgodApi:
         _response_types_map: Dict[str, Optional[str]] = {
             '200': None,
             '404': None,
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -2562,21 +2523,20 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def experimental_check_without_preload_content(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Returns OK if experimental API is enabled.
 
@@ -2613,7 +2573,8 @@ class AlgodApi:
         _response_types_map: Dict[str, Optional[str]] = {
             '200': None,
             '404': None,
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -2675,25 +2636,24 @@ class AlgodApi:
 
 
 
-    @validate_call
     def generate_participation_keys(
         self,
-        address: Annotated[StrictStr, Field(description="An account public key")],
-        first: Annotated[StrictInt, Field(description="First round for participation key.")],
-        last: Annotated[StrictInt, Field(description="Last round for participation key.")],
-        dilution: Annotated[Optional[StrictInt], Field(description="Key dilution for two-level participation keys (defaults to sqrt of validity window).")] = None,
+        address: str,
+        first: int,
+        last: int,
+        dilution: int = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> str:
         """Generate and install participation keys to the node.
 
@@ -2745,7 +2705,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -2757,25 +2718,24 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def generate_participation_keys_with_http_info(
         self,
-        address: Annotated[StrictStr, Field(description="An account public key")],
-        first: Annotated[StrictInt, Field(description="First round for participation key.")],
-        last: Annotated[StrictInt, Field(description="Last round for participation key.")],
-        dilution: Annotated[Optional[StrictInt], Field(description="Key dilution for two-level participation keys (defaults to sqrt of validity window).")] = None,
+        address: str,
+        first: int,
+        last: int,
+        dilution: int = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[str]:
         """Generate and install participation keys to the node.
 
@@ -2827,7 +2787,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -2839,25 +2800,24 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def generate_participation_keys_without_preload_content(
         self,
-        address: Annotated[StrictStr, Field(description="An account public key")],
-        first: Annotated[StrictInt, Field(description="First round for participation key.")],
-        last: Annotated[StrictInt, Field(description="Last round for participation key.")],
-        dilution: Annotated[Optional[StrictInt], Field(description="Key dilution for two-level participation keys (defaults to sqrt of validity window).")] = None,
+        address: str,
+        first: int,
+        last: int,
+        dilution: int = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Generate and install participation keys to the node.
 
@@ -2909,7 +2869,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -2996,24 +2957,23 @@ class AlgodApi:
 
 
 
-    @validate_call
     def get_application_box_by_name(
         self,
-        application_id: Annotated[StrictInt, Field(description="An application identifier")],
-        name: Annotated[StrictStr, Field(description="A box name, in the goal app call arg form 'encoding:value'. For ints, use the form 'int:1234'. For raw bytes, use the form 'b64:A=='. For printable strings, use the form 'str:hello'. For addresses, use the form 'addr:XYZ...'.")],
+        application_id: int,
+        name: str,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> Box:
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
+    ) -> AlgorandBox:
         """Get box information for a given application.
 
         Given an application ID and box name, it returns the round, box name, and value (each base64 encoded). Box names must be in the goal app call arg encoding form 'encoding:value'. For ints, use the form 'int:1234'. For raw bytes, use the form 'b64:A=='. For printable strings, use the form 'str:hello'. For addresses, use the form 'addr:XYZ...'.
@@ -3054,12 +3014,13 @@ class AlgodApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "Box",
+            '200': "AlgorandBox",
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -3071,24 +3032,23 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def get_application_box_by_name_with_http_info(
         self,
-        application_id: Annotated[StrictInt, Field(description="An application identifier")],
-        name: Annotated[StrictStr, Field(description="A box name, in the goal app call arg form 'encoding:value'. For ints, use the form 'int:1234'. For raw bytes, use the form 'b64:A=='. For printable strings, use the form 'str:hello'. For addresses, use the form 'addr:XYZ...'.")],
+        application_id: int,
+        name: str,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[Box]:
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
+    ) -> ApiResponse[AlgorandBox]:
         """Get box information for a given application.
 
         Given an application ID and box name, it returns the round, box name, and value (each base64 encoded). Box names must be in the goal app call arg encoding form 'encoding:value'. For ints, use the form 'int:1234'. For raw bytes, use the form 'b64:A=='. For printable strings, use the form 'str:hello'. For addresses, use the form 'addr:XYZ...'.
@@ -3129,12 +3089,13 @@ class AlgodApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "Box",
+            '200': "AlgorandBox",
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -3146,23 +3107,22 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def get_application_box_by_name_without_preload_content(
         self,
-        application_id: Annotated[StrictInt, Field(description="An application identifier")],
-        name: Annotated[StrictStr, Field(description="A box name, in the goal app call arg form 'encoding:value'. For ints, use the form 'int:1234'. For raw bytes, use the form 'b64:A=='. For printable strings, use the form 'str:hello'. For addresses, use the form 'addr:XYZ...'.")],
+        application_id: int,
+        name: str,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Get box information for a given application.
 
@@ -3204,12 +3164,13 @@ class AlgodApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "Box",
+            '200': "AlgorandBox",
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -3286,26 +3247,25 @@ class AlgodApi:
 
 
 
-    @validate_call
     def get_application_boxes(
         self,
-        application_id: Annotated[StrictInt, Field(description="An application identifier")],
-        max: Annotated[Optional[StrictInt], Field(description="Maximum number of boxes to return. Server may impose a lower limit.")] = None,
-        prefix: Annotated[Optional[StrictStr], Field(description="A box name prefix, in the goal app call arg form 'encoding:value'. For ints, use the form 'int:1234'. For raw bytes, use the form 'b64:A=='. For printable strings, use the form 'str:hello'. For addresses, use the form 'addr:XYZ...'.")] = None,
-        next: Annotated[Optional[StrictStr], Field(description="A box name, in the goal app call arg form 'encoding:value'. When provided, the returned boxes begin (lexographically) with the supplied name. Callers may implement pagination by reinvoking the endpoint with the token from a previous call's next-token.")] = None,
-        values: Annotated[Optional[StrictBool], Field(description="If true, box values will be returned.")] = None,
+        application_id: int,
+        max: int = None,
+        prefix: str = None,
+        next: str = None,
+        values: bool = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> GetApplicationBoxes200Response:
         """Get boxes for a given application.
 
@@ -3360,7 +3320,8 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -3372,26 +3333,25 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def get_application_boxes_with_http_info(
         self,
-        application_id: Annotated[StrictInt, Field(description="An application identifier")],
-        max: Annotated[Optional[StrictInt], Field(description="Maximum number of boxes to return. Server may impose a lower limit.")] = None,
-        prefix: Annotated[Optional[StrictStr], Field(description="A box name prefix, in the goal app call arg form 'encoding:value'. For ints, use the form 'int:1234'. For raw bytes, use the form 'b64:A=='. For printable strings, use the form 'str:hello'. For addresses, use the form 'addr:XYZ...'.")] = None,
-        next: Annotated[Optional[StrictStr], Field(description="A box name, in the goal app call arg form 'encoding:value'. When provided, the returned boxes begin (lexographically) with the supplied name. Callers may implement pagination by reinvoking the endpoint with the token from a previous call's next-token.")] = None,
-        values: Annotated[Optional[StrictBool], Field(description="If true, box values will be returned.")] = None,
+        application_id: int,
+        max: int = None,
+        prefix: str = None,
+        next: str = None,
+        values: bool = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[GetApplicationBoxes200Response]:
         """Get boxes for a given application.
 
@@ -3446,7 +3406,8 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -3458,26 +3419,25 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def get_application_boxes_without_preload_content(
         self,
-        application_id: Annotated[StrictInt, Field(description="An application identifier")],
-        max: Annotated[Optional[StrictInt], Field(description="Maximum number of boxes to return. Server may impose a lower limit.")] = None,
-        prefix: Annotated[Optional[StrictStr], Field(description="A box name prefix, in the goal app call arg form 'encoding:value'. For ints, use the form 'int:1234'. For raw bytes, use the form 'b64:A=='. For printable strings, use the form 'str:hello'. For addresses, use the form 'addr:XYZ...'.")] = None,
-        next: Annotated[Optional[StrictStr], Field(description="A box name, in the goal app call arg form 'encoding:value'. When provided, the returned boxes begin (lexographically) with the supplied name. Callers may implement pagination by reinvoking the endpoint with the token from a previous call's next-token.")] = None,
-        values: Annotated[Optional[StrictBool], Field(description="If true, box values will be returned.")] = None,
+        application_id: int,
+        max: int = None,
+        prefix: str = None,
+        next: str = None,
+        values: bool = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Get boxes for a given application.
 
@@ -3532,7 +3492,8 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -3624,22 +3585,21 @@ class AlgodApi:
 
 
 
-    @validate_call
     def get_application_by_id(
         self,
-        application_id: Annotated[StrictInt, Field(description="An application identifier")],
+        application_id: int,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> Application:
         """Get application information.
 
@@ -3683,7 +3643,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -3695,22 +3656,21 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def get_application_by_id_with_http_info(
         self,
-        application_id: Annotated[StrictInt, Field(description="An application identifier")],
+        application_id: int,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[Application]:
         """Get application information.
 
@@ -3754,7 +3714,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -3766,22 +3727,21 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def get_application_by_id_without_preload_content(
         self,
-        application_id: Annotated[StrictInt, Field(description="An application identifier")],
+        application_id: int,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Get application information.
 
@@ -3825,7 +3785,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -3897,22 +3858,21 @@ class AlgodApi:
 
 
 
-    @validate_call
     def get_asset_by_id(
         self,
-        asset_id: Annotated[StrictInt, Field(description="An asset identifier")],
+        asset_id: int,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> Asset:
         """Get asset information.
 
@@ -3956,7 +3916,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -3968,22 +3929,21 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def get_asset_by_id_with_http_info(
         self,
-        asset_id: Annotated[StrictInt, Field(description="An asset identifier")],
+        asset_id: int,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[Asset]:
         """Get asset information.
 
@@ -4027,7 +3987,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -4039,22 +4000,21 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def get_asset_by_id_without_preload_content(
         self,
-        asset_id: Annotated[StrictInt, Field(description="An asset identifier")],
+        asset_id: int,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Get asset information.
 
@@ -4098,7 +4058,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -4170,24 +4131,23 @@ class AlgodApi:
 
 
 
-    @validate_call
     def get_block(
         self,
-        round: Annotated[int, Field(strict=True, ge=0, description="The round from which to fetch block information.")],
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
-        header_only: Annotated[Optional[StrictBool], Field(description="If true, only the block header (exclusive of payset or certificate) may be included in response.")] = None,
+        round: int,
+        format: str = None,
+        header_only: bool = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> GetBlock200Response:
         """Get the block for the given round.
 
@@ -4236,7 +4196,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -4248,24 +4209,23 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def get_block_with_http_info(
         self,
-        round: Annotated[int, Field(strict=True, ge=0, description="The round from which to fetch block information.")],
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
-        header_only: Annotated[Optional[StrictBool], Field(description="If true, only the block header (exclusive of payset or certificate) may be included in response.")] = None,
+        round: int,
+        format: str = None,
+        header_only: bool = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[GetBlock200Response]:
         """Get the block for the given round.
 
@@ -4314,7 +4274,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -4326,24 +4287,23 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def get_block_without_preload_content(
         self,
-        round: Annotated[int, Field(strict=True, ge=0, description="The round from which to fetch block information.")],
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
-        header_only: Annotated[Optional[StrictBool], Field(description="If true, only the block header (exclusive of payset or certificate) may be included in response.")] = None,
+        round: int,
+        format: str = None,
+        header_only: bool = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Get the block for the given round.
 
@@ -4392,7 +4352,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -4475,22 +4436,21 @@ class AlgodApi:
 
 
 
-    @validate_call
     def get_block_hash(
         self,
-        round: Annotated[int, Field(strict=True, ge=0, description="The round from which to fetch block hash information.")],
+        round: int,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> GetBlockHash200Response:
         """Get the block hash for the block on the given round.
 
@@ -4533,7 +4493,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -4545,22 +4506,21 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def get_block_hash_with_http_info(
         self,
-        round: Annotated[int, Field(strict=True, ge=0, description="The round from which to fetch block hash information.")],
+        round: int,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[GetBlockHash200Response]:
         """Get the block hash for the block on the given round.
 
@@ -4603,7 +4563,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -4615,22 +4576,21 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def get_block_hash_without_preload_content(
         self,
-        round: Annotated[int, Field(strict=True, ge=0, description="The round from which to fetch block hash information.")],
+        round: int,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Get the block hash for the block on the given round.
 
@@ -4673,7 +4633,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -4745,22 +4706,21 @@ class AlgodApi:
 
 
 
-    @validate_call
     def get_block_logs(
         self,
-        round: Annotated[int, Field(strict=True, ge=0, description="The round from which to fetch block log information.")],
+        round: int,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> GetBlockLogs200Response:
         """Get all of the logs from outer and inner app calls in the given round
 
@@ -4804,7 +4764,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -4816,22 +4777,21 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def get_block_logs_with_http_info(
         self,
-        round: Annotated[int, Field(strict=True, ge=0, description="The round from which to fetch block log information.")],
+        round: int,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[GetBlockLogs200Response]:
         """Get all of the logs from outer and inner app calls in the given round
 
@@ -4875,7 +4835,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -4887,22 +4848,21 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def get_block_logs_without_preload_content(
         self,
-        round: Annotated[int, Field(strict=True, ge=0, description="The round from which to fetch block log information.")],
+        round: int,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Get all of the logs from outer and inner app calls in the given round
 
@@ -4946,7 +4906,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -5018,21 +4979,20 @@ class AlgodApi:
 
 
 
-    @validate_call
     def get_block_time_stamp_offset(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> GetBlockTimeStampOffset200Response:
         """Returns the timestamp offset. Timestamp offsets can only be set in dev mode.
 
@@ -5070,7 +5030,8 @@ class AlgodApi:
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "GetBlockTimeStampOffset200Response",
             '400': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -5082,21 +5043,20 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def get_block_time_stamp_offset_with_http_info(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[GetBlockTimeStampOffset200Response]:
         """Returns the timestamp offset. Timestamp offsets can only be set in dev mode.
 
@@ -5134,7 +5094,8 @@ class AlgodApi:
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "GetBlockTimeStampOffset200Response",
             '400': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -5146,21 +5107,20 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def get_block_time_stamp_offset_without_preload_content(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Returns the timestamp offset. Timestamp offsets can only be set in dev mode.
 
@@ -5198,7 +5158,8 @@ class AlgodApi:
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "GetBlockTimeStampOffset200Response",
             '400': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -5267,22 +5228,21 @@ class AlgodApi:
 
 
 
-    @validate_call
     def get_block_txids(
         self,
-        round: Annotated[int, Field(strict=True, ge=0, description="The round from which to fetch block transaction IDs.")],
+        round: int,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> GetBlockTxids200Response:
         """Get the top level transaction IDs for the block on the given round.
 
@@ -5325,7 +5285,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -5337,22 +5298,21 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def get_block_txids_with_http_info(
         self,
-        round: Annotated[int, Field(strict=True, ge=0, description="The round from which to fetch block transaction IDs.")],
+        round: int,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[GetBlockTxids200Response]:
         """Get the top level transaction IDs for the block on the given round.
 
@@ -5395,7 +5355,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -5407,22 +5368,21 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def get_block_txids_without_preload_content(
         self,
-        round: Annotated[int, Field(strict=True, ge=0, description="The round from which to fetch block transaction IDs.")],
+        round: int,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Get the top level transaction IDs for the block on the given round.
 
@@ -5465,7 +5425,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -5537,21 +5498,20 @@ class AlgodApi:
 
 
 
-    @validate_call
     def get_config(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> str:
         """Gets the merged config file.
 
@@ -5588,7 +5548,8 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "str",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -5600,21 +5561,20 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def get_config_with_http_info(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[str]:
         """Gets the merged config file.
 
@@ -5651,7 +5611,8 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "str",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -5663,21 +5624,20 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def get_config_without_preload_content(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Gets the merged config file.
 
@@ -5714,7 +5674,8 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "str",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -5783,21 +5744,20 @@ class AlgodApi:
 
 
 
-    @validate_call
     def get_debug_settings_prof(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> DebugSettingsProf:
         """get_debug_settings_prof
 
@@ -5834,7 +5794,8 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "DebugSettingsProf",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -5846,21 +5807,20 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def get_debug_settings_prof_with_http_info(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[DebugSettingsProf]:
         """get_debug_settings_prof
 
@@ -5897,7 +5857,8 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "DebugSettingsProf",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -5909,21 +5870,20 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def get_debug_settings_prof_without_preload_content(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """get_debug_settings_prof
 
@@ -5960,7 +5920,8 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "DebugSettingsProf",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -6029,21 +5990,20 @@ class AlgodApi:
 
 
 
-    @validate_call
     def get_genesis(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> str:
         """Gets the genesis information.
 
@@ -6080,7 +6040,8 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "str",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -6092,21 +6053,20 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def get_genesis_with_http_info(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[str]:
         """Gets the genesis information.
 
@@ -6143,7 +6103,8 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "str",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -6155,21 +6116,20 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def get_genesis_without_preload_content(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Gets the genesis information.
 
@@ -6206,7 +6166,8 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "str",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -6275,23 +6236,22 @@ class AlgodApi:
 
 
 
-    @validate_call
     def get_ledger_state_delta(
         self,
-        round: Annotated[int, Field(strict=True, ge=0, description="The round for which the deltas are desired.")],
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
+        round: int,
+        format: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> object:
         """Get a LedgerStateDelta object for a given round
 
@@ -6339,7 +6299,8 @@ class AlgodApi:
             '408': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -6351,23 +6312,22 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def get_ledger_state_delta_with_http_info(
         self,
-        round: Annotated[int, Field(strict=True, ge=0, description="The round for which the deltas are desired.")],
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
+        round: int,
+        format: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[object]:
         """Get a LedgerStateDelta object for a given round
 
@@ -6415,7 +6375,8 @@ class AlgodApi:
             '408': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -6427,23 +6388,22 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def get_ledger_state_delta_without_preload_content(
         self,
-        round: Annotated[int, Field(strict=True, ge=0, description="The round for which the deltas are desired.")],
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
+        round: int,
+        format: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Get a LedgerStateDelta object for a given round
 
@@ -6491,7 +6451,8 @@ class AlgodApi:
             '408': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -6569,23 +6530,22 @@ class AlgodApi:
 
 
 
-    @validate_call
     def get_ledger_state_delta_for_transaction_group(
         self,
-        id: Annotated[str, Field(strict=True, description="A transaction ID, or transaction group ID")],
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
+        id: str,
+        format: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> object:
         """Get a LedgerStateDelta object for a given transaction group
 
@@ -6633,7 +6593,8 @@ class AlgodApi:
             '408': "ErrorResponse",
             '500': "ErrorResponse",
             '501': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -6645,23 +6606,22 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def get_ledger_state_delta_for_transaction_group_with_http_info(
         self,
-        id: Annotated[str, Field(strict=True, description="A transaction ID, or transaction group ID")],
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
+        id: str,
+        format: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[object]:
         """Get a LedgerStateDelta object for a given transaction group
 
@@ -6709,7 +6669,8 @@ class AlgodApi:
             '408': "ErrorResponse",
             '500': "ErrorResponse",
             '501': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -6721,23 +6682,22 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def get_ledger_state_delta_for_transaction_group_without_preload_content(
         self,
-        id: Annotated[str, Field(strict=True, description="A transaction ID, or transaction group ID")],
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
+        id: str,
+        format: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Get a LedgerStateDelta object for a given transaction group
 
@@ -6785,7 +6745,8 @@ class AlgodApi:
             '408': "ErrorResponse",
             '500': "ErrorResponse",
             '501': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -6863,22 +6824,21 @@ class AlgodApi:
 
 
 
-    @validate_call
     def get_light_block_header_proof(
         self,
-        round: Annotated[int, Field(strict=True, ge=0, description="The round to which the light block header belongs.")],
+        round: int,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> LightBlockHeaderProof:
         """Gets a proof for a given light block header inside a state proof commitment
 
@@ -6922,7 +6882,8 @@ class AlgodApi:
             '408': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -6934,22 +6895,21 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def get_light_block_header_proof_with_http_info(
         self,
-        round: Annotated[int, Field(strict=True, ge=0, description="The round to which the light block header belongs.")],
+        round: int,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[LightBlockHeaderProof]:
         """Gets a proof for a given light block header inside a state proof commitment
 
@@ -6993,7 +6953,8 @@ class AlgodApi:
             '408': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -7005,22 +6966,21 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def get_light_block_header_proof_without_preload_content(
         self,
-        round: Annotated[int, Field(strict=True, ge=0, description="The round to which the light block header belongs.")],
+        round: int,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Gets a proof for a given light block header inside a state proof commitment
 
@@ -7064,7 +7024,8 @@ class AlgodApi:
             '408': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -7136,22 +7097,21 @@ class AlgodApi:
 
 
 
-    @validate_call
     def get_participation_key_by_id(
         self,
-        participation_id: StrictStr,
+        participation_id: str,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ParticipationKey:
         """Get participation key info given a participation ID
 
@@ -7195,7 +7155,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -7207,22 +7168,21 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def get_participation_key_by_id_with_http_info(
         self,
-        participation_id: StrictStr,
+        participation_id: str,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[ParticipationKey]:
         """Get participation key info given a participation ID
 
@@ -7266,7 +7226,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -7278,22 +7239,21 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def get_participation_key_by_id_without_preload_content(
         self,
-        participation_id: StrictStr,
+        participation_id: str,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Get participation key info given a participation ID
 
@@ -7337,7 +7297,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -7409,21 +7370,20 @@ class AlgodApi:
 
 
 
-    @validate_call
     def get_participation_keys(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> List[ParticipationKey]:
         """Return a list of participation keys
 
@@ -7464,7 +7424,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -7476,21 +7437,20 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def get_participation_keys_with_http_info(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[List[ParticipationKey]]:
         """Return a list of participation keys
 
@@ -7531,7 +7491,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -7543,21 +7504,20 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def get_participation_keys_without_preload_content(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Return a list of participation keys
 
@@ -7598,7 +7558,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -7667,23 +7628,22 @@ class AlgodApi:
 
 
 
-    @validate_call
     def get_pending_transactions(
         self,
-        max: Annotated[Optional[StrictInt], Field(description="Truncated number of transactions to display. If max=0, returns all pending txns.")] = None,
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
+        max: int = None,
+        format: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> GetPendingTransactionsByAddress200Response:
         """Get a list of unconfirmed transactions currently in the transaction pool.
 
@@ -7729,7 +7689,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -7741,23 +7702,22 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def get_pending_transactions_with_http_info(
         self,
-        max: Annotated[Optional[StrictInt], Field(description="Truncated number of transactions to display. If max=0, returns all pending txns.")] = None,
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
+        max: int = None,
+        format: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[GetPendingTransactionsByAddress200Response]:
         """Get a list of unconfirmed transactions currently in the transaction pool.
 
@@ -7803,7 +7763,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -7815,23 +7776,22 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def get_pending_transactions_without_preload_content(
         self,
-        max: Annotated[Optional[StrictInt], Field(description="Truncated number of transactions to display. If max=0, returns all pending txns.")] = None,
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
+        max: int = None,
+        format: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Get a list of unconfirmed transactions currently in the transaction pool.
 
@@ -7877,7 +7837,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -7957,24 +7918,23 @@ class AlgodApi:
 
 
 
-    @validate_call
     def get_pending_transactions_by_address(
         self,
-        address: Annotated[str, Field(strict=True, description="An account public key")],
-        max: Annotated[Optional[StrictInt], Field(description="Truncated number of transactions to display. If max=0, returns all pending txns.")] = None,
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
+        address: str,
+        max: int = None,
+        format: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> GetPendingTransactionsByAddress200Response:
         """Get a list of unconfirmed transactions currently in the transaction pool by address.
 
@@ -8024,7 +7984,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -8036,24 +7997,23 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def get_pending_transactions_by_address_with_http_info(
         self,
-        address: Annotated[str, Field(strict=True, description="An account public key")],
-        max: Annotated[Optional[StrictInt], Field(description="Truncated number of transactions to display. If max=0, returns all pending txns.")] = None,
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
+        address: str,
+        max: int = None,
+        format: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[GetPendingTransactionsByAddress200Response]:
         """Get a list of unconfirmed transactions currently in the transaction pool by address.
 
@@ -8103,7 +8063,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -8115,24 +8076,23 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def get_pending_transactions_by_address_without_preload_content(
         self,
-        address: Annotated[str, Field(strict=True, description="An account public key")],
-        max: Annotated[Optional[StrictInt], Field(description="Truncated number of transactions to display. If max=0, returns all pending txns.")] = None,
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
+        address: str,
+        max: int = None,
+        format: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Get a list of unconfirmed transactions currently in the transaction pool by address.
 
@@ -8182,7 +8142,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -8265,21 +8226,20 @@ class AlgodApi:
 
 
 
-    @validate_call
     def get_ready(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> None:
         """Returns OK if healthy and fully caught up.
 
@@ -8317,7 +8277,8 @@ class AlgodApi:
             '200': None,
             '500': None,
             '503': None,
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -8329,21 +8290,20 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def get_ready_with_http_info(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[None]:
         """Returns OK if healthy and fully caught up.
 
@@ -8381,7 +8341,8 @@ class AlgodApi:
             '200': None,
             '500': None,
             '503': None,
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -8393,21 +8354,20 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def get_ready_without_preload_content(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Returns OK if healthy and fully caught up.
 
@@ -8445,7 +8405,8 @@ class AlgodApi:
             '200': None,
             '500': None,
             '503': None,
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -8507,22 +8468,21 @@ class AlgodApi:
 
 
 
-    @validate_call
     def get_state_proof(
         self,
-        round: Annotated[int, Field(strict=True, ge=0, description="The round for which a state proof is desired.")],
+        round: int,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> StateProof:
         """Get a state proof that covers a given round
 
@@ -8566,7 +8526,8 @@ class AlgodApi:
             '408': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -8578,22 +8539,21 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def get_state_proof_with_http_info(
         self,
-        round: Annotated[int, Field(strict=True, ge=0, description="The round for which a state proof is desired.")],
+        round: int,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[StateProof]:
         """Get a state proof that covers a given round
 
@@ -8637,7 +8597,8 @@ class AlgodApi:
             '408': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -8649,22 +8610,21 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def get_state_proof_without_preload_content(
         self,
-        round: Annotated[int, Field(strict=True, ge=0, description="The round for which a state proof is desired.")],
+        round: int,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Get a state proof that covers a given round
 
@@ -8708,7 +8668,8 @@ class AlgodApi:
             '408': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -8780,21 +8741,20 @@ class AlgodApi:
 
 
 
-    @validate_call
     def get_status(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> GetStatus200Response:
         """Gets the current node status.
 
@@ -8832,7 +8792,8 @@ class AlgodApi:
             '200': "GetStatus200Response",
             '401': "ErrorResponse",
             '500': "str",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -8844,21 +8805,20 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def get_status_with_http_info(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[GetStatus200Response]:
         """Gets the current node status.
 
@@ -8896,7 +8856,8 @@ class AlgodApi:
             '200': "GetStatus200Response",
             '401': "ErrorResponse",
             '500': "str",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -8908,21 +8869,20 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def get_status_without_preload_content(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Gets the current node status.
 
@@ -8960,7 +8920,8 @@ class AlgodApi:
             '200': "GetStatus200Response",
             '401': "ErrorResponse",
             '500': "str",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -9029,21 +8990,20 @@ class AlgodApi:
 
 
 
-    @validate_call
     def get_supply(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> GetSupply200Response:
         """Get the current supply reported by the ledger.
 
@@ -9080,7 +9040,8 @@ class AlgodApi:
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "GetSupply200Response",
             '401': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -9092,21 +9053,20 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def get_supply_with_http_info(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[GetSupply200Response]:
         """Get the current supply reported by the ledger.
 
@@ -9143,7 +9103,8 @@ class AlgodApi:
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "GetSupply200Response",
             '401': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -9155,21 +9116,20 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def get_supply_without_preload_content(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Get the current supply reported by the ledger.
 
@@ -9206,7 +9166,8 @@ class AlgodApi:
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "GetSupply200Response",
             '401': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -9275,21 +9236,20 @@ class AlgodApi:
 
 
 
-    @validate_call
     def get_sync_round(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> GetSyncRound200Response:
         """Returns the minimum sync round the ledger is keeping in cache.
 
@@ -9330,7 +9290,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -9342,21 +9303,20 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def get_sync_round_with_http_info(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[GetSyncRound200Response]:
         """Returns the minimum sync round the ledger is keeping in cache.
 
@@ -9397,7 +9357,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -9409,21 +9370,20 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def get_sync_round_without_preload_content(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Returns the minimum sync round the ledger is keeping in cache.
 
@@ -9464,7 +9424,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -9533,23 +9494,22 @@ class AlgodApi:
 
 
 
-    @validate_call
     def get_transaction_group_ledger_state_deltas_for_round(
         self,
-        round: Annotated[int, Field(strict=True, ge=0, description="The round for which the deltas are desired.")],
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
+        round: int,
+        format: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> GetTransactionGroupLedgerStateDeltasForRound200Response:
         """Get LedgerStateDelta objects for all transaction groups in a given round
 
@@ -9597,7 +9557,8 @@ class AlgodApi:
             '408': "ErrorResponse",
             '500': "ErrorResponse",
             '501': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -9609,23 +9570,22 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def get_transaction_group_ledger_state_deltas_for_round_with_http_info(
         self,
-        round: Annotated[int, Field(strict=True, ge=0, description="The round for which the deltas are desired.")],
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
+        round: int,
+        format: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[GetTransactionGroupLedgerStateDeltasForRound200Response]:
         """Get LedgerStateDelta objects for all transaction groups in a given round
 
@@ -9673,7 +9633,8 @@ class AlgodApi:
             '408': "ErrorResponse",
             '500': "ErrorResponse",
             '501': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -9685,23 +9646,22 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def get_transaction_group_ledger_state_deltas_for_round_without_preload_content(
         self,
-        round: Annotated[int, Field(strict=True, ge=0, description="The round for which the deltas are desired.")],
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
+        round: int,
+        format: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Get LedgerStateDelta objects for all transaction groups in a given round
 
@@ -9749,7 +9709,8 @@ class AlgodApi:
             '408': "ErrorResponse",
             '500': "ErrorResponse",
             '501': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -9827,25 +9788,24 @@ class AlgodApi:
 
 
 
-    @validate_call
     def get_transaction_proof(
         self,
-        round: Annotated[StrictInt, Field(description="The round in which the transaction appears.")],
-        txid: Annotated[str, Field(strict=True, description="The transaction ID for which to generate a proof.")],
-        hashtype: Annotated[Optional[StrictStr], Field(description="The type of hash function used to create the proof, must be one of:  * sha512_256  * sha256")] = None,
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
+        round: int,
+        txid: str,
+        hashtype: str = None,
+        format: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> GetTransactionProof200Response:
         """Get a proof for a transaction in a block.
 
@@ -9897,7 +9857,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -9909,25 +9870,24 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def get_transaction_proof_with_http_info(
         self,
-        round: Annotated[StrictInt, Field(description="The round in which the transaction appears.")],
-        txid: Annotated[str, Field(strict=True, description="The transaction ID for which to generate a proof.")],
-        hashtype: Annotated[Optional[StrictStr], Field(description="The type of hash function used to create the proof, must be one of:  * sha512_256  * sha256")] = None,
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
+        round: int,
+        txid: str,
+        hashtype: str = None,
+        format: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[GetTransactionProof200Response]:
         """Get a proof for a transaction in a block.
 
@@ -9979,7 +9939,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -9991,25 +9952,24 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def get_transaction_proof_without_preload_content(
         self,
-        round: Annotated[StrictInt, Field(description="The round in which the transaction appears.")],
-        txid: Annotated[str, Field(strict=True, description="The transaction ID for which to generate a proof.")],
-        hashtype: Annotated[Optional[StrictStr], Field(description="The type of hash function used to create the proof, must be one of:  * sha512_256  * sha256")] = None,
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
+        round: int,
+        txid: str,
+        hashtype: str = None,
+        format: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Get a proof for a transaction in a block.
 
@@ -10061,7 +10021,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -10146,21 +10107,20 @@ class AlgodApi:
 
 
 
-    @validate_call
     def get_version(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> Version:
         """get_version
 
@@ -10197,7 +10157,8 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "Version",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -10209,21 +10170,20 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def get_version_with_http_info(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[Version]:
         """get_version
 
@@ -10260,7 +10220,8 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "Version",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -10272,21 +10233,20 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def get_version_without_preload_content(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """get_version
 
@@ -10323,7 +10283,8 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "Version",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -10392,21 +10353,20 @@ class AlgodApi:
 
 
 
-    @validate_call
     def health_check(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> None:
         """Returns OK if healthy.
 
@@ -10442,7 +10402,8 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': None,
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -10454,21 +10415,20 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def health_check_with_http_info(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[None]:
         """Returns OK if healthy.
 
@@ -10504,7 +10464,8 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': None,
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -10516,21 +10477,20 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def health_check_without_preload_content(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Returns OK if healthy.
 
@@ -10566,7 +10526,8 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': None,
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -10628,21 +10589,20 @@ class AlgodApi:
 
 
 
-    @validate_call
     def metrics(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> None:
         """Return metrics about algod functioning.
 
@@ -10679,7 +10639,8 @@ class AlgodApi:
         _response_types_map: Dict[str, Optional[str]] = {
             '200': None,
             '404': None,
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -10691,21 +10652,20 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def metrics_with_http_info(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[None]:
         """Return metrics about algod functioning.
 
@@ -10742,7 +10702,8 @@ class AlgodApi:
         _response_types_map: Dict[str, Optional[str]] = {
             '200': None,
             '404': None,
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -10754,21 +10715,20 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def metrics_without_preload_content(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Return metrics about algod functioning.
 
@@ -10805,7 +10765,8 @@ class AlgodApi:
         _response_types_map: Dict[str, Optional[str]] = {
             '200': None,
             '404': None,
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -10867,23 +10828,22 @@ class AlgodApi:
 
 
 
-    @validate_call
     def pending_transaction_information(
         self,
-        txid: Annotated[str, Field(strict=True, description="A transaction ID")],
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
+        txid: str,
+        format: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> PendingTransactionResponse:
         """Get a specific pending transaction.
 
@@ -10929,7 +10889,8 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '404': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -10941,23 +10902,22 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def pending_transaction_information_with_http_info(
         self,
-        txid: Annotated[str, Field(strict=True, description="A transaction ID")],
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
+        txid: str,
+        format: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[PendingTransactionResponse]:
         """Get a specific pending transaction.
 
@@ -11003,7 +10963,8 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '404': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -11015,23 +10976,22 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def pending_transaction_information_without_preload_content(
         self,
-        txid: Annotated[str, Field(strict=True, description="A transaction ID")],
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
+        txid: str,
+        format: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Get a specific pending transaction.
 
@@ -11077,7 +11037,8 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '404': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -11155,21 +11116,20 @@ class AlgodApi:
 
 
 
-    @validate_call
     def put_debug_settings_prof(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> DebugSettingsProf:
         """put_debug_settings_prof
 
@@ -11206,7 +11166,8 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "DebugSettingsProf",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -11218,21 +11179,20 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def put_debug_settings_prof_with_http_info(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[DebugSettingsProf]:
         """put_debug_settings_prof
 
@@ -11269,7 +11229,8 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "DebugSettingsProf",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -11281,21 +11242,20 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def put_debug_settings_prof_without_preload_content(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """put_debug_settings_prof
 
@@ -11332,7 +11292,8 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "DebugSettingsProf",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -11401,22 +11362,21 @@ class AlgodApi:
 
 
 
-    @validate_call
     def raw_transaction(
         self,
-        rawtxn: Annotated[Union[StrictBytes, StrictStr, Tuple[StrictStr, StrictBytes]], Field(description="The byte encoded signed transaction to broadcast to network")],
+        rawtxn: bytearray,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RawTransaction200Response:
         """Broadcasts a raw transaction or transaction group to the network.
 
@@ -11459,7 +11419,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -11471,22 +11432,21 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def raw_transaction_with_http_info(
         self,
-        rawtxn: Annotated[Union[StrictBytes, StrictStr, Tuple[StrictStr, StrictBytes]], Field(description="The byte encoded signed transaction to broadcast to network")],
+        rawtxn: bytearray,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[RawTransaction200Response]:
         """Broadcasts a raw transaction or transaction group to the network.
 
@@ -11529,7 +11489,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -11541,22 +11502,21 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def raw_transaction_without_preload_content(
         self,
-        rawtxn: Annotated[Union[StrictBytes, StrictStr, Tuple[StrictStr, StrictBytes]], Field(description="The byte encoded signed transaction to broadcast to network")],
+        rawtxn: bytearray,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Broadcasts a raw transaction or transaction group to the network.
 
@@ -11599,7 +11559,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -11692,22 +11653,21 @@ class AlgodApi:
 
 
 
-    @validate_call
     def raw_transaction_async(
         self,
-        rawtxn: Annotated[Union[StrictBytes, StrictStr, Tuple[StrictStr, StrictBytes]], Field(description="The byte encoded signed transaction to broadcast to network")],
+        rawtxn: bytearray,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> None:
         """Fast track for broadcasting a raw transaction or transaction group to the network through the tx handler without performing most of the checks and reporting detailed errors. Should be only used for development and performance testing.
 
@@ -11751,7 +11711,8 @@ class AlgodApi:
             '404': None,
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -11763,22 +11724,21 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def raw_transaction_async_with_http_info(
         self,
-        rawtxn: Annotated[Union[StrictBytes, StrictStr, Tuple[StrictStr, StrictBytes]], Field(description="The byte encoded signed transaction to broadcast to network")],
+        rawtxn: bytearray,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[None]:
         """Fast track for broadcasting a raw transaction or transaction group to the network through the tx handler without performing most of the checks and reporting detailed errors. Should be only used for development and performance testing.
 
@@ -11822,7 +11782,8 @@ class AlgodApi:
             '404': None,
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -11834,22 +11795,21 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def raw_transaction_async_without_preload_content(
         self,
-        rawtxn: Annotated[Union[StrictBytes, StrictStr, Tuple[StrictStr, StrictBytes]], Field(description="The byte encoded signed transaction to broadcast to network")],
+        rawtxn: bytearray,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Fast track for broadcasting a raw transaction or transaction group to the network through the tx handler without performing most of the checks and reporting detailed errors. Should be only used for development and performance testing.
 
@@ -11893,7 +11853,8 @@ class AlgodApi:
             '404': None,
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -11986,22 +11947,21 @@ class AlgodApi:
 
 
 
-    @validate_call
     def set_block_time_stamp_offset(
         self,
-        offset: Annotated[int, Field(strict=True, ge=0, description="The timestamp offset for blocks in dev mode.")],
+        offset: int,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> None:
         """Given a timestamp offset in seconds, adds the offset to every subsequent block header's timestamp.
 
@@ -12044,7 +12004,8 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -12056,22 +12017,21 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def set_block_time_stamp_offset_with_http_info(
         self,
-        offset: Annotated[int, Field(strict=True, ge=0, description="The timestamp offset for blocks in dev mode.")],
+        offset: int,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[None]:
         """Given a timestamp offset in seconds, adds the offset to every subsequent block header's timestamp.
 
@@ -12114,7 +12074,8 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -12126,22 +12087,21 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def set_block_time_stamp_offset_without_preload_content(
         self,
-        offset: Annotated[int, Field(strict=True, ge=0, description="The timestamp offset for blocks in dev mode.")],
+        offset: int,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Given a timestamp offset in seconds, adds the offset to every subsequent block header's timestamp.
 
@@ -12184,7 +12144,8 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -12256,22 +12217,21 @@ class AlgodApi:
 
 
 
-    @validate_call
     def set_sync_round(
         self,
-        round: Annotated[int, Field(strict=True, ge=0, description="The round for which the deltas are desired.")],
+        round: int,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> None:
         """Given a round, tells the ledger to keep that round in its cache.
 
@@ -12315,7 +12275,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -12327,22 +12288,21 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def set_sync_round_with_http_info(
         self,
-        round: Annotated[int, Field(strict=True, ge=0, description="The round for which the deltas are desired.")],
+        round: int,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[None]:
         """Given a round, tells the ledger to keep that round in its cache.
 
@@ -12386,7 +12346,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -12398,22 +12359,21 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def set_sync_round_without_preload_content(
         self,
-        round: Annotated[int, Field(strict=True, ge=0, description="The round for which the deltas are desired.")],
+        round: int,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Given a round, tells the ledger to keep that round in its cache.
 
@@ -12457,7 +12417,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -12529,22 +12490,21 @@ class AlgodApi:
 
 
 
-    @validate_call
     def shutdown_node(
         self,
-        timeout: Optional[StrictInt] = None,
+        timeout: int = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> object:
         """shutdown_node
 
@@ -12584,7 +12544,8 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "object",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -12596,22 +12557,21 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def shutdown_node_with_http_info(
         self,
-        timeout: Optional[StrictInt] = None,
+        timeout: int = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[object]:
         """shutdown_node
 
@@ -12651,7 +12611,8 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "object",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -12663,22 +12624,21 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def shutdown_node_without_preload_content(
         self,
-        timeout: Optional[StrictInt] = None,
+        timeout: int = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """shutdown_node
 
@@ -12718,7 +12678,8 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "object",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -12792,23 +12753,22 @@ class AlgodApi:
 
 
 
-    @validate_call
     def simulate_transaction(
         self,
-        request: Annotated[SimulateRequest, Field(description="The transactions to simulate, along with any other inputs.")],
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
+        request: SimulateRequest,
+        format: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> SimulateTransaction200Response:
         """Simulates a raw transaction or transaction group as it would be evaluated on the network. The simulation will use blockchain state from the latest committed round.
 
@@ -12854,7 +12814,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -12866,23 +12827,22 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def simulate_transaction_with_http_info(
         self,
-        request: Annotated[SimulateRequest, Field(description="The transactions to simulate, along with any other inputs.")],
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
+        request: SimulateRequest,
+        format: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[SimulateTransaction200Response]:
         """Simulates a raw transaction or transaction group as it would be evaluated on the network. The simulation will use blockchain state from the latest committed round.
 
@@ -12928,7 +12888,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -12940,23 +12901,22 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def simulate_transaction_without_preload_content(
         self,
-        request: Annotated[SimulateRequest, Field(description="The transactions to simulate, along with any other inputs.")],
-        format: Annotated[Optional[StrictStr], Field(description="Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.")] = None,
+        request: SimulateRequest,
+        format: str = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Simulates a raw transaction or transaction group as it would be evaluated on the network. The simulation will use blockchain state from the latest committed round.
 
@@ -13002,7 +12962,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -13094,23 +13055,22 @@ class AlgodApi:
 
 
 
-    @validate_call
     def start_catchup(
         self,
-        catchpoint: Annotated[str, Field(strict=True, description="A catch point")],
-        min: Annotated[Optional[StrictInt], Field(description="Specify the minimum number of blocks which the ledger must be advanced by in order to start the catchup. This is useful for simplifying tools which support fast catchup, they can run the catchup unconditionally and the node will skip the catchup if it is not needed.")] = None,
+        catchpoint: str,
+        min: int = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> StartCatchup200Response:
         """Starts a catchpoint catchup.
 
@@ -13158,7 +13118,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '408': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -13170,23 +13131,22 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def start_catchup_with_http_info(
         self,
-        catchpoint: Annotated[str, Field(strict=True, description="A catch point")],
-        min: Annotated[Optional[StrictInt], Field(description="Specify the minimum number of blocks which the ledger must be advanced by in order to start the catchup. This is useful for simplifying tools which support fast catchup, they can run the catchup unconditionally and the node will skip the catchup if it is not needed.")] = None,
+        catchpoint: str,
+        min: int = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[StartCatchup200Response]:
         """Starts a catchpoint catchup.
 
@@ -13234,7 +13194,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '408': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -13246,23 +13207,22 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def start_catchup_without_preload_content(
         self,
-        catchpoint: Annotated[str, Field(strict=True, description="A catch point")],
-        min: Annotated[Optional[StrictInt], Field(description="Specify the minimum number of blocks which the ledger must be advanced by in order to start the catchup. This is useful for simplifying tools which support fast catchup, they can run the catchup unconditionally and the node will skip the catchup if it is not needed.")] = None,
+        catchpoint: str,
+        min: int = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Starts a catchpoint catchup.
 
@@ -13310,7 +13270,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '408': "ErrorResponse",
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -13387,21 +13348,20 @@ class AlgodApi:
 
 
 
-    @validate_call
     def swagger_json(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> str:
         """Gets the current swagger spec.
 
@@ -13438,7 +13398,8 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "str",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -13450,21 +13411,20 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def swagger_json_with_http_info(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[str]:
         """Gets the current swagger spec.
 
@@ -13501,7 +13461,8 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "str",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -13513,21 +13474,20 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def swagger_json_without_preload_content(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Gets the current swagger spec.
 
@@ -13564,7 +13524,8 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "str",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -13633,23 +13594,22 @@ class AlgodApi:
 
 
 
-    @validate_call
     def teal_compile(
         self,
-        source: Annotated[Union[StrictBytes, StrictStr, Tuple[StrictStr, StrictBytes]], Field(description="TEAL source code to be compiled")],
-        sourcemap: Annotated[Optional[StrictBool], Field(description="When set to `true`, returns the source map of the program as a JSON. Defaults to `false`.")] = None,
+        source: bytearray,
+        sourcemap: bool = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> TealCompile200Response:
         """Compile TEAL source code to binary, produce its hash
 
@@ -13696,7 +13656,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': None,
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -13708,23 +13669,22 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def teal_compile_with_http_info(
         self,
-        source: Annotated[Union[StrictBytes, StrictStr, Tuple[StrictStr, StrictBytes]], Field(description="TEAL source code to be compiled")],
-        sourcemap: Annotated[Optional[StrictBool], Field(description="When set to `true`, returns the source map of the program as a JSON. Defaults to `false`.")] = None,
+        source: bytearray,
+        sourcemap: bool = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[TealCompile200Response]:
         """Compile TEAL source code to binary, produce its hash
 
@@ -13771,7 +13731,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': None,
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -13783,23 +13744,22 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def teal_compile_without_preload_content(
         self,
-        source: Annotated[Union[StrictBytes, StrictStr, Tuple[StrictStr, StrictBytes]], Field(description="TEAL source code to be compiled")],
-        sourcemap: Annotated[Optional[StrictBool], Field(description="When set to `true`, returns the source map of the program as a JSON. Defaults to `false`.")] = None,
+        source: bytearray,
+        sourcemap: bool = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Compile TEAL source code to binary, produce its hash
 
@@ -13846,7 +13806,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': None,
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -13944,22 +13905,21 @@ class AlgodApi:
 
 
 
-    @validate_call
     def teal_disassemble(
         self,
-        source: Annotated[Union[StrictBytes, StrictStr], Field(description="TEAL program binary to be disassembled")],
+        source: bytearray,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> TealDisassemble200Response:
         """Disassemble program bytes into the TEAL source code.
 
@@ -14003,7 +13963,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': None,
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -14015,22 +13976,21 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def teal_disassemble_with_http_info(
         self,
-        source: Annotated[Union[StrictBytes, StrictStr], Field(description="TEAL program binary to be disassembled")],
+        source: bytearray,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[TealDisassemble200Response]:
         """Disassemble program bytes into the TEAL source code.
 
@@ -14074,7 +14034,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': None,
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -14086,22 +14047,21 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def teal_disassemble_without_preload_content(
         self,
-        source: Annotated[Union[StrictBytes, StrictStr], Field(description="TEAL program binary to be disassembled")],
+        source: bytearray,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Disassemble program bytes into the TEAL source code.
 
@@ -14145,7 +14105,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': None,
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -14230,22 +14191,21 @@ class AlgodApi:
 
 
 
-    @validate_call
     def teal_dryrun(
         self,
-        request: Annotated[Optional[DryrunRequest], Field(description="Transaction (or group) and any accompanying state-simulation data.")] = None,
+        request: DryrunRequest = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> TealDryrun200Response:
         """Provide debugging information for a transaction (or group).
 
@@ -14289,7 +14249,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': None,
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -14301,22 +14262,21 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def teal_dryrun_with_http_info(
         self,
-        request: Annotated[Optional[DryrunRequest], Field(description="Transaction (or group) and any accompanying state-simulation data.")] = None,
+        request: DryrunRequest = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[TealDryrun200Response]:
         """Provide debugging information for a transaction (or group).
 
@@ -14360,7 +14320,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': None,
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -14372,22 +14333,21 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def teal_dryrun_without_preload_content(
         self,
-        request: Annotated[Optional[DryrunRequest], Field(description="Transaction (or group) and any accompanying state-simulation data.")] = None,
+        request: DryrunRequest = None,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Provide debugging information for a transaction (or group).
 
@@ -14431,7 +14391,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': None,
             '500': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -14517,21 +14478,20 @@ class AlgodApi:
 
 
 
-    @validate_call
     def transaction_params(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> TransactionParams200Response:
         """Get parameters for constructing a new transaction
 
@@ -14570,7 +14530,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -14582,21 +14543,20 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def transaction_params_with_http_info(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[TransactionParams200Response]:
         """Get parameters for constructing a new transaction
 
@@ -14635,7 +14595,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -14647,21 +14608,20 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def transaction_params_without_preload_content(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Get parameters for constructing a new transaction
 
@@ -14700,7 +14660,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -14769,21 +14730,20 @@ class AlgodApi:
 
 
 
-    @validate_call
     def unset_sync_round(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> None:
         """Removes minimum sync round restriction from the ledger.
 
@@ -14824,7 +14784,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -14836,21 +14797,20 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def unset_sync_round_with_http_info(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[None]:
         """Removes minimum sync round restriction from the ledger.
 
@@ -14891,7 +14851,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -14903,21 +14864,20 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def unset_sync_round_without_preload_content(
         self,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Removes minimum sync round restriction from the ledger.
 
@@ -14958,7 +14918,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -15027,22 +14988,21 @@ class AlgodApi:
 
 
 
-    @validate_call
     def wait_for_block(
         self,
-        round: Annotated[int, Field(strict=True, ge=0, description="The round to wait until returning status")],
+        round: int,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> GetStatus200Response:
         """Gets the node status after waiting for a round after the given round.
 
@@ -15086,7 +15046,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -15098,22 +15059,21 @@ class AlgodApi:
         ).data
 
 
-    @validate_call
     def wait_for_block_with_http_info(
         self,
-        round: Annotated[int, Field(strict=True, ge=0, description="The round to wait until returning status")],
+        round: int,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> ApiResponse[GetStatus200Response]:
         """Gets the node status after waiting for a round after the given round.
 
@@ -15157,7 +15117,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout
@@ -15169,22 +15130,21 @@ class AlgodApi:
         )
 
 
-    @validate_call
     def wait_for_block_without_preload_content(
         self,
-        round: Annotated[int, Field(strict=True, ge=0, description="The round to wait until returning status")],
+        round: int,
         _request_timeout: Union[
             None,
-            Annotated[StrictFloat, Field(gt=0)],
+            float,
             Tuple[
-                Annotated[StrictFloat, Field(gt=0)],
-                Annotated[StrictFloat, Field(gt=0)]
+                float,
+                float
             ]
         ] = None,
-        _request_auth: Optional[Dict[StrictStr, Any]] = None,
-        _content_type: Optional[StrictStr] = None,
-        _headers: Optional[Dict[StrictStr, Any]] = None,
-        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+        _request_auth: Optional[Dict[str, Any]] = None,
+        _content_type: Optional[str] = None,
+        _headers: Optional[Dict[str, Any]] = None,
+        _host_index: int = 0,
     ) -> RESTResponseType:
         """Gets the node status after waiting for a round after the given round.
 
@@ -15228,7 +15188,8 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        }
+        } 
+
         response_data = self.api_client.call_api(
             *_param,
             _request_timeout=_request_timeout

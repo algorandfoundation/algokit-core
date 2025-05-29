@@ -7,6 +7,7 @@ export * from '../models/AccountAssetsInformation200Response';
 export * from '../models/AccountParticipation';
 export * from '../models/AccountStateDelta';
 export * from '../models/AddParticipationKey200Response';
+export * from '../models/AlgorandBox';
 export * from '../models/AppCallLogs';
 export * from '../models/Application';
 export * from '../models/ApplicationInitialStates';
@@ -22,7 +23,6 @@ export * from '../models/AssetHoldingReference';
 export * from '../models/AssetParams';
 export * from '../models/AvmKeyValue';
 export * from '../models/AvmValue';
-export * from '../models/Box';
 export * from '../models/BoxReference';
 export * from '../models/BuildVersion';
 export * from '../models/DebugSettingsProf';
@@ -82,6 +82,7 @@ import { AccountAssetsInformation200Response } from '../models/AccountAssetsInfo
 import { AccountParticipation } from '../models/AccountParticipation';
 import { AccountStateDelta } from '../models/AccountStateDelta';
 import { AddParticipationKey200Response } from '../models/AddParticipationKey200Response';
+import { AlgorandBox } from '../models/AlgorandBox';
 import { AppCallLogs } from '../models/AppCallLogs';
 import { Application } from '../models/Application';
 import { ApplicationInitialStates } from '../models/ApplicationInitialStates';
@@ -97,7 +98,6 @@ import { AssetHoldingReference } from '../models/AssetHoldingReference';
 import { AssetParams } from '../models/AssetParams';
 import { AvmKeyValue } from '../models/AvmKeyValue';
 import { AvmValue } from '../models/AvmValue';
-import { Box } from '../models/Box';
 import { BoxReference } from '../models/BoxReference';
 import { BuildVersion } from '../models/BuildVersion';
 import { DebugSettingsProf } from '../models/DebugSettingsProf';
@@ -176,6 +176,7 @@ let typeMap: {[index: string]: any} = {
     "AccountParticipation": AccountParticipation,
     "AccountStateDelta": AccountStateDelta,
     "AddParticipationKey200Response": AddParticipationKey200Response,
+    "AlgorandBox": AlgorandBox,
     "AppCallLogs": AppCallLogs,
     "Application": Application,
     "ApplicationInitialStates": ApplicationInitialStates,
@@ -191,7 +192,6 @@ let typeMap: {[index: string]: any} = {
     "AssetParams": AssetParams,
     "AvmKeyValue": AvmKeyValue,
     "AvmValue": AvmValue,
-    "Box": Box,
     "BoxReference": BoxReference,
     "BuildVersion": BuildVersion,
     "DebugSettingsProf": DebugSettingsProf,

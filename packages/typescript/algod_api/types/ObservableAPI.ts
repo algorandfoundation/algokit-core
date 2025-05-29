@@ -12,6 +12,7 @@ import { AccountAssetsInformation200Response } from '../models/AccountAssetsInfo
 import { AccountParticipation } from '../models/AccountParticipation';
 import { AccountStateDelta } from '../models/AccountStateDelta';
 import { AddParticipationKey200Response } from '../models/AddParticipationKey200Response';
+import { AlgorandBox } from '../models/AlgorandBox';
 import { AppCallLogs } from '../models/AppCallLogs';
 import { Application } from '../models/Application';
 import { ApplicationInitialStates } from '../models/ApplicationInitialStates';
@@ -27,7 +28,6 @@ import { AssetHoldingReference } from '../models/AssetHoldingReference';
 import { AssetParams } from '../models/AssetParams';
 import { AvmKeyValue } from '../models/AvmKeyValue';
 import { AvmValue } from '../models/AvmValue';
-import { Box } from '../models/Box';
 import { BoxReference } from '../models/BoxReference';
 import { BuildVersion } from '../models/BuildVersion';
 import { DebugSettingsProf } from '../models/DebugSettingsProf';
@@ -800,7 +800,7 @@ export class ObservableAlgodApi {
      * @param applicationId An application identifier
      * @param name A box name, in the goal app call arg form \&#39;encoding:value\&#39;. For ints, use the form \&#39;int:1234\&#39;. For raw bytes, use the form \&#39;b64:A&#x3D;&#x3D;\&#39;. For printable strings, use the form \&#39;str:hello\&#39;. For addresses, use the form \&#39;addr:XYZ...\&#39;.
      */
-    public getApplicationBoxByName(applicationId: number, name: string, _options?: ConfigurationOptions): Observable<Box> {
+    public getApplicationBoxByName(applicationId: number, name: string, _options?: ConfigurationOptions): Observable<AlgorandBox> {
         return this.getApplicationBoxByNameResponse(applicationId, name, _options)
           .pipe(map((rsp: ResponseContext) => this.responseProcessor.getApplicationBoxByNameResponse(rsp)));
     }

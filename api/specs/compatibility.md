@@ -17,7 +17,7 @@
 | GET /v2/blocks/{round}                                   | ✅               | N/A           | ✅            | N/A        |
 | GET /v2/blocks/{round}/txids                             | ❌               | N/A           | ✅            | N/A        |
 | GET /v2/blocks/{round}/hash                              | ❌               | N/A           | ✅            | N/A        |
-| GET /v2/blocks/{round}/transactions/{txid}/proof         | ❌               | N/A           | ✅            | N/A        |
+| GET /v2/blocks/{round}/transactions/{txid}/proof         | ✅               | N/A           | ✅            | N/A        |
 | GET /v2/blocks/{round}/logs                              | ❌               | N/A           | ✅            | N/A        |
 | GET /v2/ledger/supply                                    | ❌               | N/A           | ✅            | N/A        |
 | GET /v2/participation                                    | ❌               | N/A           | ✅            | N/A        |
@@ -68,12 +68,13 @@ Similar to above but focused on abstractions:
 | BlockResponse                       | GET /v2/blocks/{round}                                                        | No                        | Yes                       |
 | PendingTransactions                 | GET /v2/transactions/pending, GET /v2/accounts/{address}/transactions/pending | No                        | Yes                       |
 | PendingTransactionResponse          | GET /v2/transactions/pending/{txid}                                           | No                        | Yes                       |
+| TransactionProofResponse            | GET /v2/blocks/{round}/transactions/{txid}/proof                              | No                        | Yes                       |
 | LedgerStateDelta                    | GET /v2/deltas/{round}, GET /v2/deltas/txn/group/{id}                         | No                        | Yes                       |
 | LedgerStateDeltaForTransactionGroup | GET /v2/deltas/{round}/txn/group                                              | No                        | Yes                       |
 | SimulateRequest                     | POST /v2/transactions/simulate                                                | Yes                       | No                        |
 | SimulateResponse                    | POST /v2/transactions/simulate (response)                                     | No                        | Yes                       |
 | DryrunRequest                       | POST /v2/teal/dryrun                                                          | Yes                       | No                        |
-| DryrunResponse                      | POST /v2/teal/dryrun (response)                                               | No                        | Yes                       |
+| DryrunResponse                      | POST /v2/teal/dryrun (response)                                               | No                        | No                        |
 | ErrorResponse                       | Various error responses across all endpoints                                  | No                        | Yes                       |
 
 This table shows that while many abstractions in the Algorand API support msgpack decoding (receiving msgpack from the API), only two abstractions - SimulateRequest and DryrunRequest - support msgpack encoding (sending msgpack to the API).

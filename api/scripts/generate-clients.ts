@@ -5,7 +5,7 @@ import { join } from "path";
 import { parseArgs } from "util";
 import { mkdirSync, existsSync, copyFileSync, rmSync, readdirSync } from "fs";
 
-const LANGUAGE_OPTIONS = ["typescript", "python"] as string[];
+const LANGUAGE_OPTIONS = ["typescript", "python", "rust-ffi"] as string[];
 type Language = (typeof LANGUAGE_OPTIONS)[number];
 
 const API_OPTIONS = ["algod" /*, "indexer", "kmd"*/] as string[];
@@ -26,14 +26,20 @@ const languages = LANGUAGE_OPTIONS.includes(languageArg) ? [languageArg] : LANGU
 
 const SPEC_PATH = join(process.cwd(), "specs", "algod.oas3.json");
 const OUTPUT_DIR = join(process.cwd(), "..", "packages");
+const CRATES_DIR = join(process.cwd(), "..", "crates");
 
 // Template directories
 const TEMPLATES_DIR = join(process.cwd(), "oas_templates");
 const TYPESCRIPT_TEMPLATE = join(TEMPLATES_DIR, "typescript");
 const PYTHON_TEMPLATE = join(TEMPLATES_DIR, "python");
+const RUST_MSGPACK_TEMPLATE = join(TEMPLATES_DIR, "rust_msgpack");
 
 if (!existsSync(OUTPUT_DIR)) {
   mkdirSync(OUTPUT_DIR, { recursive: true });
+}
+
+if (!existsSync(CRATES_DIR)) {
+  mkdirSync(CRATES_DIR, { recursive: true });
 }
 
 /**
@@ -91,12 +97,40 @@ function generatePythonClient(outputDir: string) {
     `-o ${outputDir}`,
     `-t ${PYTHON_TEMPLATE}`,
     `-c ${PYTHON_TEMPLATE}/openapi-config.yaml`,
-    "--global-property=apis,models,apiTests=false,modelTests=false,supportingFiles",
+    "--global-property=apis,models=False,apiTests=false,modelTests=false,supportingFiles",
   ].join(" ");
 
   console.log(`Executing: ${cmd}`);
   execSync(cmd, { stdio: "inherit" });
 }
+
+function generateRustFfiCrate(outputDir: string) {
+  // Only clean the models directory, not the entire crate
+  const modelsDir = join(outputDir, "src", "models");
+  if (existsSync(modelsDir)) {
+    console.log(`Cleaning models directory: ${modelsDir}`);
+    rmSync(modelsDir, { recursive: true, force: true });
+  }
+
+  copyIgnoreFile(RUST_MSGPACK_TEMPLATE, outputDir);
+
+  const cmd = [
+    "bunx openapi-generator-cli generate",
+    `-i ${SPEC_PATH}`,
+    "-g rust",
+    `-o ${outputDir}`,
+    `-t ${RUST_MSGPACK_TEMPLATE}`,
+    `-c ${RUST_MSGPACK_TEMPLATE}/openapi-config.yaml`,
+    "--global-property=models,supportingFiles",
+  ].join(" ");
+
+  console.log(`Executing: ${cmd}`);
+  execSync(cmd, { stdio: "inherit" });
+
+  // mod.rs is now generated automatically via mustache template
+  console.log("Models and mod.rs file generated successfully via mustache templates!");
+}
+
 function main() {
   try {
     for (const api of apis) {
@@ -116,6 +150,14 @@ function main() {
         prepareOutputDirectory(outputDir);
         generatePythonClient(outputDir);
         console.log(`Python ${apis} client generated successfully!`);
+      }
+
+      if (languages.includes("rust-ffi")) {
+        const outputDir = join(CRATES_DIR, "algokit_msgpack_ffi");
+        console.log(`Generating Rust FFI models...`);
+        // Don't clean the entire directory for rust-ffi, only models will be cleaned in generateRustFfiCrate
+        generateRustFfiCrate(outputDir);
+        console.log(`Rust FFI models generated successfully!`);
       }
     }
 
