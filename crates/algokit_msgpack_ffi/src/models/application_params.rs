@@ -66,15 +66,19 @@ pub struct ApplicationParams {
 
 impl ApplicationParams {
     /// Stores the global information associated with an application.
-    pub fn new(creator: String, approval_program: Vec<u8>, clear_state_program: Vec<u8>) -> ApplicationParams {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        creator: String,approval_program: Vec<u8>,clear_state_program: Vec<u8>, extra_program_pages: Option<i32>, local_state_schema: Option<models::ApplicationStateSchema>, global_state_schema: Option<models::ApplicationStateSchema>, global_state: Option<Vec<models::TealKeyValue>>
+    ) -> ApplicationParams {
         ApplicationParams {
-            creator,
-            approval_program,
-            clear_state_program,
-            extra_program_pages: None,
-            local_state_schema: None,
-            global_state_schema: None,
-            global_state: None,
+            creator: creator,
+            approval_program: approval_program,
+            clear_state_program: clear_state_program,
+            extra_program_pages: extra_program_pages,
+            local_state_schema: local_state_schema,
+            global_state_schema: global_state_schema,
+            global_state: global_state,
         }
     }
 }

@@ -35,11 +35,15 @@ pub struct AccountApplicationInformation200Response {
 }
 
 impl AccountApplicationInformation200Response {
-    pub fn new(round: i32) -> AccountApplicationInformation200Response {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        round: i32, app_local_state: Option<models::ApplicationLocalState>, created_app: Option<models::ApplicationParams>
+    ) -> AccountApplicationInformation200Response {
         AccountApplicationInformation200Response {
-            round,
-            app_local_state: None,
-            created_app: None,
+            round: round,
+            app_local_state: app_local_state,
+            created_app: created_app,
         }
     }
 }

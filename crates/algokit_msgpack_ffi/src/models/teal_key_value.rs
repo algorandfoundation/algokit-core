@@ -31,9 +31,13 @@ pub struct TealKeyValue {
 
 impl TealKeyValue {
     /// Represents a key-value pair in an application store.
-    pub fn new(key: String, value: models::TealValue) -> TealKeyValue {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        key: String,value: models::TealValue,
+    ) -> TealKeyValue {
         TealKeyValue {
-            key,
+            key: key,
             value: value,
         }
     }

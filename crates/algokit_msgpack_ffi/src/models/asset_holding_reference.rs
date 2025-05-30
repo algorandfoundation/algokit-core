@@ -33,10 +33,14 @@ pub struct AssetHoldingReference {
 
 impl AssetHoldingReference {
     /// References an asset held by an account.
-    pub fn new(account: String, asset: i32) -> AssetHoldingReference {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        account: String,asset: i32,
+    ) -> AssetHoldingReference {
         AssetHoldingReference {
-            account,
-            asset,
+            account: account,
+            asset: asset,
         }
     }
 }

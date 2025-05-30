@@ -43,11 +43,15 @@ pub struct LightBlockHeaderProof {
 
 impl LightBlockHeaderProof {
     /// Proof of membership and position of a light block header.
-    pub fn new(index: i32, treedepth: i32, proof: Vec<u8>) -> LightBlockHeaderProof {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        index: i32,treedepth: i32,proof: Vec<u8>,
+    ) -> LightBlockHeaderProof {
         LightBlockHeaderProof {
-            index,
-            treedepth,
-            proof,
+            index: index,
+            treedepth: treedepth,
+            proof: proof,
         }
     }
 }

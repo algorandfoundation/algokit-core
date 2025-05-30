@@ -33,10 +33,14 @@ pub struct DebugSettingsProf {
 
 impl DebugSettingsProf {
     /// algod mutex and blocking profiling state.
-    pub fn new() -> DebugSettingsProf {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+         block_rate: Option<i32>, mutex_rate: Option<i32>
+    ) -> DebugSettingsProf {
         DebugSettingsProf {
-            block_rate: None,
-            mutex_rate: None,
+            block_rate: block_rate,
+            mutex_rate: mutex_rate,
         }
     }
 }

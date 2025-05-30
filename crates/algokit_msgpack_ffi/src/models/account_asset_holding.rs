@@ -31,10 +31,14 @@ pub struct AccountAssetHolding {
 
 impl AccountAssetHolding {
     /// AccountAssetHolding describes the account's asset holding and asset parameters (if either exist) for a specific asset ID.
-    pub fn new(asset_holding: models::AssetHolding) -> AccountAssetHolding {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        asset_holding: models::AssetHolding, asset_params: Option<models::AssetParams>
+    ) -> AccountAssetHolding {
         AccountAssetHolding {
             asset_holding: asset_holding,
-            asset_params: None,
+            asset_params: asset_params,
         }
     }
 }

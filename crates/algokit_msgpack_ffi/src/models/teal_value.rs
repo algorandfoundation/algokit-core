@@ -39,11 +39,15 @@ pub struct TealValue {
 
 impl TealValue {
     /// Represents a TEAL value.
-    pub fn new(r#type: i32, bytes: String, uint: i32) -> TealValue {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        r#type: i32,bytes: String,uint: i32,
+    ) -> TealValue {
         TealValue {
-            r#type,
-            bytes,
-            uint,
+            r#type: r#type,
+            bytes: bytes,
+            uint: uint,
         }
     }
 }

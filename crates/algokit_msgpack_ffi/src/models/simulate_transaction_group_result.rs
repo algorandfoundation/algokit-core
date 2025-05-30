@@ -56,14 +56,18 @@ pub struct SimulateTransactionGroupResult {
 
 impl SimulateTransactionGroupResult {
     /// Simulation result for an atomic transaction group
-    pub fn new(txn_results: Vec<models::SimulateTransactionResult>) -> SimulateTransactionGroupResult {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        txn_results: Vec<models::SimulateTransactionResult>, failure_message: Option<String>, failed_at: Option<Vec<i32>>, app_budget_added: Option<i32>, app_budget_consumed: Option<i32>, unnamed_resources_accessed: Option<models::SimulateUnnamedResourcesAccessed>
+    ) -> SimulateTransactionGroupResult {
         SimulateTransactionGroupResult {
-            txn_results,
-            failure_message: None,
-            failed_at: None,
-            app_budget_added: None,
-            app_budget_consumed: None,
-            unnamed_resources_accessed: None,
+            txn_results: txn_results,
+            failure_message: failure_message,
+            failed_at: failed_at,
+            app_budget_added: app_budget_added,
+            app_budget_consumed: app_budget_consumed,
+            unnamed_resources_accessed: unnamed_resources_accessed,
         }
     }
 }

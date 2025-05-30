@@ -24,9 +24,13 @@ pub struct GetTransactionGroupLedgerStateDeltasForRound200Response {
 }
 
 impl GetTransactionGroupLedgerStateDeltasForRound200Response {
-    pub fn new(deltas: Vec<models::LedgerStateDeltaForTransactionGroup>) -> GetTransactionGroupLedgerStateDeltasForRound200Response {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        deltas: Vec<models::LedgerStateDeltaForTransactionGroup>,
+    ) -> GetTransactionGroupLedgerStateDeltasForRound200Response {
         GetTransactionGroupLedgerStateDeltasForRound200Response {
-            deltas,
+            deltas: deltas,
         }
     }
 }

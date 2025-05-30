@@ -49,14 +49,18 @@ pub struct BuildVersion {
 }
 
 impl BuildVersion {
-    pub fn new(branch: String, build_number: i64, channel: String, commit_hash: String, major: i64, minor: i64) -> BuildVersion {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        branch: String,build_number: i64,channel: String,commit_hash: String,major: i64,minor: i64,
+    ) -> BuildVersion {
         BuildVersion {
-            branch,
-            build_number,
-            channel,
-            commit_hash,
-            major,
-            minor,
+            branch: branch,
+            build_number: build_number,
+            channel: channel,
+            commit_hash: commit_hash,
+            major: major,
+            minor: minor,
         }
     }
 }

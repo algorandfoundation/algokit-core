@@ -33,10 +33,14 @@ pub struct ApplicationStateSchema {
 
 impl ApplicationStateSchema {
     /// Specifies maximums on the number of each type that may be stored.
-    pub fn new(num_uint: i32, num_byte_slice: i32) -> ApplicationStateSchema {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        num_uint: i32,num_byte_slice: i32,
+    ) -> ApplicationStateSchema {
         ApplicationStateSchema {
-            num_uint,
-            num_byte_slice,
+            num_uint: num_uint,
+            num_byte_slice: num_byte_slice,
         }
     }
 }

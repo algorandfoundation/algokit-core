@@ -32,7 +32,6 @@ dependencies = [
 name = "algokit_msgpack_ffi"
 version = "0.1.0"
 dependencies = [
- "algokit_transact",
  "base64 0.22.1",
  "ffi_macros",
  "hex",

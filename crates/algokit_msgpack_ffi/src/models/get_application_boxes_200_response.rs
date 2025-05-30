@@ -36,11 +36,15 @@ pub struct GetApplicationBoxes200Response {
 }
 
 impl GetApplicationBoxes200Response {
-    pub fn new(round: i32, boxes: Vec<models::AlgorandBox>) -> GetApplicationBoxes200Response {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        round: i32,boxes: Vec<models::AlgorandBox>, next_token: Option<String>,
+    ) -> GetApplicationBoxes200Response {
         GetApplicationBoxes200Response {
-            round,
-            next_token: None,
-            boxes,
+            round: round,
+            next_token: next_token,
+            boxes: boxes,
         }
     }
 }

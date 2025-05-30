@@ -63,14 +63,18 @@ pub struct AccountParticipation {
 
 impl AccountParticipation {
     /// AccountParticipation describes the parameters used by this account in consensus protocol.
-    pub fn new(selection_participation_key: Vec<u8>, vote_first_valid: i32, vote_key_dilution: i32, vote_last_valid: i32, vote_participation_key: Vec<u8>) -> AccountParticipation {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        selection_participation_key: Vec<u8>,vote_first_valid: i32,vote_key_dilution: i32,vote_last_valid: i32,vote_participation_key: Vec<u8>, state_proof_key: Option<Vec<u8>>
+    ) -> AccountParticipation {
         AccountParticipation {
-            selection_participation_key,
-            vote_first_valid,
-            vote_key_dilution,
-            vote_last_valid,
-            vote_participation_key,
-            state_proof_key: None,
+            selection_participation_key: selection_participation_key,
+            vote_first_valid: vote_first_valid,
+            vote_key_dilution: vote_key_dilution,
+            vote_last_valid: vote_last_valid,
+            vote_participation_key: vote_participation_key,
+            state_proof_key: state_proof_key,
         }
     }
 }

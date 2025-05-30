@@ -54,14 +54,18 @@ pub struct SimulateTransactionResult {
 
 impl SimulateTransactionResult {
     /// Simulation result for an individual transaction
-    pub fn new(txn_result: models::PendingTransactionResponse) -> SimulateTransactionResult {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        txn_result: models::PendingTransactionResponse, app_budget_consumed: Option<i32>, logic_sig_budget_consumed: Option<i32>, exec_trace: Option<models::SimulationTransactionExecTrace>, unnamed_resources_accessed: Option<models::SimulateUnnamedResourcesAccessed>, fixed_signer: Option<String>
+    ) -> SimulateTransactionResult {
         SimulateTransactionResult {
             txn_result: txn_result,
-            app_budget_consumed: None,
-            logic_sig_budget_consumed: None,
-            exec_trace: None,
-            unnamed_resources_accessed: None,
-            fixed_signer: None,
+            app_budget_consumed: app_budget_consumed,
+            logic_sig_budget_consumed: logic_sig_budget_consumed,
+            exec_trace: exec_trace,
+            unnamed_resources_accessed: unnamed_resources_accessed,
+            fixed_signer: fixed_signer,
         }
     }
 }

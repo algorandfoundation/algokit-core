@@ -45,12 +45,16 @@ pub struct SimulateTraceConfig {
 
 impl SimulateTraceConfig {
     /// An object that configures simulation execution trace.
-    pub fn new() -> SimulateTraceConfig {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+         enable: Option<bool>, stack_change: Option<bool>, scratch_change: Option<bool>, state_change: Option<bool>
+    ) -> SimulateTraceConfig {
         SimulateTraceConfig {
-            enable: None,
-            stack_change: None,
-            scratch_change: None,
-            state_change: None,
+            enable: enable,
+            stack_change: stack_change,
+            scratch_change: scratch_change,
+            state_change: state_change,
         }
     }
 }

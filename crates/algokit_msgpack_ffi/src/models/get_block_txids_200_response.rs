@@ -25,9 +25,13 @@ pub struct GetBlockTxids200Response {
 }
 
 impl GetBlockTxids200Response {
-    pub fn new(block_txids: Vec<String>) -> GetBlockTxids200Response {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        block_txids: Vec<String>,
+    ) -> GetBlockTxids200Response {
         GetBlockTxids200Response {
-            block_txids,
+            block_txids: block_txids,
         }
     }
 }

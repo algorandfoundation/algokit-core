@@ -61,14 +61,18 @@ pub struct TransactionParams200Response {
 
 impl TransactionParams200Response {
     /// TransactionParams contains the parameters that help a client construct a new transaction.
-    pub fn new(consensus_version: String, fee: i32, genesis_hash: Vec<u8>, genesis_id: String, last_round: i32, min_fee: i32) -> TransactionParams200Response {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        consensus_version: String,fee: i32,genesis_hash: Vec<u8>,genesis_id: String,last_round: i32,min_fee: i32,
+    ) -> TransactionParams200Response {
         TransactionParams200Response {
-            consensus_version,
-            fee,
-            genesis_hash,
-            genesis_id,
-            last_round,
-            min_fee,
+            consensus_version: consensus_version,
+            fee: fee,
+            genesis_hash: genesis_hash,
+            genesis_id: genesis_id,
+            last_round: last_round,
+            min_fee: min_fee,
         }
     }
 }

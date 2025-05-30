@@ -181,35 +181,39 @@ pub struct Account {
 
 impl Account {
     /// Account information at a given round.  Definition: data/basics/userBalance.go : AccountData 
-    pub fn new(address: String, amount: i32, min_balance: i32, amount_without_pending_rewards: i32, total_apps_opted_in: i32, total_assets_opted_in: i32, total_created_apps: i32, total_created_assets: i32, pending_rewards: i32, rewards: i32, round: i32, status: String) -> Account {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        address: String,amount: i32,min_balance: i32,amount_without_pending_rewards: i32,total_apps_opted_in: i32,total_assets_opted_in: i32,total_created_apps: i32,total_created_assets: i32,pending_rewards: i32,rewards: i32,round: i32,status: String, apps_local_state: Option<Vec<models::ApplicationLocalState>>, apps_total_schema: Option<models::ApplicationStateSchema>, apps_total_extra_pages: Option<i32>, assets: Option<Vec<models::AssetHolding>>, created_apps: Option<Vec<models::Application>>, created_assets: Option<Vec<models::Asset>>, total_boxes: Option<i32>, total_box_bytes: Option<i32>, participation: Option<models::AccountParticipation>, incentive_eligible: Option<bool>, reward_base: Option<i32>, sig_type: Option<SigType>, auth_addr: Option<String>, last_proposed: Option<i32>, last_heartbeat: Option<i32>
+    ) -> Account {
         Account {
-            address,
-            amount,
-            min_balance,
-            amount_without_pending_rewards,
-            apps_local_state: None,
-            total_apps_opted_in,
-            apps_total_schema: None,
-            apps_total_extra_pages: None,
-            assets: None,
-            total_assets_opted_in,
-            created_apps: None,
-            total_created_apps,
-            created_assets: None,
-            total_created_assets,
-            total_boxes: None,
-            total_box_bytes: None,
-            participation: None,
-            incentive_eligible: None,
-            pending_rewards,
-            reward_base: None,
-            rewards,
-            round,
-            status,
-            sig_type: None,
-            auth_addr: None,
-            last_proposed: None,
-            last_heartbeat: None,
+            address: address,
+            amount: amount,
+            min_balance: min_balance,
+            amount_without_pending_rewards: amount_without_pending_rewards,
+            apps_local_state: apps_local_state,
+            total_apps_opted_in: total_apps_opted_in,
+            apps_total_schema: apps_total_schema,
+            apps_total_extra_pages: apps_total_extra_pages,
+            assets: assets,
+            total_assets_opted_in: total_assets_opted_in,
+            created_apps: created_apps,
+            total_created_apps: total_created_apps,
+            created_assets: created_assets,
+            total_created_assets: total_created_assets,
+            total_boxes: total_boxes,
+            total_box_bytes: total_box_bytes,
+            participation: participation,
+            incentive_eligible: incentive_eligible,
+            pending_rewards: pending_rewards,
+            reward_base: reward_base,
+            rewards: rewards,
+            round: round,
+            status: status,
+            sig_type: sig_type,
+            auth_addr: auth_addr,
+            last_proposed: last_proposed,
+            last_heartbeat: last_heartbeat,
         }
     }
 }

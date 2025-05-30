@@ -39,11 +39,15 @@ pub struct AppCallLogs {
 
 impl AppCallLogs {
     /// The logged messages from an app call along with the app ID and outer transaction ID. Logs appear in the same order that they were emitted.
-    pub fn new(logs: Vec<String>, application_index: i32, tx_id: String) -> AppCallLogs {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        logs: Vec<String>,application_index: i32,tx_id: String,
+    ) -> AppCallLogs {
         AppCallLogs {
-            logs,
-            application_index,
-            tx_id,
+            logs: logs,
+            application_index: application_index,
+            tx_id: tx_id,
         }
     }
 }

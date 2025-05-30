@@ -118,23 +118,27 @@ pub struct AssetParams {
 
 impl AssetParams {
     /// AssetParams specifies the parameters for an asset.  \\[apar\\] when part of an AssetConfig transaction.  Definition: data/transactions/asset.go : AssetParams
-    pub fn new(creator: String, decimals: i32, total: i32) -> AssetParams {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        creator: String,decimals: i32,total: i32, clawback: Option<String>, default_frozen: Option<bool>, freeze: Option<String>, manager: Option<String>, metadata_hash: Option<Vec<u8>>, name: Option<String>, name_b64: Option<Vec<u8>>, reserve: Option<String>, unit_name: Option<String>, unit_name_b64: Option<Vec<u8>>, url: Option<String>, url_b64: Option<Vec<u8>>
+    ) -> AssetParams {
         AssetParams {
-            clawback: None,
-            creator,
-            decimals,
-            default_frozen: None,
-            freeze: None,
-            manager: None,
-            metadata_hash: None,
-            name: None,
-            name_b64: None,
-            reserve: None,
-            total,
-            unit_name: None,
-            unit_name_b64: None,
-            url: None,
-            url_b64: None,
+            clawback: clawback,
+            creator: creator,
+            decimals: decimals,
+            default_frozen: default_frozen,
+            freeze: freeze,
+            manager: manager,
+            metadata_hash: metadata_hash,
+            name: name,
+            name_b64: name_b64,
+            reserve: reserve,
+            total: total,
+            unit_name: unit_name,
+            unit_name_b64: unit_name_b64,
+            url: url,
+            url_b64: url_b64,
         }
     }
 }

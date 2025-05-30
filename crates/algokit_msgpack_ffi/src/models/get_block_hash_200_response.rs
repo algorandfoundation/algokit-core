@@ -25,9 +25,13 @@ pub struct GetBlockHash200Response {
 }
 
 impl GetBlockHash200Response {
-    pub fn new(block_hash: String) -> GetBlockHash200Response {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        block_hash: String,
+    ) -> GetBlockHash200Response {
         GetBlockHash200Response {
-            block_hash,
+            block_hash: block_hash,
         }
     }
 }

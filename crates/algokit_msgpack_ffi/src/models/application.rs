@@ -32,9 +32,13 @@ pub struct Application {
 
 impl Application {
     /// Application index and its parameters
-    pub fn new(id: i32, params: models::ApplicationParams) -> Application {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        id: i32,params: models::ApplicationParams,
+    ) -> Application {
         Application {
-            id,
+            id: id,
             params: params,
         }
     }

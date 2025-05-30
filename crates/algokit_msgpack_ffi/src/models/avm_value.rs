@@ -39,11 +39,15 @@ pub struct AvmValue {
 
 impl AvmValue {
     /// Represents an AVM value.
-    pub fn new(r#type: i32) -> AvmValue {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        r#type: i32, bytes: Option<String>, uint: Option<i32>
+    ) -> AvmValue {
         AvmValue {
-            r#type,
-            bytes: None,
-            uint: None,
+            r#type: r#type,
+            bytes: bytes,
+            uint: uint,
         }
     }
 }

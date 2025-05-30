@@ -36,11 +36,15 @@ pub struct AccountAssetsInformation200Response {
 }
 
 impl AccountAssetsInformation200Response {
-    pub fn new(round: i32) -> AccountAssetsInformation200Response {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        round: i32, next_token: Option<String>, asset_holdings: Option<Vec<models::AccountAssetHolding>>
+    ) -> AccountAssetsInformation200Response {
         AccountAssetsInformation200Response {
-            round,
-            next_token: None,
-            asset_holdings: None,
+            round: round,
+            next_token: next_token,
+            asset_holdings: asset_holdings,
         }
     }
 }

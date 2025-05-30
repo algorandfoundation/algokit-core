@@ -81,17 +81,21 @@ pub struct SimulationTransactionExecTrace {
 
 impl SimulationTransactionExecTrace {
     /// The execution trace of calling an app or a logic sig, containing the inner app call trace in a recursive way.
-    pub fn new() -> SimulationTransactionExecTrace {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+         approval_program_trace: Option<Vec<models::SimulationOpcodeTraceUnit>>, approval_program_hash: Option<Vec<u8>>, clear_state_program_trace: Option<Vec<models::SimulationOpcodeTraceUnit>>, clear_state_program_hash: Option<Vec<u8>>, clear_state_rollback: Option<bool>, clear_state_rollback_error: Option<String>, logic_sig_trace: Option<Vec<models::SimulationOpcodeTraceUnit>>, logic_sig_hash: Option<Vec<u8>>, inner_trace: Option<Vec<models::SimulationTransactionExecTrace>>
+    ) -> SimulationTransactionExecTrace {
         SimulationTransactionExecTrace {
-            approval_program_trace: None,
-            approval_program_hash: None,
-            clear_state_program_trace: None,
-            clear_state_program_hash: None,
-            clear_state_rollback: None,
-            clear_state_rollback_error: None,
-            logic_sig_trace: None,
-            logic_sig_hash: None,
-            inner_trace: None,
+            approval_program_trace: approval_program_trace,
+            approval_program_hash: approval_program_hash,
+            clear_state_program_trace: clear_state_program_trace,
+            clear_state_program_hash: clear_state_program_hash,
+            clear_state_rollback: clear_state_rollback,
+            clear_state_rollback_error: clear_state_rollback_error,
+            logic_sig_trace: logic_sig_trace,
+            logic_sig_hash: logic_sig_hash,
+            inner_trace: inner_trace,
         }
     }
 }

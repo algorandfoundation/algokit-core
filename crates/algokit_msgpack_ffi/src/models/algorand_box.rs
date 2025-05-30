@@ -44,11 +44,15 @@ pub struct AlgorandBox {
 
 impl AlgorandBox {
     /// Box name and its content.
-    pub fn new(name: Vec<u8>, value: Vec<u8>) -> AlgorandBox {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        name: Vec<u8>,value: Vec<u8>, round: Option<i32>,
+    ) -> AlgorandBox {
         AlgorandBox {
-            round: None,
-            name,
-            value,
+            round: round,
+            name: name,
+            value: value,
         }
     }
 }

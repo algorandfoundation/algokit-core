@@ -33,10 +33,14 @@ pub struct ApplicationKvStorage {
 
 impl ApplicationKvStorage {
     /// An application's global/local/box state.
-    pub fn new(kvs: Vec<models::AvmKeyValue>) -> ApplicationKvStorage {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        kvs: Vec<models::AvmKeyValue>, account: Option<String>
+    ) -> ApplicationKvStorage {
         ApplicationKvStorage {
-            kvs,
-            account: None,
+            kvs: kvs,
+            account: account,
         }
     }
 }

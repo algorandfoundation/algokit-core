@@ -81,19 +81,23 @@ pub struct DryrunTxnResult {
 
 impl DryrunTxnResult {
     /// DryrunTxnResult contains any LogicSig or ApplicationCall program debug information and state updates from a dryrun.
-    pub fn new(disassembly: Vec<String>) -> DryrunTxnResult {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        disassembly: Vec<String>, logic_sig_disassembly: Option<Vec<String>>, logic_sig_trace: Option<Vec<models::DryrunState>>, logic_sig_messages: Option<Vec<String>>, app_call_trace: Option<Vec<models::DryrunState>>, app_call_messages: Option<Vec<String>>, global_delta: Option<Vec<models::EvalDeltaKeyValue>>, local_deltas: Option<Vec<models::AccountStateDelta>>, logs: Option<Vec<String>>, budget_added: Option<i32>, budget_consumed: Option<i32>
+    ) -> DryrunTxnResult {
         DryrunTxnResult {
-            disassembly,
-            logic_sig_disassembly: None,
-            logic_sig_trace: None,
-            logic_sig_messages: None,
-            app_call_trace: None,
-            app_call_messages: None,
-            global_delta: None,
-            local_deltas: None,
-            logs: None,
-            budget_added: None,
-            budget_consumed: None,
+            disassembly: disassembly,
+            logic_sig_disassembly: logic_sig_disassembly,
+            logic_sig_trace: logic_sig_trace,
+            logic_sig_messages: logic_sig_messages,
+            app_call_trace: app_call_trace,
+            app_call_messages: app_call_messages,
+            global_delta: global_delta,
+            local_deltas: local_deltas,
+            logs: logs,
+            budget_added: budget_added,
+            budget_consumed: budget_consumed,
         }
     }
 }

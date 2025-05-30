@@ -13,6 +13,13 @@ additionalProperties:
   generateModels: true
   generateApis: false
   avoidBoxedModels: true
+  sortModelPropertiesByRequiredFlag: false
+  sortParamsByRequiredFlag: false
+
+# Enable property sorting for canonical msgpack field ordering
+globalProperties:
+  sortModelPropertiesByRequiredFlag: false
+  sortParamsByRequiredFlag: false
 
 # Type mappings for uniffi compatibility
 typeMappings:

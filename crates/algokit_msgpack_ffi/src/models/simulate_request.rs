@@ -68,16 +68,20 @@ pub struct SimulateRequest {
 
 impl SimulateRequest {
     /// Request type for simulation endpoint.
-    pub fn new(txn_groups: Vec<models::SimulateRequestTransactionGroup>) -> SimulateRequest {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        txn_groups: Vec<models::SimulateRequestTransactionGroup>, round: Option<i32>, allow_empty_signatures: Option<bool>, allow_more_logging: Option<bool>, allow_unnamed_resources: Option<bool>, extra_opcode_budget: Option<i32>, exec_trace_config: Option<models::SimulateTraceConfig>, fix_signers: Option<bool>
+    ) -> SimulateRequest {
         SimulateRequest {
-            txn_groups,
-            round: None,
-            allow_empty_signatures: None,
-            allow_more_logging: None,
-            allow_unnamed_resources: None,
-            extra_opcode_budget: None,
-            exec_trace_config: None,
-            fix_signers: None,
+            txn_groups: txn_groups,
+            round: round,
+            allow_empty_signatures: allow_empty_signatures,
+            allow_more_logging: allow_more_logging,
+            allow_unnamed_resources: allow_unnamed_resources,
+            extra_opcode_budget: extra_opcode_budget,
+            exec_trace_config: exec_trace_config,
+            fix_signers: fix_signers,
         }
     }
 }

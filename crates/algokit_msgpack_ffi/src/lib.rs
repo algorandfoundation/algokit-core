@@ -8,6 +8,7 @@ extern crate serde_repr;
 extern crate url;
 
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 use thiserror::Error;
 
 #[cfg(feature = "ffi_wasm")]
@@ -17,161 +18,6 @@ pub mod models;
 
 // Re-export all models
 pub use models::*;
-
-// TODO: Re-export FFI types from algokit_transact_ffi
-// pub use algokit_transact_ffi::{SignedTransaction, Transaction, PaymentTransactionFields, Address};
-
-// Create FFI-compatible types for auto-generated models
-// These are simpler than the full algokit_transact_ffi types and focused on msgpack serialization
-
-/// FFI-compatible SignedTransaction for msgpack operations
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
-#[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
-#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
-pub struct SignedTransaction {
-    /// The transaction that has been signed.
-    #[serde(rename = "txn")]
-    pub transaction: Transaction,
-
-    /// The Ed25519 signature authorizing the transaction (64 bytes).
-    #[serde(rename = "sig")]
-    #[serde(with = "serde_bytes")]
-    pub signature: Vec<u8>,
-}
-
-impl SignedTransaction {
-    /// Create a new SignedTransaction
-    pub fn new(transaction: Transaction, signature: Vec<u8>) -> Self {
-        Self {
-            transaction,
-            signature,
-        }
-    }
-}
-
-impl MsgpackEncodable for SignedTransaction {}
-
-/// FFI-compatible Transaction for msgpack operations
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
-#[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
-#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Enum))]
-#[serde(tag = "type")]
-pub enum Transaction {
-    #[serde(rename = "pay")]
-    Payment {
-        #[serde(flatten)]
-        fields: PaymentTransactionFields,
-    },
-}
-
-/// FFI-compatible PaymentTransactionFields for msgpack operations
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
-#[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
-#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
-pub struct PaymentTransactionFields {
-    /// Amount in microAlgos
-    #[serde(rename = "amt")]
-    pub amount: u64,
-
-    /// Transaction fee in microAlgos
-    #[serde(rename = "fee")]
-    pub fee: u64,
-
-    /// First valid round
-    #[serde(rename = "fv")]
-    pub first_valid: u64,
-
-    /// Genesis ID
-    #[serde(rename = "gen")]
-    pub genesis_id: String,
-
-    /// Genesis hash
-    #[serde(rename = "gh", skip_serializing_if = "Option::is_none")]
-    #[serde(with = "serde_bytes")]
-    pub genesis_hash: Option<Vec<u8>>,
-
-    /// Last valid round
-    #[serde(rename = "lv")]
-    pub last_valid: u64,
-
-    /// Note field
-    #[serde(rename = "note", skip_serializing_if = "Option::is_none")]
-    #[serde(with = "serde_bytes")]
-    pub note: Option<Vec<u8>>,
-
-    /// Receiver address
-    #[serde(rename = "rcv")]
-    #[serde(with = "serde_bytes")]
-    pub receiver: Vec<u8>,
-
-    /// Sender address
-    #[serde(rename = "snd")]
-    #[serde(with = "serde_bytes")]
-    pub sender: Vec<u8>,
-
-    /// Transaction type
-    #[serde(rename = "type")]
-    pub transaction_type: String,
-}
-
-// Conversion functions between algokit_transact types and msgpack FFI types
-impl From<algokit_transact::SignedTransaction> for SignedTransaction {
-    fn from(value: algokit_transact::SignedTransaction) -> Self {
-        Self {
-            transaction: value.transaction.into(),
-            signature: value.signature.to_vec(),
-        }
-    }
-}
-
-impl From<algokit_transact::Transaction> for Transaction {
-    fn from(value: algokit_transact::Transaction) -> Self {
-        match value {
-            algokit_transact::Transaction::Payment(payment) => Transaction::Payment {
-                fields: PaymentTransactionFields {
-                    sender: payment.header.sender.pub_key.to_vec(),
-                    receiver: payment.receiver.pub_key.to_vec(),
-                    amount: payment.amount,
-                    fee: payment.header.fee,
-                    first_valid: payment.header.first_valid,
-                    last_valid: payment.header.last_valid,
-                    genesis_id: payment.header.genesis_id.unwrap_or_default(),
-                    genesis_hash: payment.header.genesis_hash.map(|h| h.to_vec()),
-                    note: payment.header.note,
-                    transaction_type: "pay".to_string(),
-                },
-            },
-            // Add other transaction types as needed
-            _ => panic!("Transaction type not supported in msgpack FFI wrapper yet"),
-        }
-    }
-}
-
-// Import algokit_transact types for the encoding functions
-use algokit_transact::{AlgorandMsgpack, EstimateTransactionSize, TransactionId};
-
-/// Wrapper for a single transaction that matches the original JS structure
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
-#[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
-#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
-pub struct TransactionWrapper {
-    /// The transaction that matches the original JS structure.
-    #[serde(rename = "txn")]
-    pub transaction: Transaction,
-}
-
-impl TransactionWrapper {
-    /// Create a new TransactionWrapper
-    pub fn new(transaction: Transaction) -> Self {
-        Self { transaction }
-    }
-}
-
-impl MsgpackEncodable for TransactionWrapper {}
 
 /// Error types for msgpack operations
 #[derive(Error, Debug, Serialize, Deserialize)]
@@ -250,6 +96,36 @@ pub trait JsonSerializable: Serialize + for<'de> Deserialize<'de> {
     }
 }
 
+/// Sorts a msgpack value recursively to ensure lexicographic field ordering
+fn sort_msgpack_value(value: rmpv::Value) -> rmpv::Value {
+    match value {
+        rmpv::Value::Map(m) => {
+            let mut sorted_map: BTreeMap<String, rmpv::Value> = BTreeMap::new();
+
+            // Convert and sort all key-value pairs
+            for (k, v) in m {
+                if let rmpv::Value::String(key) = k {
+                    let key_str = key.into_str().unwrap_or_default();
+                    sorted_map.insert(key_str, sort_msgpack_value(v));
+                }
+            }
+
+            // Convert back to rmpv::Value::Map
+            rmpv::Value::Map(
+                sorted_map
+                    .into_iter()
+                    .map(|(k, v)| (rmpv::Value::String(k.into()), v))
+                    .collect(),
+            )
+        }
+        rmpv::Value::Array(arr) => {
+            rmpv::Value::Array(arr.into_iter().map(sort_msgpack_value).collect())
+        }
+        // For all other types, return as-is
+        v => v,
+    }
+}
+
 /// Canonical msgpack encoding following Algorand's rules:
 /// 1. Every integer must be encoded to the smallest type possible (0-255->8bit, 256-65535->16bit, etc)
 /// 2. All field names must be sorted alphabetically
@@ -257,13 +133,187 @@ pub trait JsonSerializable: Serialize + for<'de> Deserialize<'de> {
 /// 4. Every positive number must be encoded as uint (handled by rmp-serde)
 /// 5. Binary blob should be used for binary data and string for strings (handled by rmp-serde)
 pub fn encode_msgpack_canonical<T: MsgpackEncodable>(model: &T) -> Result<Vec<u8>, MsgpackError> {
-    // Create a custom serializer with struct_map to ensure keys are sorted alphabetically
-    let mut buf = Vec::new();
-    let mut serializer = rmp_serde::Serializer::new(&mut buf).with_struct_map();
-
-    // Serialize with canonical settings
+    // Step 1: Serialize to msgpack using struct_map mode
+    let mut temp_buf = Vec::new();
+    let mut serializer = rmp_serde::Serializer::new(&mut temp_buf).with_struct_map();
     model.serialize(&mut serializer)?;
+
+    // Step 2: Deserialize to msgpack Value for sorting
+    let msgpack_value: rmpv::Value = rmpv::decode::read_value(&mut std::io::Cursor::new(temp_buf))
+        .map_err(|e| {
+            MsgpackError::SerializationError(format!("Failed to parse msgpack for sorting: {}", e))
+        })?;
+
+    // Step 3: Sort the msgpack value to ensure lexicographic field ordering
+    let sorted_value = sort_msgpack_value(msgpack_value);
+
+    // Step 4: Re-encode the sorted value to final msgpack bytes
+    let mut final_buf = Vec::new();
+    rmpv::encode::write_value(&mut final_buf, &sorted_value).map_err(|e| {
+        MsgpackError::SerializationError(format!("Failed to encode sorted msgpack: {}", e))
+    })?;
+
+    Ok(final_buf)
+}
+
+/// Custom msgpack encoding for SimulateRequest that handles base64-encoded signed transactions
+pub fn encode_simulate_request_canonical(model: &SimulateRequest) -> Result<Vec<u8>, MsgpackError> {
+    use base64::{engine::general_purpose, Engine as _};
+
+    // Convert to JSON first to leverage existing serialization, then encode manually
+    let json_str = serde_json::to_string(model)?;
+    let json_value: serde_json::Value = serde_json::from_str(&json_str)?;
+
+    let mut buf = Vec::new();
+    match &json_value {
+        serde_json::Value::Object(map) => {
+            // Sort keys for consistent output
+            let mut keys: Vec<&String> = map.keys().collect();
+            keys.sort();
+            rmp::encode::write_map_len(&mut buf, map.len() as u32)
+                .map_err(|e| MsgpackError::SerializationError(e.to_string()))?;
+
+            for key in keys {
+                let value = map.get(key).expect("key just taken exists");
+                rmp::encode::write_str(&mut buf, key)
+                    .map_err(|e| MsgpackError::SerializationError(e.to_string()))?;
+
+                match key.as_str() {
+                    "txn-groups" => encode_txn_groups(&mut buf, value)?,
+                    _ => encode_value_to_msgpack(value, &mut buf)?,
+                }
+            }
+        }
+        _ => {
+            return Err(MsgpackError::SerializationError(
+                "Expected JSON object".to_string(),
+            ))
+        }
+    }
     Ok(buf)
+}
+
+/// Helper function to encode transaction groups with proper handling of base64 msgpack
+fn encode_txn_groups(buf: &mut Vec<u8>, value: &serde_json::Value) -> Result<(), MsgpackError> {
+    use base64::{engine::general_purpose, Engine as _};
+
+    if let serde_json::Value::Array(groups) = value {
+        rmp::encode::write_array_len(buf, groups.len() as u32)
+            .map_err(|e| MsgpackError::SerializationError(e.to_string()))?;
+
+        for group in groups {
+            match group {
+                serde_json::Value::Object(group_obj) => {
+                    rmp::encode::write_map_len(buf, group_obj.len() as u32)
+                        .map_err(|e| MsgpackError::SerializationError(e.to_string()))?;
+
+                    for (key, val) in group_obj {
+                        rmp::encode::write_str(buf, key)
+                            .map_err(|e| MsgpackError::SerializationError(e.to_string()))?;
+
+                        if key == "txns" {
+                            if let serde_json::Value::Array(txns) = val {
+                                rmp::encode::write_array_len(buf, txns.len() as u32)
+                                    .map_err(|e| MsgpackError::SerializationError(e.to_string()))?;
+
+                                for txn in txns {
+                                    match txn {
+                                        serde_json::Value::String(s) => {
+                                            // Decode base64 and write raw msgpack bytes directly
+                                            let decoded_bytes = general_purpose::STANDARD
+                                                .decode(s)
+                                                .map_err(|e| {
+                                                    MsgpackError::SerializationError(format!(
+                                                        "Failed to decode base64 transaction: {}",
+                                                        e
+                                                    ))
+                                                })?;
+                                            buf.extend_from_slice(&decoded_bytes);
+                                        }
+                                        _ => encode_value_to_msgpack(txn, buf)?,
+                                    }
+                                }
+                            } else {
+                                encode_value_to_msgpack(val, buf)?;
+                            }
+                        } else {
+                            encode_value_to_msgpack(val, buf)?;
+                        }
+                    }
+                }
+                _ => encode_value_to_msgpack(group, buf)?,
+            }
+        }
+    } else {
+        encode_value_to_msgpack(value, buf)?;
+    }
+    Ok(())
+}
+
+/// Helper function to encode JSON values to msgpack
+fn encode_value_to_msgpack(
+    value: &serde_json::Value,
+    buf: &mut Vec<u8>,
+) -> Result<(), MsgpackError> {
+    use serde_json::Value;
+
+    match value {
+        Value::Null => {
+            rmp::encode::write_nil(buf)
+                .map_err(|e| MsgpackError::SerializationError(e.to_string()))?;
+            Ok(())
+        }
+        Value::Bool(b) => {
+            rmp::encode::write_bool(buf, *b)
+                .map_err(|e| MsgpackError::SerializationError(e.to_string()))?;
+            Ok(())
+        }
+        Value::Number(n) => {
+            if let Some(i) = n.as_i64() {
+                rmp::encode::write_sint(buf, i)
+                    .map_err(|e| MsgpackError::SerializationError(e.to_string()))?;
+            } else if let Some(u) = n.as_u64() {
+                rmp::encode::write_uint(buf, u)
+                    .map_err(|e| MsgpackError::SerializationError(e.to_string()))?;
+            } else if let Some(f) = n.as_f64() {
+                rmp::encode::write_f64(buf, f)
+                    .map_err(|e| MsgpackError::SerializationError(e.to_string()))?;
+            } else {
+                return Err(MsgpackError::SerializationError(
+                    "Invalid number".to_string(),
+                ));
+            }
+            Ok(())
+        }
+        Value::String(s) => {
+            rmp::encode::write_str(buf, s)
+                .map_err(|e| MsgpackError::SerializationError(e.to_string()))?;
+            Ok(())
+        }
+        Value::Array(arr) => {
+            rmp::encode::write_array_len(buf, arr.len() as u32)
+                .map_err(|e| MsgpackError::SerializationError(e.to_string()))?;
+            for item in arr {
+                encode_value_to_msgpack(item, buf)?;
+            }
+            Ok(())
+        }
+        Value::Object(obj) => {
+            // Sort keys for canonical encoding
+            let mut keys: Vec<&String> = obj.keys().collect();
+            keys.sort();
+            rmp::encode::write_map_len(buf, obj.len() as u32)
+                .map_err(|e| MsgpackError::SerializationError(e.to_string()))?;
+            for key in keys {
+                rmp::encode::write_str(buf, key)
+                    .map_err(|e| MsgpackError::SerializationError(e.to_string()))?;
+                if let Some(val) = obj.get(key) {
+                    encode_value_to_msgpack(val, buf)?;
+                }
+            }
+            Ok(())
+        }
+    }
 }
 
 /// Generic function to encode a model to msgpack using canonical rules
@@ -301,7 +351,7 @@ pub fn decode_account(data: Vec<u8>) -> Result<Account, MsgpackError> {
 #[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
 #[cfg_attr(feature = "ffi_wasm", wasm_bindgen)]
 pub fn encode_simulate_request(model: SimulateRequest) -> Result<Vec<u8>, MsgpackError> {
-    encode_msgpack(&model)
+    encode_simulate_request_canonical(&model)
 }
 
 /// Encode DryrunRequest to msgpack bytes
@@ -347,30 +397,37 @@ uniffi::setup_scaffolding!();
 #[cfg(test)]
 mod tests {
     use super::*;
+    use base64::{engine::general_purpose, Engine as _};
 
     #[test]
     fn test_simulate_request_encoding() {
-        let txns = vec![SignedTransaction::new(
-            Transaction::Payment {
-                fields: PaymentTransactionFields {
-                    amount: 1000000,
-                    fee: 1000,
-                    first_valid: 1000000,
-                    last_valid: 1000000,
-                    genesis_id: "wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=".to_string(),
-                    genesis_hash: None,
-                    note: None,
-                    receiver: vec![0; 32],
-                    sender: vec![0; 32],
-                    transaction_type: "pay".to_string(),
-                },
-            },
-            vec![0; 64],
-        )];
+        // Example: Properly encoded base64 strings of already msgpack-encoded signed transactions
+        // In real usage, these would come from the client with transactions already encoded
+        let encoded_signed_txn = "gqNzaWfEQOeqkYx2i+fq1t7p5y7Epr3BRDZ7yfAcGY0B8QgdfmOWN2TYWkverOJYdf+h+2Xp/R7tQqPmjI/2vzWYbhZbSQajdHhuiaNhbXTOAA9CQKNmZWXOAA9CQKJmds0D6KNnZW6sdGVzdG5ldC12MS4womx2zQfQpG5vdGXED0hlbGxvIEFsZ29yYW5kIaNyY3bEIItZIVfmJZKkg9R82h4zw5tbm7SUTdiLUiv0hOddwUnPo3NuZMQgi1khV+YlkqSD1HzaHjPDm1ubtJRN2ItSK/SE513BSc+kdHlwZaNwYXk=";
+
+        let txns = vec![encoded_signed_txn.to_string()];
         let group = SimulateRequestTransactionGroup::new(txns);
-        let simulate_request = SimulateRequest::new(vec![group]);
+        let exec_trace_config =
+            SimulateTraceConfig::new(Some(true), Some(true), Some(true), Some(true));
+        let simulate_request = SimulateRequest::new(
+            vec![group],
+            Some(1_000_000),
+            Some(true),
+            Some(true),
+            Some(true),
+            Some(1_000_000),
+            Some(exec_trace_config),
+            Option::None,
+        );
+
         let encoded = encode_simulate_request(simulate_request).unwrap();
-        let base64 = base64::encode(encoded);
-        println!("encoded: {:?}", base64);
+        let base64 = general_purpose::STANDARD.encode(&encoded);
+        let expected_base64 = "h7ZhbGxvdy1lbXB0eS1zaWduYXR1cmVzw7JhbGxvdy1tb3JlLWxvZ2dpbmfDt2FsbG93LXVubmFtZWQtcmVzb3VyY2Vzw7FleGVjLXRyYWNlLWNvbmZpZ4SmZW5hYmxlw65zY3JhdGNoLWNoYW5nZcOsc3RhY2stY2hhbmdlw6xzdGF0ZS1jaGFuZ2XDs2V4dHJhLW9wY29kZS1idWRnZXTOAA9CQKVyb3VuZM4AD0JAqnR4bi1ncm91cHORgaR0eG5zkYKjc2lnxEDnqpGMdovn6tbe6ecuxKa9wUQ2e8nwHBmNAfEIHX5jljdk2FpL3qziWHX/oftl6f0e7UKj5oyP9r81mG4WW0kGo3R4bomjYW10zgAPQkCjZmVlzgAPQkCiZnbNA+ijZ2VurHRlc3RuZXQtdjEuMKJsds0H0KRub3RlxA9IZWxsbyBBbGdvcmFuZCGjcmN2xCCLWSFX5iWSpIPUfNoeM8ObW5u0lE3Yi1Ir9ITnXcFJz6NzbmTEIItZIVfmJZKkg9R82h4zw5tbm7SUTdiLUiv0hOddwUnPpHR5cGWjcGF5";
+        assert_eq!(base64, expected_base64);
+
+        println!("Properly encoded SimulateRequest: {}", base64);
     }
+
+    #[test]
+    fn test_simulate_response_decoding() {}
 }

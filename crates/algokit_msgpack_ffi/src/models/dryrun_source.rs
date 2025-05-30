@@ -42,12 +42,16 @@ pub struct DryrunSource {
 
 impl DryrunSource {
     /// DryrunSource is TEAL source text that gets uploaded, compiled, and inserted into transactions or application state.
-    pub fn new(field_name: String, source: String, txn_index: i32, app_index: i32) -> DryrunSource {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        field_name: String,source: String,txn_index: i32,app_index: i32,
+    ) -> DryrunSource {
         DryrunSource {
-            field_name,
-            source,
-            txn_index,
-            app_index,
+            field_name: field_name,
+            source: source,
+            txn_index: txn_index,
+            app_index: app_index,
         }
     }
 }

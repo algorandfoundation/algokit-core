@@ -39,11 +39,15 @@ pub struct EvalDelta {
 
 impl EvalDelta {
     /// Represents a TEAL value delta.
-    pub fn new(action: i32) -> EvalDelta {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        action: i32, bytes: Option<String>, uint: Option<i32>
+    ) -> EvalDelta {
         EvalDelta {
-            action,
-            bytes: None,
-            uint: None,
+            action: action,
+            bytes: bytes,
+            uint: uint,
         }
     }
 }

@@ -25,9 +25,13 @@ pub struct TealDisassemble200Response {
 }
 
 impl TealDisassemble200Response {
-    pub fn new(result: String) -> TealDisassemble200Response {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        result: String,
+    ) -> TealDisassemble200Response {
         TealDisassemble200Response {
-            result,
+            result: result,
         }
     }
 }

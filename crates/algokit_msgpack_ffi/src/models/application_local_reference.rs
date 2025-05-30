@@ -33,10 +33,14 @@ pub struct ApplicationLocalReference {
 
 impl ApplicationLocalReference {
     /// References an account's local state for an application.
-    pub fn new(account: String, app: i32) -> ApplicationLocalReference {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        account: String,app: i32,
+    ) -> ApplicationLocalReference {
         ApplicationLocalReference {
-            account,
-            app,
+            account: account,
+            app: app,
         }
     }
 }

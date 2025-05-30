@@ -33,10 +33,14 @@ pub struct GetPendingTransactionsByAddress200Response {
 
 impl GetPendingTransactionsByAddress200Response {
     /// PendingTransactions is an array of signed transactions exactly as they were submitted.
-    pub fn new(top_transactions: Vec<String>, total_transactions: i32) -> GetPendingTransactionsByAddress200Response {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        top_transactions: Vec<String>,total_transactions: i32,
+    ) -> GetPendingTransactionsByAddress200Response {
         GetPendingTransactionsByAddress200Response {
-            top_transactions,
-            total_transactions,
+            top_transactions: top_transactions,
+            total_transactions: total_transactions,
         }
     }
 }

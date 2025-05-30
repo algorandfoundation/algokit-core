@@ -43,12 +43,16 @@ pub struct ApplicationInitialStates {
 
 impl ApplicationInitialStates {
     /// An application's initial global/local/box states that were accessed during simulation.
-    pub fn new(id: i32) -> ApplicationInitialStates {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        id: i32, app_locals: Option<Vec<models::ApplicationKvStorage>>, app_globals: Option<models::ApplicationKvStorage>, app_boxes: Option<models::ApplicationKvStorage>
+    ) -> ApplicationInitialStates {
         ApplicationInitialStates {
-            id,
-            app_locals: None,
-            app_globals: None,
-            app_boxes: None,
+            id: id,
+            app_locals: app_locals,
+            app_globals: app_globals,
+            app_boxes: app_boxes,
         }
     }
 }

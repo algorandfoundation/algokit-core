@@ -169,20 +169,14 @@ impl {{{classname}}} {
     {{#description}}
     /// {{{.}}}
     {{/description}}
-    pub fn new({{#requiredVars}}{{{name}}}: {{!
-    ### Option Start
-    }}{{#isNullable}}Option<{{/isNullable}}{{!
-    ### Enums
-    }}{{#isEnum}}{{#isArray}}{{#uniqueItems}}std::collections::HashSet<{{/uniqueItems}}{{^uniqueItems}}Vec<{{/uniqueItems}}{{/isArray}}{{{enumName}}}{{#isArray}}>{{/isArray}}{{/isEnum}}{{!
-    ### Non-Enums
-    }}{{^isEnum}}{{#isByteArray}}Vec<u8>{{/isByteArray}}{{^isByteArray}}{{{dataType}}}{{/isByteArray}}{{/isEnum}}{{!
-    ### Option End
-    }}{{#isNullable}}>{{/isNullable}}{{!
-    ### Comma for next arguement
-    }}{{^-last}}, {{/-last}}{{/requiredVars}}) -> {{{classname}}} {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        {{#requiredVars}}{{{name}}}: {{#isNullable}}Option<{{/isNullable}}{{#isEnum}}{{#isArray}}{{#uniqueItems}}std::collections::HashSet<{{/uniqueItems}}{{^uniqueItems}}Vec<{{/uniqueItems}}{{/isArray}}{{{enumName}}}{{#isArray}}>{{/isArray}}{{/isEnum}}{{^isEnum}}{{#isByteArray}}Vec<u8>{{/isByteArray}}{{^isByteArray}}{{{dataType}}}{{/isByteArray}}{{/isEnum}}{{#isNullable}}>{{/isNullable}},{{/requiredVars}}{{#vars}}{{^required}} {{{name}}}: Option<{{#isEnum}}{{#isArray}}{{#uniqueItems}}std::collections::HashSet<{{/uniqueItems}}{{^uniqueItems}}Vec<{{/uniqueItems}}{{/isArray}}{{{enumName}}}{{#isArray}}>{{/isArray}}{{/isEnum}}{{^isEnum}}{{#isByteArray}}Vec<u8>{{/isByteArray}}{{^isByteArray}}{{{dataType}}}{{/isByteArray}}{{/isEnum}}>{{^-last}},{{/-last}}{{/required}}{{/vars}}
+    ) -> {{{classname}}} {
         {{{classname}}} {
             {{#vars}}
-            {{{name}}}{{^required}}: None{{/required}}{{#required}}{{#isModel}}: {{{name}}}{{/isModel}}{{/required}},
+            {{{name}}}{{#required}}{{^isModel}}: {{{name}}}{{/isModel}}{{#isModel}}: {{{name}}}{{/isModel}}{{/required}}{{^required}}: {{{name}}}{{/required}},
             {{/vars}}
         }
     }

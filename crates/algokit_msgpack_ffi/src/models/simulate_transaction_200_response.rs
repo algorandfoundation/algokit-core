@@ -52,14 +52,18 @@ pub struct SimulateTransaction200Response {
 }
 
 impl SimulateTransaction200Response {
-    pub fn new(version: i32, last_round: i32, txn_groups: Vec<models::SimulateTransactionGroupResult>) -> SimulateTransaction200Response {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        version: i32,last_round: i32,txn_groups: Vec<models::SimulateTransactionGroupResult>, eval_overrides: Option<models::SimulationEvalOverrides>, exec_trace_config: Option<models::SimulateTraceConfig>, initial_states: Option<models::SimulateInitialStates>
+    ) -> SimulateTransaction200Response {
         SimulateTransaction200Response {
-            version,
-            last_round,
-            txn_groups,
-            eval_overrides: None,
-            exec_trace_config: None,
-            initial_states: None,
+            version: version,
+            last_round: last_round,
+            txn_groups: txn_groups,
+            eval_overrides: eval_overrides,
+            exec_trace_config: exec_trace_config,
+            initial_states: initial_states,
         }
     }
 }

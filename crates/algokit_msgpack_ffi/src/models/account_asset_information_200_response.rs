@@ -35,11 +35,15 @@ pub struct AccountAssetInformation200Response {
 }
 
 impl AccountAssetInformation200Response {
-    pub fn new(round: i32) -> AccountAssetInformation200Response {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        round: i32, asset_holding: Option<models::AssetHolding>, created_asset: Option<models::AssetParams>
+    ) -> AccountAssetInformation200Response {
         AccountAssetInformation200Response {
-            round,
-            asset_holding: None,
-            created_asset: None,
+            round: round,
+            asset_holding: asset_holding,
+            created_asset: created_asset,
         }
     }
 }

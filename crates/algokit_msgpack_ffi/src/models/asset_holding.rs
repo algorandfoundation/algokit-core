@@ -39,11 +39,15 @@ pub struct AssetHolding {
 
 impl AssetHolding {
     /// Describes an asset held by an account.  Definition: data/basics/userBalance.go : AssetHolding
-    pub fn new(amount: i32, asset_id: i32, is_frozen: bool) -> AssetHolding {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        amount: i32,asset_id: i32,is_frozen: bool,
+    ) -> AssetHolding {
         AssetHolding {
-            amount,
-            asset_id,
-            is_frozen,
+            amount: amount,
+            asset_id: asset_id,
+            is_frozen: is_frozen,
         }
     }
 }

@@ -49,13 +49,17 @@ pub struct DryrunState {
 
 impl DryrunState {
     /// Stores the TEAL eval step data
-    pub fn new(line: i32, pc: i32, stack: Vec<models::TealValue>) -> DryrunState {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        line: i32,pc: i32,stack: Vec<models::TealValue>, scratch: Option<Vec<models::TealValue>>, error: Option<String>
+    ) -> DryrunState {
         DryrunState {
-            line,
-            pc,
-            stack,
-            scratch: None,
-            error: None,
+            line: line,
+            pc: pc,
+            stack: stack,
+            scratch: scratch,
+            error: error,
         }
     }
 }

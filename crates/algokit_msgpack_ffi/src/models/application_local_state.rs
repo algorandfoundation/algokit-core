@@ -38,11 +38,15 @@ pub struct ApplicationLocalState {
 
 impl ApplicationLocalState {
     /// Stores local state associated with an application.
-    pub fn new(id: i32, schema: models::ApplicationStateSchema) -> ApplicationLocalState {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        id: i32,schema: models::ApplicationStateSchema, key_value: Option<Vec<models::TealKeyValue>>
+    ) -> ApplicationLocalState {
         ApplicationLocalState {
-            id,
+            id: id,
             schema: schema,
-            key_value: None,
+            key_value: key_value,
         }
     }
 }

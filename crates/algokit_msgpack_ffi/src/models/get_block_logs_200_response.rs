@@ -24,9 +24,13 @@ pub struct GetBlockLogs200Response {
 }
 
 impl GetBlockLogs200Response {
-    pub fn new(logs: Vec<models::AppCallLogs>) -> GetBlockLogs200Response {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        logs: Vec<models::AppCallLogs>,
+    ) -> GetBlockLogs200Response {
         GetBlockLogs200Response {
-            logs,
+            logs: logs,
         }
     }
 }

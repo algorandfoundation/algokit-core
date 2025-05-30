@@ -32,9 +32,13 @@ pub struct ScratchChange {
 
 impl ScratchChange {
     /// A write operation into a scratch slot.
-    pub fn new(slot: i32, new_value: models::AvmValue) -> ScratchChange {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        slot: i32,new_value: models::AvmValue,
+    ) -> ScratchChange {
         ScratchChange {
-            slot,
+            slot: slot,
             new_value: new_value,
         }
     }

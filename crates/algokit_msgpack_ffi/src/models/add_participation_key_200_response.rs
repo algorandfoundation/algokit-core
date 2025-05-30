@@ -25,9 +25,13 @@ pub struct AddParticipationKey200Response {
 }
 
 impl AddParticipationKey200Response {
-    pub fn new(part_id: String) -> AddParticipationKey200Response {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        part_id: String,
+    ) -> AddParticipationKey200Response {
         AddParticipationKey200Response {
-            part_id,
+            part_id: part_id,
         }
     }
 }

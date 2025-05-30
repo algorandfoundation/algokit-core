@@ -32,10 +32,14 @@ pub struct AccountStateDelta {
 
 impl AccountStateDelta {
     /// Application state delta.
-    pub fn new(address: String, delta: Vec<models::EvalDeltaKeyValue>) -> AccountStateDelta {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        address: String,delta: Vec<models::EvalDeltaKeyValue>,
+    ) -> AccountStateDelta {
         AccountStateDelta {
-            address,
-            delta,
+            address: address,
+            delta: delta,
         }
     }
 }

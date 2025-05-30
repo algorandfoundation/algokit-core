@@ -56,13 +56,17 @@ pub struct StateProofMessage {
 
 impl StateProofMessage {
     /// Represents the message that the state proofs are attesting to.
-    pub fn new(block_headers_commitment: Vec<u8>, voters_commitment: Vec<u8>, ln_proven_weight: i32, first_attested_round: i32, last_attested_round: i32) -> StateProofMessage {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        block_headers_commitment: Vec<u8>,voters_commitment: Vec<u8>,ln_proven_weight: i32,first_attested_round: i32,last_attested_round: i32,
+    ) -> StateProofMessage {
         StateProofMessage {
-            block_headers_commitment,
-            voters_commitment,
-            ln_proven_weight,
-            first_attested_round,
-            last_attested_round,
+            block_headers_commitment: block_headers_commitment,
+            voters_commitment: voters_commitment,
+            ln_proven_weight: ln_proven_weight,
+            first_attested_round: first_attested_round,
+            last_attested_round: last_attested_round,
         }
     }
 }

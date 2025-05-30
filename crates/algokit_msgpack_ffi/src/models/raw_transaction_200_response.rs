@@ -25,9 +25,13 @@ pub struct RawTransaction200Response {
 }
 
 impl RawTransaction200Response {
-    pub fn new(tx_id: String) -> RawTransaction200Response {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        tx_id: String,
+    ) -> RawTransaction200Response {
         RawTransaction200Response {
-            tx_id,
+            tx_id: tx_id,
         }
     }
 }

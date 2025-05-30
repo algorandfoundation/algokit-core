@@ -203,17 +203,17 @@ class TestTransactionAPI:
             # Use unpacked dict with correct field names (with hyphens)
             trace_config = SimulateTraceConfig(
                 enable=True,
-                stack_change=True,
-                state_change=True,
-                scratch_change=True
+                **{"stack-change": True, "state-change": True, "scratch-change": True}
             )
 
-            request = SimulateRequest(
-                allow_empty_signatures=True,
-                allow_more_logging=True,
-                allow_unnamed_resources=True,
-                txn_groups=[empty_txn_group],
-                exec_trace_config=trace_config
+            request = SimulateRequest.from_dict(
+                {
+                    "allow-empty-signatures": True,
+                    "allow-more-logging": True,
+                    "allow-unnamed-resources": True,
+                    "txn-groups": [empty_txn_group],
+                    "exec-trace-config": trace_config
+                }
             )
 
             assert request is not None

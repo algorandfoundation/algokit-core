@@ -54,13 +54,17 @@ pub struct ApplicationStateOperation {
 
 impl ApplicationStateOperation {
     /// An operation against an application's global/local/box state.
-    pub fn new(operation: String, app_state_type: String, key: Vec<u8>) -> ApplicationStateOperation {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        operation: String,app_state_type: String,key: Vec<u8>, new_value: Option<models::AvmValue>, account: Option<String>
+    ) -> ApplicationStateOperation {
         ApplicationStateOperation {
-            operation,
-            app_state_type,
-            key,
-            new_value: None,
-            account: None,
+            operation: operation,
+            app_state_type: app_state_type,
+            key: key,
+            new_value: new_value,
+            account: account,
         }
     }
 }

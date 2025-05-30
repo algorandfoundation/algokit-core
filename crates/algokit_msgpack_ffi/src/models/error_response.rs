@@ -31,10 +31,14 @@ pub struct ErrorResponse {
 
 impl ErrorResponse {
     /// An error response with optional data field.
-    pub fn new(message: String) -> ErrorResponse {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        message: String, data: Option<String>,
+    ) -> ErrorResponse {
         ErrorResponse {
-            data: None,
-            message,
+            data: data,
+            message: message,
         }
     }
 }

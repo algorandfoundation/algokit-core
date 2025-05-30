@@ -31,9 +31,13 @@ pub struct EvalDeltaKeyValue {
 
 impl EvalDeltaKeyValue {
     /// Key-value pairs for StateDelta.
-    pub fn new(key: String, value: models::EvalDelta) -> EvalDeltaKeyValue {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        key: String,value: models::EvalDelta,
+    ) -> EvalDeltaKeyValue {
         EvalDeltaKeyValue {
-            key,
+            key: key,
             value: value,
         }
     }

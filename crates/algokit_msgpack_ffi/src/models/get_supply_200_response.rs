@@ -39,11 +39,15 @@ pub struct GetSupply200Response {
 
 impl GetSupply200Response {
     /// Supply represents the current supply of MicroAlgos in the system
-    pub fn new(current_round: i32, online_money: i32, total_money: i32) -> GetSupply200Response {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        current_round: i32,online_money: i32,total_money: i32,
+    ) -> GetSupply200Response {
         GetSupply200Response {
-            current_round,
-            online_money,
-            total_money,
+            current_round: current_round,
+            online_money: online_money,
+            total_money: total_money,
         }
     }
 }

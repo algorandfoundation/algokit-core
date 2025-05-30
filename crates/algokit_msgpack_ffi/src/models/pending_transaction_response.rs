@@ -105,22 +105,26 @@ pub struct PendingTransactionResponse {
 
 impl PendingTransactionResponse {
     /// Details about a pending transaction. If the transaction was recently confirmed, includes confirmation details like the round and reward details.
-    pub fn new(pool_error: String, txn: String) -> PendingTransactionResponse {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        pool_error: String,txn: String, asset_index: Option<i32>, application_index: Option<i32>, close_rewards: Option<i32>, closing_amount: Option<i32>, asset_closing_amount: Option<i32>, confirmed_round: Option<i32>, receiver_rewards: Option<i32>, sender_rewards: Option<i32>, local_state_delta: Option<Vec<models::AccountStateDelta>>, global_state_delta: Option<Vec<models::EvalDeltaKeyValue>>, logs: Option<Vec<String>>, inner_txns: Option<Vec<models::PendingTransactionResponse>>,
+    ) -> PendingTransactionResponse {
         PendingTransactionResponse {
-            asset_index: None,
-            application_index: None,
-            close_rewards: None,
-            closing_amount: None,
-            asset_closing_amount: None,
-            confirmed_round: None,
-            pool_error,
-            receiver_rewards: None,
-            sender_rewards: None,
-            local_state_delta: None,
-            global_state_delta: None,
-            logs: None,
-            inner_txns: None,
-            txn,
+            asset_index: asset_index,
+            application_index: application_index,
+            close_rewards: close_rewards,
+            closing_amount: closing_amount,
+            asset_closing_amount: asset_closing_amount,
+            confirmed_round: confirmed_round,
+            pool_error: pool_error,
+            receiver_rewards: receiver_rewards,
+            sender_rewards: sender_rewards,
+            local_state_delta: local_state_delta,
+            global_state_delta: global_state_delta,
+            logs: logs,
+            inner_txns: inner_txns,
+            txn: txn,
         }
     }
 }

@@ -25,9 +25,13 @@ pub struct GetSyncRound200Response {
 }
 
 impl GetSyncRound200Response {
-    pub fn new(round: i32) -> GetSyncRound200Response {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        round: i32,
+    ) -> GetSyncRound200Response {
         GetSyncRound200Response {
-            round,
+            round: round,
         }
     }
 }

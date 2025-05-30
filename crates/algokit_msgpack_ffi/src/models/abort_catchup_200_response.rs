@@ -27,9 +27,13 @@ pub struct AbortCatchup200Response {
 
 impl AbortCatchup200Response {
     /// An catchpoint abort response.
-    pub fn new(catchup_message: String) -> AbortCatchup200Response {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        catchup_message: String,
+    ) -> AbortCatchup200Response {
         AbortCatchup200Response {
-            catchup_message,
+            catchup_message: catchup_message,
         }
     }
 }

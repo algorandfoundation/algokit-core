@@ -54,13 +54,17 @@ pub struct GetTransactionProof200Response {
 }
 
 impl GetTransactionProof200Response {
-    pub fn new(proof: Vec<u8>, stibhash: Vec<u8>, treedepth: i32, idx: i32, hashtype: Hashtype) -> GetTransactionProof200Response {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        proof: Vec<u8>,stibhash: Vec<u8>,treedepth: i32,idx: i32,hashtype: Hashtype,
+    ) -> GetTransactionProof200Response {
         GetTransactionProof200Response {
-            proof,
-            stibhash,
-            treedepth,
-            idx,
-            hashtype,
+            proof: proof,
+            stibhash: stibhash,
+            treedepth: treedepth,
+            idx: idx,
+            hashtype: hashtype,
         }
     }
 }

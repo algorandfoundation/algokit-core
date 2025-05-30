@@ -15,7 +15,6 @@ ffi_uniffi = ["dep:uniffi"]
 ffi_wasm = ["dep:wasm-bindgen", "dep:tsify-next"]
 
 [dependencies]
-algokit_transact = { path = "../algokit_transact" }
 ffi_macros = { path = "../ffi_macros" }
 serde = { version = "1.0", features = ["derive"] }
 serde_repr = "0.1"

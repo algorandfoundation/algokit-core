@@ -35,11 +35,15 @@ pub struct TealDryrun200Response {
 }
 
 impl TealDryrun200Response {
-    pub fn new(txns: Vec<models::DryrunTxnResult>, error: String, protocol_version: String) -> TealDryrun200Response {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        txns: Vec<models::DryrunTxnResult>,error: String,protocol_version: String,
+    ) -> TealDryrun200Response {
         TealDryrun200Response {
-            txns,
-            error,
-            protocol_version,
+            txns: txns,
+            error: error,
+            protocol_version: protocol_version,
         }
     }
 }

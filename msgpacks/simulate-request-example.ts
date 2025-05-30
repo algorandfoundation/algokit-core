@@ -8,8 +8,8 @@ import algosdk from 'algosdk';
 async function generateSimulateRequestBase64() {
   try {
     // Create a dummy account for demonstration
-    const account = algosdk.generateAccount();
-    const receiverAccount = algosdk.generateAccount();
+    const account =  algosdk.mnemonicToSecretKey("fire erode idle bleak sense tape crop gossip quick extra please accuse trend harbor curve elephant list hammer fury energy force bike immune ability leisure");
+    const receiverAccount = algosdk.mnemonicToSecretKey("fire erode idle bleak sense tape crop gossip quick extra please accuse trend harbor curve elephant list hammer fury energy force bike immune ability leisure");
 
     console.log('Generated accounts:');
     console.log(`Sender: ${account.addr}`);
@@ -48,6 +48,10 @@ async function generateSimulateRequestBase64() {
       sig: new Uint8Array(64), // Empty signature for simulation
     });
 
+    console.log('Signed transaction:');
+    console.log(`Signed transaction msgpack: ${algosdk.bytesToBase64(algosdk.encodeMsgpack(signedTxn))}`);
+    console.log('');
+
     // Create SimulateRequestTransactionGroup
     const txnGroup = new algosdk.modelsv2.SimulateRequestTransactionGroup({
       txns: [signedTxn],
@@ -59,6 +63,15 @@ async function generateSimulateRequestBase64() {
       allowEmptySignatures: true, // Allow unsigned transactions for simulation
       allowMoreLogging: true,
       allowUnnamedResources: true,
+      execTraceConfig: new algosdk.modelsv2.SimulateTraceConfig({
+        enable: true,
+        scratchChange: true,
+        stackChange: true,
+        stateChange: true,
+      }),
+      extraOpcodeBudget: 1000000,
+      fixSigners: true,
+      round: 1000000,
     });
 
     console.log('Created SimulateRequest with options:');
@@ -68,7 +81,8 @@ async function generateSimulateRequestBase64() {
     console.log('');
 
     // Encode the SimulateRequest to msgpack
-    const msgpackEncoded = algosdk.encodeMsgpack(simulateRequest);
+    console.log("json", algosdk.encodeJSON(simulateRequest));
+    const msgpackEncoded = algosdk.msgpackRawEncode(simulateRequest.toEncodingData());
     console.log('Encoded SimulateRequest to msgpack');
     console.log(`Msgpack size: ${msgpackEncoded.length} bytes`);
     console.log('');
@@ -82,22 +96,6 @@ async function generateSimulateRequestBase64() {
     console.log(base64Encoded);
     console.log('='.repeat(80));
     console.log('');
-
-    // Additional information
-    console.log('Additional Information:');
-    console.log(`Base64 length: ${base64Encoded.length} characters`);
-    console.log(`Original object: SimulateRequest with 1 transaction group`);
-    console.log(`Transaction type: Payment`);
-    console.log('');
-
-    // Demonstrate decoding (optional verification)
-    console.log('Verification - Decoding back from base64:');
-    const decodedBytes = algosdk.base64ToBytes(base64Encoded);
-    const decodedRequest = algosdk.decodeMsgpack(decodedBytes, algosdk.modelsv2.SimulateRequest);
-    console.log(`Decoded successfully: ${decodedRequest.txnGroups.length} transaction group(s)`);
-    console.log(`Allow empty signatures: ${decodedRequest.allowEmptySignatures}`);
-    console.log(`Allow more logging: ${decodedRequest.allowMoreLogging}`);
-
   } catch (error) {
     console.error('Error generating SimulateRequest base64:', error);
     process.exit(1);

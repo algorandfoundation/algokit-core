@@ -59,15 +59,19 @@ pub struct DryrunRequest {
 
 impl DryrunRequest {
     /// Request data type for dryrun endpoint. Given the Transactions and simulated ledger state upload, run TEAL scripts and return debugging information.
-    pub fn new(txns: Vec<String>, accounts: Vec<models::Account>, apps: Vec<models::Application>, protocol_version: String, round: i32, latest_timestamp: i64, sources: Vec<models::DryrunSource>) -> DryrunRequest {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        txns: Vec<String>,accounts: Vec<models::Account>,apps: Vec<models::Application>,protocol_version: String,round: i32,latest_timestamp: i64,sources: Vec<models::DryrunSource>,
+    ) -> DryrunRequest {
         DryrunRequest {
-            txns,
-            accounts,
-            apps,
-            protocol_version,
-            round,
-            latest_timestamp,
-            sources,
+            txns: txns,
+            accounts: accounts,
+            apps: apps,
+            protocol_version: protocol_version,
+            round: round,
+            latest_timestamp: latest_timestamp,
+            sources: sources,
         }
     }
 }

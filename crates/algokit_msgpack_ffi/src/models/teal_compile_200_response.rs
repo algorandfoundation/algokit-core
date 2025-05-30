@@ -37,11 +37,15 @@ pub struct TealCompile200Response {
 }
 
 impl TealCompile200Response {
-    pub fn new(hash: String, result: String) -> TealCompile200Response {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        hash: String,result: String, sourcemap: Option<String>
+    ) -> TealCompile200Response {
         TealCompile200Response {
-            hash,
-            result,
-            sourcemap: None,
+            hash: hash,
+            result: result,
+            sourcemap: sourcemap,
         }
     }
 }

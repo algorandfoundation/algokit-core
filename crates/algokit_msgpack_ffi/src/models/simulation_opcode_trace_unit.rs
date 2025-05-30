@@ -57,14 +57,18 @@ pub struct SimulationOpcodeTraceUnit {
 
 impl SimulationOpcodeTraceUnit {
     /// The set of trace information and effect from evaluating a single opcode.
-    pub fn new(pc: i32) -> SimulationOpcodeTraceUnit {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        pc: i32, scratch_changes: Option<Vec<models::ScratchChange>>, state_changes: Option<Vec<models::ApplicationStateOperation>>, spawned_inners: Option<Vec<i32>>, stack_pop_count: Option<i32>, stack_additions: Option<Vec<models::AvmValue>>
+    ) -> SimulationOpcodeTraceUnit {
         SimulationOpcodeTraceUnit {
-            pc,
-            scratch_changes: None,
-            state_changes: None,
-            spawned_inners: None,
-            stack_pop_count: None,
-            stack_additions: None,
+            pc: pc,
+            scratch_changes: scratch_changes,
+            state_changes: state_changes,
+            spawned_inners: spawned_inners,
+            stack_pop_count: stack_pop_count,
+            stack_additions: stack_additions,
         }
     }
 }

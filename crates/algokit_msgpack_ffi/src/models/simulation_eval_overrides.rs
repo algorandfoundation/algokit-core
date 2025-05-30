@@ -57,14 +57,18 @@ pub struct SimulationEvalOverrides {
 
 impl SimulationEvalOverrides {
     /// The set of parameters and limits override during simulation. If this set of parameters is present, then evaluation parameters may differ from standard evaluation in certain ways.
-    pub fn new() -> SimulationEvalOverrides {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+         allow_empty_signatures: Option<bool>, allow_unnamed_resources: Option<bool>, max_log_calls: Option<i32>, max_log_size: Option<i32>, extra_opcode_budget: Option<i32>, fix_signers: Option<bool>
+    ) -> SimulationEvalOverrides {
         SimulationEvalOverrides {
-            allow_empty_signatures: None,
-            allow_unnamed_resources: None,
-            max_log_calls: None,
-            max_log_size: None,
-            extra_opcode_budget: None,
-            fix_signers: None,
+            allow_empty_signatures: allow_empty_signatures,
+            allow_unnamed_resources: allow_unnamed_resources,
+            max_log_calls: max_log_calls,
+            max_log_size: max_log_size,
+            extra_opcode_budget: extra_opcode_budget,
+            fix_signers: fix_signers,
         }
     }
 }

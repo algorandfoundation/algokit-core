@@ -32,9 +32,13 @@ pub struct Asset {
 
 impl Asset {
     /// Specifies both the unique identifier and the parameters for an asset
-    pub fn new(index: i32, params: models::AssetParams) -> Asset {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        index: i32,params: models::AssetParams,
+    ) -> Asset {
         Asset {
-            index,
+            index: index,
             params: params,
         }
     }

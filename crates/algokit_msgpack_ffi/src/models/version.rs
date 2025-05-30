@@ -45,12 +45,16 @@ pub struct Version {
 
 impl Version {
     /// algod version information.
-    pub fn new(build: models::BuildVersion, genesis_hash_b64: Vec<u8>, genesis_id: String, versions: Vec<String>) -> Version {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        build: models::BuildVersion,genesis_hash_b64: Vec<u8>,genesis_id: String,versions: Vec<String>,
+    ) -> Version {
         Version {
             build: build,
-            genesis_hash_b64,
-            genesis_id,
-            versions,
+            genesis_hash_b64: genesis_hash_b64,
+            genesis_id: genesis_id,
+            versions: versions,
         }
     }
 }

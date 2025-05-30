@@ -32,10 +32,14 @@ pub struct LedgerStateDeltaForTransactionGroup {
 
 impl LedgerStateDeltaForTransactionGroup {
     /// Contains a ledger delta for a single transaction group
-    pub fn new(delta: String, ids: Vec<String>) -> LedgerStateDeltaForTransactionGroup {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        delta: String,ids: Vec<String>,
+    ) -> LedgerStateDeltaForTransactionGroup {
         LedgerStateDeltaForTransactionGroup {
-            delta,
-            ids,
+            delta: delta,
+            ids: ids,
         }
     }
 }

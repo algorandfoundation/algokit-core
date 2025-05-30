@@ -35,9 +35,13 @@ pub struct AvmKeyValue {
 
 impl AvmKeyValue {
     /// Represents an AVM key-value pair in an application store.
-    pub fn new(key: Vec<u8>, value: models::AvmValue) -> AvmKeyValue {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        key: Vec<u8>,value: models::AvmValue,
+    ) -> AvmKeyValue {
         AvmKeyValue {
-            key,
+            key: key,
             value: value,
         }
     }

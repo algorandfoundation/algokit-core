@@ -27,9 +27,13 @@ pub struct SimulateInitialStates {
 
 impl SimulateInitialStates {
     /// Initial states of resources that were accessed during simulation.
-    pub fn new() -> SimulateInitialStates {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+         app_initial_states: Option<Vec<models::ApplicationInitialStates>>
+    ) -> SimulateInitialStates {
         SimulateInitialStates {
-            app_initial_states: None,
+            app_initial_states: app_initial_states,
         }
     }
 }

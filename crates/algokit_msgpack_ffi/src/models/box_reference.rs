@@ -37,10 +37,14 @@ pub struct BoxReference {
 
 impl BoxReference {
     /// References a box of an application.
-    pub fn new(app: i32, name: Vec<u8>) -> BoxReference {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        app: i32,name: Vec<u8>,
+    ) -> BoxReference {
         BoxReference {
-            app,
-            name,
+            app: app,
+            name: name,
         }
     }
 }

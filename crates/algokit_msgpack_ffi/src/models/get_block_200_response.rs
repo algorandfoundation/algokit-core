@@ -31,10 +31,14 @@ pub struct GetBlock200Response {
 }
 
 impl GetBlock200Response {
-    pub fn new(block: String) -> GetBlock200Response {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        block: String, cert: Option<String>
+    ) -> GetBlock200Response {
         GetBlock200Response {
-            block,
-            cert: None,
+            block: block,
+            cert: cert,
         }
     }
 }

@@ -36,10 +36,14 @@ pub struct StateProof {
 
 impl StateProof {
     /// Represents a state proof and its corresponding message
-    pub fn new(message: models::StateProofMessage, state_proof: Vec<u8>) -> StateProof {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        message: models::StateProofMessage,state_proof: Vec<u8>,
+    ) -> StateProof {
         StateProof {
             message: message,
-            state_proof,
+            state_proof: state_proof,
         }
     }
 }

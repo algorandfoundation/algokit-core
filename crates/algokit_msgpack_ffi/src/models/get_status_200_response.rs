@@ -177,34 +177,38 @@ pub struct GetStatus200Response {
 
 impl GetStatus200Response {
     /// NodeStatus contains the information about a node status
-    pub fn new(catchup_time: i32, last_round: i32, last_version: String, next_version: String, next_version_round: i32, next_version_supported: bool, stopped_at_unsupported_round: bool, time_since_last_round: i32) -> GetStatus200Response {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        catchup_time: i32,last_round: i32,last_version: String,next_version: String,next_version_round: i32,next_version_supported: bool,stopped_at_unsupported_round: bool,time_since_last_round: i32, last_catchpoint: Option<String>, catchpoint: Option<String>, catchpoint_total_accounts: Option<i32>, catchpoint_processed_accounts: Option<i32>, catchpoint_verified_accounts: Option<i32>, catchpoint_total_kvs: Option<i32>, catchpoint_processed_kvs: Option<i32>, catchpoint_verified_kvs: Option<i32>, catchpoint_total_blocks: Option<i32>, catchpoint_acquired_blocks: Option<i32>, upgrade_delay: Option<i32>, upgrade_node_vote: Option<bool>, upgrade_votes_required: Option<i32>, upgrade_votes: Option<i32>, upgrade_yes_votes: Option<i32>, upgrade_no_votes: Option<i32>, upgrade_next_protocol_vote_before: Option<i32>, upgrade_vote_rounds: Option<i32>
+    ) -> GetStatus200Response {
         GetStatus200Response {
-            catchup_time,
-            last_round,
-            last_version,
-            next_version,
-            next_version_round,
-            next_version_supported,
-            stopped_at_unsupported_round,
-            time_since_last_round,
-            last_catchpoint: None,
-            catchpoint: None,
-            catchpoint_total_accounts: None,
-            catchpoint_processed_accounts: None,
-            catchpoint_verified_accounts: None,
-            catchpoint_total_kvs: None,
-            catchpoint_processed_kvs: None,
-            catchpoint_verified_kvs: None,
-            catchpoint_total_blocks: None,
-            catchpoint_acquired_blocks: None,
-            upgrade_delay: None,
-            upgrade_node_vote: None,
-            upgrade_votes_required: None,
-            upgrade_votes: None,
-            upgrade_yes_votes: None,
-            upgrade_no_votes: None,
-            upgrade_next_protocol_vote_before: None,
-            upgrade_vote_rounds: None,
+            catchup_time: catchup_time,
+            last_round: last_round,
+            last_version: last_version,
+            next_version: next_version,
+            next_version_round: next_version_round,
+            next_version_supported: next_version_supported,
+            stopped_at_unsupported_round: stopped_at_unsupported_round,
+            time_since_last_round: time_since_last_round,
+            last_catchpoint: last_catchpoint,
+            catchpoint: catchpoint,
+            catchpoint_total_accounts: catchpoint_total_accounts,
+            catchpoint_processed_accounts: catchpoint_processed_accounts,
+            catchpoint_verified_accounts: catchpoint_verified_accounts,
+            catchpoint_total_kvs: catchpoint_total_kvs,
+            catchpoint_processed_kvs: catchpoint_processed_kvs,
+            catchpoint_verified_kvs: catchpoint_verified_kvs,
+            catchpoint_total_blocks: catchpoint_total_blocks,
+            catchpoint_acquired_blocks: catchpoint_acquired_blocks,
+            upgrade_delay: upgrade_delay,
+            upgrade_node_vote: upgrade_node_vote,
+            upgrade_votes_required: upgrade_votes_required,
+            upgrade_votes: upgrade_votes,
+            upgrade_yes_votes: upgrade_yes_votes,
+            upgrade_no_votes: upgrade_no_votes,
+            upgrade_next_protocol_vote_before: upgrade_next_protocol_vote_before,
+            upgrade_vote_rounds: upgrade_vote_rounds,
         }
     }
 }

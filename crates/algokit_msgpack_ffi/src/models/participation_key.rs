@@ -68,15 +68,19 @@ pub struct ParticipationKey {
 
 impl ParticipationKey {
     /// Represents a participation key used by the node.
-    pub fn new(id: String, address: String, key: models::AccountParticipation) -> ParticipationKey {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        id: String,address: String,key: models::AccountParticipation, effective_first_valid: Option<i32>, effective_last_valid: Option<i32>, last_vote: Option<i32>, last_block_proposal: Option<i32>, last_state_proof: Option<i32>,
+    ) -> ParticipationKey {
         ParticipationKey {
-            id,
-            address,
-            effective_first_valid: None,
-            effective_last_valid: None,
-            last_vote: None,
-            last_block_proposal: None,
-            last_state_proof: None,
+            id: id,
+            address: address,
+            effective_first_valid: effective_first_valid,
+            effective_last_valid: effective_last_valid,
+            last_vote: last_vote,
+            last_block_proposal: last_block_proposal,
+            last_state_proof: last_state_proof,
             key: key,
         }
     }

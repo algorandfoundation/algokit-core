@@ -25,9 +25,13 @@ pub struct GetBlockTimeStampOffset200Response {
 }
 
 impl GetBlockTimeStampOffset200Response {
-    pub fn new(offset: i32) -> GetBlockTimeStampOffset200Response {
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
+    pub fn new(
+        offset: i32,
+    ) -> GetBlockTimeStampOffset200Response {
         GetBlockTimeStampOffset200Response {
-            offset,
+            offset: offset,
         }
     }
 }
