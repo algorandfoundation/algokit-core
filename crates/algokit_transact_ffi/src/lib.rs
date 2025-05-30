@@ -465,8 +465,8 @@ pub fn decode_transaction(bytes: &[u8]) -> Result<Transaction, AlgoKitTransactEr
 /// Return the size of the transaction in bytes as if it was already signed and encoded.
 /// This is useful for estimating the fee for the transaction.
 #[ffi_func]
-pub fn estimate_transaction_size(transaction: &Transaction) -> Result<u64, AlgoKitTransactError> {
-    let core_tx: algokit_transact::Transaction = transaction.clone().try_into()?;
+pub fn estimate_transaction_size(transaction: Transaction) -> Result<u64, AlgoKitTransactError> {
+    let core_tx: algokit_transact::Transaction = transaction.try_into()?;
     return core_tx
         .estimate_size()
         .map_err(|e| {
@@ -507,16 +507,16 @@ pub fn address_from_string(address: &str) -> Result<Address, AlgoKitTransactErro
 
 /// Get the raw 32-byte transaction ID for a transaction.
 #[ffi_func]
-pub fn get_transaction_id_raw(tx: &Transaction) -> Result<Vec<u8>, AlgoKitTransactError> {
-    let tx_internal: algokit_transact::Transaction = tx.clone().try_into()?;
+pub fn get_transaction_id_raw(tx: Transaction) -> Result<Vec<u8>, AlgoKitTransactError> {
+    let tx_internal: algokit_transact::Transaction = tx.try_into()?;
     let id_raw = tx_internal.id_raw()?;
     Ok(id_raw.to_vec())
 }
 
 /// Get the base32 transaction ID string for a transaction.
 #[ffi_func]
-pub fn get_transaction_id(tx: &Transaction) -> Result<String, AlgoKitTransactError> {
-    let tx_internal: algokit_transact::Transaction = tx.clone().try_into()?;
+pub fn get_transaction_id(tx: Transaction) -> Result<String, AlgoKitTransactError> {
+    let tx_internal: algokit_transact::Transaction = tx.try_into()?;
     Ok(tx_internal.id()?)
 }
 
@@ -667,10 +667,10 @@ mod tests {
     #[test]
     fn test_transaction_id_ffi() {
         let data = TestDataMother::simple_payment();
-        let tx_ffi = data.transaction.try_into().unwrap();
+        let tx_ffi: Transaction = data.transaction.try_into().unwrap();
 
-        let actual_id = get_transaction_id(&tx_ffi).unwrap();
-        let actual_id_raw = get_transaction_id_raw(&tx_ffi).unwrap();
+        let actual_id = get_transaction_id(tx_ffi.clone()).unwrap();
+        let actual_id_raw = get_transaction_id_raw(tx_ffi.clone()).unwrap();
 
         assert_eq!(actual_id, data.id);
         assert_eq!(actual_id_raw, data.id_raw);
