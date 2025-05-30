@@ -10,6 +10,10 @@ This crate provides:
 - FFI bindings for WebAssembly (WASM) and UniFFI 
 - Generated models from Algorand's OpenAPI specification
 - Encoding/decoding functions for key API request/response types
+- **JSON** serialization/deserialization for easy integration
+- **TypeScript** bindings via wasm-bindgen
+- **Python** bindings via UniFFI
+- **Cross-platform** support
 
 ## Algorand Canonical MessagePack Encoding
 
@@ -37,6 +41,120 @@ This implementation follows Algorand's canonical encoding rules:
 ### 5. **Deterministic Encoding**
 - Same input always produces identical output
 - Essential for cryptographic signatures and hash verification
+
+## JSON Serialization Patterns
+
+This crate provides multiple ways to handle JSON encoding/decoding without writing explicit methods for each model:
+
+### TypeScript/WASM Approach
+
+#### Option 1: Direct serde-wasm-bindgen (Recommended)
+
+For TypeScript, the most efficient approach uses `serde-wasm-bindgen` which preserves JavaScript types:
+
+```typescript
+import * as wasm from './pkg/algokit_msgpack_ffi';
+
+// Method 1: Using generated model-specific functions
+const account = new wasm.Account(/* constructor args */);
+const jsValue = wasm.accountToJsValue(account); // Returns typed JS object
+const backToAccount = wasm.accountFromJsValue(jsValue);
+
+// Method 2: Using JSON strings  
+const jsonString = wasm.accountToJson(account);
+const accountFromJson = wasm.accountFromJson(jsonString);
+
+// Method 3: Working with any object as JSON
+const genericJsValue = wasm.jsonStringToJsValue(jsonString);
+const backToJsonString = wasm.jsValueToJsonString(genericJsValue);
+```
+
+#### Option 2: Native JSON with type assertions
+
+```typescript
+// All models implement Serialize/Deserialize, so you can:
+const account = wasm.decodeAccount(msgpackData);
+
+// Convert to plain JS object (loses Rust type info but keeps JS types)
+const accountJs = JSON.parse(wasm.accountToJson(account));
+
+// TypeScript can still type-check if you assert:
+const typedAccount: Account = JSON.parse(jsonString);
+```
+
+### Python/UniFFI Approach
+
+#### Option 1: Using model-specific JSON functions
+
+```python
+from algokit_msgpack_ffi import *
+
+# Using generated functions
+account = decode_account(msgpack_data)
+json_str = account_to_json(account)
+account_back = account_from_json(json_str)
+
+# Works with any model that implements JsonSerializable
+simulate_request = SimulateRequest(...)
+json_data = simulate_request_to_json(simulate_request)
+```
+
+#### Option 2: Using the JsonSerializable trait methods
+
+Since all models implement `JsonSerializable`, you can also use the trait methods directly in Rust:
+
+```python
+# These methods are available on all models:
+json_str = account.to_json()
+dict_obj = account.to_dict()  # Returns Python dict
+account_from_dict = Account.from_dict(dict_obj)
+account_from_json = Account.from_json(json_str)
+```
+
+#### Option 3: Generic JSON handling
+
+```python
+# For dynamic/generic handling:
+import json
+
+# Convert any model to dict
+account_dict = json.loads(account_to_json(account))
+
+# Work with standard Python dicts
+account_dict['new_field'] = 'some_value'
+
+# Convert back (with validation)
+json_str = json.dumps(account_dict)
+account = account_from_json(json_str)
+```
+
+### Adding JSON Support for New Models
+
+To add JSON conversion functions for a new model, simply add a macro call:
+
+```rust
+// In lib.rs
+json_model_functions!(YourNewModel, "yourNewModel");
+```
+
+This generates:
+- `your_new_model_to_json()` / `yourNewModelToJson()` 
+- `your_new_model_from_json()` / `yourNewModelFromJson()`
+- `your_new_model_to_js_value()` / `yourNewModelToJsValue()` (WASM only)
+- `your_new_model_from_js_value()` / `yourNewModelFromJsValue()` (WASM only)
+
+### Performance Considerations
+
+1. **serde-wasm-bindgen** (TypeScript): Fastest, preserves JS types, smallest bundle
+2. **JSON strings**: Universal, good for serialization/storage, slight overhead
+3. **Generic JSON functions**: Most flexible, good for dynamic scenarios
+
+### Best Practices
+
+1. **TypeScript**: Use `*ToJsValue/*FromJsValue` functions for UI/state management
+2. **Python**: Use model-specific JSON functions for type safety
+3. **Cross-language**: Use JSON strings for data exchange between services
+4. **Storage**: Use msgpack for space efficiency, JSON for human readability
 
 ## API Usage
 

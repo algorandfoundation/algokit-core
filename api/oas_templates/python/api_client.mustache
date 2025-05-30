@@ -525,6 +525,7 @@ class ApiClient:
             if klass in self.NATIVE_TYPES_MAPPING:
                 klass = self.NATIVE_TYPES_MAPPING[klass]
             else:
+                import algokit_msgpack
                 klass = getattr(algokit_msgpack, klass)
 
         if klass in self.PRIMITIVE_TYPES:

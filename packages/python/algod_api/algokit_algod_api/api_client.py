@@ -14,23 +14,30 @@
 
 
 import datetime
+from dateutil.parser import parse
+from enum import Enum
 import decimal
 import json
 import mimetypes
 import os
 import re
 import tempfile
-from enum import Enum
-from typing import Dict, List, Optional, Tuple, Union
+
 from urllib.parse import quote
+from typing import Tuple, Optional, List, Dict, Union
 
-from dateutil.parser import parse
-
-from algokit_algod_api import rest
-from algokit_algod_api.api_response import ApiResponse
-from algokit_algod_api.api_response import T as ApiResponseT
 from algokit_algod_api.configuration import Configuration
-from algokit_algod_api.exceptions import ApiException, ApiValueError
+from algokit_algod_api.api_response import ApiResponse, T as ApiResponseT
+from algokit_algod_api import rest
+from algokit_algod_api.exceptions import (
+    ApiValueError,
+    ApiException,
+    BadRequestException,
+    UnauthorizedException,
+    ForbiddenException,
+    NotFoundException,
+    ServiceException
+)
 
 # Import msgpack encoding/decoding functions from algokit_msgpack
 try:
@@ -243,7 +250,7 @@ class ApiClient:
                             body = self.sanitize_for_serialization(body)
                     else:
                         body = self.sanitize_for_serialization(body)
-                except (MsgpackError, Exception):
+                except (MsgpackError, Exception) as e:
                     # Fallback to JSON serialization on encoding errors
                     body = self.sanitize_for_serialization(body)
             else:

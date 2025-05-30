@@ -327,6 +327,53 @@ pub fn decode_msgpack<T: MsgpackDecodable>(data: &[u8]) -> Result<T, MsgpackErro
 }
 
 // =============================================================================
+// GENERIC JSON CONVERSION UTILITIES
+// =============================================================================
+
+/// Serialize any model implementing JsonSerializable to JSON string
+/// This works across both WASM and UniFFI boundaries
+pub fn serialize_to_json<T: JsonSerializable>(model: &T) -> Result<String, MsgpackError> {
+    model.to_json()
+}
+
+/// Deserialize JSON string to any model implementing JsonSerializable
+/// This works across both WASM and UniFFI boundaries
+pub fn deserialize_from_json<T: JsonSerializable>(json: &str) -> Result<T, MsgpackError> {
+    T::from_json(json)
+}
+
+/// Convert JSON string to JsValue for WASM (TypeScript side can use JSON.parse)
+#[cfg(feature = "ffi_wasm")]
+pub fn json_string_to_js_value(json: &str) -> Result<wasm_bindgen::JsValue, MsgpackError> {
+    let json_value: serde_json::Value = serde_json::from_str(json)?;
+    serde_wasm_bindgen::to_value(&json_value)
+        .map_err(|e| MsgpackError::SerializationError(e.to_string()))
+}
+
+/// Convert JsValue to JSON string for WASM (TypeScript side can use JSON.stringify)
+#[cfg(feature = "ffi_wasm")]
+pub fn js_value_to_json_string(value: wasm_bindgen::JsValue) -> Result<String, MsgpackError> {
+    let json_value: serde_json::Value = serde_wasm_bindgen::from_value(value)
+        .map_err(|e| MsgpackError::DeserializationError(e.to_string()))?;
+    serde_json::to_string(&json_value).map_err(|e| e.into())
+}
+
+/// Runtime JSON conversion helpers - work with serde_json::Value for maximum flexibility
+#[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
+pub fn parse_json_string(json: String) -> Result<String, MsgpackError> {
+    // Validates JSON and returns pretty-formatted version
+    let value: serde_json::Value = serde_json::from_str(&json)?;
+    serde_json::to_string_pretty(&value).map_err(|e| e.into())
+}
+
+/// Convert between different JSON formats - useful for data transformation
+#[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
+pub fn minify_json(json: String) -> Result<String, MsgpackError> {
+    let value: serde_json::Value = serde_json::from_str(&json)?;
+    serde_json::to_string(&value).map_err(|e| e.into())
+}
+
+// =============================================================================
 // ENDPOINT-LEVEL MODELS - Models directly used in API request/response schemas
 // =============================================================================
 
@@ -390,6 +437,18 @@ pub fn decode_ledger_state_delta_for_transaction_group(
     decode_msgpack(&data)
 }
 
+// =============================================================================
+// JSON CONVERSION FUNCTIONS - Generated using macros for key models
+// =============================================================================
+
+// Generate JSON conversion functions for key models
+json_model_functions!(Account, "account");
+json_model_functions!(SimulateRequest, "simulateRequest");
+json_model_functions!(SimulateTransaction200Response, "simulateResponse");
+json_model_functions!(DryrunRequest, "dryrunRequest");
+json_model_functions!(ErrorResponse, "errorResponse");
+json_model_functions!(PendingTransactionResponse, "pendingTransaction");
+
 #[cfg(feature = "ffi_uniffi")]
 uniffi::setup_scaffolding!();
 
@@ -430,4 +489,43 @@ mod tests {
 
     #[test]
     fn test_simulate_response_decoding() {}
+}
+
+// =============================================================================
+// JSON HELPERS - Macros and utilities for easy JSON conversion
+// =============================================================================
+
+/// Macro to generate JSON conversion functions for a specific model
+/// Usage: json_model_functions!(Account, "account");
+#[macro_export]
+macro_rules! json_model_functions {
+    ($model:ty, $name:literal) => {
+        paste::paste! {
+            #[doc = "Convert " $name " to JSON string"]
+            #[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
+            pub fn [<$name _to_json>](model: $model) -> Result<String, MsgpackError> {
+                model.to_json()
+            }
+
+            #[doc = "Convert JSON string to " $name]
+            #[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
+            pub fn [<$name _from_json>](json: String) -> Result<$model, MsgpackError> {
+                <$model>::from_json(&json)
+            }
+
+            #[cfg(feature = "ffi_wasm")]
+            #[doc = "Convert " $name " to JsValue (preserves types for TypeScript)"]
+            #[wasm_bindgen(js_name = [<$name ToJsValue>])]
+            pub fn [<$name _to_js_value>](model: $model) -> Result<wasm_bindgen::JsValue, MsgpackError> {
+                serde_wasm_bindgen::to_value(&model).map_err(|e| MsgpackError::SerializationError(e.to_string()))
+            }
+
+            #[cfg(feature = "ffi_wasm")]
+            #[doc = "Convert JsValue to " $name " (from TypeScript object)"]
+            #[wasm_bindgen(js_name = [<$name FromJsValue>])]
+            pub fn [<$name _from_js_value>](value: wasm_bindgen::JsValue) -> Result<$model, MsgpackError> {
+                serde_wasm_bindgen::from_value(value).map_err(|e| MsgpackError::DeserializationError(e.to_string()))
+            }
+        }
+    };
 }
