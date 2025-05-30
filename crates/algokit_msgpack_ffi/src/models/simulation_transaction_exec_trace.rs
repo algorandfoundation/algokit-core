@@ -13,7 +13,13 @@ use serde::{Deserialize, Serialize};
 
 use serde_with::serde_as;
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// SimulationTransactionExecTrace : The execution trace of calling an app or a logic sig, containing the inner app call trace in a recursive way.
+
+
+
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
@@ -82,7 +88,6 @@ pub struct SimulationTransactionExecTrace {
 impl SimulationTransactionExecTrace {
     /// The execution trace of calling an app or a logic sig, containing the inner app call trace in a recursive way.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
          approval_program_trace: Option<Vec<models::SimulationOpcodeTraceUnit>>, approval_program_hash: Option<Vec<u8>>, clear_state_program_trace: Option<Vec<models::SimulationOpcodeTraceUnit>>, clear_state_program_hash: Option<Vec<u8>>, clear_state_rollback: Option<bool>, clear_state_rollback_error: Option<String>, logic_sig_trace: Option<Vec<models::SimulationOpcodeTraceUnit>>, logic_sig_hash: Option<Vec<u8>>, inner_trace: Option<Vec<models::SimulationTransactionExecTrace>>
     ) -> SimulationTransactionExecTrace {
@@ -100,7 +105,11 @@ impl SimulationTransactionExecTrace {
     }
 }
 
+
+
 impl crate::JsonSerializable for SimulationTransactionExecTrace {}
 
 impl crate::MsgpackDecodable for SimulationTransactionExecTrace {}
+
+crate::auto_impl_json_ffi!(SimulationTransactionExecTrace, simulation_transaction_exec_trace);
 

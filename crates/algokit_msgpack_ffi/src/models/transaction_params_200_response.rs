@@ -13,7 +13,13 @@ use serde::{Deserialize, Serialize};
 
 use serde_with::serde_as;
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// TransactionParams200Response : TransactionParams contains the parameters that help a client construct a new transaction.
+
+
+
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
@@ -62,7 +68,6 @@ pub struct TransactionParams200Response {
 impl TransactionParams200Response {
     /// TransactionParams contains the parameters that help a client construct a new transaction.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         consensus_version: String,fee: i32,genesis_hash: Vec<u8>,genesis_id: String,last_round: i32,min_fee: i32,
     ) -> TransactionParams200Response {
@@ -77,6 +82,10 @@ impl TransactionParams200Response {
     }
 }
 
+
+
 impl crate::JsonSerializable for TransactionParams200Response {}
 
+
+crate::auto_impl_json_ffi!(TransactionParams200Response, transaction_params200_response);
 

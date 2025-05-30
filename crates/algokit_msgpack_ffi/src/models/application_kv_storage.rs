@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// ApplicationKvStorage : An application's global/local/box state.
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -34,7 +40,6 @@ pub struct ApplicationKvStorage {
 impl ApplicationKvStorage {
     /// An application's global/local/box state.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         kvs: Vec<models::AvmKeyValue>, account: Option<String>
     ) -> ApplicationKvStorage {
@@ -45,7 +50,11 @@ impl ApplicationKvStorage {
     }
 }
 
+
+
 impl crate::JsonSerializable for ApplicationKvStorage {}
 
 impl crate::MsgpackDecodable for ApplicationKvStorage {}
+
+crate::auto_impl_json_ffi!(ApplicationKvStorage, application_kv_storage);
 

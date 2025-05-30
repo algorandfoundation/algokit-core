@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// TealKeyValue : Represents a key-value pair in an application store.
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -32,7 +38,6 @@ pub struct TealKeyValue {
 impl TealKeyValue {
     /// Represents a key-value pair in an application store.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         key: String,value: models::TealValue,
     ) -> TealKeyValue {
@@ -43,8 +48,12 @@ impl TealKeyValue {
     }
 }
 
+
+
 impl crate::JsonSerializable for TealKeyValue {}
 
 impl crate::MsgpackEncodable for TealKeyValue {}
 impl crate::MsgpackDecodable for TealKeyValue {}
+
+crate::auto_impl_json_ffi!(TealKeyValue, teal_key_value);
 

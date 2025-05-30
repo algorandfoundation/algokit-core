@@ -11,6 +11,12 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -37,7 +43,6 @@ pub struct AccountAssetsInformation200Response {
 
 impl AccountAssetsInformation200Response {
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         round: i32, next_token: Option<String>, asset_holdings: Option<Vec<models::AccountAssetHolding>>
     ) -> AccountAssetsInformation200Response {
@@ -49,6 +54,10 @@ impl AccountAssetsInformation200Response {
     }
 }
 
+
+
 impl crate::JsonSerializable for AccountAssetsInformation200Response {}
 
+
+crate::auto_impl_json_ffi!(AccountAssetsInformation200Response, account_assets_information200_response);
 

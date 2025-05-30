@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// ApplicationLocalState : Stores local state associated with an application.
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -39,7 +45,6 @@ pub struct ApplicationLocalState {
 impl ApplicationLocalState {
     /// Stores local state associated with an application.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         id: i32,schema: models::ApplicationStateSchema, key_value: Option<Vec<models::TealKeyValue>>
     ) -> ApplicationLocalState {
@@ -51,8 +56,12 @@ impl ApplicationLocalState {
     }
 }
 
+
+
 impl crate::JsonSerializable for ApplicationLocalState {}
 
 impl crate::MsgpackEncodable for ApplicationLocalState {}
 impl crate::MsgpackDecodable for ApplicationLocalState {}
+
+crate::auto_impl_json_ffi!(ApplicationLocalState, application_local_state);
 

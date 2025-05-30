@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// StartCatchup200Response : An catchpoint start response.
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -28,7 +34,6 @@ pub struct StartCatchup200Response {
 impl StartCatchup200Response {
     /// An catchpoint start response.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         catchup_message: String,
     ) -> StartCatchup200Response {
@@ -38,6 +43,10 @@ impl StartCatchup200Response {
     }
 }
 
+
+
 impl crate::JsonSerializable for StartCatchup200Response {}
 
+
+crate::auto_impl_json_ffi!(StartCatchup200Response, start_catchup200_response);
 

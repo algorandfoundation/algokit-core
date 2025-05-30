@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// GetSupply200Response : Supply represents the current supply of MicroAlgos in the system
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -40,7 +46,6 @@ pub struct GetSupply200Response {
 impl GetSupply200Response {
     /// Supply represents the current supply of MicroAlgos in the system
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         current_round: i32,online_money: i32,total_money: i32,
     ) -> GetSupply200Response {
@@ -52,6 +57,10 @@ impl GetSupply200Response {
     }
 }
 
+
+
 impl crate::JsonSerializable for GetSupply200Response {}
 
+
+crate::auto_impl_json_ffi!(GetSupply200Response, get_supply200_response);
 

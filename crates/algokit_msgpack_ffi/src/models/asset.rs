@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// Asset : Specifies both the unique identifier and the parameters for an asset
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -33,7 +39,6 @@ pub struct Asset {
 impl Asset {
     /// Specifies both the unique identifier and the parameters for an asset
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         index: i32,params: models::AssetParams,
     ) -> Asset {
@@ -44,8 +49,12 @@ impl Asset {
     }
 }
 
+
+
 impl crate::JsonSerializable for Asset {}
 
 impl crate::MsgpackEncodable for Asset {}
 impl crate::MsgpackDecodable for Asset {}
+
+crate::auto_impl_json_ffi!(Asset, asset);
 

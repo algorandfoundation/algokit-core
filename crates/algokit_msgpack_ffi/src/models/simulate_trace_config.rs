@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// SimulateTraceConfig : An object that configures simulation execution trace.
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -46,7 +52,6 @@ pub struct SimulateTraceConfig {
 impl SimulateTraceConfig {
     /// An object that configures simulation execution trace.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
          enable: Option<bool>, stack_change: Option<bool>, scratch_change: Option<bool>, state_change: Option<bool>
     ) -> SimulateTraceConfig {
@@ -59,8 +64,12 @@ impl SimulateTraceConfig {
     }
 }
 
+
+
 impl crate::JsonSerializable for SimulateTraceConfig {}
 
 impl crate::MsgpackEncodable for SimulateTraceConfig {}
 impl crate::MsgpackDecodable for SimulateTraceConfig {}
+
+crate::auto_impl_json_ffi!(SimulateTraceConfig, simulate_trace_config);
 

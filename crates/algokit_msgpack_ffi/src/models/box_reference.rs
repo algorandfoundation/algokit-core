@@ -13,7 +13,13 @@ use serde::{Deserialize, Serialize};
 
 use serde_with::serde_as;
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// BoxReference : References a box of an application.
+
+
+
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
@@ -38,7 +44,6 @@ pub struct BoxReference {
 impl BoxReference {
     /// References a box of an application.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         app: i32,name: Vec<u8>,
     ) -> BoxReference {
@@ -49,7 +54,11 @@ impl BoxReference {
     }
 }
 
+
+
 impl crate::JsonSerializable for BoxReference {}
 
 impl crate::MsgpackDecodable for BoxReference {}
+
+crate::auto_impl_json_ffi!(BoxReference, box_reference);
 

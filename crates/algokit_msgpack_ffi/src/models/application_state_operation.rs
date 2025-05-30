@@ -13,7 +13,13 @@ use serde::{Deserialize, Serialize};
 
 use serde_with::serde_as;
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// ApplicationStateOperation : An operation against an application's global/local/box state.
+
+
+
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
@@ -55,7 +61,6 @@ pub struct ApplicationStateOperation {
 impl ApplicationStateOperation {
     /// An operation against an application's global/local/box state.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         operation: String,app_state_type: String,key: Vec<u8>, new_value: Option<models::AvmValue>, account: Option<String>
     ) -> ApplicationStateOperation {
@@ -69,7 +74,11 @@ impl ApplicationStateOperation {
     }
 }
 
+
+
 impl crate::JsonSerializable for ApplicationStateOperation {}
 
 impl crate::MsgpackDecodable for ApplicationStateOperation {}
+
+crate::auto_impl_json_ffi!(ApplicationStateOperation, application_state_operation);
 

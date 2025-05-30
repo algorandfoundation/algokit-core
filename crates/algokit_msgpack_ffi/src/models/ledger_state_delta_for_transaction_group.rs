@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// LedgerStateDeltaForTransactionGroup : Contains a ledger delta for a single transaction group
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -33,7 +39,6 @@ pub struct LedgerStateDeltaForTransactionGroup {
 impl LedgerStateDeltaForTransactionGroup {
     /// Contains a ledger delta for a single transaction group
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         delta: String,ids: Vec<String>,
     ) -> LedgerStateDeltaForTransactionGroup {
@@ -44,7 +49,11 @@ impl LedgerStateDeltaForTransactionGroup {
     }
 }
 
+
+
 impl crate::JsonSerializable for LedgerStateDeltaForTransactionGroup {}
 
 impl crate::MsgpackDecodable for LedgerStateDeltaForTransactionGroup {}
+
+crate::auto_impl_json_ffi!(LedgerStateDeltaForTransactionGroup, ledger_state_delta_for_transaction_group);
 

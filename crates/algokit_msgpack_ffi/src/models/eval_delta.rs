@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// EvalDelta : Represents a TEAL value delta.
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -40,7 +46,6 @@ pub struct EvalDelta {
 impl EvalDelta {
     /// Represents a TEAL value delta.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         action: i32, bytes: Option<String>, uint: Option<i32>
     ) -> EvalDelta {
@@ -52,7 +57,11 @@ impl EvalDelta {
     }
 }
 
+
+
 impl crate::JsonSerializable for EvalDelta {}
 
 impl crate::MsgpackDecodable for EvalDelta {}
+
+crate::auto_impl_json_ffi!(EvalDelta, eval_delta);
 

@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// SimulationOpcodeTraceUnit : The set of trace information and effect from evaluating a single opcode.
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -58,7 +64,6 @@ pub struct SimulationOpcodeTraceUnit {
 impl SimulationOpcodeTraceUnit {
     /// The set of trace information and effect from evaluating a single opcode.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         pc: i32, scratch_changes: Option<Vec<models::ScratchChange>>, state_changes: Option<Vec<models::ApplicationStateOperation>>, spawned_inners: Option<Vec<i32>>, stack_pop_count: Option<i32>, stack_additions: Option<Vec<models::AvmValue>>
     ) -> SimulationOpcodeTraceUnit {
@@ -73,7 +78,11 @@ impl SimulationOpcodeTraceUnit {
     }
 }
 
+
+
 impl crate::JsonSerializable for SimulationOpcodeTraceUnit {}
 
 impl crate::MsgpackDecodable for SimulationOpcodeTraceUnit {}
+
+crate::auto_impl_json_ffi!(SimulationOpcodeTraceUnit, simulation_opcode_trace_unit);
 

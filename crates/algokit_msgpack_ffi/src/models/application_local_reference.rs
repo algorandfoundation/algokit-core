@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// ApplicationLocalReference : References an account's local state for an application.
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -34,7 +40,6 @@ pub struct ApplicationLocalReference {
 impl ApplicationLocalReference {
     /// References an account's local state for an application.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         account: String,app: i32,
     ) -> ApplicationLocalReference {
@@ -45,7 +50,11 @@ impl ApplicationLocalReference {
     }
 }
 
+
+
 impl crate::JsonSerializable for ApplicationLocalReference {}
 
 impl crate::MsgpackDecodable for ApplicationLocalReference {}
+
+crate::auto_impl_json_ffi!(ApplicationLocalReference, application_local_reference);
 

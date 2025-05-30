@@ -11,27 +11,41 @@ use serde_with::serde_as;
 use serde_repr::{Serialize_repr,Deserialize_repr};
 {{/isInteger}}
 {{/isEnum}}
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
+{{! FFI attribute macro for cleaner code }}
 {{#description}}
 /// {{{classname}}} : {{{description}}}
 {{/description}}
-{{!-- for repr(int) enum schemas --}}
+
+{{! Common FFI attributes macro }}
 {{#isEnum}}
 {{#isInteger}}
-/// {{{description}}}
 #[repr(i64)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize_repr, Deserialize_repr)]
+{{/isInteger}}
+{{^isInteger}}
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+{{/isInteger}}
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Enum))]
 pub enum {{{classname}}} {
 {{#allowableValues}}
 {{#enumVars}}
+{{#isInteger}}
     {{{name}}} = {{{value}}},
+{{/isInteger}}
+{{^isInteger}}
+    #[serde(rename = "{{{value}}}")]
+    {{{name}}},
+{{/isInteger}}
 {{/enumVars}}{{/allowableValues}}
 }
 
 impl std::fmt::Display for {{{classname}}} {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{}", match self {
             {{#allowableValues}}
             {{#enumVars}}
@@ -41,37 +55,7 @@ impl std::fmt::Display for {{{classname}}} {
         })
     }
 }
-{{/isInteger}}
-{{/isEnum}}
-{{!-- for enum schemas --}}
-{{#isEnum}}
-{{^isInteger}}
-/// {{{description}}}
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
-#[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
-#[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
-#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Enum))]
-pub enum {{{classname}}} {
-{{#allowableValues}}
-{{#enumVars}}
-    #[serde(rename = "{{{value}}}")]
-    {{{name}}},
-{{/enumVars}}{{/allowableValues}}
-}
 
-impl std::fmt::Display for {{{classname}}} {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            {{#allowableValues}}
-            {{#enumVars}}
-            Self::{{{name}}} => write!(f, "{{{value}}}"),
-            {{/enumVars}}
-            {{/allowableValues}}
-        }
-    }
-}
-
-{{/isInteger}}
 impl Default for {{{classname}}} {
     fn default() -> {{{classname}}} {
         {{#allowableValues}}
@@ -80,7 +64,7 @@ impl Default for {{{classname}}} {
     }
 }
 {{/isEnum}}
-{{!-- for schemas that have a discriminator --}}
+
 {{#discriminator}}
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
@@ -125,9 +109,8 @@ impl Default for {{classname}} {
         {{/oneOf}}{{^oneOf.isEmpty}}{{#composedSchemas.oneOf}}{{#-first}}Self::{{{name}}}(Default::default()){{/-first}}{{/composedSchemas.oneOf}}{{/oneOf.isEmpty}}
     }
 }
-
 {{/discriminator}}
-{{!-- for non-enum schemas --}}
+
 {{^isEnum}}
 {{^discriminator}}
 {{#vendorExtensions.x-rust-has-byte-array}}#[serde_as]
@@ -147,21 +130,7 @@ pub struct {{{classname}}} {
     {{^required}}{{#isNullable}}#[cfg_attr(feature = "ffi_wasm", tsify(optional))]{{/isNullable}}{{/required}}
     {{^required}}{{^isNullable}}#[cfg_attr(feature = "ffi_wasm", tsify(optional))]{{/isNullable}}{{/required}}
     {{^required}}#[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]{{/required}}
-    pub {{{name}}}: {{!
-    ### Option Start
-    }}{{#isNullable}}Option<{{/isNullable}}{{^required}}Option<{{/required}}{{!
-    ### Enums
-    }}{{#isEnum}}{{#isArray}}{{#uniqueItems}}std::collections::HashSet<{{/uniqueItems}}{{^uniqueItems}}Vec<{{/uniqueItems}}{{/isArray}}{{{enumName}}}{{#isArray}}>{{/isArray}}{{/isEnum}}{{!
-    ### Non-Enums Start
-    }}{{^isEnum}}{{!
-    ### Models
-    }}{{#isModel}}{{{dataType}}}{{/isModel}}{{!
-    ### Primative datatypes
-    }}{{^isModel}}{{#isByteArray}}Vec<u8>{{/isByteArray}}{{^isByteArray}}{{{dataType}}}{{/isByteArray}}{{/isModel}}{{!
-    ### Non-Enums End
-    }}{{/isEnum}}{{!
-    ### Option End (and trailing comma)
-    }}{{#isNullable}}>{{/isNullable}}{{^required}}>{{/required}},
+    pub {{{name}}}: {{#isNullable}}Option<{{/isNullable}}{{^required}}Option<{{/required}}{{#isEnum}}{{#isArray}}{{#uniqueItems}}std::collections::HashSet<{{/uniqueItems}}{{^uniqueItems}}Vec<{{/uniqueItems}}{{/isArray}}{{{enumName}}}{{#isArray}}>{{/isArray}}{{/isEnum}}{{^isEnum}}{{#isModel}}{{{dataType}}}{{/isModel}}{{^isModel}}{{#isByteArray}}Vec<u8>{{/isByteArray}}{{^isByteArray}}{{{dataType}}}{{/isByteArray}}{{/isModel}}{{/isEnum}}{{#isNullable}}>{{/isNullable}}{{^required}}>{{/required}},
 {{/vars}}
 }
 
@@ -170,20 +139,19 @@ impl {{{classname}}} {
     /// {{{.}}}
     {{/description}}
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         {{#requiredVars}}{{{name}}}: {{#isNullable}}Option<{{/isNullable}}{{#isEnum}}{{#isArray}}{{#uniqueItems}}std::collections::HashSet<{{/uniqueItems}}{{^uniqueItems}}Vec<{{/uniqueItems}}{{/isArray}}{{{enumName}}}{{#isArray}}>{{/isArray}}{{/isEnum}}{{^isEnum}}{{#isByteArray}}Vec<u8>{{/isByteArray}}{{^isByteArray}}{{{dataType}}}{{/isByteArray}}{{/isEnum}}{{#isNullable}}>{{/isNullable}},{{/requiredVars}}{{#vars}}{{^required}} {{{name}}}: Option<{{#isEnum}}{{#isArray}}{{#uniqueItems}}std::collections::HashSet<{{/uniqueItems}}{{^uniqueItems}}Vec<{{/uniqueItems}}{{/isArray}}{{{enumName}}}{{#isArray}}>{{/isArray}}{{/isEnum}}{{^isEnum}}{{#isByteArray}}Vec<u8>{{/isByteArray}}{{^isByteArray}}{{{dataType}}}{{/isByteArray}}{{/isEnum}}>{{^-last}},{{/-last}}{{/required}}{{/vars}}
     ) -> {{{classname}}} {
         {{{classname}}} {
             {{#vars}}
-            {{{name}}}{{#required}}{{^isModel}}: {{{name}}}{{/isModel}}{{#isModel}}: {{{name}}}{{/isModel}}{{/required}}{{^required}}: {{{name}}}{{/required}},
+            {{{name}}}{{#required}}: {{{name}}}{{/required}}{{^required}}: {{{name}}}{{/required}},
             {{/vars}}
         }
     }
 }
 {{/oneOf.isEmpty}}
+
 {{^oneOf.isEmpty}}
-{{! TODO: add other vars that are not part of the oneOf}}
 {{#description}}
 /// {{{.}}}
 {{/description}}
@@ -209,10 +177,9 @@ impl Default for {{classname}} {
 {{/oneOf.isEmpty}}
 {{/discriminator}}
 {{/isEnum}}
-{{!-- for properties that are of enum type --}}
+
 {{#vars}}
 {{#isEnum}}
-/// {{{description}}}
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -238,13 +205,15 @@ impl Default for {{{enumName}}} {
 
 impl crate::JsonSerializable for {{{classname}}} {}
 
-{{!-- Msgpack trait implementations based on vendor extensions --}}
 {{#vendorExtensions.x-algorand-msgpack-encodable}}
 impl crate::MsgpackEncodable for {{{classname}}} {}
 {{/vendorExtensions.x-algorand-msgpack-encodable}}
 {{#vendorExtensions.x-algorand-msgpack-decodable}}
 impl crate::MsgpackDecodable for {{{classname}}} {}
 {{/vendorExtensions.x-algorand-msgpack-decodable}}
+
+{{! Auto-register this model for FFI generation - JSON only }}
+crate::auto_impl_json_ffi!({{{classname}}}, {{#lambda.snakecase}}{{{classname}}}{{/lambda.snakecase}});
 
 {{/model}}
 {{/models}}

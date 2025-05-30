@@ -11,6 +11,12 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -36,7 +42,6 @@ pub struct TealDryrun200Response {
 
 impl TealDryrun200Response {
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         txns: Vec<models::DryrunTxnResult>,error: String,protocol_version: String,
     ) -> TealDryrun200Response {
@@ -48,6 +53,10 @@ impl TealDryrun200Response {
     }
 }
 
+
+
 impl crate::JsonSerializable for TealDryrun200Response {}
 
+
+crate::auto_impl_json_ffi!(TealDryrun200Response, teal_dryrun200_response);
 

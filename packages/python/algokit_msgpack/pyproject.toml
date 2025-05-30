@@ -13,7 +13,11 @@ manifest-path = "../../../crates/algokit_msgpack_ffi/Cargo.toml"
 
 module-name = "_algokit_msgpack"
 
-include = ["algokit_msgpack/py.typed", "algokit_msgpack/__init__.py"]
+include = [
+  "algokit_msgpack/py.typed",
+  "algokit_msgpack/__init__.py",
+  "algokit_msgpack/helpers.py",
+]
 
 
 [tool.poetry.group.dev.dependencies]

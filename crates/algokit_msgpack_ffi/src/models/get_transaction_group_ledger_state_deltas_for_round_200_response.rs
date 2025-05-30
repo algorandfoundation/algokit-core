@@ -11,6 +11,12 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -25,7 +31,6 @@ pub struct GetTransactionGroupLedgerStateDeltasForRound200Response {
 
 impl GetTransactionGroupLedgerStateDeltasForRound200Response {
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         deltas: Vec<models::LedgerStateDeltaForTransactionGroup>,
     ) -> GetTransactionGroupLedgerStateDeltasForRound200Response {
@@ -35,7 +40,11 @@ impl GetTransactionGroupLedgerStateDeltasForRound200Response {
     }
 }
 
+
+
 impl crate::JsonSerializable for GetTransactionGroupLedgerStateDeltasForRound200Response {}
 
 impl crate::MsgpackDecodable for GetTransactionGroupLedgerStateDeltasForRound200Response {}
+
+crate::auto_impl_json_ffi!(GetTransactionGroupLedgerStateDeltasForRound200Response, get_transaction_group_ledger_state_deltas_for_round200_response);
 

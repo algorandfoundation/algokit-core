@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// AssetHoldingReference : References an asset held by an account.
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -34,7 +40,6 @@ pub struct AssetHoldingReference {
 impl AssetHoldingReference {
     /// References an asset held by an account.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         account: String,asset: i32,
     ) -> AssetHoldingReference {
@@ -45,7 +50,11 @@ impl AssetHoldingReference {
     }
 }
 
+
+
 impl crate::JsonSerializable for AssetHoldingReference {}
 
 impl crate::MsgpackDecodable for AssetHoldingReference {}
+
+crate::auto_impl_json_ffi!(AssetHoldingReference, asset_holding_reference);
 

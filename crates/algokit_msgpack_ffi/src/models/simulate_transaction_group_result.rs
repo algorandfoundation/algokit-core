@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// SimulateTransactionGroupResult : Simulation result for an atomic transaction group
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -57,7 +63,6 @@ pub struct SimulateTransactionGroupResult {
 impl SimulateTransactionGroupResult {
     /// Simulation result for an atomic transaction group
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         txn_results: Vec<models::SimulateTransactionResult>, failure_message: Option<String>, failed_at: Option<Vec<i32>>, app_budget_added: Option<i32>, app_budget_consumed: Option<i32>, unnamed_resources_accessed: Option<models::SimulateUnnamedResourcesAccessed>
     ) -> SimulateTransactionGroupResult {
@@ -72,7 +77,11 @@ impl SimulateTransactionGroupResult {
     }
 }
 
+
+
 impl crate::JsonSerializable for SimulateTransactionGroupResult {}
 
 impl crate::MsgpackDecodable for SimulateTransactionGroupResult {}
+
+crate::auto_impl_json_ffi!(SimulateTransactionGroupResult, simulate_transaction_group_result);
 

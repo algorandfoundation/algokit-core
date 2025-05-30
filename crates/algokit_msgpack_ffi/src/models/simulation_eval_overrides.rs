@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// SimulationEvalOverrides : The set of parameters and limits override during simulation. If this set of parameters is present, then evaluation parameters may differ from standard evaluation in certain ways.
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -58,7 +64,6 @@ pub struct SimulationEvalOverrides {
 impl SimulationEvalOverrides {
     /// The set of parameters and limits override during simulation. If this set of parameters is present, then evaluation parameters may differ from standard evaluation in certain ways.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
          allow_empty_signatures: Option<bool>, allow_unnamed_resources: Option<bool>, max_log_calls: Option<i32>, max_log_size: Option<i32>, extra_opcode_budget: Option<i32>, fix_signers: Option<bool>
     ) -> SimulationEvalOverrides {
@@ -73,7 +78,11 @@ impl SimulationEvalOverrides {
     }
 }
 
+
+
 impl crate::JsonSerializable for SimulationEvalOverrides {}
 
 impl crate::MsgpackDecodable for SimulationEvalOverrides {}
+
+crate::auto_impl_json_ffi!(SimulationEvalOverrides, simulation_eval_overrides);
 

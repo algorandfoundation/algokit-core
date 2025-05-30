@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// DryrunState : Stores the TEAL eval step data
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -50,7 +56,6 @@ pub struct DryrunState {
 impl DryrunState {
     /// Stores the TEAL eval step data
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         line: i32,pc: i32,stack: Vec<models::TealValue>, scratch: Option<Vec<models::TealValue>>, error: Option<String>
     ) -> DryrunState {
@@ -64,6 +69,10 @@ impl DryrunState {
     }
 }
 
+
+
 impl crate::JsonSerializable for DryrunState {}
 
+
+crate::auto_impl_json_ffi!(DryrunState, dryrun_state);
 

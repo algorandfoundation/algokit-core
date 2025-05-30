@@ -42,9 +42,24 @@ from algokit_algod_api.exceptions import (
 # Import msgpack encoding/decoding functions from algokit_msgpack
 try:
     from algokit_msgpack import *
+    import algokit_msgpack
+    from algokit_msgpack.helpers import (
+        model_to_json_str,
+        model_from_json_str,
+        model_to_msgpack,
+        model_from_msgpack,
+        FFINotImplementedError
+    )
     MSGPACK_AVAILABLE = True
 except ImportError:
     MSGPACK_AVAILABLE = False
+    # Define dummy fallbacks if helpers are not found, so the client doesn't break
+    # Ensure these are defined in a way that they can be called without error if MSGPACK_AVAILABLE is false
+    def model_to_json_str(model_instance): raise FFINotImplementedError("algokit_msgpack.helpers not found")
+    def model_from_json_str(model_class, json_data): raise FFINotImplementedError("algokit_msgpack.helpers not found")
+    def model_to_msgpack(model_instance): raise FFINotImplementedError("algokit_msgpack.helpers not found")
+    def model_from_msgpack(model_class, msgpack_data): raise FFINotImplementedError("algokit_msgpack.helpers not found")
+    class FFINotImplementedError(NotImplementedError): pass
 
 RequestSerialized = Tuple[str, str, Dict[str, str], Optional[str], List[str]]
 
@@ -233,28 +248,51 @@ class ApiClient:
         # body
         if body:
             # If the request will be sent as MessagePack, use specific encoding functions
-            content_type_hdr = header_params.get('Content-Type', '') if header_params else ''
-            if content_type_hdr.startswith('application/msgpack') and MSGPACK_AVAILABLE:
-                try:
-                    # Use specific encoding functions based on model type
-                    if hasattr(body, '__class__'):
-                        model_name = body.__class__.__name__
-                        if model_name == 'SimulateRequest':
-                            body = encode_simulate_request(body)
-                        elif model_name == 'DryrunRequest':
-                            body = encode_dryrun_request(body)
-                        elif model_name == 'Account':
-                            body = encode_account(body)
-                        else:
-                            # Fallback to JSON serialization for unsupported models
-                            body = self.sanitize_for_serialization(body)
-                    else:
-                        body = self.sanitize_for_serialization(body)
-                except (MsgpackError, Exception) as e:
-                    # Fallback to JSON serialization on encoding errors
+            content_type_hdr = header_params.get('Content-Type', '').lower() if header_params else '' # lower for robust check
+            
+            is_ffi_model = hasattr(body, '__module__') and body.__module__ and 'algokit_msgpack' in str(body.__module__)
+
+            if content_type_hdr.startswith('application/msgpack'):
+                if MSGPACK_AVAILABLE and is_ffi_model:
+                    try:
+                        body = model_to_msgpack(body)
+                    except (FFINotImplementedError, MsgpackError, Exception) as e:
+                        self.configuration.logger["package_logger"].warning(f"Msgpack FFI serialization via helper failed for {body.__class__.__name__}, falling back to sanitize: {e}")
+                        raise e
+                elif MSGPACK_AVAILABLE and not is_ffi_model: # Non-FFI model, but msgpack requested
+                    self.configuration.logger["package_logger"].warning(f"Msgpack requested for non-FFI model {body.__class__.__name__}. Attempting JSON fallback.")
                     body = self.sanitize_for_serialization(body)
-            else:
-                body = self.sanitize_for_serialization(body)
+                    if isinstance(body, dict): body = json.dumps(body)
+                    header_params['Content-Type'] = 'application/json' # Change content type
+                else: # MSGPACK_AVAILABLE is False, or other issue
+                    body = self.sanitize_for_serialization(body)
+                    if isinstance(body, dict): body = json.dumps(body)
+                    if content_type_hdr.startswith('application/msgpack'):
+                         header_params['Content-Type'] = 'application/json' # Change content type
+
+            elif content_type_hdr.startswith('application/json'):
+                if MSGPACK_AVAILABLE and is_ffi_model: # Use FFINotImplementedError from helpers
+                    try:
+                        body = model_to_json_str(body) # This returns a JSON string
+                    except (FFINotImplementedError, MsgpackError, Exception) as e:
+                        self.configuration.logger["package_logger"].warning(f"JSON FFI serialization via helper failed for {body.__class__.__name__}, falling back to sanitize: {e}")
+                        body = self.sanitize_for_serialization(body) # dict
+                        if isinstance(body, dict): body = json.dumps(body) # string
+                else: # Not an FFI model or helpers not available
+                    body = self.sanitize_for_serialization(body) # dict
+                    if isinstance(body, dict): body = json.dumps(body) # string
+            
+            # Ensure body is bytes for non-JSON/Msgpack string bodies after sanitize (e.g. for urlencoded)
+            # or if sanitize_for_serialization returned a primitive that needs encoding
+            if not (content_type_hdr.startswith('application/json') or
+                    content_type_hdr.startswith('application/msgpack') or
+                    content_type_hdr.startswith('multipart/form-data')):
+                # if sanitize_for_serialization was called, it might be a dict or list for x-www-form-urlencoded
+                # if it's a string already (e.g. from a failed FFI fallback to json.dumps), it needs to be encoded
+                if isinstance(body, str):
+                    body = body.encode('utf-8') # Ensure body is bytes if it's a string.
+            # If sanitize_for_serialization was called above and produced a dict for JSON/Msgpack,
+            # it would have been json.dumps'd. If it's for x-www-form-urlencoded, rest_client handles dicts.
 
         # request url
         if _host is None or self.configuration.ignore_operation_servers:
@@ -343,30 +381,50 @@ class ApiClient:
                 if content_type is not None:
                     match = re.search(r"charset=([a-zA-Z\-\d]+)[\s;]?", content_type)
                 encoding = match.group(1) if match else "utf-8"
+                
+                is_ffi_response_type = False
+                actual_response_class = None
+                if isinstance(response_type, str):
+                    # Try to resolve string response_type to actual class for FFI check
+                    # This logic is simplified; proper resolution might be more complex
+                    # (e.g. looking up in models module)
+                    if 'algokit_msgpack' in globals() and hasattr(algokit_msgpack, response_type):
+                         actual_response_class = getattr(algokit_msgpack, response_type)
+                         if hasattr(actual_response_class, '__module__') and actual_response_class.__module__ and 'algokit_msgpack' in actual_response_class.__module__:
+                            is_ffi_response_type = True
+                elif hasattr(response_type, '__module__') and response_type.__module__ and 'algokit_msgpack' in response_type.__module__:
+                    is_ffi_response_type = True
+                    actual_response_class = response_type
+
+
                 if content_type and content_type.lower().startswith('application/msgpack'):
-                    # Attempt to decode via algokit_msgpack if available and model supports it
-                    if MSGPACK_AVAILABLE:
+                    if MSGPACK_AVAILABLE and is_ffi_response_type and actual_response_class:
                         try:
-                            # Use specific decoding functions based on response type
-                            if response_type == 'Account':
-                                return_data = decode_account(response_data.data)
-                            elif response_type == 'ErrorResponse':
-                                return_data = decode_error_response(response_data.data)
-                            elif response_type == 'PendingTransactionResponse':
-                                return_data = decode_pending_transaction_response(response_data.data)
-                            elif response_type == 'LedgerStateDeltaForTransactionGroup':
-                                return_data = decode_ledger_state_delta_for_transaction_group(response_data.data)
-                            else:
-                                # Fall back to returning raw bytes if model not supported for msgpack decoding
-                                return_data = response_data.data
-                        except (MsgpackError, Exception):
-                            # Fall back to returning raw bytes on decoding errors
-                            return_data = response_data.data
-                    else:
+                            return_data = model_from_msgpack(actual_response_class, response_data.data)
+                        except (FFINotImplementedError, MsgpackError, Exception) as e:
+                            self.configuration.logger["package_logger"].warning(f"Msgpack FFI deserialization via helper failed for {actual_response_class.__name__}, falling back to raw bytes: {e}")
+                            return_data = response_data.data # Fall back to raw bytes
+                    elif MSGPACK_AVAILABLE and not is_ffi_response_type: # msgpack response, but not an FFI model type expected
+                         self.configuration.logger["package_logger"].warning(f"Received msgpack for non-FFI type {response_type}. Returning raw bytes.")
+                         return_data = response_data.data
+                    else: # MSGPACK_AVAILABLE is False or other issue
                         return_data = response_data.data
-                else:
+                elif content_type and content_type.lower().startswith('application/json'):
+                    response_text = response_data.data.decode(encoding)
+                    if MSGPACK_AVAILABLE and is_ffi_response_type and actual_response_class:
+                        try:
+                            return_data = model_from_json_str(actual_response_class, response_text)
+                        except (FFINotImplementedError, MsgpackError, Exception) as e:
+                            self.configuration.logger["package_logger"].warning(f"JSON FFI deserialization via helper failed for {actual_response_class.__name__}, falling back to generic deserialize: {e}")
+                            return_data = self.deserialize(response_text, response_type, content_type) # Fallback
+                    else: # Not an FFI model or helpers not available
+                        return_data = self.deserialize(response_text, response_type, content_type)
+                elif response_type: # other content types but response_type is specified
                     response_text = response_data.data.decode(encoding)
                     return_data = self.deserialize(response_text, response_type, content_type)
+                else: # No specific response type, but we have data.
+                    return_data = response_data.data # return raw bytes if no type or unknown content-type
+
         finally:
             if not 200 <= response_data.status <= 299:
                 raise ApiException.from_response(
@@ -424,7 +482,7 @@ class ApiClient:
             # and attributes which value is not None.
             # Convert attribute name to json key in
             # model definition for request.
-
+            
             # Check if this is an FFI model from algokit_msgpack
             if hasattr(obj, '__module__') and 'algokit_msgpack' in str(obj.__module__):
                 # Try to use the model's to_dict method if available
@@ -875,34 +933,22 @@ class ApiClient:
         :param klass: class literal.
         :return: model object.
         """
-
-        # Check if this is an FFI model from algokit_msgpack that uses serde JSON
-        # These models don't have from_dict but can be deserialized from JSON
-        if hasattr(klass, '__module__') and 'algokit_msgpack' in str(klass.__module__):
-            import json
-            try:
-                # Convert dict to JSON string and let the FFI model deserialize it
-                json_str = json.dumps(data)
-                # Try to use the model's JSON deserialization if available
-                if hasattr(klass, 'from_json'):
-                    return klass.from_json(json_str)
-                elif hasattr(klass, '__init__') and hasattr(klass, '__dict__'):
-                    # Fallback: create instance and set attributes directly
-                    instance = klass.__new__(klass)
-                    for key, value in data.items():
-                        # Convert hyphenated keys to underscored for Python attributes
-                        attr_name = key.replace('-', '_')
-                        setattr(instance, attr_name, value)
-                    return instance
-                else:
-                    # Last resort: try calling constructor with data as kwargs
-                    return klass(**data)
-            except Exception as e:
-                # If FFI deserialization fails, fall back to from_dict if available
-                if hasattr(klass, 'from_dict'):
-                    return klass.from_dict(data)
-                else:
-                    raise Exception(f"Failed to deserialize FFI model {klass}: {e}")
-
-        # Standard OpenAPI model deserialization
-        return klass.from_dict(data)
+        
+        # FFI models are now primarily handled by model_from_json_str or model_from_msgpack in response_deserialize.
+        # This __deserialize_model is more of a fallback for JSON if FFI helpers failed, 
+        # or for non-FFI models.
+        
+        # Existing FFI check for fallback from generic JSON parsing (if data is dict)
+        if hasattr(klass, '__module__') and klass.__module__ and 'algokit_msgpack' in klass.__module__:
+            # This path is hit if model_from_json_str failed and fallback self.deserialize was called for an FFI type.
+            # The `data` here would be a Python dict parsed from JSON.
+            # We need to convert it to a JSON string to use the from_json FFI function.
+            if isinstance(data, dict):
+                json_str_from_dict = json.dumps(data)
+                if MSGPACK_AVAILABLE and hasattr(algokit_msgpack.helpers, 'model_from_json_str'): # Check helpers directly
+                    try:
+                        # Retry with FFI helper if it exists, as a last specific resort for FFI JSON from dict
+                        return algokit_msgpack.helpers.model_from_json_str(klass, json_str_from_dict)
+                    except (FFINotImplementedError, MsgpackError, Exception):
+                        self.configuration.logger["package_logger"].warning(f"Fallback FFI JSON deserialization for {klass.__name__} from dict also failed.")
+                       

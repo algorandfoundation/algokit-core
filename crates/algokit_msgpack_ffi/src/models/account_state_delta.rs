@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// AccountStateDelta : Application state delta.
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -33,7 +39,6 @@ pub struct AccountStateDelta {
 impl AccountStateDelta {
     /// Application state delta.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         address: String,delta: Vec<models::EvalDeltaKeyValue>,
     ) -> AccountStateDelta {
@@ -44,7 +49,11 @@ impl AccountStateDelta {
     }
 }
 
+
+
 impl crate::JsonSerializable for AccountStateDelta {}
 
 impl crate::MsgpackDecodable for AccountStateDelta {}
+
+crate::auto_impl_json_ffi!(AccountStateDelta, account_state_delta);
 

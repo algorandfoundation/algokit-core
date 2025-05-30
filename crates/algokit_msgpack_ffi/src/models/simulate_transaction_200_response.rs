@@ -11,6 +11,12 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -53,7 +59,6 @@ pub struct SimulateTransaction200Response {
 
 impl SimulateTransaction200Response {
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         version: i32,last_round: i32,txn_groups: Vec<models::SimulateTransactionGroupResult>, eval_overrides: Option<models::SimulationEvalOverrides>, exec_trace_config: Option<models::SimulateTraceConfig>, initial_states: Option<models::SimulateInitialStates>
     ) -> SimulateTransaction200Response {
@@ -68,7 +73,11 @@ impl SimulateTransaction200Response {
     }
 }
 
+
+
 impl crate::JsonSerializable for SimulateTransaction200Response {}
 
 impl crate::MsgpackDecodable for SimulateTransaction200Response {}
+
+crate::auto_impl_json_ffi!(SimulateTransaction200Response, simulate_transaction200_response);
 

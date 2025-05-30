@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// DryrunSource : DryrunSource is TEAL source text that gets uploaded, compiled, and inserted into transactions or application state.
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -43,7 +49,6 @@ pub struct DryrunSource {
 impl DryrunSource {
     /// DryrunSource is TEAL source text that gets uploaded, compiled, and inserted into transactions or application state.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         field_name: String,source: String,txn_index: i32,app_index: i32,
     ) -> DryrunSource {
@@ -56,7 +61,11 @@ impl DryrunSource {
     }
 }
 
+
+
 impl crate::JsonSerializable for DryrunSource {}
 
 impl crate::MsgpackEncodable for DryrunSource {}
+
+crate::auto_impl_json_ffi!(DryrunSource, dryrun_source);
 

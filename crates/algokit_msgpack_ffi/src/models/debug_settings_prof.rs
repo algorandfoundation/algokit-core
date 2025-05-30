@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// DebugSettingsProf : algod mutex and blocking profiling state.
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -34,7 +40,6 @@ pub struct DebugSettingsProf {
 impl DebugSettingsProf {
     /// algod mutex and blocking profiling state.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
          block_rate: Option<i32>, mutex_rate: Option<i32>
     ) -> DebugSettingsProf {
@@ -45,6 +50,10 @@ impl DebugSettingsProf {
     }
 }
 
+
+
 impl crate::JsonSerializable for DebugSettingsProf {}
 
+
+crate::auto_impl_json_ffi!(DebugSettingsProf, debug_settings_prof);
 

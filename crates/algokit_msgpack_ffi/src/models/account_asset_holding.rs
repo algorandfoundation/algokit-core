@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// AccountAssetHolding : AccountAssetHolding describes the account's asset holding and asset parameters (if either exist) for a specific asset ID.
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -32,7 +38,6 @@ pub struct AccountAssetHolding {
 impl AccountAssetHolding {
     /// AccountAssetHolding describes the account's asset holding and asset parameters (if either exist) for a specific asset ID.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         asset_holding: models::AssetHolding, asset_params: Option<models::AssetParams>
     ) -> AccountAssetHolding {
@@ -43,6 +48,10 @@ impl AccountAssetHolding {
     }
 }
 
+
+
 impl crate::JsonSerializable for AccountAssetHolding {}
 
+
+crate::auto_impl_json_ffi!(AccountAssetHolding, account_asset_holding);
 

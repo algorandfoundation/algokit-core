@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// ScratchChange : A write operation into a scratch slot.
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -33,7 +39,6 @@ pub struct ScratchChange {
 impl ScratchChange {
     /// A write operation into a scratch slot.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         slot: i32,new_value: models::AvmValue,
     ) -> ScratchChange {
@@ -44,7 +49,11 @@ impl ScratchChange {
     }
 }
 
+
+
 impl crate::JsonSerializable for ScratchChange {}
 
 impl crate::MsgpackDecodable for ScratchChange {}
+
+crate::auto_impl_json_ffi!(ScratchChange, scratch_change);
 

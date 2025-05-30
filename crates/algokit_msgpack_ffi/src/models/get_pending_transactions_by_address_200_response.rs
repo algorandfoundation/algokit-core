@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// GetPendingTransactionsByAddress200Response : PendingTransactions is an array of signed transactions exactly as they were submitted.
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -34,7 +40,6 @@ pub struct GetPendingTransactionsByAddress200Response {
 impl GetPendingTransactionsByAddress200Response {
     /// PendingTransactions is an array of signed transactions exactly as they were submitted.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         top_transactions: Vec<String>,total_transactions: i32,
     ) -> GetPendingTransactionsByAddress200Response {
@@ -45,7 +50,11 @@ impl GetPendingTransactionsByAddress200Response {
     }
 }
 
+
+
 impl crate::JsonSerializable for GetPendingTransactionsByAddress200Response {}
 
 impl crate::MsgpackDecodable for GetPendingTransactionsByAddress200Response {}
+
+crate::auto_impl_json_ffi!(GetPendingTransactionsByAddress200Response, get_pending_transactions_by_address200_response);
 

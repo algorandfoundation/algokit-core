@@ -13,7 +13,6 @@
 """  # noqa: E501
 
 
-
 from random import randbytes
 from typing import Dict
 
@@ -40,7 +39,6 @@ def headers() -> Dict[str, str]:
 def algod_instance(api_client_fixture) -> AlgodApi:
     """Fixture for AlgodApi instance."""
     return AlgodApi(api_client_fixture)
-
 
 
 class TestAccountsAPI:

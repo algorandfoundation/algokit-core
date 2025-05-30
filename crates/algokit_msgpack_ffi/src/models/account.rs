@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// Account : Account information at a given round.  Definition: data/basics/userBalance.go : AccountData 
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -182,7 +188,6 @@ pub struct Account {
 impl Account {
     /// Account information at a given round.  Definition: data/basics/userBalance.go : AccountData 
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         address: String,amount: i32,min_balance: i32,amount_without_pending_rewards: i32,total_apps_opted_in: i32,total_assets_opted_in: i32,total_created_apps: i32,total_created_assets: i32,pending_rewards: i32,rewards: i32,round: i32,status: String, apps_local_state: Option<Vec<models::ApplicationLocalState>>, apps_total_schema: Option<models::ApplicationStateSchema>, apps_total_extra_pages: Option<i32>, assets: Option<Vec<models::AssetHolding>>, created_apps: Option<Vec<models::Application>>, created_assets: Option<Vec<models::Asset>>, total_boxes: Option<i32>, total_box_bytes: Option<i32>, participation: Option<models::AccountParticipation>, incentive_eligible: Option<bool>, reward_base: Option<i32>, sig_type: Option<SigType>, auth_addr: Option<String>, last_proposed: Option<i32>, last_heartbeat: Option<i32>
     ) -> Account {
@@ -217,7 +222,8 @@ impl Account {
         }
     }
 }
-/// Indicates what type of signature is used by this account, must be one of: * sig * msig * lsig
+
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -241,4 +247,6 @@ impl crate::JsonSerializable for Account {}
 
 impl crate::MsgpackEncodable for Account {}
 impl crate::MsgpackDecodable for Account {}
+
+crate::auto_impl_json_ffi!(Account, account);
 

@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// PendingTransactionResponse : Details about a pending transaction. If the transaction was recently confirmed, includes confirmation details like the round and reward details.
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -106,7 +112,6 @@ pub struct PendingTransactionResponse {
 impl PendingTransactionResponse {
     /// Details about a pending transaction. If the transaction was recently confirmed, includes confirmation details like the round and reward details.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         pool_error: String,txn: String, asset_index: Option<i32>, application_index: Option<i32>, close_rewards: Option<i32>, closing_amount: Option<i32>, asset_closing_amount: Option<i32>, confirmed_round: Option<i32>, receiver_rewards: Option<i32>, sender_rewards: Option<i32>, local_state_delta: Option<Vec<models::AccountStateDelta>>, global_state_delta: Option<Vec<models::EvalDeltaKeyValue>>, logs: Option<Vec<String>>, inner_txns: Option<Vec<models::PendingTransactionResponse>>,
     ) -> PendingTransactionResponse {
@@ -129,7 +134,11 @@ impl PendingTransactionResponse {
     }
 }
 
+
+
 impl crate::JsonSerializable for PendingTransactionResponse {}
 
 impl crate::MsgpackDecodable for PendingTransactionResponse {}
+
+crate::auto_impl_json_ffi!(PendingTransactionResponse, pending_transaction_response);
 

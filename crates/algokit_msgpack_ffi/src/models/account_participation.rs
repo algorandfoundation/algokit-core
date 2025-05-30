@@ -13,7 +13,13 @@ use serde::{Deserialize, Serialize};
 
 use serde_with::serde_as;
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// AccountParticipation : AccountParticipation describes the parameters used by this account in consensus protocol.
+
+
+
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
@@ -64,7 +70,6 @@ pub struct AccountParticipation {
 impl AccountParticipation {
     /// AccountParticipation describes the parameters used by this account in consensus protocol.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         selection_participation_key: Vec<u8>,vote_first_valid: i32,vote_key_dilution: i32,vote_last_valid: i32,vote_participation_key: Vec<u8>, state_proof_key: Option<Vec<u8>>
     ) -> AccountParticipation {
@@ -79,8 +84,12 @@ impl AccountParticipation {
     }
 }
 
+
+
 impl crate::JsonSerializable for AccountParticipation {}
 
 impl crate::MsgpackEncodable for AccountParticipation {}
 impl crate::MsgpackDecodable for AccountParticipation {}
+
+crate::auto_impl_json_ffi!(AccountParticipation, account_participation);
 

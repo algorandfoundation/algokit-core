@@ -1,12 +1,7 @@
 #![allow(unused_imports)]
 #![allow(clippy::too_many_arguments)]
 
-extern crate reqwest;
-extern crate serde;
-extern crate serde_json;
-extern crate serde_repr;
-extern crate url;
-
+use paste::paste;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use thiserror::Error;
@@ -14,9 +9,11 @@ use thiserror::Error;
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::*;
 
-pub mod models;
+// Re-export for use in models
+#[cfg(feature = "ffi_wasm")]
+pub use wasm_bindgen;
 
-// Re-export all models
+pub mod models;
 pub use models::*;
 
 /// Error types for msgpack operations
@@ -53,15 +50,10 @@ impl From<serde_json::Error> for MsgpackError {
     }
 }
 
-/// Trait for models that support msgpack encoding
 pub trait MsgpackEncodable: Serialize {}
-
-/// Trait for models that support msgpack decoding
 pub trait MsgpackDecodable: for<'de> Deserialize<'de> {}
 
-/// Trait for models that support JSON serialization
 pub trait JsonSerializable: Serialize + for<'de> Deserialize<'de> {
-    /// Convert the model to a JSON dictionary (HashMap)
     fn to_dict(
         &self,
     ) -> Result<std::collections::HashMap<String, serde_json::Value>, MsgpackError> {
@@ -76,7 +68,6 @@ pub trait JsonSerializable: Serialize + for<'de> Deserialize<'de> {
         }
     }
 
-    /// Create the model from a JSON dictionary (HashMap)
     fn from_dict(
         dict: std::collections::HashMap<String, serde_json::Value>,
     ) -> Result<Self, MsgpackError> {
@@ -85,24 +76,35 @@ pub trait JsonSerializable: Serialize + for<'de> Deserialize<'de> {
         Ok(result)
     }
 
-    /// Convert the model to a JSON string
     fn to_json(&self) -> Result<String, MsgpackError> {
         serde_json::to_string(self).map_err(|e| e.into())
     }
 
-    /// Create the model from a JSON string
     fn from_json(json_str: &str) -> Result<Self, MsgpackError> {
-        serde_json::from_str(json_str).map_err(|e| e.into())
+        let processed_json = preprocess_json_string(json_str);
+        serde_json::from_str(&processed_json).map_err(|e| e.into())
     }
 }
 
-/// Sorts a msgpack value recursively to ensure lexicographic field ordering
+/// Preprocesses JSON strings to handle literal escape characters
+/// Converts literal \n, \t, \r, etc. to actual escape sequences
+fn preprocess_json_string(json_str: &str) -> String {
+    json_str
+        .replace("\\n", "\n")
+        .replace("\\t", "\t")
+        .replace("\\r", "\r")
+        .replace("\\b", "\u{0008}") // backspace
+        .replace("\\f", "\u{000C}") // form feed
+        .replace("\\\n", "\\n") // handle actual backslash-n sequences
+        .replace("\\\t", "\\t") // handle actual backslash-t sequences
+        .replace("\\\r", "\\r") // handle actual backslash-r sequences
+}
+
 fn sort_msgpack_value(value: rmpv::Value) -> rmpv::Value {
     match value {
         rmpv::Value::Map(m) => {
             let mut sorted_map: BTreeMap<String, rmpv::Value> = BTreeMap::new();
 
-            // Convert and sort all key-value pairs
             for (k, v) in m {
                 if let rmpv::Value::String(key) = k {
                     let key_str = key.into_str().unwrap_or_default();
@@ -110,7 +112,6 @@ fn sort_msgpack_value(value: rmpv::Value) -> rmpv::Value {
                 }
             }
 
-            // Convert back to rmpv::Value::Map
             rmpv::Value::Map(
                 sorted_map
                     .into_iter()
@@ -121,33 +122,23 @@ fn sort_msgpack_value(value: rmpv::Value) -> rmpv::Value {
         rmpv::Value::Array(arr) => {
             rmpv::Value::Array(arr.into_iter().map(sort_msgpack_value).collect())
         }
-        // For all other types, return as-is
         v => v,
     }
 }
 
-/// Canonical msgpack encoding following Algorand's rules:
-/// 1. Every integer must be encoded to the smallest type possible (0-255->8bit, 256-65535->16bit, etc)
-/// 2. All field names must be sorted alphabetically
-/// 3. All empty and 0 fields should be omitted (handled by serde skip_serializing_if)
-/// 4. Every positive number must be encoded as uint (handled by rmp-serde)
-/// 5. Binary blob should be used for binary data and string for strings (handled by rmp-serde)
+/// Canonical msgpack encoding following Algorand's rules
 pub fn encode_msgpack_canonical<T: MsgpackEncodable>(model: &T) -> Result<Vec<u8>, MsgpackError> {
-    // Step 1: Serialize to msgpack using struct_map mode
     let mut temp_buf = Vec::new();
     let mut serializer = rmp_serde::Serializer::new(&mut temp_buf).with_struct_map();
     model.serialize(&mut serializer)?;
 
-    // Step 2: Deserialize to msgpack Value for sorting
     let msgpack_value: rmpv::Value = rmpv::decode::read_value(&mut std::io::Cursor::new(temp_buf))
         .map_err(|e| {
             MsgpackError::SerializationError(format!("Failed to parse msgpack for sorting: {}", e))
         })?;
 
-    // Step 3: Sort the msgpack value to ensure lexicographic field ordering
     let sorted_value = sort_msgpack_value(msgpack_value);
 
-    // Step 4: Re-encode the sorted value to final msgpack bytes
     let mut final_buf = Vec::new();
     rmpv::encode::write_value(&mut final_buf, &sorted_value).map_err(|e| {
         MsgpackError::SerializationError(format!("Failed to encode sorted msgpack: {}", e))
@@ -160,14 +151,12 @@ pub fn encode_msgpack_canonical<T: MsgpackEncodable>(model: &T) -> Result<Vec<u8
 pub fn encode_simulate_request_canonical(model: &SimulateRequest) -> Result<Vec<u8>, MsgpackError> {
     use base64::{engine::general_purpose, Engine as _};
 
-    // Convert to JSON first to leverage existing serialization, then encode manually
     let json_str = serde_json::to_string(model)?;
     let json_value: serde_json::Value = serde_json::from_str(&json_str)?;
 
     let mut buf = Vec::new();
     match &json_value {
         serde_json::Value::Object(map) => {
-            // Sort keys for consistent output
             let mut keys: Vec<&String> = map.keys().collect();
             keys.sort();
             rmp::encode::write_map_len(&mut buf, map.len() as u32)
@@ -193,7 +182,6 @@ pub fn encode_simulate_request_canonical(model: &SimulateRequest) -> Result<Vec<
     Ok(buf)
 }
 
-/// Helper function to encode transaction groups with proper handling of base64 msgpack
 fn encode_txn_groups(buf: &mut Vec<u8>, value: &serde_json::Value) -> Result<(), MsgpackError> {
     use base64::{engine::general_purpose, Engine as _};
 
@@ -219,7 +207,6 @@ fn encode_txn_groups(buf: &mut Vec<u8>, value: &serde_json::Value) -> Result<(),
                                 for txn in txns {
                                     match txn {
                                         serde_json::Value::String(s) => {
-                                            // Decode base64 and write raw msgpack bytes directly
                                             let decoded_bytes = general_purpose::STANDARD
                                                 .decode(s)
                                                 .map_err(|e| {
@@ -250,7 +237,6 @@ fn encode_txn_groups(buf: &mut Vec<u8>, value: &serde_json::Value) -> Result<(),
     Ok(())
 }
 
-/// Helper function to encode JSON values to msgpack
 fn encode_value_to_msgpack(
     value: &serde_json::Value,
     buf: &mut Vec<u8>,
@@ -261,12 +247,10 @@ fn encode_value_to_msgpack(
         Value::Null => {
             rmp::encode::write_nil(buf)
                 .map_err(|e| MsgpackError::SerializationError(e.to_string()))?;
-            Ok(())
         }
         Value::Bool(b) => {
             rmp::encode::write_bool(buf, *b)
                 .map_err(|e| MsgpackError::SerializationError(e.to_string()))?;
-            Ok(())
         }
         Value::Number(n) => {
             if let Some(i) = n.as_i64() {
@@ -283,12 +267,10 @@ fn encode_value_to_msgpack(
                     "Invalid number".to_string(),
                 ));
             }
-            Ok(())
         }
         Value::String(s) => {
             rmp::encode::write_str(buf, s)
                 .map_err(|e| MsgpackError::SerializationError(e.to_string()))?;
-            Ok(())
         }
         Value::Array(arr) => {
             rmp::encode::write_array_len(buf, arr.len() as u32)
@@ -296,10 +278,8 @@ fn encode_value_to_msgpack(
             for item in arr {
                 encode_value_to_msgpack(item, buf)?;
             }
-            Ok(())
         }
         Value::Object(obj) => {
-            // Sort keys for canonical encoding
             let mut keys: Vec<&String> = obj.keys().collect();
             keys.sort();
             rmp::encode::write_map_len(buf, obj.len() as u32)
@@ -311,38 +291,27 @@ fn encode_value_to_msgpack(
                     encode_value_to_msgpack(val, buf)?;
                 }
             }
-            Ok(())
         }
     }
+    Ok(())
 }
 
-/// Generic function to encode a model to msgpack using canonical rules
 pub fn encode_msgpack<T: MsgpackEncodable>(model: &T) -> Result<Vec<u8>, MsgpackError> {
     encode_msgpack_canonical(model)
 }
 
-/// Generic function to decode msgpack to a model
 pub fn decode_msgpack<T: MsgpackDecodable>(data: &[u8]) -> Result<T, MsgpackError> {
     rmp_serde::from_slice(data).map_err(|e| e.into())
 }
 
-// =============================================================================
-// GENERIC JSON CONVERSION UTILITIES
-// =============================================================================
-
-/// Serialize any model implementing JsonSerializable to JSON string
-/// This works across both WASM and UniFFI boundaries
 pub fn serialize_to_json<T: JsonSerializable>(model: &T) -> Result<String, MsgpackError> {
     model.to_json()
 }
 
-/// Deserialize JSON string to any model implementing JsonSerializable
-/// This works across both WASM and UniFFI boundaries
 pub fn deserialize_from_json<T: JsonSerializable>(json: &str) -> Result<T, MsgpackError> {
     T::from_json(json)
 }
 
-/// Convert JSON string to JsValue for WASM (TypeScript side can use JSON.parse)
 #[cfg(feature = "ffi_wasm")]
 pub fn json_string_to_js_value(json: &str) -> Result<wasm_bindgen::JsValue, MsgpackError> {
     let json_value: serde_json::Value = serde_json::from_str(json)?;
@@ -350,7 +319,6 @@ pub fn json_string_to_js_value(json: &str) -> Result<wasm_bindgen::JsValue, Msgp
         .map_err(|e| MsgpackError::SerializationError(e.to_string()))
 }
 
-/// Convert JsValue to JSON string for WASM (TypeScript side can use JSON.stringify)
 #[cfg(feature = "ffi_wasm")]
 pub fn js_value_to_json_string(value: wasm_bindgen::JsValue) -> Result<String, MsgpackError> {
     let json_value: serde_json::Value = serde_wasm_bindgen::from_value(value)
@@ -358,67 +326,104 @@ pub fn js_value_to_json_string(value: wasm_bindgen::JsValue) -> Result<String, M
     serde_json::to_string(&json_value).map_err(|e| e.into())
 }
 
-/// Runtime JSON conversion helpers - work with serde_json::Value for maximum flexibility
-#[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
-pub fn parse_json_string(json: String) -> Result<String, MsgpackError> {
-    // Validates JSON and returns pretty-formatted version
-    let value: serde_json::Value = serde_json::from_str(&json)?;
-    serde_json::to_string_pretty(&value).map_err(|e| e.into())
+// Macro for msgpack encoding/decoding functions (for models that support msgpack)
+#[macro_export]
+macro_rules! impl_msgpack_ffi {
+    ($type:ty, $encode_fn:ident, $decode_fn:ident) => {
+        #[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
+        #[cfg_attr(feature = "ffi_wasm", wasm_bindgen)]
+        pub fn $encode_fn(model: $type) -> Result<Vec<u8>, $crate::MsgpackError> {
+            $crate::encode_msgpack(&model)
+        }
+
+        #[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
+        #[cfg_attr(feature = "ffi_wasm", wasm_bindgen)]
+        pub fn $decode_fn(data: Vec<u8>) -> Result<$type, $crate::MsgpackError> {
+            $crate::decode_msgpack(&data)
+        }
+    };
 }
 
-/// Convert between different JSON formats - useful for data transformation
-#[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
-pub fn minify_json(json: String) -> Result<String, MsgpackError> {
-    let value: serde_json::Value = serde_json::from_str(&json)?;
-    serde_json::to_string(&value).map_err(|e| e.into())
+// Macro for JSON serialization/deserialization functions (uniffi only, wasm has direct support)
+#[macro_export]
+macro_rules! impl_json_ffi {
+    ($type:ty, $to_json_fn:ident, $from_json_fn:ident) => {
+        #[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
+        pub fn $to_json_fn(model: $type) -> Result<String, $crate::MsgpackError> {
+            <$type as $crate::JsonSerializable>::to_json(&model)
+        }
+
+        #[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
+        pub fn $from_json_fn(json: String) -> Result<$type, $crate::MsgpackError> {
+            <$type as $crate::JsonSerializable>::from_json(&json)
+        }
+    };
 }
 
-// =============================================================================
-// ENDPOINT-LEVEL MODELS - Models directly used in API request/response schemas
-// =============================================================================
+// Macro for WASM-specific JsValue conversions
+#[cfg(feature = "ffi_wasm")]
+#[macro_export]
+macro_rules! impl_wasm_js_value {
+    ($type:ty, $to_js_fn:ident, $from_js_fn:ident) => {
+        #[wasm_bindgen(js_name = $to_js_fn)]
+        pub fn $to_js_fn(model: $type) -> Result<wasm_bindgen::JsValue, $crate::MsgpackError> {
+            serde_wasm_bindgen::to_value(&model)
+                .map_err(|e| $crate::MsgpackError::SerializationError(e.to_string()))
+        }
 
-/// Encode Account to msgpack bytes
-/// Used in: GET /v2/accounts/{address} response
-#[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
-#[cfg_attr(feature = "ffi_wasm", wasm_bindgen)]
-pub fn encode_account(model: Account) -> Result<Vec<u8>, MsgpackError> {
-    encode_msgpack(&model)
+        #[wasm_bindgen(js_name = $from_js_fn)]
+        pub fn $from_js_fn(value: wasm_bindgen::JsValue) -> Result<$type, $crate::MsgpackError> {
+            serde_wasm_bindgen::from_value(value)
+                .map_err(|e| $crate::MsgpackError::DeserializationError(e.to_string()))
+        }
+    };
 }
 
-/// Decode msgpack bytes to Account
-/// Used in: GET /v2/accounts/{address} response
-#[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
-#[cfg_attr(feature = "ffi_wasm", wasm_bindgen)]
-pub fn decode_account(data: Vec<u8>) -> Result<Account, MsgpackError> {
-    decode_msgpack(&data)
+// Macro that applies both JSON and WASM conversions to a model type
+#[macro_export]
+macro_rules! impl_all_json_ffi {
+    ($type:ty, $base_name:ident) => {
+        ::paste::paste! {
+            $crate::impl_json_ffi!($type, [<$base_name _to_json>], [<$base_name _from_json>]);
+
+            #[cfg(feature = "ffi_wasm")]
+            $crate::impl_wasm_js_value!($type, [<$base_name ToJsValue>], [<$base_name FromJsValue>]);
+        }
+    };
 }
 
-/// Encode SimulateRequest to msgpack bytes
-/// Used in: POST /v2/transactions/simulate request body
-#[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
-#[cfg_attr(feature = "ffi_wasm", wasm_bindgen)]
-pub fn encode_simulate_request(model: SimulateRequest) -> Result<Vec<u8>, MsgpackError> {
-    encode_simulate_request_canonical(&model)
+// Auto-implementation for template-generated JSON functions
+#[macro_export]
+macro_rules! auto_impl_json_ffi {
+    ($type:ty, $base_name:ident) => {
+        $crate::impl_all_json_ffi!($type, $base_name);
+    };
 }
 
-/// Encode DryrunRequest to msgpack bytes
-/// Used in: POST /v2/teal/dryrun request body
+// =============================
+// MANUAL MSGPACK IMPLEMENTATIONS
+// =============================
+// Only models that specifically need msgpack support are implemented here.
+// All models get JSON support automatically via the template.
+
+// Models that support both encoding and decoding
+impl_msgpack_ffi!(Account, encode_account, decode_account);
+
+// Models that only support encoding (request models)
 #[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
 #[cfg_attr(feature = "ffi_wasm", wasm_bindgen)]
 pub fn encode_dryrun_request(model: DryrunRequest) -> Result<Vec<u8>, MsgpackError> {
     encode_msgpack(&model)
 }
 
-/// Decode msgpack bytes to ErrorResponse
-/// Used in: Various error responses across endpoints
+// Special case: SimulateRequest with custom canonical encoding
 #[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
 #[cfg_attr(feature = "ffi_wasm", wasm_bindgen)]
-pub fn decode_error_response(data: Vec<u8>) -> Result<ErrorResponse, MsgpackError> {
-    decode_msgpack(&data)
+pub fn encode_simulate_request(model: SimulateRequest) -> Result<Vec<u8>, MsgpackError> {
+    encode_simulate_request_canonical(&model)
 }
 
-/// Decode msgpack bytes to PendingTransactionResponse
-/// Used in: GET /v2/transactions/pending/{txid} response
+// Models that only support decoding (response models)
 #[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
 #[cfg_attr(feature = "ffi_wasm", wasm_bindgen)]
 pub fn decode_pending_transaction_response(
@@ -427,8 +432,12 @@ pub fn decode_pending_transaction_response(
     decode_msgpack(&data)
 }
 
-/// Decode msgpack bytes to LedgerStateDeltaForTransactionGroup
-/// Used in: GET /v2/deltas/{round}/txn/group response (as array items)
+#[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
+#[cfg_attr(feature = "ffi_wasm", wasm_bindgen)]
+pub fn decode_error_response(data: Vec<u8>) -> Result<ErrorResponse, MsgpackError> {
+    decode_msgpack(&data)
+}
+
 #[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
 #[cfg_attr(feature = "ffi_wasm", wasm_bindgen)]
 pub fn decode_ledger_state_delta_for_transaction_group(
@@ -437,22 +446,9 @@ pub fn decode_ledger_state_delta_for_transaction_group(
     decode_msgpack(&data)
 }
 
-// =============================================================================
-// JSON CONVERSION FUNCTIONS - Generated using macros for key models
-// =============================================================================
-
-// Generate JSON conversion functions for key models
-json_model_functions!(Account, "account");
-json_model_functions!(SimulateRequest, "simulateRequest");
-json_model_functions!(SimulateTransaction200Response, "simulateResponse");
-json_model_functions!(DryrunRequest, "dryrunRequest");
-json_model_functions!(ErrorResponse, "errorResponse");
-json_model_functions!(PendingTransactionResponse, "pendingTransaction");
-
 #[cfg(feature = "ffi_uniffi")]
 uniffi::setup_scaffolding!();
 
-// Test SimulateRequest encoding
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -460,8 +456,6 @@ mod tests {
 
     #[test]
     fn test_simulate_request_encoding() {
-        // Example: Properly encoded base64 strings of already msgpack-encoded signed transactions
-        // In real usage, these would come from the client with transactions already encoded
         let encoded_signed_txn = "gqNzaWfEQOeqkYx2i+fq1t7p5y7Epr3BRDZ7yfAcGY0B8QgdfmOWN2TYWkverOJYdf+h+2Xp/R7tQqPmjI/2vzWYbhZbSQajdHhuiaNhbXTOAA9CQKNmZWXOAA9CQKJmds0D6KNnZW6sdGVzdG5ldC12MS4womx2zQfQpG5vdGXED0hlbGxvIEFsZ29yYW5kIaNyY3bEIItZIVfmJZKkg9R82h4zw5tbm7SUTdiLUiv0hOddwUnPo3NuZMQgi1khV+YlkqSD1HzaHjPDm1ubtJRN2ItSK/SE513BSc+kdHlwZaNwYXk=";
 
         let txns = vec![encoded_signed_txn.to_string()];
@@ -483,49 +477,48 @@ mod tests {
         let base64 = general_purpose::STANDARD.encode(&encoded);
         let expected_base64 = "h7ZhbGxvdy1lbXB0eS1zaWduYXR1cmVzw7JhbGxvdy1tb3JlLWxvZ2dpbmfDt2FsbG93LXVubmFtZWQtcmVzb3VyY2Vzw7FleGVjLXRyYWNlLWNvbmZpZ4SmZW5hYmxlw65zY3JhdGNoLWNoYW5nZcOsc3RhY2stY2hhbmdlw6xzdGF0ZS1jaGFuZ2XDs2V4dHJhLW9wY29kZS1idWRnZXTOAA9CQKVyb3VuZM4AD0JAqnR4bi1ncm91cHORgaR0eG5zkYKjc2lnxEDnqpGMdovn6tbe6ecuxKa9wUQ2e8nwHBmNAfEIHX5jljdk2FpL3qziWHX/oftl6f0e7UKj5oyP9r81mG4WW0kGo3R4bomjYW10zgAPQkCjZmVlzgAPQkCiZnbNA+ijZ2VurHRlc3RuZXQtdjEuMKJsds0H0KRub3RlxA9IZWxsbyBBbGdvcmFuZCGjcmN2xCCLWSFX5iWSpIPUfNoeM8ObW5u0lE3Yi1Ir9ITnXcFJz6NzbmTEIItZIVfmJZKkg9R82h4zw5tbm7SUTdiLUiv0hOddwUnPpHR5cGWjcGF5";
         assert_eq!(base64, expected_base64);
-
-        println!("Properly encoded SimulateRequest: {}", base64);
     }
 
     #[test]
-    fn test_simulate_response_decoding() {}
-}
+    fn test_pending_transaction_response_json_decoding() {
+        let json = r#"{
+  "confirmed-round": 1096,
+  "pool-error": "",
+  "txn": "gqNzaWfEQOeqkYx2i+fq1t7p5y7Epr3BRDZ7yfAcGY0B8QgdfmOWN2TYWkverOJYdf+h+2Xp/R7tQqPmjI/2vzWYbhZbSQajdHhuiaNhbXTOAA9CQKNmZWXOAA9CQKJmds0D6KNnZW6sdGVzdG5ldC12MS4womx2zQfQpG5vdGXED0hlbGxvIEFsZ29yYW5kIaNyY3bEIItZIVfmJZKkg9R82h4zw5tbm7SUTdiLUiv0hOddwUnPo3NuZMQgi1khV+YlkqSD1HzaHjPDm1ubtJRN2ItSK/SE513BSc+kdHlwZaNwYXk="
+}"#;
+        let pending_transaction_response = PendingTransactionResponse::from_json(json).unwrap();
+        assert_eq!(pending_transaction_response.confirmed_round, Some(1096));
+    }
 
-// =============================================================================
-// JSON HELPERS - Macros and utilities for easy JSON conversion
-// =============================================================================
+    #[test]
+    fn test_json_preprocessing_with_literal_escapes() {
+        // Test with original problematic format containing literal \n characters
+        let json_with_literal_escapes = r#"{\n  "confirmed-round": 1096,\n  "pool-error": "",\n  "txn": "gqNzaWfEQOeqkYx2i+fq1t7p5y7Epr3BRDZ7yfAcGY0B8QgdfmOWN2TYWkverOJYdf+h+2Xp/R7tQqPmjI/2vzWYbhZbSQajdHhuiaNhbXTOAA9CQKNmZWXOAA9CQKJmds0D6KNnZW6sdGVzdG5ldC12MS4womx2zQfQpG5vdGXED0hlbGxvIEFsZ29yYW5kIaNyY3bEIItZIVfmJZKkg9R82h4zw5tbm7SUTdiLUiv0hOddwUnPo3NuZMQgi1khV+YlkqSD1HzaHjPDm1ubtJRN2ItSK/SE513BSc+kdHlwZaNwYXk="\n}"#;
 
-/// Macro to generate JSON conversion functions for a specific model
-/// Usage: json_model_functions!(Account, "account");
-#[macro_export]
-macro_rules! json_model_functions {
-    ($model:ty, $name:literal) => {
-        paste::paste! {
-            #[doc = "Convert " $name " to JSON string"]
-            #[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
-            pub fn [<$name _to_json>](model: $model) -> Result<String, MsgpackError> {
-                model.to_json()
-            }
+        // This should now work with our preprocessing
+        let result = PendingTransactionResponse::from_json(json_with_literal_escapes);
+        assert!(result.is_ok());
+        let pending_transaction_response = result.unwrap();
+        assert_eq!(pending_transaction_response.confirmed_round, Some(1096));
+        assert_eq!(pending_transaction_response.pool_error, "");
+    }
 
-            #[doc = "Convert JSON string to " $name]
-            #[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
-            pub fn [<$name _from_json>](json: String) -> Result<$model, MsgpackError> {
-                <$model>::from_json(&json)
-            }
+    #[test]
+    fn test_json_preprocessing_doesnt_break_valid_json() {
+        // Test that normal, valid JSON still works
+        let valid_json = r#"{
+  "confirmed-round": 1096,
+  "pool-error": "test error message",
+  "txn": "gqNzaWfEQOeqkYx2i+fq1t7p5y7Epr3BRDZ7yfAcGY0B8QgdfmOWN2TYWkverOJYdf+h+2Xp/R7tQqPmjI/2vzWYbhZbSQajdHhuiaNhbXTOAA9CQKNmZWXOAA9CQKJmds0D6KNnZW6sdGVzdG5ldC12MS4womx2zQfQpG5vdGXED0hlbGxvIEFsZ29yYW5kIaNyY3bEIItZIVfmJZKkg9R82h4zw5tbm7SUTdiLUiv0hOddwUnPo3NuZMQgi1khV+YlkqSD1HzaHjPDm1ubtJRN2ItSK/SE513BSc+kdHlwZaNwYXk="
+}"#;
 
-            #[cfg(feature = "ffi_wasm")]
-            #[doc = "Convert " $name " to JsValue (preserves types for TypeScript)"]
-            #[wasm_bindgen(js_name = [<$name ToJsValue>])]
-            pub fn [<$name _to_js_value>](model: $model) -> Result<wasm_bindgen::JsValue, MsgpackError> {
-                serde_wasm_bindgen::to_value(&model).map_err(|e| MsgpackError::SerializationError(e.to_string()))
-            }
-
-            #[cfg(feature = "ffi_wasm")]
-            #[doc = "Convert JsValue to " $name " (from TypeScript object)"]
-            #[wasm_bindgen(js_name = [<$name FromJsValue>])]
-            pub fn [<$name _from_js_value>](value: wasm_bindgen::JsValue) -> Result<$model, MsgpackError> {
-                serde_wasm_bindgen::from_value(value).map_err(|e| MsgpackError::DeserializationError(e.to_string()))
-            }
-        }
-    };
+        let result = PendingTransactionResponse::from_json(valid_json);
+        assert!(result.is_ok());
+        let pending_transaction_response = result.unwrap();
+        assert_eq!(pending_transaction_response.confirmed_round, Some(1096));
+        assert_eq!(
+            pending_transaction_response.pool_error,
+            "test error message"
+        );
+    }
 }

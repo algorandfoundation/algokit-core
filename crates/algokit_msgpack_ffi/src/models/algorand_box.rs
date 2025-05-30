@@ -13,7 +13,13 @@ use serde::{Deserialize, Serialize};
 
 use serde_with::serde_as;
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// AlgorandBox : Box name and its content.
+
+
+
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
@@ -45,7 +51,6 @@ pub struct AlgorandBox {
 impl AlgorandBox {
     /// Box name and its content.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         name: Vec<u8>,value: Vec<u8>, round: Option<i32>,
     ) -> AlgorandBox {
@@ -57,6 +62,10 @@ impl AlgorandBox {
     }
 }
 
+
+
 impl crate::JsonSerializable for AlgorandBox {}
 
+
+crate::auto_impl_json_ffi!(AlgorandBox, algorand_box);
 

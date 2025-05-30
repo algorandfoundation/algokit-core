@@ -13,7 +13,13 @@ use serde::{Deserialize, Serialize};
 
 use serde_with::serde_as;
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// StateProofMessage : Represents the message that the state proofs are attesting to.
+
+
+
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
@@ -57,7 +63,6 @@ pub struct StateProofMessage {
 impl StateProofMessage {
     /// Represents the message that the state proofs are attesting to.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         block_headers_commitment: Vec<u8>,voters_commitment: Vec<u8>,ln_proven_weight: i32,first_attested_round: i32,last_attested_round: i32,
     ) -> StateProofMessage {
@@ -71,6 +76,10 @@ impl StateProofMessage {
     }
 }
 
+
+
 impl crate::JsonSerializable for StateProofMessage {}
 
+
+crate::auto_impl_json_ffi!(StateProofMessage, state_proof_message);
 

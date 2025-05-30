@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// SimulateUnnamedResourcesAccessed : These are resources that were accessed by this group that would normally have caused failure, but were allowed in simulation. Depending on where this object is in the response, the unnamed resources it contains may or may not qualify for group resource sharing. If this is a field in SimulateTransactionGroupResult, the resources do qualify, but if this is a field in SimulateTransactionResult, they do not qualify. In order to make this group valid for actual submission, resources that qualify for group sharing can be made available by any transaction of the group; otherwise, resources must be placed in the same transaction which accessed them.
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -64,7 +70,6 @@ pub struct SimulateUnnamedResourcesAccessed {
 impl SimulateUnnamedResourcesAccessed {
     /// These are resources that were accessed by this group that would normally have caused failure, but were allowed in simulation. Depending on where this object is in the response, the unnamed resources it contains may or may not qualify for group resource sharing. If this is a field in SimulateTransactionGroupResult, the resources do qualify, but if this is a field in SimulateTransactionResult, they do not qualify. In order to make this group valid for actual submission, resources that qualify for group sharing can be made available by any transaction of the group; otherwise, resources must be placed in the same transaction which accessed them.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
          accounts: Option<Vec<String>>, assets: Option<Vec<i32>>, apps: Option<Vec<i32>>, boxes: Option<Vec<models::BoxReference>>, extra_box_refs: Option<i32>, asset_holdings: Option<Vec<models::AssetHoldingReference>>, app_locals: Option<Vec<models::ApplicationLocalReference>>
     ) -> SimulateUnnamedResourcesAccessed {
@@ -80,7 +85,11 @@ impl SimulateUnnamedResourcesAccessed {
     }
 }
 
+
+
 impl crate::JsonSerializable for SimulateUnnamedResourcesAccessed {}
 
 impl crate::MsgpackDecodable for SimulateUnnamedResourcesAccessed {}
+
+crate::auto_impl_json_ffi!(SimulateUnnamedResourcesAccessed, simulate_unnamed_resources_accessed);
 

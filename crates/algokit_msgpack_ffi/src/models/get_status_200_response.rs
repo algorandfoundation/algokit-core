@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// GetStatus200Response : NodeStatus contains the information about a node status
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -178,7 +184,6 @@ pub struct GetStatus200Response {
 impl GetStatus200Response {
     /// NodeStatus contains the information about a node status
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         catchup_time: i32,last_round: i32,last_version: String,next_version: String,next_version_round: i32,next_version_supported: bool,stopped_at_unsupported_round: bool,time_since_last_round: i32, last_catchpoint: Option<String>, catchpoint: Option<String>, catchpoint_total_accounts: Option<i32>, catchpoint_processed_accounts: Option<i32>, catchpoint_verified_accounts: Option<i32>, catchpoint_total_kvs: Option<i32>, catchpoint_processed_kvs: Option<i32>, catchpoint_verified_kvs: Option<i32>, catchpoint_total_blocks: Option<i32>, catchpoint_acquired_blocks: Option<i32>, upgrade_delay: Option<i32>, upgrade_node_vote: Option<bool>, upgrade_votes_required: Option<i32>, upgrade_votes: Option<i32>, upgrade_yes_votes: Option<i32>, upgrade_no_votes: Option<i32>, upgrade_next_protocol_vote_before: Option<i32>, upgrade_vote_rounds: Option<i32>
     ) -> GetStatus200Response {
@@ -213,6 +218,10 @@ impl GetStatus200Response {
     }
 }
 
+
+
 impl crate::JsonSerializable for GetStatus200Response {}
 
+
+crate::auto_impl_json_ffi!(GetStatus200Response, get_status200_response);
 

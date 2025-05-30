@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// ApplicationInitialStates : An application's initial global/local/box states that were accessed during simulation.
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -44,7 +50,6 @@ pub struct ApplicationInitialStates {
 impl ApplicationInitialStates {
     /// An application's initial global/local/box states that were accessed during simulation.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         id: i32, app_locals: Option<Vec<models::ApplicationKvStorage>>, app_globals: Option<models::ApplicationKvStorage>, app_boxes: Option<models::ApplicationKvStorage>
     ) -> ApplicationInitialStates {
@@ -57,7 +62,11 @@ impl ApplicationInitialStates {
     }
 }
 
+
+
 impl crate::JsonSerializable for ApplicationInitialStates {}
 
 impl crate::MsgpackDecodable for ApplicationInitialStates {}
+
+crate::auto_impl_json_ffi!(ApplicationInitialStates, application_initial_states);
 

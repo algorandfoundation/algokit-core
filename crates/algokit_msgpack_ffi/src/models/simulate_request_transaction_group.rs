@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// SimulateRequestTransactionGroup : A transaction group to simulate.
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -28,7 +34,6 @@ pub struct SimulateRequestTransactionGroup {
 impl SimulateRequestTransactionGroup {
     /// A transaction group to simulate.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         txns: Vec<String>,
     ) -> SimulateRequestTransactionGroup {
@@ -38,7 +43,11 @@ impl SimulateRequestTransactionGroup {
     }
 }
 
+
+
 impl crate::JsonSerializable for SimulateRequestTransactionGroup {}
 
 impl crate::MsgpackEncodable for SimulateRequestTransactionGroup {}
+
+crate::auto_impl_json_ffi!(SimulateRequestTransactionGroup, simulate_request_transaction_group);
 

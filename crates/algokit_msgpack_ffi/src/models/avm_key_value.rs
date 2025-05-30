@@ -13,7 +13,13 @@ use serde::{Deserialize, Serialize};
 
 use serde_with::serde_as;
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// AvmKeyValue : Represents an AVM key-value pair in an application store.
+
+
+
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
@@ -36,7 +42,6 @@ pub struct AvmKeyValue {
 impl AvmKeyValue {
     /// Represents an AVM key-value pair in an application store.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         key: Vec<u8>,value: models::AvmValue,
     ) -> AvmKeyValue {
@@ -47,7 +52,11 @@ impl AvmKeyValue {
     }
 }
 
+
+
 impl crate::JsonSerializable for AvmKeyValue {}
 
 impl crate::MsgpackDecodable for AvmKeyValue {}
+
+crate::auto_impl_json_ffi!(AvmKeyValue, avm_key_value);
 

@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// Application : Application index and its parameters
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -33,7 +39,6 @@ pub struct Application {
 impl Application {
     /// Application index and its parameters
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         id: i32,params: models::ApplicationParams,
     ) -> Application {
@@ -44,8 +49,12 @@ impl Application {
     }
 }
 
+
+
 impl crate::JsonSerializable for Application {}
 
 impl crate::MsgpackEncodable for Application {}
 impl crate::MsgpackDecodable for Application {}
+
+crate::auto_impl_json_ffi!(Application, application);
 

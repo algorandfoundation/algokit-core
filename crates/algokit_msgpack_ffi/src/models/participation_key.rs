@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// ParticipationKey : Represents a participation key used by the node.
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -69,7 +75,6 @@ pub struct ParticipationKey {
 impl ParticipationKey {
     /// Represents a participation key used by the node.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         id: String,address: String,key: models::AccountParticipation, effective_first_valid: Option<i32>, effective_last_valid: Option<i32>, last_vote: Option<i32>, last_block_proposal: Option<i32>, last_state_proof: Option<i32>,
     ) -> ParticipationKey {
@@ -86,6 +91,10 @@ impl ParticipationKey {
     }
 }
 
+
+
 impl crate::JsonSerializable for ParticipationKey {}
 
+
+crate::auto_impl_json_ffi!(ParticipationKey, participation_key);
 

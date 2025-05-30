@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// ApplicationStateSchema : Specifies maximums on the number of each type that may be stored.
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -34,7 +40,6 @@ pub struct ApplicationStateSchema {
 impl ApplicationStateSchema {
     /// Specifies maximums on the number of each type that may be stored.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         num_uint: i32,num_byte_slice: i32,
     ) -> ApplicationStateSchema {
@@ -45,8 +50,12 @@ impl ApplicationStateSchema {
     }
 }
 
+
+
 impl crate::JsonSerializable for ApplicationStateSchema {}
 
 impl crate::MsgpackEncodable for ApplicationStateSchema {}
 impl crate::MsgpackDecodable for ApplicationStateSchema {}
+
+crate::auto_impl_json_ffi!(ApplicationStateSchema, application_state_schema);
 

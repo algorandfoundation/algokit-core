@@ -11,6 +11,12 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -38,7 +44,6 @@ pub struct TealCompile200Response {
 
 impl TealCompile200Response {
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         hash: String,result: String, sourcemap: Option<String>
     ) -> TealCompile200Response {
@@ -50,6 +55,10 @@ impl TealCompile200Response {
     }
 }
 
+
+
 impl crate::JsonSerializable for TealCompile200Response {}
 
+
+crate::auto_impl_json_ffi!(TealCompile200Response, teal_compile200_response);
 

@@ -13,7 +13,13 @@ use serde::{Deserialize, Serialize};
 
 use serde_with::serde_as;
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// Version : algod version information.
+
+
+
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
@@ -46,7 +52,6 @@ pub struct Version {
 impl Version {
     /// algod version information.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         build: models::BuildVersion,genesis_hash_b64: Vec<u8>,genesis_id: String,versions: Vec<String>,
     ) -> Version {
@@ -59,6 +64,10 @@ impl Version {
     }
 }
 
+
+
 impl crate::JsonSerializable for Version {}
 
+
+crate::auto_impl_json_ffi!(Version, version);
 

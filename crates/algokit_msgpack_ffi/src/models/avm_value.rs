@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// AvmValue : Represents an AVM value.
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -40,7 +46,6 @@ pub struct AvmValue {
 impl AvmValue {
     /// Represents an AVM value.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         r#type: i32, bytes: Option<String>, uint: Option<i32>
     ) -> AvmValue {
@@ -52,7 +57,11 @@ impl AvmValue {
     }
 }
 
+
+
 impl crate::JsonSerializable for AvmValue {}
 
 impl crate::MsgpackDecodable for AvmValue {}
+
+crate::auto_impl_json_ffi!(AvmValue, avm_value);
 

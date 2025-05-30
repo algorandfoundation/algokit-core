@@ -13,7 +13,13 @@ use serde::{Deserialize, Serialize};
 
 use serde_with::serde_as;
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// LightBlockHeaderProof : Proof of membership and position of a light block header.
+
+
+
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
@@ -44,7 +50,6 @@ pub struct LightBlockHeaderProof {
 impl LightBlockHeaderProof {
     /// Proof of membership and position of a light block header.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         index: i32,treedepth: i32,proof: Vec<u8>,
     ) -> LightBlockHeaderProof {
@@ -56,6 +61,10 @@ impl LightBlockHeaderProof {
     }
 }
 
+
+
 impl crate::JsonSerializable for LightBlockHeaderProof {}
 
+
+crate::auto_impl_json_ffi!(LightBlockHeaderProof, light_block_header_proof);
 

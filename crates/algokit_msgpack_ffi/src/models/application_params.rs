@@ -13,7 +13,13 @@ use serde::{Deserialize, Serialize};
 
 use serde_with::serde_as;
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// ApplicationParams : Stores the global information associated with an application.
+
+
+
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
@@ -67,7 +73,6 @@ pub struct ApplicationParams {
 impl ApplicationParams {
     /// Stores the global information associated with an application.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         creator: String,approval_program: Vec<u8>,clear_state_program: Vec<u8>, extra_program_pages: Option<i32>, local_state_schema: Option<models::ApplicationStateSchema>, global_state_schema: Option<models::ApplicationStateSchema>, global_state: Option<Vec<models::TealKeyValue>>
     ) -> ApplicationParams {
@@ -83,8 +88,12 @@ impl ApplicationParams {
     }
 }
 
+
+
 impl crate::JsonSerializable for ApplicationParams {}
 
 impl crate::MsgpackEncodable for ApplicationParams {}
 impl crate::MsgpackDecodable for ApplicationParams {}
+
+crate::auto_impl_json_ffi!(ApplicationParams, application_params);
 

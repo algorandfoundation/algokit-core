@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// SimulateInitialStates : Initial states of resources that were accessed during simulation.
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -28,7 +34,6 @@ pub struct SimulateInitialStates {
 impl SimulateInitialStates {
     /// Initial states of resources that were accessed during simulation.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
          app_initial_states: Option<Vec<models::ApplicationInitialStates>>
     ) -> SimulateInitialStates {
@@ -38,7 +43,11 @@ impl SimulateInitialStates {
     }
 }
 
+
+
 impl crate::JsonSerializable for SimulateInitialStates {}
 
 impl crate::MsgpackDecodable for SimulateInitialStates {}
+
+crate::auto_impl_json_ffi!(SimulateInitialStates, simulate_initial_states);
 

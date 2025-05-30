@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// ErrorResponse : An error response with optional data field.
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -32,7 +38,6 @@ pub struct ErrorResponse {
 impl ErrorResponse {
     /// An error response with optional data field.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         message: String, data: Option<String>,
     ) -> ErrorResponse {
@@ -43,7 +48,11 @@ impl ErrorResponse {
     }
 }
 
+
+
 impl crate::JsonSerializable for ErrorResponse {}
 
 impl crate::MsgpackDecodable for ErrorResponse {}
+
+crate::auto_impl_json_ffi!(ErrorResponse, error_response);
 

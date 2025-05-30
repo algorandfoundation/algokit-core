@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// DryrunRequest : Request data type for dryrun endpoint. Given the Transactions and simulated ledger state upload, run TEAL scripts and return debugging information.
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -60,7 +66,6 @@ pub struct DryrunRequest {
 impl DryrunRequest {
     /// Request data type for dryrun endpoint. Given the Transactions and simulated ledger state upload, run TEAL scripts and return debugging information.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         txns: Vec<String>,accounts: Vec<models::Account>,apps: Vec<models::Application>,protocol_version: String,round: i32,latest_timestamp: i64,sources: Vec<models::DryrunSource>,
     ) -> DryrunRequest {
@@ -76,7 +81,11 @@ impl DryrunRequest {
     }
 }
 
+
+
 impl crate::JsonSerializable for DryrunRequest {}
 
 impl crate::MsgpackEncodable for DryrunRequest {}
+
+crate::auto_impl_json_ffi!(DryrunRequest, dryrun_request);
 

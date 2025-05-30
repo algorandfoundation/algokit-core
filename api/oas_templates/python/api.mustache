@@ -8,8 +8,13 @@ from {{packageName}}.api_client import ApiClient, RequestSerialized
 from {{packageName}}.api_response import ApiResponse
 from {{packageName}}.rest import RESTResponseType
 
-# Import all models from the models package (which imports from algokit_msgpack)
-from algokit_msgpack import *
+# Import all models from algokit_msgpack with proper error handling
+try:
+    from algokit_msgpack import *
+    ALGOKIT_MSGPACK_AVAILABLE = True
+except ImportError:
+    ALGOKIT_MSGPACK_AVAILABLE = False
+    # When algokit_msgpack is not available, we'll rely on the API client's error handling
 
 {{#operations}}
 class {{classname}}:

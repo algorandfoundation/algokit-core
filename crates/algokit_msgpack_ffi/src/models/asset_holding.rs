@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// AssetHolding : Describes an asset held by an account.  Definition: data/basics/userBalance.go : AssetHolding
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -40,7 +46,6 @@ pub struct AssetHolding {
 impl AssetHolding {
     /// Describes an asset held by an account.  Definition: data/basics/userBalance.go : AssetHolding
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         amount: i32,asset_id: i32,is_frozen: bool,
     ) -> AssetHolding {
@@ -52,8 +57,12 @@ impl AssetHolding {
     }
 }
 
+
+
 impl crate::JsonSerializable for AssetHolding {}
 
 impl crate::MsgpackEncodable for AssetHolding {}
 impl crate::MsgpackDecodable for AssetHolding {}
+
+crate::auto_impl_json_ffi!(AssetHolding, asset_holding);
 

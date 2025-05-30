@@ -13,7 +13,13 @@ use serde::{Deserialize, Serialize};
 
 use serde_with::serde_as;
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// AssetParams : AssetParams specifies the parameters for an asset.  \\[apar\\] when part of an AssetConfig transaction.  Definition: data/transactions/asset.go : AssetParams
+
+
+
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
@@ -119,7 +125,6 @@ pub struct AssetParams {
 impl AssetParams {
     /// AssetParams specifies the parameters for an asset.  \\[apar\\] when part of an AssetConfig transaction.  Definition: data/transactions/asset.go : AssetParams
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         creator: String,decimals: i32,total: i32, clawback: Option<String>, default_frozen: Option<bool>, freeze: Option<String>, manager: Option<String>, metadata_hash: Option<Vec<u8>>, name: Option<String>, name_b64: Option<Vec<u8>>, reserve: Option<String>, unit_name: Option<String>, unit_name_b64: Option<Vec<u8>>, url: Option<String>, url_b64: Option<Vec<u8>>
     ) -> AssetParams {
@@ -143,8 +148,12 @@ impl AssetParams {
     }
 }
 
+
+
 impl crate::JsonSerializable for AssetParams {}
 
 impl crate::MsgpackEncodable for AssetParams {}
 impl crate::MsgpackDecodable for AssetParams {}
+
+crate::auto_impl_json_ffi!(AssetParams, asset_params);
 

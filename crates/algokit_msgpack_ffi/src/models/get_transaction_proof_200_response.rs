@@ -13,6 +13,12 @@ use serde::{Deserialize, Serialize};
 
 use serde_with::serde_as;
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
+
+
+
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
@@ -55,7 +61,6 @@ pub struct GetTransactionProof200Response {
 
 impl GetTransactionProof200Response {
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         proof: Vec<u8>,stibhash: Vec<u8>,treedepth: i32,idx: i32,hashtype: Hashtype,
     ) -> GetTransactionProof200Response {
@@ -68,7 +73,8 @@ impl GetTransactionProof200Response {
         }
     }
 }
-/// The type of hash function used to create the proof, must be one of:  * sha512_256  * sha256
+
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -88,4 +94,6 @@ impl Default for Hashtype {
 
 impl crate::JsonSerializable for GetTransactionProof200Response {}
 
+
+crate::auto_impl_json_ffi!(GetTransactionProof200Response, get_transaction_proof200_response);
 

@@ -11,7 +11,13 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::wasm_bindgen;
+
 /// SimulateRequest : Request type for simulation endpoint.
+
+
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
@@ -69,7 +75,6 @@ pub struct SimulateRequest {
 impl SimulateRequest {
     /// Request type for simulation endpoint.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     pub fn new(
         txn_groups: Vec<models::SimulateRequestTransactionGroup>, round: Option<i32>, allow_empty_signatures: Option<bool>, allow_more_logging: Option<bool>, allow_unnamed_resources: Option<bool>, extra_opcode_budget: Option<i32>, exec_trace_config: Option<models::SimulateTraceConfig>, fix_signers: Option<bool>
     ) -> SimulateRequest {
@@ -86,7 +91,11 @@ impl SimulateRequest {
     }
 }
 
+
+
 impl crate::JsonSerializable for SimulateRequest {}
 
 impl crate::MsgpackEncodable for SimulateRequest {}
+
+crate::auto_impl_json_ffi!(SimulateRequest, simulate_request);
 
