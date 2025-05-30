@@ -8,6 +8,7 @@
     "editorconfig.editorconfig",
     "matangover.mypy",
     "rust-lang.rust-analyzer",
-    "teticio.python-envy"
+    "teticio.python-envy",
+    "DavidAnson.vscode-markdownlint"
   ]
 }
