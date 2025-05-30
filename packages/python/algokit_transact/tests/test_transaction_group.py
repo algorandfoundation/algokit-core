@@ -1,19 +1,20 @@
 import pytest
 
 from . import TEST_DATA
-from algokit_transact import group_transactions
+from algokit_transact import (
+    group_transactions,
+    encode_transaction,
+    encode_transactions,
+    attach_signature,
+    attach_signatures,
+)
 
 simple_payment = TEST_DATA.simple_payment
 opt_in_asset_transfer = TEST_DATA.opt_in_asset_transfer
 
-# Polytest Suite: Transaction Group
 
-# Polytest Group: Transaction Group Tests
-
-
-@pytest.mark.group_transaction_group_tests
-def test_group_transactions():
-    """A collection of transactions can be grouped"""
+def simple_group():
+    """Helper function to create a simple transaction group"""
     expected_group_id = bytes(
         [
             202,
@@ -50,12 +51,68 @@ def test_group_transactions():
             49,
         ]
     )
-
     txs = [simple_payment.transaction, opt_in_asset_transfer.transaction]
+
+    return {
+        "txs": txs,
+        "expected_group_id": expected_group_id,
+    }
+
+
+# Polytest Suite: Transaction Group
+
+# Polytest Group: Transaction Group Tests
+
+
+@pytest.mark.group_transaction_group_tests
+def test_group_transactions():
+    """A collection of transactions can be grouped"""
+    data = simple_group()
+    txs = data["txs"]
+    expected_group_id = data["expected_group_id"]
+
     grouped_txs = group_transactions(txs)
 
     assert len(grouped_txs) == len(txs)
-
     for i in range(len(txs)):
         assert txs[i].group is None
         assert grouped_txs[i].group == expected_group_id
+
+
+@pytest.mark.group_transaction_group_tests
+def test_encode_transactions():
+    """A collection of transactions can be encoded"""
+    data = simple_group()
+    txs = data["txs"]
+    grouped_txs = group_transactions(txs)
+
+    encoded_grouped_txs = encode_transactions(grouped_txs)
+
+    assert len(encoded_grouped_txs) == len(txs)
+    for i in range(len(encoded_grouped_txs)):
+        assert encoded_grouped_txs[i] == encode_transaction(grouped_txs[i])
+
+
+@pytest.mark.group_transaction_group_tests
+def test_encode_transactions_with_signatures():
+    """Signatures can be attached to a collection of encoded transactions"""
+    data = simple_group()
+    txs = data["txs"]
+    grouped_txs = group_transactions(txs)
+    encoded_grouped_txs = encode_transactions(grouped_txs)
+
+    # Create signatures for each transaction
+    tx_signatures = [
+        simple_payment.signing_private_key.sign(encoded_grouped_txs[0]).signature,
+        opt_in_asset_transfer.signing_private_key.sign(
+            encoded_grouped_txs[1]
+        ).signature,
+    ]
+
+    encoded_signed_grouped_txs = attach_signatures(encoded_grouped_txs, tx_signatures)
+
+    assert len(encoded_signed_grouped_txs) == len(txs)
+    for i in range(len(encoded_signed_grouped_txs)):
+        assert encoded_signed_grouped_txs[i] == attach_signature(
+            encoded_grouped_txs[i], tx_signatures[i]
+        )

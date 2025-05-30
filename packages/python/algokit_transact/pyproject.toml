@@ -24,7 +24,11 @@ module-name = "_algokit_transact"
 include = ["algokit_transact/py.typed", "algokit_transact/__init__.py"]
 
 [tool.pytest.ini_options]
-markers = ["group_generic_transaction_tests", "group_transaction_tests"]
+markers = [
+  "group_generic_transaction_tests",
+  "group_transaction_tests",
+  "group_transaction_group_tests",
+]
 
 [tool.poetry.group.dev.dependencies]
 maturin = [
