@@ -10,6 +10,16 @@ opt_in_asset_transfer = TEST_DATA.opt_in_asset_transfer
 
 # Polytest Group: Transaction Group Tests
 
+@pytest.mark.group_transaction_group_tests
+def test_encode_transactions_with_signature():
+    """Signatures can be attached to a collection of encoded transactions"""
+    raise Exception("TEST NOT IMPLEMENTED")
+
+@pytest.mark.group_transaction_group_tests
+def test_encode_transactions():
+    """A collection of transactions can be encoded"""
+    raise Exception("TEST NOT IMPLEMENTED")
+
 
 @pytest.mark.group_transaction_group_tests
 def test_group_transactions():

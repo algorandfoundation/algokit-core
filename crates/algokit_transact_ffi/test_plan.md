@@ -17,7 +17,7 @@
 
 | Name | Description |
 | --- | --- |
-| [Transaction Group Tests](#transaction-group-tests) |  |
+| [Transaction Group Tests](#transaction-group-tests) | Tests that apply to collections of transactions |
 
 ## Test Groups
 
@@ -45,6 +45,8 @@
 | Name | Description |
 | --- | --- |
 | [group transactions](#group-transactions) | A collection of transactions can be grouped |
+| [encode transactions](#encode-transactions) | A collection of transactions can be encoded |
+| [encode transactions with signature](#encode-transactions-with-signature) | Signatures can be attached to a collection of encoded transactions |
 
 ## Test Cases
 
@@ -87,3 +89,11 @@ A human-readable example of forming a transaction and signing it
 ### group transactions
 
 A collection of transactions can be grouped
+
+### encode transactions
+
+A collection of transactions can be encoded
+
+### encode transactions with signature
+
+Signatures can be attached to a collection of encoded transactions

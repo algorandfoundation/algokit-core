@@ -60,8 +60,17 @@ desc = "A transaction id can be obtained from a transaction"
 [group."Transaction Tests".test.example]
 desc = "A human-readable example of forming a transaction and signing it"
 
+[group."Transaction Group Tests"]
+desc = "Tests that apply to collections of transactions"
+
 [group."Transaction Group Tests".test."group transactions"]
 desc = "A collection of transactions can be grouped"
+
+[group."Transaction Group Tests".test."encode transactions"]
+desc = "A collection of transactions can be encoded"
+
+[group."Transaction Group Tests".test."encode transactions with signature"]
+desc = "Signatures can be attached to a collection of encoded transactions"
 
 # Test Targets
 

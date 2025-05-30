@@ -15,6 +15,8 @@ pub enum AlgoKitTransactError {
     EncodingError(String),
     #[error("DecodingError: {0}")]
     DecodingError(String),
+    #[error("{0}")]
+    InputError(String),
 }
 
 // For now, in WASM we just throw the string, hence the error
@@ -47,7 +49,7 @@ impl From<algokit_transact::AlgoKitTransactError> for AlgoKitTransactError {
                 AlgoKitTransactError::DecodingError(e.to_string())
             }
             algokit_transact::AlgoKitTransactError::InputError(e) => {
-                AlgoKitTransactError::DecodingError(e.to_string())
+                AlgoKitTransactError::InputError(e.to_string())
             }
             algokit_transact::AlgoKitTransactError::InvalidAddress(_) => {
                 AlgoKitTransactError::DecodingError(e.to_string())
@@ -62,6 +64,8 @@ use uniffi::{self};
 #[cfg(feature = "ffi_uniffi")]
 uniffi::setup_scaffolding!();
 
+#[cfg(feature = "ffi_wasm")]
+use js_sys::Uint8Array;
 #[cfg(feature = "ffi_wasm")]
 use tsify_next::Tsify;
 #[cfg(feature = "ffi_wasm")]
@@ -389,6 +393,27 @@ pub fn encode_transaction(tx: Transaction) -> Result<Vec<u8>, AlgoKitTransactErr
     Ok(ctx.encode()?)
 }
 
+#[cfg(feature = "ffi_wasm")]
+#[ffi_func]
+/// Encode transactions with the domain separation (e.g. "TX") prefix
+pub fn encode_transactions(txs: Vec<Transaction>) -> Result<Vec<Uint8Array>, AlgoKitTransactError> {
+    Ok(encode_transactions_impl(txs)?
+        .iter()
+        .map(|bytes| bytes.as_slice().into())
+        .collect::<Vec<Uint8Array>>())
+}
+
+#[cfg(not(feature = "ffi_wasm"))]
+#[ffi_func]
+/// Encode transactions with the domain separation (e.g. "TX") prefix
+pub fn encode_transactions(txs: Vec<Transaction>) -> Result<Vec<Vec<u8>>, AlgoKitTransactError> {
+    encode_transactions_impl(txs)
+}
+
+fn encode_transactions_impl(txs: Vec<Transaction>) -> Result<Vec<Vec<u8>>, AlgoKitTransactError> {
+    txs.iter().cloned().map(encode_transaction).collect()
+}
+
 #[ffi_func]
 /// Encode the transaction without the domain separation (e.g. "TX") prefix
 /// This is useful for encoding the transaction for signing with tools that automatically add "TX" prefix to the transaction bytes.
@@ -417,6 +442,47 @@ pub fn attach_signature(
         )),
     };
     Ok(signed_tx.encode()?)
+}
+
+#[cfg(feature = "ffi_wasm")]
+#[ffi_func]
+pub fn attach_signatures(
+    encoded_txs: Vec<Uint8Array>,
+    signatures: Vec<Uint8Array>,
+) -> Result<Vec<Uint8Array>, AlgoKitTransactError> {
+    Ok(attach_signatures_impl(
+        encoded_txs.iter().map(|bytes| bytes.to_vec()).collect(),
+        signatures.iter().map(|bytes| bytes.to_vec()).collect(),
+    )?
+    .iter()
+    .map(|s| s.as_slice().into())
+    .collect())
+}
+
+#[cfg(not(feature = "ffi_wasm"))]
+#[ffi_func]
+pub fn attach_signatures(
+    encoded_txs: Vec<Vec<u8>>,
+    signatures: Vec<Vec<u8>>,
+) -> Result<Vec<Vec<u8>>, AlgoKitTransactError> {
+    attach_signatures_impl(encoded_txs, signatures)
+}
+
+fn attach_signatures_impl(
+    encoded_txs: Vec<Vec<u8>>,
+    signatures: Vec<Vec<u8>>,
+) -> Result<Vec<Vec<u8>>, AlgoKitTransactError> {
+    if encoded_txs.len() != signatures.len() {
+        return Err(AlgoKitTransactError::InputError(
+            "Number of transactions and signatures must match".to_string(),
+        ));
+    }
+
+    encoded_txs
+        .into_iter()
+        .zip(signatures)
+        .map(|(encoded_tx, sig)| attach_signature(&encoded_tx, &sig))
+        .collect()
 }
 
 #[ffi_func]
@@ -596,11 +662,23 @@ mod tests {
         let txs = vec![tx1, tx2];
 
         let grouped_txs = group_transactions(txs.clone()).unwrap();
+        let encoded_grouped_txs = encode_transactions(grouped_txs.clone()).unwrap();
+        let signed_encoded_grouped_txs = attach_signatures(
+            encoded_grouped_txs,
+            vec![
+                [0; ALGORAND_SIGNATURE_BYTE_LENGTH].to_vec(),
+                [1; ALGORAND_SIGNATURE_BYTE_LENGTH].to_vec(),
+            ],
+        )
+        .unwrap();
+
+        // TODO: NC - Finalise testing strategy
 
         assert_eq!(grouped_txs.len(), txs.len());
         for (original_tx, grouped_tx) in txs.iter().zip(grouped_txs.iter()) {
-            assert_eq!(original_tx.group, None);
+            assert_eq!(original_tx.group, None); // TODO: NC - This check is kind of redundant. Try fix this.
             assert_eq!(grouped_tx.group.as_ref().unwrap(), &expected_group);
         }
+        assert_eq!(signed_encoded_grouped_txs.len(), txs.len());
     }
 }
