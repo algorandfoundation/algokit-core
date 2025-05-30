@@ -5,8 +5,8 @@
 
 use crate::error::AlgoKitTransactError;
 use crate::utils::sort_msgpack_value;
-use crate::Transaction;
 use crate::{constants::HASH_BYTES_LENGTH, utils::hash};
+use crate::{SignedTransaction, Transaction};
 use serde::{Deserialize, Serialize};
 
 /// Trait for Algorand MessagePack encoding and decoding.
@@ -90,7 +90,7 @@ pub trait AlgorandMsgpack: Serialize + for<'de> Deserialize<'de> {
     /// # Returns
     /// The encoded bytes with prefix or an AlgoKitTransactError if serialization fails.
     fn encode(&self) -> Result<Vec<u8>, AlgoKitTransactError> {
-        let encoded = self.encode_raw()?;
+        let encoded: Vec<u8> = self.encode_raw()?;
         if Self::PREFIX.is_empty() {
             return Ok(encoded);
         }
@@ -147,4 +147,57 @@ pub trait Transactions: Sized {
     /// # Returns
     /// A result containing the transactions with group assign or an error if grouping fails.
     fn assign_group(self) -> Result<Vec<Transaction>, AlgoKitTransactError>;
+
+    /// Encodes the supplied transactions to MessagePack format with the appropriate prefix (TX).
+    ///
+    /// This method performs canonical encoding and prepends the domain separation
+    ///
+    /// Use `encode_raw()` if you want to encode without the prefix.
+    ///
+    /// # Returns
+    /// The encoded bytes with prefix for the supplied transactions or an AlgoKitTransactError if serialization fails.
+    fn encode(&self) -> Result<Vec<Vec<u8>>, AlgoKitTransactError>;
+
+    /// Encodes the supplied transactions to MessagePack format without any prefix.
+    ///
+    /// This method performs canonical encoding with sorted map keys and omitted empty fields,
+    /// but does not include any domain separation prefix.
+    ///
+    /// # Returns
+    /// The raw encoded bytes for the supplied transactions or an AlgoKitTransactError if serialization fails.
+    fn encode_raw(&self) -> Result<Vec<Vec<u8>>, AlgoKitTransactError>;
+
+    /// Decodes a collection of MessagePack bytes into a transaction collection.
+    ///
+    /// If the bytes start with the expected PREFIX for this type, the prefix is
+    /// automatically removed before decoding.
+    ///
+    /// # Parameters
+    /// * `encoded_txs` - A collection of MessagePack encoded bytes, each representing a transaction.
+    ///
+    /// # Returns
+    /// The decoded transactions or an AlgoKitTransactError if the input is empty or
+    /// deserialization fails.
+    fn decode(encoded_txs: &Vec<Vec<u8>>) -> Result<Vec<Transaction>, AlgoKitTransactError>;
+}
+
+/// Trait for operations which pertain to a collection of signed transactions.
+pub trait SignedTransactions {
+    /// Encodes the supplied signed transactions to MessagePack format.
+    ///
+    /// This method performs canonical encoding. No domain separation prefix is applicable.
+    ///
+    /// # Returns
+    /// The encoded bytes for the supplied signed transactions or an AlgoKitTransactError if serialization fails.
+    fn encode(&self) -> Result<Vec<Vec<u8>>, AlgoKitTransactError>;
+
+    /// Decodes a collection of MessagePack bytes into a signed transaction collection.
+    ///
+    /// # Parameters
+    /// * `encoded_txs` - A collection of MessagePack encoded bytes, each representing a signed transaction.
+    ///
+    /// # Returns
+    /// The decoded signed transactions or an AlgoKitTransactError if the input is empty or
+    /// deserialization fails.
+    fn decode(encoded_txs: &Vec<Vec<u8>>) -> Result<Vec<SignedTransaction>, AlgoKitTransactError>;
 }
