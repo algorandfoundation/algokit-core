@@ -14,47 +14,27 @@
 
 
 import datetime
-from dateutil.parser import parse
-from enum import Enum
 import decimal
 import json
 import mimetypes
 import os
 import re
 import tempfile
-
+from enum import Enum
+from typing import Dict, List, Optional, Tuple, Union
 from urllib.parse import quote
-from typing import Tuple, Optional, List, Dict, Union
 
-from algokit_algod_api.configuration import Configuration
-from algokit_algod_api.api_response import ApiResponse, T as ApiResponseT
-import algokit_algod_api.models
+from dateutil.parser import parse
+
 from algokit_algod_api import rest
-from algokit_algod_api.exceptions import (
-    ApiValueError,
-    ApiException,
-    BadRequestException,
-    UnauthorizedException,
-    ForbiddenException,
-    NotFoundException,
-    ServiceException
-)
+from algokit_algod_api.api_response import ApiResponse
+from algokit_algod_api.api_response import T as ApiResponseT
+from algokit_algod_api.configuration import Configuration
+from algokit_algod_api.exceptions import ApiException, ApiValueError
 
 # Import msgpack encoding/decoding functions from algokit_msgpack
 try:
-    from algokit_msgpack import (
-        # Endpoint-level encoding functions
-        encode_account,
-        encode_simulate_request,
-        encode_dryrun_request,
-        # Endpoint-level decoding functions
-        decode_account,
-        decode_error_response,
-        decode_pending_transaction_response,
-        decode_ledger_state_delta_for_transaction_group,
-        # Error handling
-        MsgpackError
-    )
+    from algokit_msgpack import *
     MSGPACK_AVAILABLE = True
 except ImportError:
     MSGPACK_AVAILABLE = False
@@ -263,7 +243,7 @@ class ApiClient:
                             body = self.sanitize_for_serialization(body)
                     else:
                         body = self.sanitize_for_serialization(body)
-                except (MsgpackError, Exception) as e:
+                except (MsgpackError, Exception):
                     # Fallback to JSON serialization on encoding errors
                     body = self.sanitize_for_serialization(body)
             else:
@@ -437,7 +417,7 @@ class ApiClient:
             # and attributes which value is not None.
             # Convert attribute name to json key in
             # model definition for request.
-            
+
             # Check if this is an FFI model from algokit_msgpack
             if hasattr(obj, '__module__') and 'algokit_msgpack' in str(obj.__module__):
                 # Try to use the model's to_dict method if available
@@ -531,7 +511,8 @@ class ApiClient:
             if klass in self.NATIVE_TYPES_MAPPING:
                 klass = self.NATIVE_TYPES_MAPPING[klass]
             else:
-                klass = getattr(algokit_algod_api.models, klass)
+                import algokit_msgpack
+                klass = getattr(algokit_msgpack, klass)
 
         if klass in self.PRIMITIVE_TYPES:
             return self.__deserialize_primitive(data, klass)
@@ -887,7 +868,7 @@ class ApiClient:
         :param klass: class literal.
         :return: model object.
         """
-        
+
         # Check if this is an FFI model from algokit_msgpack that uses serde JSON
         # These models don't have from_dict but can be deserialized from JSON
         if hasattr(klass, '__module__') and 'algokit_msgpack' in str(klass.__module__):
@@ -915,6 +896,6 @@ class ApiClient:
                     return klass.from_dict(data)
                 else:
                     raise Exception(f"Failed to deserialize FFI model {klass}: {e}")
-        
+
         # Standard OpenAPI model deserialization
         return klass.from_dict(data)

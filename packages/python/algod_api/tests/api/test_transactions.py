@@ -19,6 +19,7 @@ from typing import Dict, cast
 
 import pytest
 from algokit_msgpack import (
+    RawTransaction200Response,
     SimulateRequest,
     SimulateRequestTransactionGroup,
     SimulateTraceConfig,
@@ -110,16 +111,16 @@ class TestTransactionAPI:
             response = algod_instance.transaction_params(_headers=headers)
 
             assert response is not None
-            response_dict = response.to_dict()
-            assert isinstance(response_dict, dict)
+            response_dict = response
+            assert isinstance(response_dict, TransactionParams200Response)
 
             # Required transaction parameters
             required_fields = [
-                'consensus-version', 'fee', 'genesis-hash',
-                'genesis-id', 'last-round', 'min-fee'
+                'consensus_version', 'fee', 'genesis_hash',
+                'genesis_id', 'last_round', 'min_fee'
             ]
             for field in required_fields:
-                assert field in response_dict
+                assert hasattr(response_dict, field)
 
         except Exception as e:
             pytest.fail(f"Exception when calling AlgodApi->transaction_params: {e}")
@@ -147,10 +148,9 @@ class TestTransactionAPI:
             )
 
             assert response is not None
-            response_dict = response.to_dict()
-            assert isinstance(response_dict, dict)
-            assert 'txId' in response_dict
-            assert len(response_dict['txId']) > 0
+            assert isinstance(response, RawTransaction200Response)
+            assert response.txId is not None # TODO: Restore txId
+            assert len(response.txId) > 0
 
         except Exception as e:
             pytest.fail(f"Exception when calling AlgodApi->raw_transaction: {e}")
@@ -172,15 +172,14 @@ class TestTransactionAPI:
                 _headers=headers
             )
             response = algod_instance.pending_transaction_information(
-                txid=sent_txn.tx_id,
+                txid=sent_txn.txId, # TODO: Restore tx_id
                 _headers=headers
             )
 
             assert response is not None
-            response_dict = response.to_dict()
-            assert response_dict['txn'] is not None
-            assert "confirmed-round" in response_dict
-            assert "pool-error" in response_dict
+            assert response.txn is not None
+            assert response.confirmed_round is not None
+            assert response.pool_error is not None
 
         except Exception as e:
             pytest.fail(f"Exception when calling AlgodApi->pending_transaction_information: {e}")
@@ -203,18 +202,19 @@ class TestTransactionAPI:
             # Use unpacked dict with correct field names (with hyphens)
             trace_config = SimulateTraceConfig(
                 enable=True,
-                **{"stack-change": True, "state-change": True, "scratch-change": True}
+                stack_change=True,
+                state_change=True,
+                scratch_change=True
             )
 
-            request = SimulateRequest.from_dict(
-                {
-                    "allow-empty-signatures": True,
-                    "allow-more-logging": True,
-                    "allow-unnamed-resources": True,
-                    "txn-groups": [empty_txn_group],
-                    "exec-trace-config": trace_config
-                }
+            request = SimulateRequest(
+                allow_empty_signatures=True,
+                allow_more_logging=True,
+                allow_unnamed_resources=True,
+                txn_groups=[empty_txn_group],
+                exec_trace_config=trace_config
             )
+
 
             assert request is not None
 

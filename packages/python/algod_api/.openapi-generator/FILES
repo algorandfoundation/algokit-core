@@ -8,7 +8,6 @@ algokit_algod_api/api_client.py
 algokit_algod_api/api_response.py
 algokit_algod_api/configuration.py
 algokit_algod_api/exceptions.py
-algokit_algod_api/models/__init__.py
 algokit_algod_api/py.typed
 algokit_algod_api/rest.py
 docs/AlgodApi.md

@@ -4,13 +4,12 @@
 import warnings
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-# Import all models from the models package (which imports from algokit_msgpack)
-from {{packageName}}.models import *
-
 from {{packageName}}.api_client import ApiClient, RequestSerialized
 from {{packageName}}.api_response import ApiResponse
 from {{packageName}}.rest import RESTResponseType
 
+# Import all models from the models package (which imports from algokit_msgpack)
+from algokit_msgpack import *
 
 {{#operations}}
 class {{classname}}:

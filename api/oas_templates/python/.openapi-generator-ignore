@@ -39,6 +39,7 @@ test-requirements.txt
 requirements.txt
 setup.cfg
 setup.py
+*/models/**
 
 # Don't ignore our test files (but keep custom ones intact)
 !test/**

@@ -12,11 +12,10 @@
     Do not edit the class manually.
 """  # noqa: E501
 
-import warnings
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 # Import all models from the models package (which imports from algokit_msgpack)
-from algokit_algod_api.models import *
+from algokit_msgpack import *
 
 from algokit_algod_api.api_client import ApiClient, RequestSerialized
 from algokit_algod_api.api_response import ApiResponse
@@ -93,7 +92,7 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -163,7 +162,7 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -233,7 +232,7 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -371,7 +370,7 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -449,7 +448,7 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -527,7 +526,7 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -568,9 +567,9 @@ class AlgodApi:
             _path_params['application-id'] = application_id
         # process the query parameters
         if format is not None:
-            
+
             _query_params.append(('format', format))
-            
+
         # process the header parameters
         # process the form parameters
         # process the body parameter
@@ -580,7 +579,7 @@ class AlgodApi:
         if 'Accept' not in _header_params:
             _header_params['Accept'] = self.api_client.select_header_accept(
                 [
-                    'application/json', 
+                    'application/json',
                     'application/msgpack'
                 ]
             )
@@ -674,7 +673,7 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -752,7 +751,7 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -830,7 +829,7 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -871,9 +870,9 @@ class AlgodApi:
             _path_params['asset-id'] = asset_id
         # process the query parameters
         if format is not None:
-            
+
             _query_params.append(('format', format))
-            
+
         # process the header parameters
         # process the form parameters
         # process the body parameter
@@ -883,7 +882,7 @@ class AlgodApi:
         if 'Accept' not in _header_params:
             _header_params['Accept'] = self.api_client.select_header_accept(
                 [
-                    'application/json', 
+                    'application/json',
                     'application/msgpack'
                 ]
             )
@@ -977,7 +976,7 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -1055,7 +1054,7 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -1133,7 +1132,7 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -1172,13 +1171,13 @@ class AlgodApi:
             _path_params['address'] = address
         # process the query parameters
         if limit is not None:
-            
+
             _query_params.append(('limit', limit))
-            
+
         if next is not None:
-            
+
             _query_params.append(('next', next))
-            
+
         # process the header parameters
         # process the form parameters
         # process the body parameter
@@ -1281,7 +1280,7 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -1359,7 +1358,7 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -1437,7 +1436,7 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -1476,13 +1475,13 @@ class AlgodApi:
             _path_params['address'] = address
         # process the query parameters
         if format is not None:
-            
+
             _query_params.append(('format', format))
-            
+
         if exclude is not None:
-            
+
             _query_params.append(('exclude', exclude))
-            
+
         # process the header parameters
         # process the form parameters
         # process the body parameter
@@ -1492,7 +1491,7 @@ class AlgodApi:
         if 'Accept' not in _header_params:
             _header_params['Accept'] = self.api_client.select_header_accept(
                 [
-                    'application/json', 
+                    'application/json',
                     'application/msgpack'
                 ]
             )
@@ -1579,7 +1578,7 @@ class AlgodApi:
             '404': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -1650,7 +1649,7 @@ class AlgodApi:
             '404': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -1721,7 +1720,7 @@ class AlgodApi:
             '404': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -1877,7 +1876,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -1952,7 +1951,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -2027,7 +2026,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -2182,7 +2181,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -2253,7 +2252,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -2324,7 +2323,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -2447,7 +2446,7 @@ class AlgodApi:
         _response_types_map: Dict[str, Optional[str]] = {
             '200': None,
             '404': None,
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -2510,7 +2509,7 @@ class AlgodApi:
         _response_types_map: Dict[str, Optional[str]] = {
             '200': None,
             '404': None,
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -2573,7 +2572,7 @@ class AlgodApi:
         _response_types_map: Dict[str, Optional[str]] = {
             '200': None,
             '404': None,
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -2705,7 +2704,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -2787,7 +2786,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -2869,7 +2868,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -2909,17 +2908,17 @@ class AlgodApi:
             _path_params['address'] = address
         # process the query parameters
         if dilution is not None:
-            
+
             _query_params.append(('dilution', dilution))
-            
+
         if first is not None:
-            
+
             _query_params.append(('first', first))
-            
+
         if last is not None:
-            
+
             _query_params.append(('last', last))
-            
+
         # process the header parameters
         # process the form parameters
         # process the body parameter
@@ -3019,7 +3018,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -3094,7 +3093,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -3169,7 +3168,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -3207,9 +3206,9 @@ class AlgodApi:
             _path_params['application-id'] = application_id
         # process the query parameters
         if name is not None:
-            
+
             _query_params.append(('name', name))
-            
+
         # process the header parameters
         # process the form parameters
         # process the body parameter
@@ -3320,7 +3319,7 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -3406,7 +3405,7 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -3492,7 +3491,7 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -3533,21 +3532,21 @@ class AlgodApi:
             _path_params['application-id'] = application_id
         # process the query parameters
         if max is not None:
-            
+
             _query_params.append(('max', max))
-            
+
         if prefix is not None:
-            
+
             _query_params.append(('prefix', prefix))
-            
+
         if next is not None:
-            
+
             _query_params.append(('next', next))
-            
+
         if values is not None:
-            
+
             _query_params.append(('values', values))
-            
+
         # process the header parameters
         # process the form parameters
         # process the body parameter
@@ -3643,7 +3642,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -3714,7 +3713,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -3785,7 +3784,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -3916,7 +3915,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -3987,7 +3986,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -4058,7 +4057,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -4196,7 +4195,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -4274,7 +4273,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -4352,7 +4351,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -4391,13 +4390,13 @@ class AlgodApi:
             _path_params['round'] = round
         # process the query parameters
         if format is not None:
-            
+
             _query_params.append(('format', format))
-            
+
         if header_only is not None:
-            
+
             _query_params.append(('header-only', header_only))
-            
+
         # process the header parameters
         # process the form parameters
         # process the body parameter
@@ -4407,7 +4406,7 @@ class AlgodApi:
         if 'Accept' not in _header_params:
             _header_params['Accept'] = self.api_client.select_header_accept(
                 [
-                    'application/json', 
+                    'application/json',
                     'application/msgpack'
                 ]
             )
@@ -4493,7 +4492,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -4563,7 +4562,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -4633,7 +4632,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -4764,7 +4763,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -4835,7 +4834,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -4906,7 +4905,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -5030,7 +5029,7 @@ class AlgodApi:
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "GetBlockTimeStampOffset200Response",
             '400': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -5094,7 +5093,7 @@ class AlgodApi:
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "GetBlockTimeStampOffset200Response",
             '400': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -5158,7 +5157,7 @@ class AlgodApi:
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "GetBlockTimeStampOffset200Response",
             '400': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -5285,7 +5284,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -5355,7 +5354,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -5425,7 +5424,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -5548,7 +5547,7 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "str",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -5611,7 +5610,7 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "str",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -5674,7 +5673,7 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "str",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -5794,7 +5793,7 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "DebugSettingsProf",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -5857,7 +5856,7 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "DebugSettingsProf",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -5920,7 +5919,7 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "DebugSettingsProf",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -6040,7 +6039,7 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "str",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -6103,7 +6102,7 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "str",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -6166,7 +6165,7 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "str",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -6299,7 +6298,7 @@ class AlgodApi:
             '408': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -6375,7 +6374,7 @@ class AlgodApi:
             '408': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -6451,7 +6450,7 @@ class AlgodApi:
             '408': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -6489,9 +6488,9 @@ class AlgodApi:
             _path_params['round'] = round
         # process the query parameters
         if format is not None:
-            
+
             _query_params.append(('format', format))
-            
+
         # process the header parameters
         # process the form parameters
         # process the body parameter
@@ -6501,7 +6500,7 @@ class AlgodApi:
         if 'Accept' not in _header_params:
             _header_params['Accept'] = self.api_client.select_header_accept(
                 [
-                    'application/json', 
+                    'application/json',
                     'application/msgpack'
                 ]
             )
@@ -6593,7 +6592,7 @@ class AlgodApi:
             '408': "ErrorResponse",
             '500': "ErrorResponse",
             '501': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -6669,7 +6668,7 @@ class AlgodApi:
             '408': "ErrorResponse",
             '500': "ErrorResponse",
             '501': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -6745,7 +6744,7 @@ class AlgodApi:
             '408': "ErrorResponse",
             '500': "ErrorResponse",
             '501': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -6783,9 +6782,9 @@ class AlgodApi:
             _path_params['id'] = id
         # process the query parameters
         if format is not None:
-            
+
             _query_params.append(('format', format))
-            
+
         # process the header parameters
         # process the form parameters
         # process the body parameter
@@ -6795,7 +6794,7 @@ class AlgodApi:
         if 'Accept' not in _header_params:
             _header_params['Accept'] = self.api_client.select_header_accept(
                 [
-                    'application/json', 
+                    'application/json',
                     'application/msgpack'
                 ]
             )
@@ -6882,7 +6881,7 @@ class AlgodApi:
             '408': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -6953,7 +6952,7 @@ class AlgodApi:
             '408': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -7024,7 +7023,7 @@ class AlgodApi:
             '408': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -7155,7 +7154,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -7226,7 +7225,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -7297,7 +7296,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -7424,7 +7423,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -7491,7 +7490,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -7558,7 +7557,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -7647,7 +7646,7 @@ class AlgodApi:
     ) -> GetPendingTransactionsByAddress200Response:
         """Get a list of unconfirmed transactions currently in the transaction pool.
 
-        Get the list of pending transactions, sorted by priority, in decreasing order, truncated at the end at MAX. If MAX = 0, returns all pending transactions. 
+        Get the list of pending transactions, sorted by priority, in decreasing order, truncated at the end at MAX. If MAX = 0, returns all pending transactions.
 
         :param max: Truncated number of transactions to display. If max=0, returns all pending txns.
         :type max: int
@@ -7689,7 +7688,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -7721,7 +7720,7 @@ class AlgodApi:
     ) -> ApiResponse[GetPendingTransactionsByAddress200Response]:
         """Get a list of unconfirmed transactions currently in the transaction pool.
 
-        Get the list of pending transactions, sorted by priority, in decreasing order, truncated at the end at MAX. If MAX = 0, returns all pending transactions. 
+        Get the list of pending transactions, sorted by priority, in decreasing order, truncated at the end at MAX. If MAX = 0, returns all pending transactions.
 
         :param max: Truncated number of transactions to display. If max=0, returns all pending txns.
         :type max: int
@@ -7763,7 +7762,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -7795,7 +7794,7 @@ class AlgodApi:
     ) -> RESTResponseType:
         """Get a list of unconfirmed transactions currently in the transaction pool.
 
-        Get the list of pending transactions, sorted by priority, in decreasing order, truncated at the end at MAX. If MAX = 0, returns all pending transactions. 
+        Get the list of pending transactions, sorted by priority, in decreasing order, truncated at the end at MAX. If MAX = 0, returns all pending transactions.
 
         :param max: Truncated number of transactions to display. If max=0, returns all pending txns.
         :type max: int
@@ -7837,7 +7836,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -7873,13 +7872,13 @@ class AlgodApi:
         # process the path parameters
         # process the query parameters
         if max is not None:
-            
+
             _query_params.append(('max', max))
-            
+
         if format is not None:
-            
+
             _query_params.append(('format', format))
-            
+
         # process the header parameters
         # process the form parameters
         # process the body parameter
@@ -7889,7 +7888,7 @@ class AlgodApi:
         if 'Accept' not in _header_params:
             _header_params['Accept'] = self.api_client.select_header_accept(
                 [
-                    'application/json', 
+                    'application/json',
                     'application/msgpack'
                 ]
             )
@@ -7938,7 +7937,7 @@ class AlgodApi:
     ) -> GetPendingTransactionsByAddress200Response:
         """Get a list of unconfirmed transactions currently in the transaction pool by address.
 
-        Get the list of pending transactions by address, sorted by priority, in decreasing order, truncated at the end at MAX. If MAX = 0, returns all pending transactions. 
+        Get the list of pending transactions by address, sorted by priority, in decreasing order, truncated at the end at MAX. If MAX = 0, returns all pending transactions.
 
         :param address: An account public key (required)
         :type address: str
@@ -7984,7 +7983,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -8017,7 +8016,7 @@ class AlgodApi:
     ) -> ApiResponse[GetPendingTransactionsByAddress200Response]:
         """Get a list of unconfirmed transactions currently in the transaction pool by address.
 
-        Get the list of pending transactions by address, sorted by priority, in decreasing order, truncated at the end at MAX. If MAX = 0, returns all pending transactions. 
+        Get the list of pending transactions by address, sorted by priority, in decreasing order, truncated at the end at MAX. If MAX = 0, returns all pending transactions.
 
         :param address: An account public key (required)
         :type address: str
@@ -8063,7 +8062,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -8096,7 +8095,7 @@ class AlgodApi:
     ) -> RESTResponseType:
         """Get a list of unconfirmed transactions currently in the transaction pool by address.
 
-        Get the list of pending transactions by address, sorted by priority, in decreasing order, truncated at the end at MAX. If MAX = 0, returns all pending transactions. 
+        Get the list of pending transactions by address, sorted by priority, in decreasing order, truncated at the end at MAX. If MAX = 0, returns all pending transactions.
 
         :param address: An account public key (required)
         :type address: str
@@ -8142,7 +8141,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -8181,13 +8180,13 @@ class AlgodApi:
             _path_params['address'] = address
         # process the query parameters
         if max is not None:
-            
+
             _query_params.append(('max', max))
-            
+
         if format is not None:
-            
+
             _query_params.append(('format', format))
-            
+
         # process the header parameters
         # process the form parameters
         # process the body parameter
@@ -8197,7 +8196,7 @@ class AlgodApi:
         if 'Accept' not in _header_params:
             _header_params['Accept'] = self.api_client.select_header_accept(
                 [
-                    'application/json', 
+                    'application/json',
                     'application/msgpack'
                 ]
             )
@@ -8277,7 +8276,7 @@ class AlgodApi:
             '200': None,
             '500': None,
             '503': None,
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -8341,7 +8340,7 @@ class AlgodApi:
             '200': None,
             '500': None,
             '503': None,
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -8405,7 +8404,7 @@ class AlgodApi:
             '200': None,
             '500': None,
             '503': None,
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -8526,7 +8525,7 @@ class AlgodApi:
             '408': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -8597,7 +8596,7 @@ class AlgodApi:
             '408': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -8668,7 +8667,7 @@ class AlgodApi:
             '408': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -8792,7 +8791,7 @@ class AlgodApi:
             '200': "GetStatus200Response",
             '401': "ErrorResponse",
             '500': "str",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -8856,7 +8855,7 @@ class AlgodApi:
             '200': "GetStatus200Response",
             '401': "ErrorResponse",
             '500': "str",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -8920,7 +8919,7 @@ class AlgodApi:
             '200': "GetStatus200Response",
             '401': "ErrorResponse",
             '500': "str",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -9040,7 +9039,7 @@ class AlgodApi:
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "GetSupply200Response",
             '401': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -9103,7 +9102,7 @@ class AlgodApi:
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "GetSupply200Response",
             '401': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -9166,7 +9165,7 @@ class AlgodApi:
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "GetSupply200Response",
             '401': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -9290,7 +9289,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -9357,7 +9356,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -9424,7 +9423,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -9557,7 +9556,7 @@ class AlgodApi:
             '408': "ErrorResponse",
             '500': "ErrorResponse",
             '501': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -9633,7 +9632,7 @@ class AlgodApi:
             '408': "ErrorResponse",
             '500': "ErrorResponse",
             '501': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -9709,7 +9708,7 @@ class AlgodApi:
             '408': "ErrorResponse",
             '500': "ErrorResponse",
             '501': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -9747,9 +9746,9 @@ class AlgodApi:
             _path_params['round'] = round
         # process the query parameters
         if format is not None:
-            
+
             _query_params.append(('format', format))
-            
+
         # process the header parameters
         # process the form parameters
         # process the body parameter
@@ -9759,7 +9758,7 @@ class AlgodApi:
         if 'Accept' not in _header_params:
             _header_params['Accept'] = self.api_client.select_header_accept(
                 [
-                    'application/json', 
+                    'application/json',
                     'application/msgpack'
                 ]
             )
@@ -9857,7 +9856,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -9939,7 +9938,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -10021,7 +10020,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -10063,13 +10062,13 @@ class AlgodApi:
             _path_params['txid'] = txid
         # process the query parameters
         if hashtype is not None:
-            
+
             _query_params.append(('hashtype', hashtype))
-            
+
         if format is not None:
-            
+
             _query_params.append(('format', format))
-            
+
         # process the header parameters
         # process the form parameters
         # process the body parameter
@@ -10157,7 +10156,7 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "Version",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -10220,7 +10219,7 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "Version",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -10283,7 +10282,7 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "Version",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -10402,7 +10401,7 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': None,
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -10464,7 +10463,7 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': None,
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -10526,7 +10525,7 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': None,
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -10639,7 +10638,7 @@ class AlgodApi:
         _response_types_map: Dict[str, Optional[str]] = {
             '200': None,
             '404': None,
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -10702,7 +10701,7 @@ class AlgodApi:
         _response_types_map: Dict[str, Optional[str]] = {
             '200': None,
             '404': None,
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -10765,7 +10764,7 @@ class AlgodApi:
         _response_types_map: Dict[str, Optional[str]] = {
             '200': None,
             '404': None,
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -10847,7 +10846,7 @@ class AlgodApi:
     ) -> PendingTransactionResponse:
         """Get a specific pending transaction.
 
-        Given a transaction ID of a recently submitted transaction, it returns information about it.  There are several cases when this might succeed: - transaction committed (committed round > 0) - transaction still in the pool (committed round = 0, pool error = \"\") - transaction removed from pool due to error (committed round = 0, pool error != \"\") Or the transaction may have happened sufficiently long ago that the node no longer remembers it, and this will return an error. 
+        Given a transaction ID of a recently submitted transaction, it returns information about it.  There are several cases when this might succeed: - transaction committed (committed round > 0) - transaction still in the pool (committed round = 0, pool error = \"\") - transaction removed from pool due to error (committed round = 0, pool error != \"\") Or the transaction may have happened sufficiently long ago that the node no longer remembers it, and this will return an error.
 
         :param txid: A transaction ID (required)
         :type txid: str
@@ -10889,7 +10888,7 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '404': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -10921,7 +10920,7 @@ class AlgodApi:
     ) -> ApiResponse[PendingTransactionResponse]:
         """Get a specific pending transaction.
 
-        Given a transaction ID of a recently submitted transaction, it returns information about it.  There are several cases when this might succeed: - transaction committed (committed round > 0) - transaction still in the pool (committed round = 0, pool error = \"\") - transaction removed from pool due to error (committed round = 0, pool error != \"\") Or the transaction may have happened sufficiently long ago that the node no longer remembers it, and this will return an error. 
+        Given a transaction ID of a recently submitted transaction, it returns information about it.  There are several cases when this might succeed: - transaction committed (committed round > 0) - transaction still in the pool (committed round = 0, pool error = \"\") - transaction removed from pool due to error (committed round = 0, pool error != \"\") Or the transaction may have happened sufficiently long ago that the node no longer remembers it, and this will return an error.
 
         :param txid: A transaction ID (required)
         :type txid: str
@@ -10963,7 +10962,7 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '404': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -10995,7 +10994,7 @@ class AlgodApi:
     ) -> RESTResponseType:
         """Get a specific pending transaction.
 
-        Given a transaction ID of a recently submitted transaction, it returns information about it.  There are several cases when this might succeed: - transaction committed (committed round > 0) - transaction still in the pool (committed round = 0, pool error = \"\") - transaction removed from pool due to error (committed round = 0, pool error != \"\") Or the transaction may have happened sufficiently long ago that the node no longer remembers it, and this will return an error. 
+        Given a transaction ID of a recently submitted transaction, it returns information about it.  There are several cases when this might succeed: - transaction committed (committed round > 0) - transaction still in the pool (committed round = 0, pool error = \"\") - transaction removed from pool due to error (committed round = 0, pool error != \"\") Or the transaction may have happened sufficiently long ago that the node no longer remembers it, and this will return an error.
 
         :param txid: A transaction ID (required)
         :type txid: str
@@ -11037,7 +11036,7 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '404': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -11075,9 +11074,9 @@ class AlgodApi:
             _path_params['txid'] = txid
         # process the query parameters
         if format is not None:
-            
+
             _query_params.append(('format', format))
-            
+
         # process the header parameters
         # process the form parameters
         # process the body parameter
@@ -11087,7 +11086,7 @@ class AlgodApi:
         if 'Accept' not in _header_params:
             _header_params['Accept'] = self.api_client.select_header_accept(
                 [
-                    'application/json', 
+                    'application/json',
                     'application/msgpack'
                 ]
             )
@@ -11166,7 +11165,7 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "DebugSettingsProf",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -11229,7 +11228,7 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "DebugSettingsProf",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -11292,7 +11291,7 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "DebugSettingsProf",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -11419,7 +11418,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -11489,7 +11488,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -11559,7 +11558,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -11711,7 +11710,7 @@ class AlgodApi:
             '404': None,
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -11782,7 +11781,7 @@ class AlgodApi:
             '404': None,
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -11853,7 +11852,7 @@ class AlgodApi:
             '404': None,
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -12004,7 +12003,7 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -12074,7 +12073,7 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -12144,7 +12143,7 @@ class AlgodApi:
             '400': "ErrorResponse",
             '401': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -12275,7 +12274,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -12346,7 +12345,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -12417,7 +12416,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -12544,7 +12543,7 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "object",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -12611,7 +12610,7 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "object",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -12678,7 +12677,7 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "object",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -12713,9 +12712,9 @@ class AlgodApi:
         # process the path parameters
         # process the query parameters
         if timeout is not None:
-            
+
             _query_params.append(('timeout', timeout))
-            
+
         # process the header parameters
         # process the form parameters
         # process the body parameter
@@ -12814,7 +12813,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -12888,7 +12887,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -12962,7 +12961,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -12998,9 +12997,9 @@ class AlgodApi:
         # process the path parameters
         # process the query parameters
         if format is not None:
-            
+
             _query_params.append(('format', format))
-            
+
         # process the header parameters
         # process the form parameters
         # process the body parameter
@@ -13012,7 +13011,7 @@ class AlgodApi:
         if 'Accept' not in _header_params:
             _header_params['Accept'] = self.api_client.select_header_accept(
                 [
-                    'application/json', 
+                    'application/json',
                     'application/msgpack'
                 ]
             )
@@ -13024,7 +13023,7 @@ class AlgodApi:
             _default_content_type = (
                 self.api_client.select_header_content_type(
                     [
-                        'application/json', 
+                        'application/json',
                         'application/msgpack'
                     ]
                 )
@@ -13118,7 +13117,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '408': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -13194,7 +13193,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '408': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -13270,7 +13269,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '408': "ErrorResponse",
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -13308,9 +13307,9 @@ class AlgodApi:
             _path_params['catchpoint'] = catchpoint
         # process the query parameters
         if min is not None:
-            
+
             _query_params.append(('min', min))
-            
+
         # process the header parameters
         # process the form parameters
         # process the body parameter
@@ -13398,7 +13397,7 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "str",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -13461,7 +13460,7 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "str",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -13524,7 +13523,7 @@ class AlgodApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "str",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -13656,7 +13655,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': None,
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -13731,7 +13730,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': None,
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -13806,7 +13805,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': None,
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -13842,9 +13841,9 @@ class AlgodApi:
         # process the path parameters
         # process the query parameters
         if sourcemap is not None:
-            
+
             _query_params.append(('sourcemap', sourcemap))
-            
+
         # process the header parameters
         # process the form parameters
         # process the body parameter
@@ -13963,7 +13962,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': None,
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -14034,7 +14033,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': None,
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -14105,7 +14104,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': None,
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -14249,7 +14248,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': None,
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -14320,7 +14319,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': None,
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -14391,7 +14390,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '404': None,
             '500': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -14447,7 +14446,7 @@ class AlgodApi:
             _default_content_type = (
                 self.api_client.select_header_content_type(
                     [
-                        'application/json', 
+                        'application/json',
                         'application/msgpack'
                     ]
                 )
@@ -14530,7 +14529,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -14595,7 +14594,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -14660,7 +14659,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -14784,7 +14783,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -14851,7 +14850,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -14918,7 +14917,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -15046,7 +15045,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -15117,7 +15116,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
@@ -15188,7 +15187,7 @@ class AlgodApi:
             '401': "ErrorResponse",
             '500': "ErrorResponse",
             '503': "ErrorResponse",
-        } 
+        }
 
         response_data = self.api_client.call_api(
             *_param,
