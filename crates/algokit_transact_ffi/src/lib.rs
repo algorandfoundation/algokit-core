@@ -65,6 +65,8 @@ use uniffi::{self};
 uniffi::setup_scaffolding!();
 
 #[cfg(feature = "ffi_wasm")]
+use js_sys::Uint8Array;
+#[cfg(feature = "ffi_wasm")]
 use tsify_next::Tsify;
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::*;
@@ -448,6 +450,22 @@ pub fn encode_transaction(tx: Transaction) -> Result<Vec<u8>, AlgoKitTransactErr
     Ok(ctx.encode()?)
 }
 
+#[cfg(feature = "ffi_wasm")]
+#[ffi_func]
+/// Encode transactions with the domain separation (e.g. "TX") prefix
+pub fn encode_transactions(txs: Vec<Transaction>) -> Result<Vec<Uint8Array>, AlgoKitTransactError> {
+    txs.into_iter()
+        .map(|tx| encode_transaction(tx).map(|bytes| bytes.as_slice().into()))
+        .collect()
+}
+
+#[cfg(not(feature = "ffi_wasm"))]
+#[ffi_func]
+/// Encode transactions with the domain separation (e.g. "TX") prefix
+pub fn encode_transactions(txs: Vec<Transaction>) -> Result<Vec<Vec<u8>>, AlgoKitTransactError> {
+    txs.into_iter().map(encode_transaction).collect()
+}
+
 #[ffi_func]
 /// Encode the transaction without the domain separation (e.g. "TX") prefix
 /// This is useful for encoding the transaction for signing with tools that automatically add "TX" prefix to the transaction bytes.
@@ -457,11 +475,74 @@ pub fn encode_transaction_raw(tx: Transaction) -> Result<Vec<u8>, AlgoKitTransac
 }
 
 #[ffi_func]
-pub fn decode_transaction(bytes: &[u8]) -> Result<Transaction, AlgoKitTransactError> {
-    let ctx: algokit_transact::Transaction = algokit_transact::Transaction::decode(bytes)?;
+pub fn decode_transaction(encoded_tx: &[u8]) -> Result<Transaction, AlgoKitTransactError> {
+    let ctx: algokit_transact::Transaction = algokit_transact::Transaction::decode(encoded_tx)?;
     Ok(ctx.try_into()?)
 }
 
+#[cfg(feature = "ffi_wasm")]
+#[ffi_func]
+pub fn decode_transactions(
+    encoded_txs: Vec<Uint8Array>,
+) -> Result<Vec<Transaction>, AlgoKitTransactError> {
+    encoded_txs
+        .iter()
+        .map(|bytes| decode_transaction(bytes.to_vec().as_slice()))
+        .collect()
+}
+
+#[cfg(not(feature = "ffi_wasm"))]
+#[ffi_func]
+pub fn decode_transactions(
+    encoded_txs: Vec<Vec<u8>>,
+) -> Result<Vec<Transaction>, AlgoKitTransactError> {
+    encoded_txs
+        .iter()
+        .map(|tx| decode_transaction(tx))
+        .collect()
+}
+
+}
+
+#[cfg(feature = "ffi_wasm")]
+#[ffi_func]
+pub fn attach_signatures(
+    encoded_txs: Vec<Uint8Array>,
+    signatures: Vec<Uint8Array>,
+) -> Result<Vec<Uint8Array>, AlgoKitTransactError> {
+    Ok(attach_signatures_impl(
+        encoded_txs.iter().map(|bytes| bytes.to_vec()).collect(),
+        signatures.iter().map(|bytes| bytes.to_vec()).collect(),
+    )?
+    .iter()
+    .map(|s| s.as_slice().into())
+    .collect())
+}
+
+#[cfg(not(feature = "ffi_wasm"))]
+#[ffi_func]
+pub fn attach_signatures(
+    encoded_txs: Vec<Vec<u8>>,
+    signatures: Vec<Vec<u8>>,
+) -> Result<Vec<Vec<u8>>, AlgoKitTransactError> {
+    attach_signatures_impl(encoded_txs, signatures)
+}
+
+fn attach_signatures_impl(
+    encoded_txs: Vec<Vec<u8>>,
+    signatures: Vec<Vec<u8>>,
+) -> Result<Vec<Vec<u8>>, AlgoKitTransactError> {
+    if encoded_txs.len() != signatures.len() {
+        return Err(AlgoKitTransactError::InputError(
+            "Number of transactions and signatures must match".to_string(),
+        ));
+    }
+
+    encoded_txs
+        .into_iter()
+        .zip(signatures)
+        .map(|(encoded_tx, sig)| attach_signature(&encoded_tx, &sig))
+        .collect()
 /// Return the size of the transaction in bytes as if it was already signed and encoded.
 /// This is useful for estimating the fee for the transaction.
 #[ffi_func]
@@ -697,6 +778,66 @@ mod tests {
         assert_eq!(grouped_txs.len(), txs.len());
         for grouped_tx in grouped_txs.into_iter() {
             assert_eq!(grouped_tx.group.unwrap(), &expected_group);
+        }
+    }
+
+    #[test]
+    fn test_transaction_group_encoding_ffi() {
+        let tx1 = TestDataMother::simple_payment()
+            .transaction
+            .try_into()
+            .unwrap();
+        let tx2 = TestDataMother::opt_in_asset_transfer()
+            .transaction
+            .try_into()
+            .unwrap();
+        let txs = vec![tx1, tx2];
+        let grouped_txs = group_transactions(txs.clone()).unwrap();
+
+        let encoded_grouped_txs = encode_transactions(grouped_txs.clone()).unwrap();
+        let decoded_grouped_txs = decode_transactions(encoded_grouped_txs.clone()).unwrap();
+
+        assert_eq!(encoded_grouped_txs.len(), txs.len());
+        for ((grouped_tx, encoded_tx), decoded_tx) in grouped_txs
+            .into_iter()
+            .zip(encoded_grouped_txs.into_iter())
+            .zip(decoded_grouped_txs.into_iter())
+        {
+            assert_eq!(encoded_tx, encode_transaction(grouped_tx.clone()).unwrap());
+            assert_eq!(decoded_tx, grouped_tx);
+        }
+    }
+
+    #[test]
+    fn test_transaction_group_signing_ffi() {
+        let tx1 = TestDataMother::simple_payment()
+            .transaction
+            .try_into()
+            .unwrap();
+        let tx2 = TestDataMother::opt_in_asset_transfer()
+            .transaction
+            .try_into()
+            .unwrap();
+        let txs = vec![tx1, tx2];
+        let grouped_txs = group_transactions(txs.clone()).unwrap();
+        let tx_sig = [0; ALGORAND_SIGNATURE_BYTE_LENGTH].to_vec();
+        let encoded_grouped_txs = encode_transactions(grouped_txs.clone()).unwrap();
+
+        let signed_encoded_grouped_txs = attach_signatures(
+            encoded_grouped_txs.clone(),
+            vec![tx_sig.clone(), tx_sig.clone()],
+        )
+        .unwrap();
+
+        assert_eq!(signed_encoded_grouped_txs.len(), txs.len());
+        for (encoded_tx, encoded_signed_tx) in encoded_grouped_txs
+            .into_iter()
+            .zip(signed_encoded_grouped_txs.into_iter())
+        {
+            assert_eq!(
+                encoded_signed_tx,
+                attach_signature(&encoded_tx, &tx_sig).unwrap()
+            );
         }
     }
 }
