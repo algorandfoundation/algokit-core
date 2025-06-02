@@ -11,6 +11,7 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -21,204 +22,139 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct Account {
     /// the account public key
-    #[serde(rename = "address")]
-    
-    
     
     pub address: String,
     /// \\[algo\\] total number of MicroAlgos in the account
-    #[serde(rename = "amount")]
-    
-    
     
     pub amount: i32,
     /// MicroAlgo balance required by the account.  The requirement grows based on asset and application usage.
-    #[serde(rename = "min-balance")]
-    
-    
     
     pub min_balance: i32,
     /// specifies the amount of MicroAlgos in the account, without the pending rewards.
-    #[serde(rename = "amount-without-pending-rewards")]
-    
-    
     
     pub amount_without_pending_rewards: i32,
     /// \\[appl\\] applications local data stored in this account.  Note the raw object uses `map[int] -> AppLocalState` for this type.
-    #[serde(rename = "apps-local-state", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub apps_local_state: Option<Vec<models::ApplicationLocalState>>,
     /// The count of all applications that have been opted in, equivalent to the count of application local data (AppLocalState objects) stored in this account.
-    #[serde(rename = "total-apps-opted-in")]
-    
-    
     
     pub total_apps_opted_in: i32,
-    #[serde(rename = "apps-total-schema", skip_serializing_if = "Option::is_none")]
-    
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub apps_total_schema: Option<models::ApplicationStateSchema>,
     /// \\[teap\\] the sum of all extra application program pages for this account.
-    #[serde(rename = "apps-total-extra-pages", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub apps_total_extra_pages: Option<i32>,
     /// \\[asset\\] assets held by this account.  Note the raw object uses `map[int] -> AssetHolding` for this type.
-    #[serde(rename = "assets", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub assets: Option<Vec<models::AssetHolding>>,
     /// The count of all assets that have been opted in, equivalent to the count of AssetHolding objects held by this account.
-    #[serde(rename = "total-assets-opted-in")]
-    
-    
     
     pub total_assets_opted_in: i32,
     /// \\[appp\\] parameters of applications created by this account including app global data.  Note: the raw account uses `map[int] -> AppParams` for this type.
-    #[serde(rename = "created-apps", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub created_apps: Option<Vec<models::Application>>,
     /// The count of all apps (AppParams objects) created by this account.
-    #[serde(rename = "total-created-apps")]
-    
-    
     
     pub total_created_apps: i32,
     /// \\[apar\\] parameters of assets created by this account.  Note: the raw account uses `map[int] -> Asset` for this type.
-    #[serde(rename = "created-assets", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub created_assets: Option<Vec<models::Asset>>,
     /// The count of all assets (AssetParams objects) created by this account.
-    #[serde(rename = "total-created-assets")]
-    
-    
     
     pub total_created_assets: i32,
     /// \\[tbx\\] The number of existing boxes created by this account's app.
-    #[serde(rename = "total-boxes", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub total_boxes: Option<i32>,
     /// \\[tbxb\\] The total number of bytes used by this account's app's box keys and values.
-    #[serde(rename = "total-box-bytes", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub total_box_bytes: Option<i32>,
-    #[serde(rename = "participation", skip_serializing_if = "Option::is_none")]
-    
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub participation: Option<models::AccountParticipation>,
     /// Whether or not the account can receive block incentives if its balance is in range at proposal time.
-    #[serde(rename = "incentive-eligible", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub incentive_eligible: Option<bool>,
     /// amount of MicroAlgos of pending rewards in this account.
-    #[serde(rename = "pending-rewards")]
-    
-    
     
     pub pending_rewards: i32,
     /// \\[ebase\\] used as part of the rewards computation. Only applicable to accounts which are participating.
-    #[serde(rename = "reward-base", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub reward_base: Option<i32>,
     /// \\[ern\\] total rewards of MicroAlgos the account has received, including pending rewards.
-    #[serde(rename = "rewards")]
-    
-    
     
     pub rewards: i32,
     /// The round for which this information is relevant.
-    #[serde(rename = "round")]
-    
-    
     
     pub round: i32,
     /// \\[onl\\] delegation status of the account's MicroAlgos * Offline - indicates that the associated account is delegated. *  Online  - indicates that the associated account used as part of the delegation pool. *   NotParticipating - indicates that the associated account is neither a delegator nor a delegate.
-    #[serde(rename = "status")]
-    
-    
     
     pub status: String,
     /// Indicates what type of signature is used by this account, must be one of: * sig * msig * lsig
-    #[serde(rename = "sig-type", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub sig_type: Option<SigType>,
     /// \\[spend\\] the address against which signing should be checked. If empty, the address of the current account is used. This field can be updated in any transaction by setting the RekeyTo field.
-    #[serde(rename = "auth-addr", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub auth_addr: Option<String>,
+    // Note: This field uses Algorand format: Address
     /// The round in which this account last proposed the block.
-    #[serde(rename = "last-proposed", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub last_proposed: Option<i32>,
     /// The round in which this account last went online, or explicitly renewed their online status.
-    #[serde(rename = "last-heartbeat", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub last_heartbeat: Option<i32>,
 }
 
 impl Account {
     /// Account information at a given round.  Definition: data/basics/userBalance.go : AccountData 
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-        address: String,amount: i32,min_balance: i32,amount_without_pending_rewards: i32,total_apps_opted_in: i32,total_assets_opted_in: i32,total_created_apps: i32,total_created_assets: i32,pending_rewards: i32,rewards: i32,round: i32,status: String, apps_local_state: Option<Vec<models::ApplicationLocalState>>, apps_total_schema: Option<models::ApplicationStateSchema>, apps_total_extra_pages: Option<i32>, assets: Option<Vec<models::AssetHolding>>, created_apps: Option<Vec<models::Application>>, created_assets: Option<Vec<models::Asset>>, total_boxes: Option<i32>, total_box_bytes: Option<i32>, participation: Option<models::AccountParticipation>, incentive_eligible: Option<bool>, reward_base: Option<i32>, sig_type: Option<SigType>, auth_addr: Option<String>, last_proposed: Option<i32>, last_heartbeat: Option<i32>
-    ) -> Account {
+    pub fn new(address: String, amount: i32, min_balance: i32, amount_without_pending_rewards: i32, total_apps_opted_in: i32, total_assets_opted_in: i32, total_created_apps: i32, total_created_assets: i32, pending_rewards: i32, rewards: i32, round: i32, status: String, apps_local_state: Option<Vec<models::ApplicationLocalState>>, apps_total_schema: Option<models::ApplicationStateSchema>, apps_total_extra_pages: Option<i32>, assets: Option<Vec<models::AssetHolding>>, created_apps: Option<Vec<models::Application>>, created_assets: Option<Vec<models::Asset>>, total_boxes: Option<i32>, total_box_bytes: Option<i32>, participation: Option<models::AccountParticipation>, incentive_eligible: Option<bool>, reward_base: Option<i32>, sig_type: Option<SigType>, auth_addr: Option<String>, last_proposed: Option<i32>, last_heartbeat: Option<i32>) -> Account {
         Account {
-            address: address,
-            amount: amount,
-            min_balance: min_balance,
-            amount_without_pending_rewards: amount_without_pending_rewards,
-            apps_local_state: apps_local_state,
-            total_apps_opted_in: total_apps_opted_in,
-            apps_total_schema: apps_total_schema,
-            apps_total_extra_pages: apps_total_extra_pages,
-            assets: assets,
-            total_assets_opted_in: total_assets_opted_in,
-            created_apps: created_apps,
-            total_created_apps: total_created_apps,
-            created_assets: created_assets,
-            total_created_assets: total_created_assets,
-            total_boxes: total_boxes,
-            total_box_bytes: total_box_bytes,
-            participation: participation,
-            incentive_eligible: incentive_eligible,
-            pending_rewards: pending_rewards,
-            reward_base: reward_base,
-            rewards: rewards,
-            round: round,
-            status: status,
-            sig_type: sig_type,
-            auth_addr: auth_addr,
-            last_proposed: last_proposed,
-            last_heartbeat: last_heartbeat,
+            address,
+            amount,
+            min_balance,
+            amount_without_pending_rewards,
+            apps_local_state,
+            total_apps_opted_in,
+            apps_total_schema,
+            apps_total_extra_pages,
+            assets,
+            total_assets_opted_in,
+            created_apps,
+            total_created_apps,
+            created_assets,
+            total_created_assets,
+            total_boxes,
+            total_box_bytes,
+            participation,
+            incentive_eligible,
+            pending_rewards,
+            reward_base,
+            rewards,
+            round,
+            status,
+            sig_type,
+            auth_addr,
+            last_proposed,
+            last_heartbeat,
         }
     }
 }
@@ -227,7 +163,9 @@ impl Account {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Enum))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub enum SigType {
     #[serde(rename = "sig")]
     Sig,
@@ -248,5 +186,22 @@ impl crate::JsonSerializable for Account {}
 impl crate::MsgpackEncodable for Account {}
 impl crate::MsgpackDecodable for Account {}
 
-crate::auto_impl_json_ffi!(Account, account);
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!(Account, account, account);
 

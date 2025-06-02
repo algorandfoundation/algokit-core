@@ -8,11 +8,15 @@ import { injectable, inject, optional } from "inversify";
 import { AbstractConfiguration } from "../services/configuration";
 {{/useInversify}}
 
+{{#models.0}}
+import type * as algokit_msgpack from 'algokit_msgpack';
+// Make all types available
 {{#models}}
 {{#model}}
-import { {{{ classname }}} } from '{{{ importPath }}}{{importFileExtension}}';
+type {{classname}} = algokit_msgpack.{{classname}};
 {{/model}}
 {{/models}}
+{{/models.0}}
 {{#apiInfo}}
 {{#apis}}
 import { Observable{{classname}} } from './ObservableAPI{{importFileExtension}}';

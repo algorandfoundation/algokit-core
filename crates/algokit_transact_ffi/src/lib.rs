@@ -60,7 +60,7 @@ use uniffi::{self};
 uniffi::setup_scaffolding!();
 
 #[cfg(feature = "ffi_wasm")]
-use tsify_next::Tsify;
+use tsify::Tsify;
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::*;
 

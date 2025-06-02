@@ -11,6 +11,7 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -20,36 +21,28 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct GetApplicationBoxes200Response {
     /// The round for which this information is relevant.
-    #[serde(rename = "round")]
-    
-    
     
     pub round: i32,
     /// Used for pagination, when making another request provide this token with the next parameter.
-    #[serde(rename = "next-token", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub next_token: Option<String>,
-    #[serde(rename = "boxes")]
-    
-    
-    
+
     pub boxes: Vec<models::AlgorandBox>,
 }
 
 impl GetApplicationBoxes200Response {
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-        round: i32,boxes: Vec<models::AlgorandBox>, next_token: Option<String>,
-    ) -> GetApplicationBoxes200Response {
+    pub fn new(round: i32, boxes: Vec<models::AlgorandBox>, next_token: Option<String>, ) -> GetApplicationBoxes200Response {
         GetApplicationBoxes200Response {
-            round: round,
-            next_token: next_token,
-            boxes: boxes,
+            round,
+            next_token,
+            boxes,
         }
     }
 }
@@ -59,5 +52,22 @@ impl GetApplicationBoxes200Response {
 impl crate::JsonSerializable for GetApplicationBoxes200Response {}
 
 
-crate::auto_impl_json_ffi!(GetApplicationBoxes200Response, get_application_boxes200_response);
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!(GetApplicationBoxes200Response, get_application_boxes200_response, getApplicationBoxes200Response);
 

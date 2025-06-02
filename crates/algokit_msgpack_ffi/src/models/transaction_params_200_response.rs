@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 
 use serde_with::serde_as;
 
+
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -24,43 +25,27 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct TransactionParams200Response {
     /// ConsensusVersion indicates the consensus protocol version as of LastRound.
-    #[serde(rename = "consensus-version")]
-    
-    
     
     pub consensus_version: String,
     /// Fee is the suggested transaction fee Fee is in units of micro-Algos per byte. Fee may fall to zero but transactions must still have a fee of at least MinTxnFee for the current network protocol.
-    #[serde(rename = "fee")]
-    
-    
     
     pub fee: i32,
     /// GenesisHash is the hash of the genesis block.
+    
     #[serde_as(as = "serde_with::base64::Base64")]
-    #[serde(rename = "genesis-hash")]
-    
-    
-    
     pub genesis_hash: Vec<u8>,
     /// GenesisID is an ID listed in the genesis block.
-    #[serde(rename = "genesis-id")]
-    
-    
     
     pub genesis_id: String,
     /// LastRound indicates the last round seen
-    #[serde(rename = "last-round")]
-    
-    
     
     pub last_round: i32,
     /// The minimum transaction fee (not per byte) required for the txn to validate for the current network protocol.
-    #[serde(rename = "min-fee")]
-    
-    
     
     pub min_fee: i32,
 }
@@ -68,16 +53,14 @@ pub struct TransactionParams200Response {
 impl TransactionParams200Response {
     /// TransactionParams contains the parameters that help a client construct a new transaction.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-        consensus_version: String,fee: i32,genesis_hash: Vec<u8>,genesis_id: String,last_round: i32,min_fee: i32,
-    ) -> TransactionParams200Response {
+    pub fn new(consensus_version: String, fee: i32, genesis_hash: Vec<u8>, genesis_id: String, last_round: i32, min_fee: i32, ) -> TransactionParams200Response {
         TransactionParams200Response {
-            consensus_version: consensus_version,
-            fee: fee,
-            genesis_hash: genesis_hash,
-            genesis_id: genesis_id,
-            last_round: last_round,
-            min_fee: min_fee,
+            consensus_version,
+            fee,
+            genesis_hash,
+            genesis_id,
+            last_round,
+            min_fee,
         }
     }
 }
@@ -87,5 +70,22 @@ impl TransactionParams200Response {
 impl crate::JsonSerializable for TransactionParams200Response {}
 
 
-crate::auto_impl_json_ffi!(TransactionParams200Response, transaction_params200_response);
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!(TransactionParams200Response, transaction_params200_response, transactionParams200Response);
 

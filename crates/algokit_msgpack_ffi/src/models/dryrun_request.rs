@@ -11,6 +11,7 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -21,62 +22,42 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct DryrunRequest {
-    #[serde(rename = "txns")]
-    
-    
-    
+
     pub txns: Vec<String>,
-    #[serde(rename = "accounts")]
-    
-    
-    
+
     pub accounts: Vec<models::Account>,
-    #[serde(rename = "apps")]
-    
-    
-    
+
     pub apps: Vec<models::Application>,
     /// ProtocolVersion specifies a specific version string to operate under, otherwise whatever the current protocol of the network this algod is running in.
-    #[serde(rename = "protocol-version")]
-    
-    
     
     pub protocol_version: String,
     /// Round is available to some TEAL scripts. Defaults to the current round on the network this algod is attached to.
-    #[serde(rename = "round")]
-    
-    
     
     pub round: i32,
+    // Note: This field uses Algorand format: uint64
     /// LatestTimestamp is available to some TEAL scripts. Defaults to the latest confirmed timestamp this algod is attached to.
-    #[serde(rename = "latest-timestamp")]
-    
-    
     
     pub latest_timestamp: i64,
-    #[serde(rename = "sources")]
-    
-    
-    
+
     pub sources: Vec<models::DryrunSource>,
 }
 
 impl DryrunRequest {
     /// Request data type for dryrun endpoint. Given the Transactions and simulated ledger state upload, run TEAL scripts and return debugging information.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-        txns: Vec<String>,accounts: Vec<models::Account>,apps: Vec<models::Application>,protocol_version: String,round: i32,latest_timestamp: i64,sources: Vec<models::DryrunSource>,
-    ) -> DryrunRequest {
+    pub fn new(txns: Vec<String>, accounts: Vec<models::Account>, apps: Vec<models::Application>, protocol_version: String, round: i32, latest_timestamp: i64, sources: Vec<models::DryrunSource>, ) -> DryrunRequest {
         DryrunRequest {
-            txns: txns,
-            accounts: accounts,
-            apps: apps,
-            protocol_version: protocol_version,
-            round: round,
-            latest_timestamp: latest_timestamp,
-            sources: sources,
+            txns,
+            accounts,
+            apps,
+            protocol_version,
+            round,
+            latest_timestamp,
+            sources,
         }
     }
 }
@@ -87,5 +68,22 @@ impl crate::JsonSerializable for DryrunRequest {}
 
 impl crate::MsgpackEncodable for DryrunRequest {}
 
-crate::auto_impl_json_ffi!(DryrunRequest, dryrun_request);
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!(DryrunRequest, dryrun_request, dryrunRequest);
 

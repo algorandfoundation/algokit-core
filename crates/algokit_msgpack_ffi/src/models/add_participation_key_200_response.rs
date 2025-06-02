@@ -11,6 +11,7 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -20,23 +21,20 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct AddParticipationKey200Response {
     /// encoding of the participation ID.
-    #[serde(rename = "partId")]
-    
-    
     
     pub part_id: String,
 }
 
 impl AddParticipationKey200Response {
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-        part_id: String,
-    ) -> AddParticipationKey200Response {
+    pub fn new(part_id: String, ) -> AddParticipationKey200Response {
         AddParticipationKey200Response {
-            part_id: part_id,
+            part_id,
         }
     }
 }
@@ -46,5 +44,22 @@ impl AddParticipationKey200Response {
 impl crate::JsonSerializable for AddParticipationKey200Response {}
 
 
-crate::auto_impl_json_ffi!(AddParticipationKey200Response, add_participation_key200_response);
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!(AddParticipationKey200Response, add_participation_key200_response, addParticipationKey200Response);
 

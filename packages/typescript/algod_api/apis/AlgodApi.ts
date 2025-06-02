@@ -8,43 +8,43 @@ import {canConsumeForm, isCodeInRange} from '../util';
 import {SecurityAuthentication} from '../auth/auth';
 
 
-import { AbortCatchup200Response } from '../models/AbortCatchup200Response';
-import { Account } from '../models/Account';
-import { AccountApplicationInformation200Response } from '../models/AccountApplicationInformation200Response';
-import { AccountAssetInformation200Response } from '../models/AccountAssetInformation200Response';
-import { AccountAssetsInformation200Response } from '../models/AccountAssetsInformation200Response';
-import { AddParticipationKey200Response } from '../models/AddParticipationKey200Response';
-import { AlgorandBox } from '../models/AlgorandBox';
-import { Application } from '../models/Application';
-import { Asset } from '../models/Asset';
-import { DebugSettingsProf } from '../models/DebugSettingsProf';
-import { DryrunRequest } from '../models/DryrunRequest';
-import { ErrorResponse } from '../models/ErrorResponse';
-import { GetApplicationBoxes200Response } from '../models/GetApplicationBoxes200Response';
-import { GetBlock200Response } from '../models/GetBlock200Response';
-import { GetBlockHash200Response } from '../models/GetBlockHash200Response';
-import { GetBlockLogs200Response } from '../models/GetBlockLogs200Response';
-import { GetBlockTimeStampOffset200Response } from '../models/GetBlockTimeStampOffset200Response';
-import { GetBlockTxids200Response } from '../models/GetBlockTxids200Response';
-import { GetPendingTransactionsByAddress200Response } from '../models/GetPendingTransactionsByAddress200Response';
-import { GetStatus200Response } from '../models/GetStatus200Response';
-import { GetSupply200Response } from '../models/GetSupply200Response';
-import { GetSyncRound200Response } from '../models/GetSyncRound200Response';
-import { GetTransactionGroupLedgerStateDeltasForRound200Response } from '../models/GetTransactionGroupLedgerStateDeltasForRound200Response';
-import { GetTransactionProof200Response } from '../models/GetTransactionProof200Response';
-import { LightBlockHeaderProof } from '../models/LightBlockHeaderProof';
-import { ParticipationKey } from '../models/ParticipationKey';
-import { PendingTransactionResponse } from '../models/PendingTransactionResponse';
-import { RawTransaction200Response } from '../models/RawTransaction200Response';
-import { SimulateRequest } from '../models/SimulateRequest';
-import { SimulateTransaction200Response } from '../models/SimulateTransaction200Response';
-import { StartCatchup200Response } from '../models/StartCatchup200Response';
-import { StateProof } from '../models/StateProof';
-import { TealCompile200Response } from '../models/TealCompile200Response';
-import { TealDisassemble200Response } from '../models/TealDisassemble200Response';
-import { TealDryrun200Response } from '../models/TealDryrun200Response';
-import { TransactionParams200Response } from '../models/TransactionParams200Response';
-import { Version } from '../models/Version';
+import type { AbortCatchup200Response } from 'algokit_msgpack';
+import type { Account } from 'algokit_msgpack';
+import type { AccountApplicationInformation200Response } from 'algokit_msgpack';
+import type { AccountAssetInformation200Response } from 'algokit_msgpack';
+import type { AccountAssetsInformation200Response } from 'algokit_msgpack';
+import type { AddParticipationKey200Response } from 'algokit_msgpack';
+import type { AlgorandBox } from 'algokit_msgpack';
+import type { Application } from 'algokit_msgpack';
+import type { Asset } from 'algokit_msgpack';
+import type { DebugSettingsProf } from 'algokit_msgpack';
+import type { DryrunRequest } from 'algokit_msgpack';
+import type { ErrorResponse } from 'algokit_msgpack';
+import type { GetApplicationBoxes200Response } from 'algokit_msgpack';
+import type { GetBlock200Response } from 'algokit_msgpack';
+import type { GetBlockHash200Response } from 'algokit_msgpack';
+import type { GetBlockLogs200Response } from 'algokit_msgpack';
+import type { GetBlockTimeStampOffset200Response } from 'algokit_msgpack';
+import type { GetBlockTxids200Response } from 'algokit_msgpack';
+import type { GetPendingTransactionsByAddress200Response } from 'algokit_msgpack';
+import type { GetStatus200Response } from 'algokit_msgpack';
+import type { GetSupply200Response } from 'algokit_msgpack';
+import type { GetSyncRound200Response } from 'algokit_msgpack';
+import type { GetTransactionGroupLedgerStateDeltasForRound200Response } from 'algokit_msgpack';
+import type { GetTransactionProof200Response } from 'algokit_msgpack';
+import type { LightBlockHeaderProof } from 'algokit_msgpack';
+import type { ParticipationKey } from 'algokit_msgpack';
+import type { PendingTransactionResponse } from 'algokit_msgpack';
+import type { RawTransaction200Response } from 'algokit_msgpack';
+import type { SimulateRequest } from 'algokit_msgpack';
+import type { SimulateTransaction200Response } from 'algokit_msgpack';
+import type { StartCatchup200Response } from 'algokit_msgpack';
+import type { StateProof } from 'algokit_msgpack';
+import type { TealCompile200Response } from 'algokit_msgpack';
+import type { TealDisassemble200Response } from 'algokit_msgpack';
+import type { TealDryrun200Response } from 'algokit_msgpack';
+import type { TransactionParams200Response } from 'algokit_msgpack';
+import type { Version } from 'algokit_msgpack';
 
 /**
  * no description
@@ -327,8 +327,7 @@ export class AlgodApiRequestFactory extends BaseAPIRequestFactory {
         requestContext.setHeaderParam("Content-Type", contentType);
         const serializedBody = ObjectSerializer.stringify(
             ObjectSerializer.serialize(participationkey, "HttpFile", ""),
-            contentType,
-            "HttpFile"
+            contentType
         );
         requestContext.setBody(serializedBody);
 
@@ -384,8 +383,7 @@ export class AlgodApiRequestFactory extends BaseAPIRequestFactory {
         requestContext.setHeaderParam("Content-Type", contentType);
         const serializedBody = ObjectSerializer.stringify(
             ObjectSerializer.serialize(keymap, "HttpFile", ""),
-            contentType,
-            "HttpFile"
+            contentType
         );
         requestContext.setBody(serializedBody);
 
@@ -1751,8 +1749,7 @@ export class AlgodApiRequestFactory extends BaseAPIRequestFactory {
         requestContext.setHeaderParam("Content-Type", contentType);
         const serializedBody = ObjectSerializer.stringify(
             ObjectSerializer.serialize(rawtxn, "HttpFile", ""),
-            contentType,
-            "HttpFile"
+            contentType
         );
         requestContext.setBody(serializedBody);
 
@@ -1799,8 +1796,7 @@ export class AlgodApiRequestFactory extends BaseAPIRequestFactory {
         requestContext.setHeaderParam("Content-Type", contentType);
         const serializedBody = ObjectSerializer.stringify(
             ObjectSerializer.serialize(rawtxn, "HttpFile", ""),
-            contentType,
-            "HttpFile"
+            contentType
         );
         requestContext.setBody(serializedBody);
 
@@ -1968,8 +1964,7 @@ export class AlgodApiRequestFactory extends BaseAPIRequestFactory {
         requestContext.setHeaderParam("Content-Type", contentType);
         const serializedBody = ObjectSerializer.stringify(
             ObjectSerializer.serialize(request, "SimulateRequest", ""),
-            contentType,
-            "SimulateRequest"
+            contentType
         );
         requestContext.setBody(serializedBody);
 
@@ -2099,8 +2094,7 @@ export class AlgodApiRequestFactory extends BaseAPIRequestFactory {
         requestContext.setHeaderParam("Content-Type", contentType);
         const serializedBody = ObjectSerializer.stringify(
             ObjectSerializer.serialize(source, "HttpFile", ""),
-            contentType,
-            "HttpFile"
+            contentType
         );
         requestContext.setBody(serializedBody);
 
@@ -2148,8 +2142,7 @@ export class AlgodApiRequestFactory extends BaseAPIRequestFactory {
         requestContext.setHeaderParam("Content-Type", contentType);
         const serializedBody = ObjectSerializer.stringify(
             ObjectSerializer.serialize(source, "string", ""),
-            contentType,
-            "string"
+            contentType
         );
         requestContext.setBody(serializedBody);
 
@@ -2194,8 +2187,7 @@ export class AlgodApiRequestFactory extends BaseAPIRequestFactory {
         requestContext.setHeaderParam("Content-Type", contentType);
         const serializedBody = ObjectSerializer.stringify(
             ObjectSerializer.serialize(request, "DryrunRequest", ""),
-            contentType,
-            "DryrunRequest"
+            contentType
         );
         requestContext.setBody(serializedBody);
 
@@ -5198,7 +5190,8 @@ const decodeResponseBody = async (response: ResponseContext, expectedType: strin
             bytes = Uint8Array.from(binaryData as any);
         }
 
-        return ObjectSerializer.parse(bytes, contentType, expectedType);
+        // For msgpack content, we just return the bytes as-is since algokit_msgpack handles the parsing
+        return bytes;
     }
 
     // For non-binary payloads we can rely on the text representation.

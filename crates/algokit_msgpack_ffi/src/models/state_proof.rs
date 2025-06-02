@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 
 use serde_with::serde_as;
 
+
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -24,31 +25,25 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct StateProof {
-    #[serde(rename = "Message")]
-    
-    
-    
+
     pub message: models::StateProofMessage,
     /// The encoded StateProof for the message.
+    
     #[serde_as(as = "serde_with::base64::Base64")]
-    #[serde(rename = "StateProof")]
-    
-    
-    
     pub state_proof: Vec<u8>,
 }
 
 impl StateProof {
     /// Represents a state proof and its corresponding message
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-        message: models::StateProofMessage,state_proof: Vec<u8>,
-    ) -> StateProof {
+    pub fn new(message: models::StateProofMessage, state_proof: Vec<u8>, ) -> StateProof {
         StateProof {
-            message: message,
-            state_proof: state_proof,
+            message,
+            state_proof,
         }
     }
 }
@@ -58,5 +53,22 @@ impl StateProof {
 impl crate::JsonSerializable for StateProof {}
 
 
-crate::auto_impl_json_ffi!(StateProof, state_proof);
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!(StateProof, state_proof, stateProof);
 

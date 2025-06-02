@@ -11,6 +11,7 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -21,72 +22,56 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct ParticipationKey {
     /// The key's ParticipationID.
-    #[serde(rename = "id")]
-    
-    
     
     pub id: String,
     /// Address the key was generated for.
-    #[serde(rename = "address")]
-    
-    
     
     pub address: String,
+    // Note: This field uses Algorand format: Address
     /// When registered, this is the first round it may be used.
-    #[serde(rename = "effective-first-valid", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub effective_first_valid: Option<i32>,
+    // Note: This field uses Algorand format: uint64
     /// When registered, this is the last round it may be used.
-    #[serde(rename = "effective-last-valid", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub effective_last_valid: Option<i32>,
+    // Note: This field uses Algorand format: uint64
     /// Round when this key was last used to vote.
-    #[serde(rename = "last-vote", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub last_vote: Option<i32>,
     /// Round when this key was last used to propose a block.
-    #[serde(rename = "last-block-proposal", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub last_block_proposal: Option<i32>,
     /// Round when this key was last used to generate a state proof.
-    #[serde(rename = "last-state-proof", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub last_state_proof: Option<i32>,
-    #[serde(rename = "key")]
-    
-    
-    
+
     pub key: models::AccountParticipation,
 }
 
 impl ParticipationKey {
     /// Represents a participation key used by the node.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-        id: String,address: String,key: models::AccountParticipation, effective_first_valid: Option<i32>, effective_last_valid: Option<i32>, last_vote: Option<i32>, last_block_proposal: Option<i32>, last_state_proof: Option<i32>,
-    ) -> ParticipationKey {
+    pub fn new(id: String, address: String, key: models::AccountParticipation, effective_first_valid: Option<i32>, effective_last_valid: Option<i32>, last_vote: Option<i32>, last_block_proposal: Option<i32>, last_state_proof: Option<i32>, ) -> ParticipationKey {
         ParticipationKey {
-            id: id,
-            address: address,
-            effective_first_valid: effective_first_valid,
-            effective_last_valid: effective_last_valid,
-            last_vote: last_vote,
-            last_block_proposal: last_block_proposal,
-            last_state_proof: last_state_proof,
-            key: key,
+            id,
+            address,
+            effective_first_valid,
+            effective_last_valid,
+            last_vote,
+            last_block_proposal,
+            last_state_proof,
+            key,
         }
     }
 }
@@ -96,5 +81,22 @@ impl ParticipationKey {
 impl crate::JsonSerializable for ParticipationKey {}
 
 
-crate::auto_impl_json_ffi!(ParticipationKey, participation_key);
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!(ParticipationKey, participation_key, participationKey);
 

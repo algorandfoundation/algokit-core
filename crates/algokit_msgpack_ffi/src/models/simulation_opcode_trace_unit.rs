@@ -11,6 +11,7 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -21,59 +22,46 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct SimulationOpcodeTraceUnit {
     /// The program counter of the current opcode being evaluated.
-    #[serde(rename = "pc")]
-    
-    
     
     pub pc: i32,
     /// The writes into scratch slots.
-    #[serde(rename = "scratch-changes", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub scratch_changes: Option<Vec<models::ScratchChange>>,
     /// The operations against the current application's states.
-    #[serde(rename = "state-changes", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub state_changes: Option<Vec<models::ApplicationStateOperation>>,
     /// The indexes of the traces for inner transactions spawned by this opcode, if any.
-    #[serde(rename = "spawned-inners", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub spawned_inners: Option<Vec<i32>>,
     /// The number of deleted stack values by this opcode.
-    #[serde(rename = "stack-pop-count", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub stack_pop_count: Option<i32>,
     /// The values added by this opcode to the stack.
-    #[serde(rename = "stack-additions", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub stack_additions: Option<Vec<models::AvmValue>>,
 }
 
 impl SimulationOpcodeTraceUnit {
     /// The set of trace information and effect from evaluating a single opcode.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-        pc: i32, scratch_changes: Option<Vec<models::ScratchChange>>, state_changes: Option<Vec<models::ApplicationStateOperation>>, spawned_inners: Option<Vec<i32>>, stack_pop_count: Option<i32>, stack_additions: Option<Vec<models::AvmValue>>
-    ) -> SimulationOpcodeTraceUnit {
+    pub fn new(pc: i32, scratch_changes: Option<Vec<models::ScratchChange>>, state_changes: Option<Vec<models::ApplicationStateOperation>>, spawned_inners: Option<Vec<i32>>, stack_pop_count: Option<i32>, stack_additions: Option<Vec<models::AvmValue>>) -> SimulationOpcodeTraceUnit {
         SimulationOpcodeTraceUnit {
-            pc: pc,
-            scratch_changes: scratch_changes,
-            state_changes: state_changes,
-            spawned_inners: spawned_inners,
-            stack_pop_count: stack_pop_count,
-            stack_additions: stack_additions,
+            pc,
+            scratch_changes,
+            state_changes,
+            spawned_inners,
+            stack_pop_count,
+            stack_additions,
         }
     }
 }
@@ -84,5 +72,22 @@ impl crate::JsonSerializable for SimulationOpcodeTraceUnit {}
 
 impl crate::MsgpackDecodable for SimulationOpcodeTraceUnit {}
 
-crate::auto_impl_json_ffi!(SimulationOpcodeTraceUnit, simulation_opcode_trace_unit);
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!(SimulationOpcodeTraceUnit, simulation_opcode_trace_unit, simulationOpcodeTraceUnit);
 

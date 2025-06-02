@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 
 use serde_with::serde_as;
 
+
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -24,39 +25,30 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct LightBlockHeaderProof {
     /// The index of the light block header in the vector commitment tree
-    #[serde(rename = "index")]
-    
-    
     
     pub index: i32,
     /// Represents the depth of the tree that is being proven, i.e. the number of edges from a leaf to the root.
-    #[serde(rename = "treedepth")]
-    
-    
     
     pub treedepth: i32,
     /// The encoded proof.
+    
     #[serde_as(as = "serde_with::base64::Base64")]
-    #[serde(rename = "proof")]
-    
-    
-    
     pub proof: Vec<u8>,
 }
 
 impl LightBlockHeaderProof {
     /// Proof of membership and position of a light block header.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-        index: i32,treedepth: i32,proof: Vec<u8>,
-    ) -> LightBlockHeaderProof {
+    pub fn new(index: i32, treedepth: i32, proof: Vec<u8>, ) -> LightBlockHeaderProof {
         LightBlockHeaderProof {
-            index: index,
-            treedepth: treedepth,
-            proof: proof,
+            index,
+            treedepth,
+            proof,
         }
     }
 }
@@ -66,5 +58,22 @@ impl LightBlockHeaderProof {
 impl crate::JsonSerializable for LightBlockHeaderProof {}
 
 
-crate::auto_impl_json_ffi!(LightBlockHeaderProof, light_block_header_proof);
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!(LightBlockHeaderProof, light_block_header_proof, lightBlockHeaderProof);
 

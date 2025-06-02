@@ -11,6 +11,7 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -21,66 +22,52 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct SimulateUnnamedResourcesAccessed {
     /// The unnamed accounts that were referenced. The order of this array is arbitrary.
-    #[serde(rename = "accounts", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub accounts: Option<Vec<String>>,
     /// The unnamed assets that were referenced. The order of this array is arbitrary.
-    #[serde(rename = "assets", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub assets: Option<Vec<i32>>,
     /// The unnamed applications that were referenced. The order of this array is arbitrary.
-    #[serde(rename = "apps", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub apps: Option<Vec<i32>>,
     /// The unnamed boxes that were referenced. The order of this array is arbitrary.
-    #[serde(rename = "boxes", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub boxes: Option<Vec<models::BoxReference>>,
     /// The number of extra box references used to increase the IO budget. This is in addition to the references defined in the input transaction group and any referenced to unnamed boxes.
-    #[serde(rename = "extra-box-refs", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub extra_box_refs: Option<i32>,
     /// The unnamed asset holdings that were referenced. The order of this array is arbitrary.
-    #[serde(rename = "asset-holdings", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub asset_holdings: Option<Vec<models::AssetHoldingReference>>,
     /// The unnamed application local states that were referenced. The order of this array is arbitrary.
-    #[serde(rename = "app-locals", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub app_locals: Option<Vec<models::ApplicationLocalReference>>,
 }
 
 impl SimulateUnnamedResourcesAccessed {
     /// These are resources that were accessed by this group that would normally have caused failure, but were allowed in simulation. Depending on where this object is in the response, the unnamed resources it contains may or may not qualify for group resource sharing. If this is a field in SimulateTransactionGroupResult, the resources do qualify, but if this is a field in SimulateTransactionResult, they do not qualify. In order to make this group valid for actual submission, resources that qualify for group sharing can be made available by any transaction of the group; otherwise, resources must be placed in the same transaction which accessed them.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-         accounts: Option<Vec<String>>, assets: Option<Vec<i32>>, apps: Option<Vec<i32>>, boxes: Option<Vec<models::BoxReference>>, extra_box_refs: Option<i32>, asset_holdings: Option<Vec<models::AssetHoldingReference>>, app_locals: Option<Vec<models::ApplicationLocalReference>>
-    ) -> SimulateUnnamedResourcesAccessed {
+    pub fn new(accounts: Option<Vec<String>>, assets: Option<Vec<i32>>, apps: Option<Vec<i32>>, boxes: Option<Vec<models::BoxReference>>, extra_box_refs: Option<i32>, asset_holdings: Option<Vec<models::AssetHoldingReference>>, app_locals: Option<Vec<models::ApplicationLocalReference>>) -> SimulateUnnamedResourcesAccessed {
         SimulateUnnamedResourcesAccessed {
-            accounts: accounts,
-            assets: assets,
-            apps: apps,
-            boxes: boxes,
-            extra_box_refs: extra_box_refs,
-            asset_holdings: asset_holdings,
-            app_locals: app_locals,
+            accounts,
+            assets,
+            apps,
+            boxes,
+            extra_box_refs,
+            asset_holdings,
+            app_locals,
         }
     }
 }
@@ -91,5 +78,22 @@ impl crate::JsonSerializable for SimulateUnnamedResourcesAccessed {}
 
 impl crate::MsgpackDecodable for SimulateUnnamedResourcesAccessed {}
 
-crate::auto_impl_json_ffi!(SimulateUnnamedResourcesAccessed, simulate_unnamed_resources_accessed);
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!(SimulateUnnamedResourcesAccessed, simulate_unnamed_resources_accessed, simulateUnnamedResourcesAccessed);
 

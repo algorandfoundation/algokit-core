@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 
 use serde_with::serde_as;
 
+
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -24,66 +25,52 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct ApplicationParams {
     /// The address that created this application. This is the address where the parameters and global state for this application can be found.
-    #[serde(rename = "creator")]
-    
-    
     
     pub creator: String,
+    // Note: This field uses Algorand format: Address
     /// \\[approv\\] approval program.
+    
     #[serde_as(as = "serde_with::base64::Base64")]
-    #[serde(rename = "approval-program")]
-    
-    
-    
     pub approval_program: Vec<u8>,
+    // Note: This field uses Algorand format: TEALProgram
     /// \\[clearp\\] approval program.
+    
     #[serde_as(as = "serde_with::base64::Base64")]
-    #[serde(rename = "clear-state-program")]
-    
-    
-    
     pub clear_state_program: Vec<u8>,
+    // Note: This field uses Algorand format: TEALProgram
     /// \\[epp\\] the amount of extra program pages available to this app.
-    #[serde(rename = "extra-program-pages", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub extra_program_pages: Option<i32>,
-    #[serde(rename = "local-state-schema", skip_serializing_if = "Option::is_none")]
-    
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub local_state_schema: Option<models::ApplicationStateSchema>,
-    #[serde(rename = "global-state-schema", skip_serializing_if = "Option::is_none")]
-    
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub global_state_schema: Option<models::ApplicationStateSchema>,
     /// Represents a key-value store for use in an application.
-    #[serde(rename = "global-state", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub global_state: Option<Vec<models::TealKeyValue>>,
 }
 
 impl ApplicationParams {
     /// Stores the global information associated with an application.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-        creator: String,approval_program: Vec<u8>,clear_state_program: Vec<u8>, extra_program_pages: Option<i32>, local_state_schema: Option<models::ApplicationStateSchema>, global_state_schema: Option<models::ApplicationStateSchema>, global_state: Option<Vec<models::TealKeyValue>>
-    ) -> ApplicationParams {
+    pub fn new(creator: String, approval_program: Vec<u8>, clear_state_program: Vec<u8>, extra_program_pages: Option<i32>, local_state_schema: Option<models::ApplicationStateSchema>, global_state_schema: Option<models::ApplicationStateSchema>, global_state: Option<Vec<models::TealKeyValue>>) -> ApplicationParams {
         ApplicationParams {
-            creator: creator,
-            approval_program: approval_program,
-            clear_state_program: clear_state_program,
-            extra_program_pages: extra_program_pages,
-            local_state_schema: local_state_schema,
-            global_state_schema: global_state_schema,
-            global_state: global_state,
+            creator,
+            approval_program,
+            clear_state_program,
+            extra_program_pages,
+            local_state_schema,
+            global_state_schema,
+            global_state,
         }
     }
 }
@@ -95,5 +82,22 @@ impl crate::JsonSerializable for ApplicationParams {}
 impl crate::MsgpackEncodable for ApplicationParams {}
 impl crate::MsgpackDecodable for ApplicationParams {}
 
-crate::auto_impl_json_ffi!(ApplicationParams, application_params);
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!(ApplicationParams, application_params, applicationParams);
 

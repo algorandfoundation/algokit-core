@@ -11,6 +11,7 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -21,115 +22,86 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct PendingTransactionResponse {
     /// The asset index if the transaction was found and it created an asset.
-    #[serde(rename = "asset-index", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub asset_index: Option<i32>,
     /// The application index if the transaction was found and it created an application.
-    #[serde(rename = "application-index", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub application_index: Option<i32>,
     /// Rewards in microalgos applied to the close remainder to account.
-    #[serde(rename = "close-rewards", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub close_rewards: Option<i32>,
     /// Closing amount for the transaction.
-    #[serde(rename = "closing-amount", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub closing_amount: Option<i32>,
     /// The number of the asset's unit that were transferred to the close-to address.
-    #[serde(rename = "asset-closing-amount", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub asset_closing_amount: Option<i32>,
     /// The round where this transaction was confirmed, if present.
-    #[serde(rename = "confirmed-round", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub confirmed_round: Option<i32>,
     /// Indicates that the transaction was kicked out of this node's transaction pool (and specifies why that happened).  An empty string indicates the transaction wasn't kicked out of this node's txpool due to an error. 
-    #[serde(rename = "pool-error")]
-    
-    
     
     pub pool_error: String,
     /// Rewards in microalgos applied to the receiver account.
-    #[serde(rename = "receiver-rewards", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub receiver_rewards: Option<i32>,
     /// Rewards in microalgos applied to the sender account.
-    #[serde(rename = "sender-rewards", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub sender_rewards: Option<i32>,
     /// Local state key/value changes for the application being executed by this transaction.
-    #[serde(rename = "local-state-delta", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub local_state_delta: Option<Vec<models::AccountStateDelta>>,
     /// Application state delta.
-    #[serde(rename = "global-state-delta", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub global_state_delta: Option<Vec<models::EvalDeltaKeyValue>>,
     /// Logs for the application being executed by this transaction.
-    #[serde(rename = "logs", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub logs: Option<Vec<String>>,
     /// Inner transactions produced by application execution.
-    #[serde(rename = "inner-txns", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub inner_txns: Option<Vec<models::PendingTransactionResponse>>,
     /// The raw signed transaction.
-    #[serde(rename = "txn")]
-    
-    
     
     pub txn: String,
+    // Note: This field uses Algorand format: SignedTransaction
 }
 
 impl PendingTransactionResponse {
     /// Details about a pending transaction. If the transaction was recently confirmed, includes confirmation details like the round and reward details.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-        pool_error: String,txn: String, asset_index: Option<i32>, application_index: Option<i32>, close_rewards: Option<i32>, closing_amount: Option<i32>, asset_closing_amount: Option<i32>, confirmed_round: Option<i32>, receiver_rewards: Option<i32>, sender_rewards: Option<i32>, local_state_delta: Option<Vec<models::AccountStateDelta>>, global_state_delta: Option<Vec<models::EvalDeltaKeyValue>>, logs: Option<Vec<String>>, inner_txns: Option<Vec<models::PendingTransactionResponse>>,
-    ) -> PendingTransactionResponse {
+    pub fn new(pool_error: String, txn: String, asset_index: Option<i32>, application_index: Option<i32>, close_rewards: Option<i32>, closing_amount: Option<i32>, asset_closing_amount: Option<i32>, confirmed_round: Option<i32>, receiver_rewards: Option<i32>, sender_rewards: Option<i32>, local_state_delta: Option<Vec<models::AccountStateDelta>>, global_state_delta: Option<Vec<models::EvalDeltaKeyValue>>, logs: Option<Vec<String>>, inner_txns: Option<Vec<models::PendingTransactionResponse>>, ) -> PendingTransactionResponse {
         PendingTransactionResponse {
-            asset_index: asset_index,
-            application_index: application_index,
-            close_rewards: close_rewards,
-            closing_amount: closing_amount,
-            asset_closing_amount: asset_closing_amount,
-            confirmed_round: confirmed_round,
-            pool_error: pool_error,
-            receiver_rewards: receiver_rewards,
-            sender_rewards: sender_rewards,
-            local_state_delta: local_state_delta,
-            global_state_delta: global_state_delta,
-            logs: logs,
-            inner_txns: inner_txns,
-            txn: txn,
+            asset_index,
+            application_index,
+            close_rewards,
+            closing_amount,
+            asset_closing_amount,
+            confirmed_round,
+            pool_error,
+            receiver_rewards,
+            sender_rewards,
+            local_state_delta,
+            global_state_delta,
+            logs,
+            inner_txns,
+            txn,
         }
     }
 }
@@ -140,5 +112,22 @@ impl crate::JsonSerializable for PendingTransactionResponse {}
 
 impl crate::MsgpackDecodable for PendingTransactionResponse {}
 
-crate::auto_impl_json_ffi!(PendingTransactionResponse, pending_transaction_response);
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!(PendingTransactionResponse, pending_transaction_response, pendingTransactionResponse);
 

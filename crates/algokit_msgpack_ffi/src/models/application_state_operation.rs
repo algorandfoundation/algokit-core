@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 
 use serde_with::serde_as;
 
+
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -24,52 +25,40 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct ApplicationStateOperation {
     /// Operation type. Value `w` is **write**, `d` is **delete**.
-    #[serde(rename = "operation")]
-    
-    
     
     pub operation: String,
     /// Type of application state. Value `g` is **global state**, `l` is **local state**, `b` is **boxes**.
-    #[serde(rename = "app-state-type")]
-    
-    
     
     pub app_state_type: String,
     /// The key (name) of the global/local/box state.
+    
     #[serde_as(as = "serde_with::base64::Base64")]
-    #[serde(rename = "key")]
-    
-    
-    
     pub key: Vec<u8>,
-    #[serde(rename = "new-value", skip_serializing_if = "Option::is_none")]
-    
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub new_value: Option<models::AvmValue>,
     /// For local state changes, the address of the account associated with the local state.
-    #[serde(rename = "account", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub account: Option<String>,
+    // Note: This field uses Algorand format: Address
 }
 
 impl ApplicationStateOperation {
     /// An operation against an application's global/local/box state.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-        operation: String,app_state_type: String,key: Vec<u8>, new_value: Option<models::AvmValue>, account: Option<String>
-    ) -> ApplicationStateOperation {
+    pub fn new(operation: String, app_state_type: String, key: Vec<u8>, new_value: Option<models::AvmValue>, account: Option<String>) -> ApplicationStateOperation {
         ApplicationStateOperation {
-            operation: operation,
-            app_state_type: app_state_type,
-            key: key,
-            new_value: new_value,
-            account: account,
+            operation,
+            app_state_type,
+            key,
+            new_value,
+            account,
         }
     }
 }
@@ -80,5 +69,22 @@ impl crate::JsonSerializable for ApplicationStateOperation {}
 
 impl crate::MsgpackDecodable for ApplicationStateOperation {}
 
-crate::auto_impl_json_ffi!(ApplicationStateOperation, application_state_operation);
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!(ApplicationStateOperation, application_state_operation, applicationStateOperation);
 

@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 
 use serde_with::serde_as;
 
+
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -24,83 +25,65 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct SimulationTransactionExecTrace {
     /// Program trace that contains a trace of opcode effects in an approval program.
-    #[serde(rename = "approval-program-trace", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub approval_program_trace: Option<Vec<models::SimulationOpcodeTraceUnit>>,
     /// SHA512_256 hash digest of the approval program executed in transaction.
-    #[serde_as(as = "Option<serde_with::base64::Base64>")]
-    #[serde(rename = "approval-program-hash", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde_as(as = "Option<serde_with::base64::Base64>")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub approval_program_hash: Option<Vec<u8>>,
     /// Program trace that contains a trace of opcode effects in a clear state program.
-    #[serde(rename = "clear-state-program-trace", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub clear_state_program_trace: Option<Vec<models::SimulationOpcodeTraceUnit>>,
     /// SHA512_256 hash digest of the clear state program executed in transaction.
-    #[serde_as(as = "Option<serde_with::base64::Base64>")]
-    #[serde(rename = "clear-state-program-hash", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde_as(as = "Option<serde_with::base64::Base64>")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub clear_state_program_hash: Option<Vec<u8>>,
     /// If true, indicates that the clear state program failed and any persistent state changes it produced should be reverted once the program exits.
-    #[serde(rename = "clear-state-rollback", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub clear_state_rollback: Option<bool>,
     /// The error message explaining why the clear state program failed. This field will only be populated if clear-state-rollback is true and the failure was due to an execution error.
-    #[serde(rename = "clear-state-rollback-error", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub clear_state_rollback_error: Option<String>,
     /// Program trace that contains a trace of opcode effects in a logic sig.
-    #[serde(rename = "logic-sig-trace", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub logic_sig_trace: Option<Vec<models::SimulationOpcodeTraceUnit>>,
     /// SHA512_256 hash digest of the logic sig executed in transaction.
-    #[serde_as(as = "Option<serde_with::base64::Base64>")]
-    #[serde(rename = "logic-sig-hash", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde_as(as = "Option<serde_with::base64::Base64>")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub logic_sig_hash: Option<Vec<u8>>,
     /// An array of SimulationTransactionExecTrace representing the execution trace of any inner transactions executed.
-    #[serde(rename = "inner-trace", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub inner_trace: Option<Vec<models::SimulationTransactionExecTrace>>,
 }
 
 impl SimulationTransactionExecTrace {
     /// The execution trace of calling an app or a logic sig, containing the inner app call trace in a recursive way.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-         approval_program_trace: Option<Vec<models::SimulationOpcodeTraceUnit>>, approval_program_hash: Option<Vec<u8>>, clear_state_program_trace: Option<Vec<models::SimulationOpcodeTraceUnit>>, clear_state_program_hash: Option<Vec<u8>>, clear_state_rollback: Option<bool>, clear_state_rollback_error: Option<String>, logic_sig_trace: Option<Vec<models::SimulationOpcodeTraceUnit>>, logic_sig_hash: Option<Vec<u8>>, inner_trace: Option<Vec<models::SimulationTransactionExecTrace>>
-    ) -> SimulationTransactionExecTrace {
+    pub fn new(approval_program_trace: Option<Vec<models::SimulationOpcodeTraceUnit>>, approval_program_hash: Option<Vec<u8>>, clear_state_program_trace: Option<Vec<models::SimulationOpcodeTraceUnit>>, clear_state_program_hash: Option<Vec<u8>>, clear_state_rollback: Option<bool>, clear_state_rollback_error: Option<String>, logic_sig_trace: Option<Vec<models::SimulationOpcodeTraceUnit>>, logic_sig_hash: Option<Vec<u8>>, inner_trace: Option<Vec<models::SimulationTransactionExecTrace>>) -> SimulationTransactionExecTrace {
         SimulationTransactionExecTrace {
-            approval_program_trace: approval_program_trace,
-            approval_program_hash: approval_program_hash,
-            clear_state_program_trace: clear_state_program_trace,
-            clear_state_program_hash: clear_state_program_hash,
-            clear_state_rollback: clear_state_rollback,
-            clear_state_rollback_error: clear_state_rollback_error,
-            logic_sig_trace: logic_sig_trace,
-            logic_sig_hash: logic_sig_hash,
-            inner_trace: inner_trace,
+            approval_program_trace,
+            approval_program_hash,
+            clear_state_program_trace,
+            clear_state_program_hash,
+            clear_state_rollback,
+            clear_state_rollback_error,
+            logic_sig_trace,
+            logic_sig_hash,
+            inner_trace,
         }
     }
 }
@@ -111,5 +94,22 @@ impl crate::JsonSerializable for SimulationTransactionExecTrace {}
 
 impl crate::MsgpackDecodable for SimulationTransactionExecTrace {}
 
-crate::auto_impl_json_ffi!(SimulationTransactionExecTrace, simulation_transaction_exec_trace);
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!(SimulationTransactionExecTrace, simulation_transaction_exec_trace, simulationTransactionExecTrace);
 

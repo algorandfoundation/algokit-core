@@ -11,6 +11,7 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -21,56 +22,44 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct SimulateTransactionResult {
-    #[serde(rename = "txn-result")]
-    
-    
-    
+
     pub txn_result: models::PendingTransactionResponse,
     /// Budget used during execution of an app call transaction. This value includes budged used by inner app calls spawned by this transaction.
-    #[serde(rename = "app-budget-consumed", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub app_budget_consumed: Option<i32>,
     /// Budget used during execution of a logic sig transaction.
-    #[serde(rename = "logic-sig-budget-consumed", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub logic_sig_budget_consumed: Option<i32>,
-    #[serde(rename = "exec-trace", skip_serializing_if = "Option::is_none")]
-    
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub exec_trace: Option<models::SimulationTransactionExecTrace>,
-    #[serde(rename = "unnamed-resources-accessed", skip_serializing_if = "Option::is_none")]
-    
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub unnamed_resources_accessed: Option<models::SimulateUnnamedResourcesAccessed>,
     /// The account that needed to sign this transaction when no signature was provided and the provided signer was incorrect.
-    #[serde(rename = "fixed-signer", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub fixed_signer: Option<String>,
+    // Note: This field uses Algorand format: Address
 }
 
 impl SimulateTransactionResult {
     /// Simulation result for an individual transaction
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-        txn_result: models::PendingTransactionResponse, app_budget_consumed: Option<i32>, logic_sig_budget_consumed: Option<i32>, exec_trace: Option<models::SimulationTransactionExecTrace>, unnamed_resources_accessed: Option<models::SimulateUnnamedResourcesAccessed>, fixed_signer: Option<String>
-    ) -> SimulateTransactionResult {
+    pub fn new(txn_result: models::PendingTransactionResponse, app_budget_consumed: Option<i32>, logic_sig_budget_consumed: Option<i32>, exec_trace: Option<models::SimulationTransactionExecTrace>, unnamed_resources_accessed: Option<models::SimulateUnnamedResourcesAccessed>, fixed_signer: Option<String>) -> SimulateTransactionResult {
         SimulateTransactionResult {
-            txn_result: txn_result,
-            app_budget_consumed: app_budget_consumed,
-            logic_sig_budget_consumed: logic_sig_budget_consumed,
-            exec_trace: exec_trace,
-            unnamed_resources_accessed: unnamed_resources_accessed,
-            fixed_signer: fixed_signer,
+            txn_result,
+            app_budget_consumed,
+            logic_sig_budget_consumed,
+            exec_trace,
+            unnamed_resources_accessed,
+            fixed_signer,
         }
     }
 }
@@ -81,5 +70,22 @@ impl crate::JsonSerializable for SimulateTransactionResult {}
 
 impl crate::MsgpackDecodable for SimulateTransactionResult {}
 
-crate::auto_impl_json_ffi!(SimulateTransactionResult, simulate_transaction_result);
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!(SimulateTransactionResult, simulate_transaction_result, simulateTransactionResult);
 

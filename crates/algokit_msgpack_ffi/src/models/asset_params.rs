@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 
 use serde_with::serde_as;
 
+
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -24,126 +25,94 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct AssetParams {
     /// \\[c\\] Address of account used to clawback holdings of this asset.  If empty, clawback is not permitted.
-    #[serde(rename = "clawback", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub clawback: Option<String>,
     /// The address that created this asset. This is the address where the parameters for this asset can be found, and also the address where unwanted asset units can be sent in the worst case.
-    #[serde(rename = "creator")]
-    
-    
     
     pub creator: String,
     /// \\[dc\\] The number of digits to use after the decimal point when displaying this asset. If 0, the asset is not divisible. If 1, the base unit of the asset is in tenths. If 2, the base unit of the asset is in hundredths, and so on. This value must be between 0 and 19 (inclusive).
-    #[serde(rename = "decimals")]
-    
-    
     
     pub decimals: i32,
     /// \\[df\\] Whether holdings of this asset are frozen by default.
-    #[serde(rename = "default-frozen", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub default_frozen: Option<bool>,
     /// \\[f\\] Address of account used to freeze holdings of this asset.  If empty, freezing is not permitted.
-    #[serde(rename = "freeze", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub freeze: Option<String>,
     /// \\[m\\] Address of account used to manage the keys of this asset and to destroy it.
-    #[serde(rename = "manager", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub manager: Option<String>,
     /// \\[am\\] A commitment to some unspecified asset metadata. The format of this metadata is up to the application.
-    #[serde_as(as = "Option<serde_with::base64::Base64>")]
-    #[serde(rename = "metadata-hash", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde_as(as = "Option<serde_with::base64::Base64>")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata_hash: Option<Vec<u8>>,
     /// \\[an\\] Name of this asset, as supplied by the creator. Included only when the asset name is composed of printable utf-8 characters.
-    #[serde(rename = "name", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     /// Base64 encoded name of this asset, as supplied by the creator.
-    #[serde_as(as = "Option<serde_with::base64::Base64>")]
-    #[serde(rename = "name-b64", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde_as(as = "Option<serde_with::base64::Base64>")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub name_b64: Option<Vec<u8>>,
     /// \\[r\\] Address of account holding reserve (non-minted) units of this asset.
-    #[serde(rename = "reserve", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub reserve: Option<String>,
     /// \\[t\\] The total number of units of this asset.
-    #[serde(rename = "total")]
-    
-    
     
     pub total: i32,
+    // Note: This field uses Algorand format: uint64
     /// \\[un\\] Name of a unit of this asset, as supplied by the creator. Included only when the name of a unit of this asset is composed of printable utf-8 characters.
-    #[serde(rename = "unit-name", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub unit_name: Option<String>,
     /// Base64 encoded name of a unit of this asset, as supplied by the creator.
-    #[serde_as(as = "Option<serde_with::base64::Base64>")]
-    #[serde(rename = "unit-name-b64", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde_as(as = "Option<serde_with::base64::Base64>")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub unit_name_b64: Option<Vec<u8>>,
     /// \\[au\\] URL where more information about the asset can be retrieved. Included only when the URL is composed of printable utf-8 characters.
-    #[serde(rename = "url", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
     /// Base64 encoded URL where more information about the asset can be retrieved.
-    #[serde_as(as = "Option<serde_with::base64::Base64>")]
-    #[serde(rename = "url-b64", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde_as(as = "Option<serde_with::base64::Base64>")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub url_b64: Option<Vec<u8>>,
 }
 
 impl AssetParams {
     /// AssetParams specifies the parameters for an asset.  \\[apar\\] when part of an AssetConfig transaction.  Definition: data/transactions/asset.go : AssetParams
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-        creator: String,decimals: i32,total: i32, clawback: Option<String>, default_frozen: Option<bool>, freeze: Option<String>, manager: Option<String>, metadata_hash: Option<Vec<u8>>, name: Option<String>, name_b64: Option<Vec<u8>>, reserve: Option<String>, unit_name: Option<String>, unit_name_b64: Option<Vec<u8>>, url: Option<String>, url_b64: Option<Vec<u8>>
-    ) -> AssetParams {
+    pub fn new(creator: String, decimals: i32, total: i32, clawback: Option<String>, default_frozen: Option<bool>, freeze: Option<String>, manager: Option<String>, metadata_hash: Option<Vec<u8>>, name: Option<String>, name_b64: Option<Vec<u8>>, reserve: Option<String>, unit_name: Option<String>, unit_name_b64: Option<Vec<u8>>, url: Option<String>, url_b64: Option<Vec<u8>>) -> AssetParams {
         AssetParams {
-            clawback: clawback,
-            creator: creator,
-            decimals: decimals,
-            default_frozen: default_frozen,
-            freeze: freeze,
-            manager: manager,
-            metadata_hash: metadata_hash,
-            name: name,
-            name_b64: name_b64,
-            reserve: reserve,
-            total: total,
-            unit_name: unit_name,
-            unit_name_b64: unit_name_b64,
-            url: url,
-            url_b64: url_b64,
+            clawback,
+            creator,
+            decimals,
+            default_frozen,
+            freeze,
+            manager,
+            metadata_hash,
+            name,
+            name_b64,
+            reserve,
+            total,
+            unit_name,
+            unit_name_b64,
+            url,
+            url_b64,
         }
     }
 }
@@ -155,5 +124,22 @@ impl crate::JsonSerializable for AssetParams {}
 impl crate::MsgpackEncodable for AssetParams {}
 impl crate::MsgpackDecodable for AssetParams {}
 
-crate::auto_impl_json_ffi!(AssetParams, asset_params);
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!(AssetParams, asset_params, assetParams);
 

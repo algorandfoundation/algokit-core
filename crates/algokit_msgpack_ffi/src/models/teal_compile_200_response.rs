@@ -11,6 +11,7 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -20,37 +21,29 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct TealCompile200Response {
     /// base32 SHA512_256 of program bytes (Address style)
-    #[serde(rename = "hash")]
-    
-    
     
     pub hash: String,
     /// base64 encoded program bytes
-    #[serde(rename = "result")]
-    
-    
     
     pub result: String,
     /// JSON of the source map
-    #[serde(rename = "sourcemap", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub sourcemap: Option<String>,
 }
 
 impl TealCompile200Response {
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-        hash: String,result: String, sourcemap: Option<String>
-    ) -> TealCompile200Response {
+    pub fn new(hash: String, result: String, sourcemap: Option<String>) -> TealCompile200Response {
         TealCompile200Response {
-            hash: hash,
-            result: result,
-            sourcemap: sourcemap,
+            hash,
+            result,
+            sourcemap,
         }
     }
 }
@@ -60,5 +53,22 @@ impl TealCompile200Response {
 impl crate::JsonSerializable for TealCompile200Response {}
 
 
-crate::auto_impl_json_ffi!(TealCompile200Response, teal_compile200_response);
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!(TealCompile200Response, teal_compile200_response, tealCompile200Response);
 

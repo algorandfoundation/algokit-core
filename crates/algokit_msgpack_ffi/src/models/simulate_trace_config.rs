@@ -11,6 +11,7 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -21,45 +22,37 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct SimulateTraceConfig {
     /// A boolean option for opting in execution trace features simulation endpoint.
-    #[serde(rename = "enable", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub enable: Option<bool>,
     /// A boolean option enabling returning stack changes together with execution trace during simulation.
-    #[serde(rename = "stack-change", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub stack_change: Option<bool>,
     /// A boolean option enabling returning scratch slot changes together with execution trace during simulation.
-    #[serde(rename = "scratch-change", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub scratch_change: Option<bool>,
     /// A boolean option enabling returning application state changes (global, local, and box changes) with the execution trace during simulation.
-    #[serde(rename = "state-change", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub state_change: Option<bool>,
 }
 
 impl SimulateTraceConfig {
     /// An object that configures simulation execution trace.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-         enable: Option<bool>, stack_change: Option<bool>, scratch_change: Option<bool>, state_change: Option<bool>
-    ) -> SimulateTraceConfig {
+    pub fn new(enable: Option<bool>, stack_change: Option<bool>, scratch_change: Option<bool>, state_change: Option<bool>) -> SimulateTraceConfig {
         SimulateTraceConfig {
-            enable: enable,
-            stack_change: stack_change,
-            scratch_change: scratch_change,
-            state_change: state_change,
+            enable,
+            stack_change,
+            scratch_change,
+            state_change,
         }
     }
 }
@@ -71,5 +64,22 @@ impl crate::JsonSerializable for SimulateTraceConfig {}
 impl crate::MsgpackEncodable for SimulateTraceConfig {}
 impl crate::MsgpackDecodable for SimulateTraceConfig {}
 
-crate::auto_impl_json_ffi!(SimulateTraceConfig, simulate_trace_config);
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!(SimulateTraceConfig, simulate_trace_config, simulateTraceConfig);
 

@@ -2,80 +2,82 @@ import { ResponseContext, RequestContext, HttpFile } from '../http/http';
 import { Configuration, ConfigurationOptions, PromiseConfigurationOptions } from '../configuration'
 import { PromiseMiddleware, Middleware, PromiseMiddlewareWrapper } from '../middleware';
 
-import { AbortCatchup200Response } from '../models/AbortCatchup200Response';
-import { Account } from '../models/Account';
-import { AccountApplicationInformation200Response } from '../models/AccountApplicationInformation200Response';
-import { AccountAssetHolding } from '../models/AccountAssetHolding';
-import { AccountAssetInformation200Response } from '../models/AccountAssetInformation200Response';
-import { AccountAssetsInformation200Response } from '../models/AccountAssetsInformation200Response';
-import { AccountParticipation } from '../models/AccountParticipation';
-import { AccountStateDelta } from '../models/AccountStateDelta';
-import { AddParticipationKey200Response } from '../models/AddParticipationKey200Response';
-import { AlgorandBox } from '../models/AlgorandBox';
-import { AppCallLogs } from '../models/AppCallLogs';
-import { Application } from '../models/Application';
-import { ApplicationInitialStates } from '../models/ApplicationInitialStates';
-import { ApplicationKVStorage } from '../models/ApplicationKVStorage';
-import { ApplicationLocalReference } from '../models/ApplicationLocalReference';
-import { ApplicationLocalState } from '../models/ApplicationLocalState';
-import { ApplicationParams } from '../models/ApplicationParams';
-import { ApplicationStateOperation } from '../models/ApplicationStateOperation';
-import { ApplicationStateSchema } from '../models/ApplicationStateSchema';
-import { Asset } from '../models/Asset';
-import { AssetHolding } from '../models/AssetHolding';
-import { AssetHoldingReference } from '../models/AssetHoldingReference';
-import { AssetParams } from '../models/AssetParams';
-import { AvmKeyValue } from '../models/AvmKeyValue';
-import { AvmValue } from '../models/AvmValue';
-import { BoxReference } from '../models/BoxReference';
-import { BuildVersion } from '../models/BuildVersion';
-import { DebugSettingsProf } from '../models/DebugSettingsProf';
-import { DryrunRequest } from '../models/DryrunRequest';
-import { DryrunSource } from '../models/DryrunSource';
-import { DryrunState } from '../models/DryrunState';
-import { DryrunTxnResult } from '../models/DryrunTxnResult';
-import { ErrorResponse } from '../models/ErrorResponse';
-import { EvalDelta } from '../models/EvalDelta';
-import { EvalDeltaKeyValue } from '../models/EvalDeltaKeyValue';
-import { GetApplicationBoxes200Response } from '../models/GetApplicationBoxes200Response';
-import { GetBlock200Response } from '../models/GetBlock200Response';
-import { GetBlockHash200Response } from '../models/GetBlockHash200Response';
-import { GetBlockLogs200Response } from '../models/GetBlockLogs200Response';
-import { GetBlockTimeStampOffset200Response } from '../models/GetBlockTimeStampOffset200Response';
-import { GetBlockTxids200Response } from '../models/GetBlockTxids200Response';
-import { GetPendingTransactionsByAddress200Response } from '../models/GetPendingTransactionsByAddress200Response';
-import { GetStatus200Response } from '../models/GetStatus200Response';
-import { GetSupply200Response } from '../models/GetSupply200Response';
-import { GetSyncRound200Response } from '../models/GetSyncRound200Response';
-import { GetTransactionGroupLedgerStateDeltasForRound200Response } from '../models/GetTransactionGroupLedgerStateDeltasForRound200Response';
-import { GetTransactionProof200Response } from '../models/GetTransactionProof200Response';
-import { LedgerStateDeltaForTransactionGroup } from '../models/LedgerStateDeltaForTransactionGroup';
-import { LightBlockHeaderProof } from '../models/LightBlockHeaderProof';
-import { ParticipationKey } from '../models/ParticipationKey';
-import { PendingTransactionResponse } from '../models/PendingTransactionResponse';
-import { RawTransaction200Response } from '../models/RawTransaction200Response';
-import { ScratchChange } from '../models/ScratchChange';
-import { SimulateInitialStates } from '../models/SimulateInitialStates';
-import { SimulateRequest } from '../models/SimulateRequest';
-import { SimulateRequestTransactionGroup } from '../models/SimulateRequestTransactionGroup';
-import { SimulateTraceConfig } from '../models/SimulateTraceConfig';
-import { SimulateTransaction200Response } from '../models/SimulateTransaction200Response';
-import { SimulateTransactionGroupResult } from '../models/SimulateTransactionGroupResult';
-import { SimulateTransactionResult } from '../models/SimulateTransactionResult';
-import { SimulateUnnamedResourcesAccessed } from '../models/SimulateUnnamedResourcesAccessed';
-import { SimulationEvalOverrides } from '../models/SimulationEvalOverrides';
-import { SimulationOpcodeTraceUnit } from '../models/SimulationOpcodeTraceUnit';
-import { SimulationTransactionExecTrace } from '../models/SimulationTransactionExecTrace';
-import { StartCatchup200Response } from '../models/StartCatchup200Response';
-import { StateProof } from '../models/StateProof';
-import { StateProofMessage } from '../models/StateProofMessage';
-import { TealCompile200Response } from '../models/TealCompile200Response';
-import { TealDisassemble200Response } from '../models/TealDisassemble200Response';
-import { TealDryrun200Response } from '../models/TealDryrun200Response';
-import { TealKeyValue } from '../models/TealKeyValue';
-import { TealValue } from '../models/TealValue';
-import { TransactionParams200Response } from '../models/TransactionParams200Response';
-import { Version } from '../models/Version';
+import type * as algokit_msgpack from 'algokit_msgpack';
+// Make all types available
+type AbortCatchup200Response = algokit_msgpack.AbortCatchup200Response;
+type Account = algokit_msgpack.Account;
+type AccountApplicationInformation200Response = algokit_msgpack.AccountApplicationInformation200Response;
+type AccountAssetHolding = algokit_msgpack.AccountAssetHolding;
+type AccountAssetInformation200Response = algokit_msgpack.AccountAssetInformation200Response;
+type AccountAssetsInformation200Response = algokit_msgpack.AccountAssetsInformation200Response;
+type AccountParticipation = algokit_msgpack.AccountParticipation;
+type AccountStateDelta = algokit_msgpack.AccountStateDelta;
+type AddParticipationKey200Response = algokit_msgpack.AddParticipationKey200Response;
+type AlgorandBox = algokit_msgpack.AlgorandBox;
+type AppCallLogs = algokit_msgpack.AppCallLogs;
+type Application = algokit_msgpack.Application;
+type ApplicationInitialStates = algokit_msgpack.ApplicationInitialStates;
+type ApplicationKVStorage = algokit_msgpack.ApplicationKvStorage;
+type ApplicationLocalReference = algokit_msgpack.ApplicationLocalReference;
+type ApplicationLocalState = algokit_msgpack.ApplicationLocalState;
+type ApplicationParams = algokit_msgpack.ApplicationParams;
+type ApplicationStateOperation = algokit_msgpack.ApplicationStateOperation;
+type ApplicationStateSchema = algokit_msgpack.ApplicationStateSchema;
+type Asset = algokit_msgpack.Asset;
+type AssetHolding = algokit_msgpack.AssetHolding;
+type AssetHoldingReference = algokit_msgpack.AssetHoldingReference;
+type AssetParams = algokit_msgpack.AssetParams;
+type AvmKeyValue = algokit_msgpack.AvmKeyValue;
+type AvmValue = algokit_msgpack.AvmValue;
+type BoxReference = algokit_msgpack.BoxReference;
+type BuildVersion = algokit_msgpack.BuildVersion;
+type DebugSettingsProf = algokit_msgpack.DebugSettingsProf;
+type DryrunRequest = algokit_msgpack.DryrunRequest;
+type DryrunSource = algokit_msgpack.DryrunSource;
+type DryrunState = algokit_msgpack.DryrunState;
+type DryrunTxnResult = algokit_msgpack.DryrunTxnResult;
+type ErrorResponse = algokit_msgpack.ErrorResponse;
+type EvalDelta = algokit_msgpack.EvalDelta;
+type EvalDeltaKeyValue = algokit_msgpack.EvalDeltaKeyValue;
+type GetApplicationBoxes200Response = algokit_msgpack.GetApplicationBoxes200Response;
+type GetBlock200Response = algokit_msgpack.GetBlock200Response;
+type GetBlockHash200Response = algokit_msgpack.GetBlockHash200Response;
+type GetBlockLogs200Response = algokit_msgpack.GetBlockLogs200Response;
+type GetBlockTimeStampOffset200Response = algokit_msgpack.GetBlockTimeStampOffset200Response;
+type GetBlockTxids200Response = algokit_msgpack.GetBlockTxids200Response;
+type GetPendingTransactionsByAddress200Response = algokit_msgpack.GetPendingTransactionsByAddress200Response;
+type GetStatus200Response = algokit_msgpack.GetStatus200Response;
+type GetSupply200Response = algokit_msgpack.GetSupply200Response;
+type GetSyncRound200Response = algokit_msgpack.GetSyncRound200Response;
+type GetTransactionGroupLedgerStateDeltasForRound200Response = algokit_msgpack.GetTransactionGroupLedgerStateDeltasForRound200Response;
+type GetTransactionProof200Response = algokit_msgpack.GetTransactionProof200Response;
+type LedgerStateDeltaForTransactionGroup = algokit_msgpack.LedgerStateDeltaForTransactionGroup;
+type LightBlockHeaderProof = algokit_msgpack.LightBlockHeaderProof;
+type ParticipationKey = algokit_msgpack.ParticipationKey;
+type PendingTransactionResponse = algokit_msgpack.PendingTransactionResponse;
+type RawTransaction200Response = algokit_msgpack.RawTransaction200Response;
+type ScratchChange = algokit_msgpack.ScratchChange;
+type SimulateInitialStates = algokit_msgpack.SimulateInitialStates;
+type SimulateRequest = algokit_msgpack.SimulateRequest;
+type SimulateRequestTransactionGroup = algokit_msgpack.SimulateRequestTransactionGroup;
+type SimulateTraceConfig = algokit_msgpack.SimulateTraceConfig;
+type SimulateTransaction200Response = algokit_msgpack.SimulateTransaction200Response;
+type SimulateTransactionGroupResult = algokit_msgpack.SimulateTransactionGroupResult;
+type SimulateTransactionResult = algokit_msgpack.SimulateTransactionResult;
+type SimulateUnnamedResourcesAccessed = algokit_msgpack.SimulateUnnamedResourcesAccessed;
+type SimulationEvalOverrides = algokit_msgpack.SimulationEvalOverrides;
+type SimulationOpcodeTraceUnit = algokit_msgpack.SimulationOpcodeTraceUnit;
+type SimulationTransactionExecTrace = algokit_msgpack.SimulationTransactionExecTrace;
+type StartCatchup200Response = algokit_msgpack.StartCatchup200Response;
+type StateProof = algokit_msgpack.StateProof;
+type StateProofMessage = algokit_msgpack.StateProofMessage;
+type TealCompile200Response = algokit_msgpack.TealCompile200Response;
+type TealDisassemble200Response = algokit_msgpack.TealDisassemble200Response;
+type TealDryrun200Response = algokit_msgpack.TealDryrun200Response;
+type TealKeyValue = algokit_msgpack.TealKeyValue;
+type TealValue = algokit_msgpack.TealValue;
+type TransactionParams200Response = algokit_msgpack.TransactionParams200Response;
+type Version = algokit_msgpack.Version;
 import { ObservableAlgodApi } from './ObservableAPI';
 
 import { AlgodApiRequestFactory, AlgodApiResponseProcessor} from "../apis/AlgodApi";
@@ -1293,7 +1295,7 @@ export class PromiseAlgodApi {
     }
 
     /**
-     * Get the list of pending transactions, sorted by priority, in decreasing order, truncated at the end at MAX. If MAX = 0, returns all pending transactions. 
+     * Get the list of pending transactions, sorted by priority, in decreasing order, truncated at the end at MAX. If MAX = 0, returns all pending transactions.
      * Get a list of unconfirmed transactions currently in the transaction pool.
      * @param [max] Truncated number of transactions to display. If max&#x3D;0, returns all pending txns.
      * @param [format] Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.
@@ -1316,7 +1318,7 @@ export class PromiseAlgodApi {
     }
 
     /**
-     * Get the list of pending transactions, sorted by priority, in decreasing order, truncated at the end at MAX. If MAX = 0, returns all pending transactions. 
+     * Get the list of pending transactions, sorted by priority, in decreasing order, truncated at the end at MAX. If MAX = 0, returns all pending transactions.
      * Get a list of unconfirmed transactions currently in the transaction pool.
      * @param [max] Truncated number of transactions to display. If max&#x3D;0, returns all pending txns.
      * @param [format] Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.
@@ -1339,7 +1341,7 @@ export class PromiseAlgodApi {
     }
 
     /**
-     * Get the list of pending transactions by address, sorted by priority, in decreasing order, truncated at the end at MAX. If MAX = 0, returns all pending transactions. 
+     * Get the list of pending transactions by address, sorted by priority, in decreasing order, truncated at the end at MAX. If MAX = 0, returns all pending transactions.
      * Get a list of unconfirmed transactions currently in the transaction pool by address.
      * @param address An account public key
      * @param [max] Truncated number of transactions to display. If max&#x3D;0, returns all pending txns.
@@ -1363,7 +1365,7 @@ export class PromiseAlgodApi {
     }
 
     /**
-     * Get the list of pending transactions by address, sorted by priority, in decreasing order, truncated at the end at MAX. If MAX = 0, returns all pending transactions. 
+     * Get the list of pending transactions by address, sorted by priority, in decreasing order, truncated at the end at MAX. If MAX = 0, returns all pending transactions.
      * Get a list of unconfirmed transactions currently in the transaction pool by address.
      * @param address An account public key
      * @param [max] Truncated number of transactions to display. If max&#x3D;0, returns all pending txns.
@@ -1805,7 +1807,7 @@ export class PromiseAlgodApi {
     }
 
     /**
-     * Given a transaction ID of a recently submitted transaction, it returns information about it.  There are several cases when this might succeed: - transaction committed (committed round > 0) - transaction still in the pool (committed round = 0, pool error = \"\") - transaction removed from pool due to error (committed round = 0, pool error != \"\") Or the transaction may have happened sufficiently long ago that the node no longer remembers it, and this will return an error. 
+     * Given a transaction ID of a recently submitted transaction, it returns information about it.  There are several cases when this might succeed: - transaction committed (committed round > 0) - transaction still in the pool (committed round = 0, pool error = \"\") - transaction removed from pool due to error (committed round = 0, pool error != \"\") Or the transaction may have happened sufficiently long ago that the node no longer remembers it, and this will return an error.
      * Get a specific pending transaction.
      * @param txid A transaction ID
      * @param [format] Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.
@@ -1828,7 +1830,7 @@ export class PromiseAlgodApi {
     }
 
     /**
-     * Given a transaction ID of a recently submitted transaction, it returns information about it.  There are several cases when this might succeed: - transaction committed (committed round > 0) - transaction still in the pool (committed round = 0, pool error = \"\") - transaction removed from pool due to error (committed round = 0, pool error != \"\") Or the transaction may have happened sufficiently long ago that the node no longer remembers it, and this will return an error. 
+     * Given a transaction ID of a recently submitted transaction, it returns information about it.  There are several cases when this might succeed: - transaction committed (committed round > 0) - transaction still in the pool (committed round = 0, pool error = \"\") - transaction removed from pool due to error (committed round = 0, pool error != \"\") Or the transaction may have happened sufficiently long ago that the node no longer remembers it, and this will return an error.
      * Get a specific pending transaction.
      * @param txid A transaction ID
      * @param [format] Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.

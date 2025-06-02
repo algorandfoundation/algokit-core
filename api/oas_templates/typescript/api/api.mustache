@@ -18,7 +18,7 @@ import { injectable } from "inversify";
 {{/useInversify}}
 
 {{#imports}}
-import { {{classname}} } from '{{filename}}{{importFileExtension}}';
+import type { {{classname}} } from 'algokit_msgpack';
 {{/imports}}
 {{#operations}}
 
@@ -166,8 +166,7 @@ export class {{classname}}RequestFactory extends BaseAPIRequestFactory {
         requestContext.setHeaderParam("Content-Type", contentType);
         const serializedBody = ObjectSerializer.stringify(
             ObjectSerializer.serialize({{paramName}}, "{{{dataType}}}", "{{dataFormat}}"),
-            contentType,
-            "{{{dataType}}}"
+            contentType
         );
         requestContext.setBody(serializedBody);
         {{/bodyParam}}
@@ -286,7 +285,8 @@ const decodeResponseBody = async (response: ResponseContext, expectedType: strin
             bytes = Uint8Array.from(binaryData as any);
         }
 
-        return ObjectSerializer.parse(bytes, contentType, expectedType);
+        // For msgpack content, we just return the bytes as-is since algokit_msgpack handles the parsing
+        return bytes;
     }
 
     // For non-binary payloads we can rely on the text representation.

@@ -11,6 +11,7 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -21,24 +22,18 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct AssetHolding {
     /// \\[a\\] number of units held.
-    #[serde(rename = "amount")]
-    
-    
     
     pub amount: i32,
+    // Note: This field uses Algorand format: uint64
     /// Asset ID of the holding.
-    #[serde(rename = "asset-id")]
-    
-    
     
     pub asset_id: i32,
     /// \\[f\\] whether or not the holding is frozen.
-    #[serde(rename = "is-frozen")]
-    
-    
     
     pub is_frozen: bool,
 }
@@ -46,13 +41,11 @@ pub struct AssetHolding {
 impl AssetHolding {
     /// Describes an asset held by an account.  Definition: data/basics/userBalance.go : AssetHolding
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-        amount: i32,asset_id: i32,is_frozen: bool,
-    ) -> AssetHolding {
+    pub fn new(amount: i32, asset_id: i32, is_frozen: bool, ) -> AssetHolding {
         AssetHolding {
-            amount: amount,
-            asset_id: asset_id,
-            is_frozen: is_frozen,
+            amount,
+            asset_id,
+            is_frozen,
         }
     }
 }
@@ -64,5 +57,22 @@ impl crate::JsonSerializable for AssetHolding {}
 impl crate::MsgpackEncodable for AssetHolding {}
 impl crate::MsgpackDecodable for AssetHolding {}
 
-crate::auto_impl_json_ffi!(AssetHolding, asset_holding);
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!(AssetHolding, asset_holding, assetHolding);
 

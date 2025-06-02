@@ -11,6 +11,7 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -21,42 +22,31 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct DryrunSource {
     /// FieldName is what kind of sources this is. If lsig then it goes into the transactions[this.TxnIndex].LogicSig. If approv or clearp it goes into the Approval Program or Clear State Program of application[this.AppIndex].
-    #[serde(rename = "field-name")]
-    
-    
     
     pub field_name: String,
-    #[serde(rename = "source")]
-    
-    
-    
+
     pub source: String,
-    #[serde(rename = "txn-index")]
-    
-    
-    
+
     pub txn_index: i32,
-    #[serde(rename = "app-index")]
-    
-    
-    
+
     pub app_index: i32,
+    // Note: This field uses Algorand format: uint64
 }
 
 impl DryrunSource {
     /// DryrunSource is TEAL source text that gets uploaded, compiled, and inserted into transactions or application state.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-        field_name: String,source: String,txn_index: i32,app_index: i32,
-    ) -> DryrunSource {
+    pub fn new(field_name: String, source: String, txn_index: i32, app_index: i32, ) -> DryrunSource {
         DryrunSource {
-            field_name: field_name,
-            source: source,
-            txn_index: txn_index,
-            app_index: app_index,
+            field_name,
+            source,
+            txn_index,
+            app_index,
         }
     }
 }
@@ -67,5 +57,22 @@ impl crate::JsonSerializable for DryrunSource {}
 
 impl crate::MsgpackEncodable for DryrunSource {}
 
-crate::auto_impl_json_ffi!(DryrunSource, dryrun_source);
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!(DryrunSource, dryrun_source, dryrunSource);
 

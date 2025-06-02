@@ -6,20 +6,16 @@ use serde::{Deserialize, Serialize};
 {{^isEnum}}{{#vendorExtensions.x-rust-has-byte-array}}
 use serde_with::serde_as;
 {{/vendorExtensions.x-rust-has-byte-array}}{{/isEnum}}
-{{#isEnum}}
-{{#isInteger}}
-use serde_repr::{Serialize_repr,Deserialize_repr};
-{{/isInteger}}
-{{/isEnum}}
+{{#isEnum}}{{#isInteger}}
+use serde_repr::{Serialize_repr, Deserialize_repr};
+{{/isInteger}}{{/isEnum}}
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
-{{! FFI attribute macro for cleaner code }}
 {{#description}}
 /// {{{classname}}} : {{{description}}}
 {{/description}}
 
-{{! Common FFI attributes macro }}
 {{#isEnum}}
 {{#isInteger}}
 #[repr(i64)]
@@ -30,6 +26,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
 {{/isInteger}}
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Enum))]
 pub enum {{{classname}}} {
 {{#allowableValues}}
@@ -45,14 +42,14 @@ pub enum {{{classname}}} {
 }
 
 impl std::fmt::Display for {{{classname}}} {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", match self {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
             {{#allowableValues}}
             {{#enumVars}}
-            Self::{{{name}}} => "{{{value}}}",
+            Self::{{{name}}} => write!(f, "{{{value}}}"),
             {{/enumVars}}
             {{/allowableValues}}
-        })
+        }
     }
 }
 
@@ -69,18 +66,23 @@ impl Default for {{{classname}}} {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Enum))]
 #[serde(tag = "{{{propertyBaseName}}}")]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub enum {{{classname}}} {
     {{^oneOf}}
     {{#mappedModels}}
-    #[serde(rename="{{mappingName}}")]
+    #[serde(rename = "{{mappingName}}")]
     {{{modelName}}} {
     {{#vars}}
         {{#description}}
         /// {{{.}}}
         {{/description}}
-        #[serde(rename = "{{{baseName}}}"{{^required}}, skip_serializing_if = "Option::is_none"{{/required}})]
+        #[cfg_attr(not(feature = "ffi_wasm"), serde(rename = "{{{baseName}}}"))]{{^required}}
+        #[serde(skip_serializing_if = "Option::is_none")]{{/required}}{{#required}}{{#isNullable}}
+        #[serde(deserialize_with = "Option::deserialize")]{{/isNullable}}{{/required}}{{^required}}{{#isNullable}}
+        #[serde(default, with = "::serde_with::rust::double_option")]{{/isNullable}}{{/required}}
         {{{name}}}: {{#required}}{{#isNullable}}Option<{{/isNullable}}{{/required}}{{^required}}Option<{{/required}}{{#isEnum}}{{{enumName}}}{{/isEnum}}{{^isEnum}}{{#isModel}}{{{dataType}}}{{/isModel}}{{^isModel}}{{{dataType}}}{{/isModel}}{{/isEnum}}{{#required}}{{#isNullable}}>{{/isNullable}}{{/required}}{{^required}}>{{/required}},
     {{/vars}}
     },
@@ -92,7 +94,7 @@ pub enum {{{classname}}} {
     /// {{{.}}}
     {{/description}}
     {{#baseName}}
-    #[serde(rename="{{{.}}}")]
+    #[serde(rename = "{{{.}}}")]
     {{/baseName}}
     {{{name}}}({{#isModel}}{{{dataType}}}{{/isModel}}{{^isModel}}{{{dataType}}}{{/isModel}}),
     {{/composedSchemas.oneOf}}
@@ -117,20 +119,18 @@ impl Default for {{classname}} {
 {{/vendorExtensions.x-rust-has-byte-array}}{{#oneOf.isEmpty}}#[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct {{{classname}}} {
 {{#vars}}
     {{#description}}
     /// {{{.}}}
-    {{/description}}
-    {{#isByteArray}}
-    {{#required}}#[serde_as(as = "serde_with::base64::Base64")]{{/required}}{{^required}}#[serde_as(as = "Option<serde_with::base64::Base64>")]{{/required}}
-    {{/isByteArray}}
-    #[serde(rename = "{{{baseName}}}"{{^required}}{{#isNullable}}, default, with = "::serde_with::rust::double_option"{{/isNullable}}{{/required}}{{^required}}, skip_serializing_if = "Option::is_none"{{/required}}{{#required}}{{#isNullable}}, deserialize_with = "Option::deserialize"{{/isNullable}}{{/required}})]
-    {{^required}}{{#isNullable}}#[cfg_attr(feature = "ffi_wasm", tsify(optional))]{{/isNullable}}{{/required}}
-    {{^required}}{{^isNullable}}#[cfg_attr(feature = "ffi_wasm", tsify(optional))]{{/isNullable}}{{/required}}
-    {{^required}}#[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]{{/required}}
-    pub {{{name}}}: {{#isNullable}}Option<{{/isNullable}}{{^required}}Option<{{/required}}{{#isEnum}}{{#isArray}}{{#uniqueItems}}std::collections::HashSet<{{/uniqueItems}}{{^uniqueItems}}Vec<{{/uniqueItems}}{{/isArray}}{{{enumName}}}{{#isArray}}>{{/isArray}}{{/isEnum}}{{^isEnum}}{{#isModel}}{{{dataType}}}{{/isModel}}{{^isModel}}{{#isByteArray}}Vec<u8>{{/isByteArray}}{{^isByteArray}}{{{dataType}}}{{/isByteArray}}{{/isModel}}{{/isEnum}}{{#isNullable}}>{{/isNullable}}{{^required}}>{{/required}},
+    {{/description}}{{#isByteArray}}
+    {{#required}}#[serde_as(as = "serde_with::base64::Base64")]{{/required}}{{^required}}#[serde_as(as = "Option<serde_with::base64::Base64>")]{{/required}}{{/isByteArray}}{{^required}}
+    #[serde(skip_serializing_if = "Option::is_none")]{{/required}}
+    pub {{{name}}}: {{#isNullable}}Option<{{/isNullable}}{{^required}}Option<{{/required}}{{#isEnum}}{{#isArray}}{{#uniqueItems}}std::collections::HashSet<{{/uniqueItems}}{{^uniqueItems}}Vec<{{/uniqueItems}}{{/isArray}}{{{enumName}}}{{#isArray}}>{{/isArray}}{{/isEnum}}{{^isEnum}}{{#isModel}}{{{dataType}}}{{/isModel}}{{^isModel}}{{#isByteArray}}Vec<u8>{{/isByteArray}}{{^isByteArray}}{{{dataType}}}{{/isByteArray}}{{/isModel}}{{/isEnum}}{{#isNullable}}>{{/isNullable}}{{^required}}>{{/required}},{{#vendorExtensions.x-algorand-format}}
+    // Note: This field uses Algorand format: {{{.}}}{{/vendorExtensions.x-algorand-format}}
 {{/vars}}
 }
 
@@ -139,12 +139,10 @@ impl {{{classname}}} {
     /// {{{.}}}
     {{/description}}
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-        {{#requiredVars}}{{{name}}}: {{#isNullable}}Option<{{/isNullable}}{{#isEnum}}{{#isArray}}{{#uniqueItems}}std::collections::HashSet<{{/uniqueItems}}{{^uniqueItems}}Vec<{{/uniqueItems}}{{/isArray}}{{{enumName}}}{{#isArray}}>{{/isArray}}{{/isEnum}}{{^isEnum}}{{#isByteArray}}Vec<u8>{{/isByteArray}}{{^isByteArray}}{{{dataType}}}{{/isByteArray}}{{/isEnum}}{{#isNullable}}>{{/isNullable}},{{/requiredVars}}{{#vars}}{{^required}} {{{name}}}: Option<{{#isEnum}}{{#isArray}}{{#uniqueItems}}std::collections::HashSet<{{/uniqueItems}}{{^uniqueItems}}Vec<{{/uniqueItems}}{{/isArray}}{{{enumName}}}{{#isArray}}>{{/isArray}}{{/isEnum}}{{^isEnum}}{{#isByteArray}}Vec<u8>{{/isByteArray}}{{^isByteArray}}{{{dataType}}}{{/isByteArray}}{{/isEnum}}>{{^-last}},{{/-last}}{{/required}}{{/vars}}
-    ) -> {{{classname}}} {
+    pub fn new({{#vars}}{{#required}}{{{name}}}: {{#isNullable}}Option<{{/isNullable}}{{#isEnum}}{{#isArray}}{{#uniqueItems}}std::collections::HashSet<{{/uniqueItems}}{{^uniqueItems}}Vec<{{/uniqueItems}}{{/isArray}}{{{enumName}}}{{#isArray}}>{{/isArray}}{{/isEnum}}{{^isEnum}}{{#isByteArray}}Vec<u8>{{/isByteArray}}{{^isByteArray}}{{{dataType}}}{{/isByteArray}}{{/isEnum}}{{#isNullable}}>{{/isNullable}}, {{/required}}{{/vars}}{{#vars}}{{^required}}{{{name}}}: Option<{{#isEnum}}{{#isArray}}{{#uniqueItems}}std::collections::HashSet<{{/uniqueItems}}{{^uniqueItems}}Vec<{{/uniqueItems}}{{/isArray}}{{{enumName}}}{{#isArray}}>{{/isArray}}{{/isEnum}}{{^isEnum}}{{#isByteArray}}Vec<u8>{{/isByteArray}}{{^isByteArray}}{{{dataType}}}{{/isByteArray}}{{/isEnum}}>{{^-last}}, {{/-last}}{{/required}}{{/vars}}) -> {{{classname}}} {
         {{{classname}}} {
             {{#vars}}
-            {{{name}}}{{#required}}: {{{name}}}{{/required}}{{^required}}: {{{name}}}{{/required}},
+            {{{name}}},
             {{/vars}}
         }
     }
@@ -158,8 +156,10 @@ impl {{{classname}}} {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Enum))]
 #[serde(untagged)]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub enum {{classname}} {
 {{#composedSchemas.oneOf}}
     {{#description}}
@@ -183,7 +183,9 @@ impl Default for {{classname}} {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Enum))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub enum {{{enumName}}} {
 {{#allowableValues}}
 {{#enumVars}}
@@ -212,8 +214,24 @@ impl crate::MsgpackEncodable for {{{classname}}} {}
 impl crate::MsgpackDecodable for {{{classname}}} {}
 {{/vendorExtensions.x-algorand-msgpack-decodable}}
 
-{{! Auto-register this model for FFI generation - JSON only }}
-crate::auto_impl_json_ffi!({{{classname}}}, {{#lambda.snakecase}}{{{classname}}}{{/lambda.snakecase}});
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!({{{classname}}}, {{#lambda.snakecase}}{{{classname}}}{{/lambda.snakecase}}, {{#lambda.camelcase}}{{{classname}}}{{/lambda.camelcase}});
 
 {{/model}}
 {{/models}}

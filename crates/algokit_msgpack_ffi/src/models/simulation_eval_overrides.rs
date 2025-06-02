@@ -11,6 +11,7 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -21,59 +22,47 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct SimulationEvalOverrides {
     /// If true, transactions without signatures are allowed and simulated as if they were properly signed.
-    #[serde(rename = "allow-empty-signatures", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub allow_empty_signatures: Option<bool>,
     /// If true, allows access to unnamed resources during simulation.
-    #[serde(rename = "allow-unnamed-resources", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub allow_unnamed_resources: Option<bool>,
     /// The maximum log calls one can make during simulation
-    #[serde(rename = "max-log-calls", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_log_calls: Option<i32>,
     /// The maximum byte number to log during simulation
-    #[serde(rename = "max-log-size", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_log_size: Option<i32>,
     /// The extra opcode budget added to each transaction group during simulation
-    #[serde(rename = "extra-opcode-budget", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub extra_opcode_budget: Option<i32>,
     /// If true, signers for transactions that are missing signatures will be fixed during evaluation.
-    #[serde(rename = "fix-signers", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub fix_signers: Option<bool>,
 }
 
 impl SimulationEvalOverrides {
     /// The set of parameters and limits override during simulation. If this set of parameters is present, then evaluation parameters may differ from standard evaluation in certain ways.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-         allow_empty_signatures: Option<bool>, allow_unnamed_resources: Option<bool>, max_log_calls: Option<i32>, max_log_size: Option<i32>, extra_opcode_budget: Option<i32>, fix_signers: Option<bool>
-    ) -> SimulationEvalOverrides {
+    pub fn new(allow_empty_signatures: Option<bool>, allow_unnamed_resources: Option<bool>, max_log_calls: Option<i32>, max_log_size: Option<i32>, extra_opcode_budget: Option<i32>, fix_signers: Option<bool>) -> SimulationEvalOverrides {
         SimulationEvalOverrides {
-            allow_empty_signatures: allow_empty_signatures,
-            allow_unnamed_resources: allow_unnamed_resources,
-            max_log_calls: max_log_calls,
-            max_log_size: max_log_size,
-            extra_opcode_budget: extra_opcode_budget,
-            fix_signers: fix_signers,
+            allow_empty_signatures,
+            allow_unnamed_resources,
+            max_log_calls,
+            max_log_size,
+            extra_opcode_budget,
+            fix_signers,
         }
     }
 }
@@ -84,5 +73,22 @@ impl crate::JsonSerializable for SimulationEvalOverrides {}
 
 impl crate::MsgpackDecodable for SimulationEvalOverrides {}
 
-crate::auto_impl_json_ffi!(SimulationEvalOverrides, simulation_eval_overrides);
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!(SimulationEvalOverrides, simulation_eval_overrides, simulationEvalOverrides);
 

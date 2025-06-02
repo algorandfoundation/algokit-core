@@ -11,6 +11,7 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -21,72 +22,55 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct SimulateRequest {
     /// The transaction groups to simulate.
-    #[serde(rename = "txn-groups")]
-    
-    
     
     pub txn_groups: Vec<models::SimulateRequestTransactionGroup>,
     /// If provided, specifies the round preceding the simulation. State changes through this round will be used to run this simulation. Usually only the 4 most recent rounds will be available (controlled by the node config value MaxAcctLookback). If not specified, defaults to the latest available round.
-    #[serde(rename = "round", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub round: Option<i32>,
     /// Allows transactions without signatures to be simulated as if they had correct signatures.
-    #[serde(rename = "allow-empty-signatures", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub allow_empty_signatures: Option<bool>,
     /// Lifts limits on log opcode usage during simulation.
-    #[serde(rename = "allow-more-logging", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub allow_more_logging: Option<bool>,
     /// Allows access to unnamed resources during simulation.
-    #[serde(rename = "allow-unnamed-resources", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub allow_unnamed_resources: Option<bool>,
     /// Applies extra opcode budget during simulation for each transaction group.
-    #[serde(rename = "extra-opcode-budget", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub extra_opcode_budget: Option<i32>,
-    #[serde(rename = "exec-trace-config", skip_serializing_if = "Option::is_none")]
-    
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub exec_trace_config: Option<models::SimulateTraceConfig>,
     /// If true, signers for transactions that are missing signatures will be fixed during evaluation.
-    #[serde(rename = "fix-signers", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub fix_signers: Option<bool>,
 }
 
 impl SimulateRequest {
     /// Request type for simulation endpoint.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-        txn_groups: Vec<models::SimulateRequestTransactionGroup>, round: Option<i32>, allow_empty_signatures: Option<bool>, allow_more_logging: Option<bool>, allow_unnamed_resources: Option<bool>, extra_opcode_budget: Option<i32>, exec_trace_config: Option<models::SimulateTraceConfig>, fix_signers: Option<bool>
-    ) -> SimulateRequest {
+    pub fn new(txn_groups: Vec<models::SimulateRequestTransactionGroup>, round: Option<i32>, allow_empty_signatures: Option<bool>, allow_more_logging: Option<bool>, allow_unnamed_resources: Option<bool>, extra_opcode_budget: Option<i32>, exec_trace_config: Option<models::SimulateTraceConfig>, fix_signers: Option<bool>) -> SimulateRequest {
         SimulateRequest {
-            txn_groups: txn_groups,
-            round: round,
-            allow_empty_signatures: allow_empty_signatures,
-            allow_more_logging: allow_more_logging,
-            allow_unnamed_resources: allow_unnamed_resources,
-            extra_opcode_budget: extra_opcode_budget,
-            exec_trace_config: exec_trace_config,
-            fix_signers: fix_signers,
+            txn_groups,
+            round,
+            allow_empty_signatures,
+            allow_more_logging,
+            allow_unnamed_resources,
+            extra_opcode_budget,
+            exec_trace_config,
+            fix_signers,
         }
     }
 }
@@ -97,5 +81,22 @@ impl crate::JsonSerializable for SimulateRequest {}
 
 impl crate::MsgpackEncodable for SimulateRequest {}
 
-crate::auto_impl_json_ffi!(SimulateRequest, simulate_request);
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!(SimulateRequest, simulate_request, simulateRequest);
 

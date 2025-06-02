@@ -11,6 +11,7 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -21,88 +22,65 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct DryrunTxnResult {
     /// Disassembled program line by line.
-    #[serde(rename = "disassembly")]
-    
-    
     
     pub disassembly: Vec<String>,
     /// Disassembled lsig program line by line.
-    #[serde(rename = "logic-sig-disassembly", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub logic_sig_disassembly: Option<Vec<String>>,
-    #[serde(rename = "logic-sig-trace", skip_serializing_if = "Option::is_none")]
-    
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub logic_sig_trace: Option<Vec<models::DryrunState>>,
-    #[serde(rename = "logic-sig-messages", skip_serializing_if = "Option::is_none")]
-    
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub logic_sig_messages: Option<Vec<String>>,
-    #[serde(rename = "app-call-trace", skip_serializing_if = "Option::is_none")]
-    
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub app_call_trace: Option<Vec<models::DryrunState>>,
-    #[serde(rename = "app-call-messages", skip_serializing_if = "Option::is_none")]
-    
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub app_call_messages: Option<Vec<String>>,
     /// Application state delta.
-    #[serde(rename = "global-delta", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub global_delta: Option<Vec<models::EvalDeltaKeyValue>>,
-    #[serde(rename = "local-deltas", skip_serializing_if = "Option::is_none")]
-    
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub local_deltas: Option<Vec<models::AccountStateDelta>>,
-    #[serde(rename = "logs", skip_serializing_if = "Option::is_none")]
-    
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub logs: Option<Vec<String>>,
     /// Budget added during execution of app call transaction.
-    #[serde(rename = "budget-added", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub budget_added: Option<i32>,
     /// Budget consumed during execution of app call transaction.
-    #[serde(rename = "budget-consumed", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub budget_consumed: Option<i32>,
 }
 
 impl DryrunTxnResult {
     /// DryrunTxnResult contains any LogicSig or ApplicationCall program debug information and state updates from a dryrun.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-        disassembly: Vec<String>, logic_sig_disassembly: Option<Vec<String>>, logic_sig_trace: Option<Vec<models::DryrunState>>, logic_sig_messages: Option<Vec<String>>, app_call_trace: Option<Vec<models::DryrunState>>, app_call_messages: Option<Vec<String>>, global_delta: Option<Vec<models::EvalDeltaKeyValue>>, local_deltas: Option<Vec<models::AccountStateDelta>>, logs: Option<Vec<String>>, budget_added: Option<i32>, budget_consumed: Option<i32>
-    ) -> DryrunTxnResult {
+    pub fn new(disassembly: Vec<String>, logic_sig_disassembly: Option<Vec<String>>, logic_sig_trace: Option<Vec<models::DryrunState>>, logic_sig_messages: Option<Vec<String>>, app_call_trace: Option<Vec<models::DryrunState>>, app_call_messages: Option<Vec<String>>, global_delta: Option<Vec<models::EvalDeltaKeyValue>>, local_deltas: Option<Vec<models::AccountStateDelta>>, logs: Option<Vec<String>>, budget_added: Option<i32>, budget_consumed: Option<i32>) -> DryrunTxnResult {
         DryrunTxnResult {
-            disassembly: disassembly,
-            logic_sig_disassembly: logic_sig_disassembly,
-            logic_sig_trace: logic_sig_trace,
-            logic_sig_messages: logic_sig_messages,
-            app_call_trace: app_call_trace,
-            app_call_messages: app_call_messages,
-            global_delta: global_delta,
-            local_deltas: local_deltas,
-            logs: logs,
-            budget_added: budget_added,
-            budget_consumed: budget_consumed,
+            disassembly,
+            logic_sig_disassembly,
+            logic_sig_trace,
+            logic_sig_messages,
+            app_call_trace,
+            app_call_messages,
+            global_delta,
+            local_deltas,
+            logs,
+            budget_added,
+            budget_consumed,
         }
     }
 }
@@ -112,5 +90,22 @@ impl DryrunTxnResult {
 impl crate::JsonSerializable for DryrunTxnResult {}
 
 
-crate::auto_impl_json_ffi!(DryrunTxnResult, dryrun_txn_result);
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!(DryrunTxnResult, dryrun_txn_result, dryrunTxnResult);
 

@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 
 use serde_with::serde_as;
 
+
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -24,62 +25,45 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct AccountParticipation {
     /// \\[sel\\] Selection public key (if any) currently registered for this round.
+    
     #[serde_as(as = "serde_with::base64::Base64")]
-    #[serde(rename = "selection-participation-key")]
-    
-    
-    
     pub selection_participation_key: Vec<u8>,
     /// \\[voteFst\\] First round for which this participation is valid.
-    #[serde(rename = "vote-first-valid")]
-    
-    
     
     pub vote_first_valid: i32,
     /// \\[voteKD\\] Number of subkeys in each batch of participation keys.
-    #[serde(rename = "vote-key-dilution")]
-    
-    
     
     pub vote_key_dilution: i32,
     /// \\[voteLst\\] Last round for which this participation is valid.
-    #[serde(rename = "vote-last-valid")]
-    
-    
     
     pub vote_last_valid: i32,
     /// \\[vote\\] root participation public key (if any) currently registered for this round.
+    
     #[serde_as(as = "serde_with::base64::Base64")]
-    #[serde(rename = "vote-participation-key")]
-    
-    
-    
     pub vote_participation_key: Vec<u8>,
     /// \\[stprf\\] Root of the state proof key (if any)
-    #[serde_as(as = "Option<serde_with::base64::Base64>")]
-    #[serde(rename = "state-proof-key", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde_as(as = "Option<serde_with::base64::Base64>")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub state_proof_key: Option<Vec<u8>>,
 }
 
 impl AccountParticipation {
     /// AccountParticipation describes the parameters used by this account in consensus protocol.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-        selection_participation_key: Vec<u8>,vote_first_valid: i32,vote_key_dilution: i32,vote_last_valid: i32,vote_participation_key: Vec<u8>, state_proof_key: Option<Vec<u8>>
-    ) -> AccountParticipation {
+    pub fn new(selection_participation_key: Vec<u8>, vote_first_valid: i32, vote_key_dilution: i32, vote_last_valid: i32, vote_participation_key: Vec<u8>, state_proof_key: Option<Vec<u8>>) -> AccountParticipation {
         AccountParticipation {
-            selection_participation_key: selection_participation_key,
-            vote_first_valid: vote_first_valid,
-            vote_key_dilution: vote_key_dilution,
-            vote_last_valid: vote_last_valid,
-            vote_participation_key: vote_participation_key,
-            state_proof_key: state_proof_key,
+            selection_participation_key,
+            vote_first_valid,
+            vote_key_dilution,
+            vote_last_valid,
+            vote_participation_key,
+            state_proof_key,
         }
     }
 }
@@ -91,5 +75,22 @@ impl crate::JsonSerializable for AccountParticipation {}
 impl crate::MsgpackEncodable for AccountParticipation {}
 impl crate::MsgpackDecodable for AccountParticipation {}
 
-crate::auto_impl_json_ffi!(AccountParticipation, account_participation);
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!(AccountParticipation, account_participation, accountParticipation);
 

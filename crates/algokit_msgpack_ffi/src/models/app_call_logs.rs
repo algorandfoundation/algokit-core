@@ -11,6 +11,7 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -21,24 +22,17 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct AppCallLogs {
     /// An array of logs
-    #[serde(rename = "logs")]
-    
-    
     
     pub logs: Vec<String>,
     /// The application from which the logs were generated
-    #[serde(rename = "application-index")]
-    
-    
     
     pub application_index: i32,
     /// The transaction ID of the outer app call that lead to these logs
-    #[serde(rename = "txId")]
-    
-    
     
     pub tx_id: String,
 }
@@ -46,13 +40,11 @@ pub struct AppCallLogs {
 impl AppCallLogs {
     /// The logged messages from an app call along with the app ID and outer transaction ID. Logs appear in the same order that they were emitted.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-        logs: Vec<String>,application_index: i32,tx_id: String,
-    ) -> AppCallLogs {
+    pub fn new(logs: Vec<String>, application_index: i32, tx_id: String, ) -> AppCallLogs {
         AppCallLogs {
-            logs: logs,
-            application_index: application_index,
-            tx_id: tx_id,
+            logs,
+            application_index,
+            tx_id,
         }
     }
 }
@@ -62,5 +54,22 @@ impl AppCallLogs {
 impl crate::JsonSerializable for AppCallLogs {}
 
 
-crate::auto_impl_json_ffi!(AppCallLogs, app_call_logs);
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!(AppCallLogs, app_call_logs, appCallLogs);
 

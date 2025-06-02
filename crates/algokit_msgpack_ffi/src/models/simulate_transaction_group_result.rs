@@ -11,6 +11,7 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -21,58 +22,45 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct SimulateTransactionGroupResult {
     /// Simulation result for individual transactions
-    #[serde(rename = "txn-results")]
-    
-    
     
     pub txn_results: Vec<models::SimulateTransactionResult>,
     /// If present, indicates that the transaction group failed and specifies why that happened
-    #[serde(rename = "failure-message", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub failure_message: Option<String>,
     /// If present, indicates which transaction in this group caused the failure. This array represents the path to the failing transaction. Indexes are zero based, the first element indicates the top-level transaction, and successive elements indicate deeper inner transactions.
-    #[serde(rename = "failed-at", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub failed_at: Option<Vec<i32>>,
     /// Total budget added during execution of app calls in the transaction group.
-    #[serde(rename = "app-budget-added", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub app_budget_added: Option<i32>,
     /// Total budget consumed during execution of app calls in the transaction group.
-    #[serde(rename = "app-budget-consumed", skip_serializing_if = "Option::is_none")]
     
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub app_budget_consumed: Option<i32>,
-    #[serde(rename = "unnamed-resources-accessed", skip_serializing_if = "Option::is_none")]
-    
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub unnamed_resources_accessed: Option<models::SimulateUnnamedResourcesAccessed>,
 }
 
 impl SimulateTransactionGroupResult {
     /// Simulation result for an atomic transaction group
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-        txn_results: Vec<models::SimulateTransactionResult>, failure_message: Option<String>, failed_at: Option<Vec<i32>>, app_budget_added: Option<i32>, app_budget_consumed: Option<i32>, unnamed_resources_accessed: Option<models::SimulateUnnamedResourcesAccessed>
-    ) -> SimulateTransactionGroupResult {
+    pub fn new(txn_results: Vec<models::SimulateTransactionResult>, failure_message: Option<String>, failed_at: Option<Vec<i32>>, app_budget_added: Option<i32>, app_budget_consumed: Option<i32>, unnamed_resources_accessed: Option<models::SimulateUnnamedResourcesAccessed>) -> SimulateTransactionGroupResult {
         SimulateTransactionGroupResult {
-            txn_results: txn_results,
-            failure_message: failure_message,
-            failed_at: failed_at,
-            app_budget_added: app_budget_added,
-            app_budget_consumed: app_budget_consumed,
-            unnamed_resources_accessed: unnamed_resources_accessed,
+            txn_results,
+            failure_message,
+            failed_at,
+            app_budget_added,
+            app_budget_consumed,
+            unnamed_resources_accessed,
         }
     }
 }
@@ -83,5 +71,22 @@ impl crate::JsonSerializable for SimulateTransactionGroupResult {}
 
 impl crate::MsgpackDecodable for SimulateTransactionGroupResult {}
 
-crate::auto_impl_json_ffi!(SimulateTransactionGroupResult, simulate_transaction_group_result);
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!(SimulateTransactionGroupResult, simulate_transaction_group_result, simulateTransactionGroupResult);
 

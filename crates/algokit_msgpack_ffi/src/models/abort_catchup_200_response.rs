@@ -16,37 +16,46 @@ use wasm_bindgen::prelude::wasm_bindgen;
 
 /// AbortCatchup200Response : An catchpoint abort response.
 
-
-
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct AbortCatchup200Response {
     /// Catchup abort response string
-    #[serde(rename = "catchup-message")]
-    
-    
-    
     pub catchup_message: String,
 }
 
 impl AbortCatchup200Response {
     /// An catchpoint abort response.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-        catchup_message: String,
-    ) -> AbortCatchup200Response {
-        AbortCatchup200Response {
-            catchup_message: catchup_message,
-        }
+    pub fn new(catchup_message: String) -> AbortCatchup200Response {
+        AbortCatchup200Response { catchup_message }
     }
 }
 
-
-
 impl crate::JsonSerializable for AbortCatchup200Response {}
 
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
 
-crate::auto_impl_json_ffi!(AbortCatchup200Response, abort_catchup200_response);
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
 
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!(
+    AbortCatchup200Response,
+    abort_catchup200_response,
+    abortCatchup200Response
+);

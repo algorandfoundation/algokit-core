@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 
 use serde_with::serde_as;
 
+
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -23,53 +24,38 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct GetTransactionProof200Response {
     /// Proof of transaction membership.
+    
     #[serde_as(as = "serde_with::base64::Base64")]
-    #[serde(rename = "proof")]
-    
-    
-    
     pub proof: Vec<u8>,
     /// Hash of SignedTxnInBlock for verifying proof.
+    
     #[serde_as(as = "serde_with::base64::Base64")]
-    #[serde(rename = "stibhash")]
-    
-    
-    
     pub stibhash: Vec<u8>,
     /// Represents the depth of the tree that is being proven, i.e. the number of edges from a leaf to the root.
-    #[serde(rename = "treedepth")]
-    
-    
     
     pub treedepth: i32,
     /// Index of the transaction in the block's payset.
-    #[serde(rename = "idx")]
-    
-    
     
     pub idx: i32,
     /// The type of hash function used to create the proof, must be one of:  * sha512_256  * sha256
-    #[serde(rename = "hashtype")]
-    
-    
     
     pub hashtype: Hashtype,
 }
 
 impl GetTransactionProof200Response {
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-        proof: Vec<u8>,stibhash: Vec<u8>,treedepth: i32,idx: i32,hashtype: Hashtype,
-    ) -> GetTransactionProof200Response {
+    pub fn new(proof: Vec<u8>, stibhash: Vec<u8>, treedepth: i32, idx: i32, hashtype: Hashtype, ) -> GetTransactionProof200Response {
         GetTransactionProof200Response {
-            proof: proof,
-            stibhash: stibhash,
-            treedepth: treedepth,
-            idx: idx,
-            hashtype: hashtype,
+            proof,
+            stibhash,
+            treedepth,
+            idx,
+            hashtype,
         }
     }
 }
@@ -78,7 +64,9 @@ impl GetTransactionProof200Response {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Enum))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub enum Hashtype {
     #[serde(rename = "sha512_256")]
     Sha512256,
@@ -95,5 +83,22 @@ impl Default for Hashtype {
 impl crate::JsonSerializable for GetTransactionProof200Response {}
 
 
-crate::auto_impl_json_ffi!(GetTransactionProof200Response, get_transaction_proof200_response);
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!(GetTransactionProof200Response, get_transaction_proof200_response, getTransactionProof200Response);
 

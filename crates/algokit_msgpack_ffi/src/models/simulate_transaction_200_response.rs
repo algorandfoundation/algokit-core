@@ -11,6 +11,7 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -20,55 +21,40 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct SimulateTransaction200Response {
     /// The version of this response object.
-    #[serde(rename = "version")]
-    
-    
     
     pub version: i32,
     /// The round immediately preceding this simulation. State changes through this round were used to run this simulation.
-    #[serde(rename = "last-round")]
-    
-    
     
     pub last_round: i32,
     /// A result object for each transaction group that was simulated.
-    #[serde(rename = "txn-groups")]
-    
-    
     
     pub txn_groups: Vec<models::SimulateTransactionGroupResult>,
-    #[serde(rename = "eval-overrides", skip_serializing_if = "Option::is_none")]
-    
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub eval_overrides: Option<models::SimulationEvalOverrides>,
-    #[serde(rename = "exec-trace-config", skip_serializing_if = "Option::is_none")]
-    
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub exec_trace_config: Option<models::SimulateTraceConfig>,
-    #[serde(rename = "initial-states", skip_serializing_if = "Option::is_none")]
-    
-    #[cfg_attr(feature = "ffi_wasm", tsify(optional))]
-    #[cfg_attr(feature = "ffi_uniffi", uniffi(default = None))]
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub initial_states: Option<models::SimulateInitialStates>,
 }
 
 impl SimulateTransaction200Response {
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-        version: i32,last_round: i32,txn_groups: Vec<models::SimulateTransactionGroupResult>, eval_overrides: Option<models::SimulationEvalOverrides>, exec_trace_config: Option<models::SimulateTraceConfig>, initial_states: Option<models::SimulateInitialStates>
-    ) -> SimulateTransaction200Response {
+    pub fn new(version: i32, last_round: i32, txn_groups: Vec<models::SimulateTransactionGroupResult>, eval_overrides: Option<models::SimulationEvalOverrides>, exec_trace_config: Option<models::SimulateTraceConfig>, initial_states: Option<models::SimulateInitialStates>) -> SimulateTransaction200Response {
         SimulateTransaction200Response {
-            version: version,
-            last_round: last_round,
-            txn_groups: txn_groups,
-            eval_overrides: eval_overrides,
-            exec_trace_config: exec_trace_config,
-            initial_states: initial_states,
+            version,
+            last_round,
+            txn_groups,
+            eval_overrides,
+            exec_trace_config,
+            initial_states,
         }
     }
 }
@@ -79,5 +65,22 @@ impl crate::JsonSerializable for SimulateTransaction200Response {}
 
 impl crate::MsgpackDecodable for SimulateTransaction200Response {}
 
-crate::auto_impl_json_ffi!(SimulateTransaction200Response, simulate_transaction200_response);
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!(SimulateTransaction200Response, simulate_transaction200_response, simulateTransaction200Response);
 

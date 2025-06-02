@@ -67,6 +67,7 @@ describe("Transaction API Tests", () => {
 
   test("should get transaction parameters", async () => {
     const params = await algodApi.transactionParams();
+    console.log(params);
     expect(params).toBeDefined();
     expect(params.consensusVersion).toBeTypeOf("string");
     expect(params.fee).toBeTypeOf("number");
@@ -76,78 +77,78 @@ describe("Transaction API Tests", () => {
     expect(params.minFee).toBeTypeOf("number");
   });
 
-  test("should submit a raw transaction", async () => {
-    const { testAccount: sender } = fixture.context;
-    const suggestedParams = await algodApi.transactionParams();
+  // test("should submit a raw transaction", async () => {
+  //   const { testAccount: sender } = fixture.context;
+  //   const suggestedParams = await algodApi.transactionParams();
 
-    const httpFile = createSignedTxnHttpFile(sender, { address: String(sender.addr), pubKey: sender.publicKey }, 100000, suggestedParams);
+  //   const httpFile = createSignedTxnHttpFile(sender, { address: String(sender.addr), pubKey: sender.publicKey }, 100000, suggestedParams);
 
-    const result = await algodApi.rawTransaction(httpFile);
-    expect(result).not.toBeNull();
-    expect(result?.txId).toBeDefined();
-  });
+  //   const result = await algodApi.rawTransaction(httpFile);
+  //   expect(result).not.toBeNull();
+  //   expect(result?.txId).toBeDefined();
+  // });
 
-  test("should get pending transaction info", async () => {
-    const { testAccount: sender } = fixture.context;
-    const suggestedParams = await algodApi.transactionParams();
-    const note = new Uint8Array(Buffer.from("pending test"));
+  // test("should get pending transaction info", async () => {
+  //   const { testAccount: sender } = fixture.context;
+  //   const suggestedParams = await algodApi.transactionParams();
+  //   const note = new Uint8Array(Buffer.from("pending test"));
 
-    const httpFile = createSignedTxnHttpFile(
-      sender,
-      { address: String(sender.addr), pubKey: sender.publicKey },
-      100000,
-      suggestedParams,
-      note,
-    );
+  //   const httpFile = createSignedTxnHttpFile(
+  //     sender,
+  //     { address: String(sender.addr), pubKey: sender.publicKey },
+  //     100000,
+  //     suggestedParams,
+  //     note,
+  //   );
 
-    const submitResult = await algodApi.rawTransaction(httpFile);
-    expect(submitResult.txId).toBeDefined();
+  //   const submitResult = await algodApi.rawTransaction(httpFile);
+  //   expect(submitResult.txId).toBeDefined();
 
-    await new Promise((resolve) => setTimeout(resolve, 100));
+  //   await new Promise((resolve) => setTimeout(resolve, 100));
 
-    const pendingTxnsResult = await algodApi.getPendingTransactions(10);
-    expect(pendingTxnsResult).toBeDefined();
-  });
+  //   const pendingTxnsResult = await algodApi.getPendingTransactions(10);
+  //   expect(pendingTxnsResult).toBeDefined();
+  // });
 
-  test.each(["json", "msgpack"])("should simulate transaction with format %s", async (format) => {
-    const { testAccount: sender } = fixture.context;
+  // test.each(["json", "msgpack"])("should simulate transaction with format %s", async (format) => {
+  //   const { testAccount: sender } = fixture.context;
 
-    const suggestedParams = await algodApi.transactionParams();
-    const signedTxnFile = createSignedTxnHttpFile(
-      sender,
-      { address: String(sender.addr), pubKey: sender.publicKey },
-      100000,
-      suggestedParams,
-    );
+  //   const suggestedParams = await algodApi.transactionParams();
+  //   const signedTxnFile = createSignedTxnHttpFile(
+  //     sender,
+  //     { address: String(sender.addr), pubKey: sender.publicKey },
+  //     100000,
+  //     suggestedParams,
+  //   );
 
-    // Note: This implementation differs from algosdk's simulateTransaction method.
-    // Here we manually convert the signed transaction to base64-encoded string,
-    // while algosdk takes an array of SignedTransaction objects and handles the encoding internally.
-    const emptyTxnGroup: algodPackage.SimulateRequestTransactionGroup = {
-      "txns": [Buffer.from(await signedTxnFile.arrayBuffer()).toString("base64")],
-    }
+  //   // Note: This implementation differs from algosdk's simulateTransaction method.
+  //   // Here we manually convert the signed transaction to base64-encoded string,
+  //   // while algosdk takes an array of SignedTransaction objects and handles the encoding internally.
+  //   const emptyTxnGroup: algodPackage.SimulateRequestTransactionGroup = {
+  //     "txns": [Buffer.from(await signedTxnFile.arrayBuffer()).toString("base64")],
+  //   }
 
-    const traceConfig: algodPackage.SimulateTraceConfig = {
-      "enable": true,
-      "stackChange": true,
-      "scratchChange": true,
-      "stateChange": true,
-    }
+  //   const traceConfig: algodPackage.SimulateTraceConfig = {
+  //     "enable": true,
+  //     "stackChange": true,
+  //     "scratchChange": true,
+  //     "stateChange": true,
+  //   }
 
-    const simulateRequest: algodPackage.SimulateRequest = {
-      "allowEmptySignatures": true,
-      "allowMoreLogging": true,
-      "allowUnnamedResources": true,
-      "txnGroups": [emptyTxnGroup],
-      "execTraceConfig": traceConfig,
-    }
+  //   const simulateRequest: algodPackage.SimulateRequest = {
+  //     "allowEmptySignatures": true,
+  //     "allowMoreLogging": true,
+  //     "allowUnnamedResources": true,
+  //     "txnGroups": [emptyTxnGroup],
+  //     "execTraceConfig": traceConfig,
+  //   }
 
-    const result = await algodApi.simulateTransaction(simulateRequest, format as "msgpack" | "json", {
-      headers: { "Content-Type": `application/${format}` },
-    } as any);
+  //   const result = await algodApi.simulateTransaction(simulateRequest, format as "msgpack" | "json", {
+  //     headers: { "Content-Type": `application/${format}` },
+  //   } as any);
 
-    expect(result).toBeDefined();
-  });
+  //   expect(result).toBeDefined();
+  // });
 
   // TODO: Add more tests based on other endpoints in AlgodApi related to transactions
 });

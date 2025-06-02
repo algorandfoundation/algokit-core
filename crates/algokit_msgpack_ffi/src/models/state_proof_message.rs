@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 
 use serde_with::serde_as;
 
+
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -24,54 +25,42 @@ use wasm_bindgen::prelude::wasm_bindgen;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
+#[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+#[cfg_attr(not(feature = "ffi_wasm"), serde(rename_all = "kebab-case"))]
 pub struct StateProofMessage {
     /// The vector commitment root on all light block headers within a state proof interval.
+    
     #[serde_as(as = "serde_with::base64::Base64")]
-    #[serde(rename = "BlockHeadersCommitment")]
-    
-    
-    
     pub block_headers_commitment: Vec<u8>,
     /// The vector commitment root of the top N accounts to sign the next StateProof.
+    
     #[serde_as(as = "serde_with::base64::Base64")]
-    #[serde(rename = "VotersCommitment")]
-    
-    
-    
     pub voters_commitment: Vec<u8>,
     /// An integer value representing the natural log of the proven weight with 16 bits of precision. This value would be used to verify the next state proof.
-    #[serde(rename = "LnProvenWeight")]
-    
-    
     
     pub ln_proven_weight: i32,
+    // Note: This field uses Algorand format: uint64
     /// The first round the message attests to.
-    #[serde(rename = "FirstAttestedRound")]
-    
-    
     
     pub first_attested_round: i32,
+    // Note: This field uses Algorand format: uint64
     /// The last round the message attests to.
-    #[serde(rename = "LastAttestedRound")]
-    
-    
     
     pub last_attested_round: i32,
+    // Note: This field uses Algorand format: uint64
 }
 
 impl StateProofMessage {
     /// Represents the message that the state proofs are attesting to.
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(
-        block_headers_commitment: Vec<u8>,voters_commitment: Vec<u8>,ln_proven_weight: i32,first_attested_round: i32,last_attested_round: i32,
-    ) -> StateProofMessage {
+    pub fn new(block_headers_commitment: Vec<u8>, voters_commitment: Vec<u8>, ln_proven_weight: i32, first_attested_round: i32, last_attested_round: i32, ) -> StateProofMessage {
         StateProofMessage {
-            block_headers_commitment: block_headers_commitment,
-            voters_commitment: voters_commitment,
-            ln_proven_weight: ln_proven_weight,
-            first_attested_round: first_attested_round,
-            last_attested_round: last_attested_round,
+            block_headers_commitment,
+            voters_commitment,
+            ln_proven_weight,
+            first_attested_round,
+            last_attested_round,
         }
     }
 }
@@ -81,5 +70,22 @@ impl StateProofMessage {
 impl crate::JsonSerializable for StateProofMessage {}
 
 
-crate::auto_impl_json_ffi!(StateProofMessage, state_proof_message);
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJson, tealKeyValueFromJson)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi!, and the macro uses paste to generate camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+/*
+  FFI method naming conventions:
+    - Python/UniFFI: snake_case (e.g., teal_key_value_to_json, teal_key_value_from_json)
+    - WASM/TypeScript: camelCase (e.g., tealKeyValueToJsValue, tealKeyValueFromJsValue)
+    - This is enforced by passing the snake_case base name to impl_all_json_ffi! for Python, and camelCase for WASM/TS.
+    - For msgpack FFI, invoke impl_msgpack_ffi! manually for the subset of models that require it, using the same naming logic.
+*/
+
+// Auto-register this model for FFI generation - JSON only
+crate::impl_all_json_ffi!(StateProofMessage, state_proof_message, stateProofMessage);
 
