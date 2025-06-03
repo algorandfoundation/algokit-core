@@ -1,0 +1,13 @@
+[package]
+name = "algokit_utils_ffi"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[dependencies]
+algokit_transact_ffi = { version = "0.1.0", path = "../algokit_transact_ffi" }
+algokit_utils = { version = "0.1.0", path = "../algokit_utils" }
+thiserror.workspace = true
+uniffi.workspace = true

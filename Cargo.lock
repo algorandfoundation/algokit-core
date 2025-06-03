@@ -74,6 +74,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "algokit_utils_ffi"
+version = "0.1.0"
+dependencies = [
+ "algokit_transact_ffi",
+ "algokit_utils",
+ "thiserror 2.0.7",
+ "uniffi",
+]
+
+[[package]]
 name = "android-tzdata"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
