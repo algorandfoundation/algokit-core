@@ -6,8 +6,20 @@ edition = "2024"
 [lib]
 crate-type = ["lib", "cdylib", "staticlib"]
 
+[features]
+default = ["ffi_wasm"]
+ffi_wasm = ["dep:wasm-bindgen", "dep:tsify-next", "algokit_transact_ffi/ffi_wasm"]
+ffi_uniffi = ["dep:uniffi", "algokit_transact_ffi/ffi_uniffi"]
+
 [dependencies]
-algokit_transact_ffi = { version = "0.1.0", path = "../algokit_transact_ffi" }
+algokit_transact_ffi = { version = "0.1.0", path = "../algokit_transact_ffi", default-features = false }
 algokit_utils = { version = "0.1.0", path = "../algokit_utils" }
+js-sys = "0.3.77"
+serde_bytes = "0.11.17"
 thiserror.workspace = true
-uniffi.workspace = true
+
+tsify-next = { workspace = true, optional = true }
+uniffi = { workspace = true, features = [
+  "scaffolding-ffi-buffer-fns",
+], optional = true }
+wasm-bindgen = { workspace = true, optional = true }

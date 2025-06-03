@@ -1,41 +1,14 @@
 use algokit_transact_ffi::{AlgoKitTransactError, Transaction};
 use algokit_utils::Composer as ComposerRs;
 use core::cell::RefCell;
-use js_sys::Uint8Array;
-
-#[cfg(feature = "ffi_uniffi")]
-use std::sync::Mutex;
-
-#[cfg(feature = "ffi_wasm")]
-use tsify_next::Tsify;
-#[cfg(feature = "ffi_wasm")]
-use wasm_bindgen::JsValue;
-#[cfg(feature = "ffi_wasm")]
-use wasm_bindgen::prelude::*;
+// #[cfg(feature = "ffi_uniffi")]
+// use std::sync::Mutex;
 
 #[cfg(feature = "ffi_uniffi")]
 use uniffi::{self};
 
 #[cfg(feature = "ffi_uniffi")]
 uniffi::setup_scaffolding!();
-
-// We need to use ByteBuf directly in the structs to get Uint8Array in TSify
-// custom_type! and this impl is used to convert the ByteBuf to a Vec<u8> for the UniFFI bindings
-#[cfg(feature = "ffi_uniffi")]
-impl UniffiCustomTypeConverter for ByteBuf {
-    type Builtin = Vec<u8>;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(ByteBuf::from(val))
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.to_vec()
-    }
-}
-
-#[cfg(feature = "ffi_uniffi")]
-uniffi::custom_type!(ByteBuf, Vec<u8>);
 
 // thiserror is used to easily create errors than can be propagated to the language bindings
 // UniFFI will create classes for errors (i.e. `MsgPackError.EncodingError` in Python)
@@ -50,32 +23,18 @@ pub enum ComposerError {
 // type being included in the error string above
 // Perhaps in the future we could use a class like in UniFFI
 #[cfg(feature = "ffi_wasm")]
-impl From<ComposerError> for JsValue {
-    fn from(e: ComposerError) -> Self {
+impl From<AlgoKitTransactError> for JsValue {
+    fn from(e: AlgoKitTransactError) -> Self {
         JsValue::from(e.to_string())
     }
 }
 
-#[cfg(feature = "ffi_wasm")]
-#[derive(Debug)]
-pub struct Mutex<T>(RefCell<T>);
-
-#[cfg(feature = "ffi_wasm")]
-impl<T> Mutex<T> {
-    pub fn new(inner: T) -> Self {
-        Mutex(RefCell::new(inner))
-    }
-
-    pub fn lock(&self) -> Result<std::cell::RefMut<'_, T>, String> {
-        Ok(self.0.borrow_mut())
-    }
-}
+use RefCell as Mutex;
 
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Object))]
 #[cfg_attr(feature = "ffi_wasm", wasm_bindgen)]
-#[cfg_attr(feature = "ffi_wasm", derive(Tsify))]
 pub struct Composer {
-    composer: Mutex<ComposerRs>,
+    pub composer: Mutex<ComposerRs>,
 }
 
 #[cfg_attr(feature = "ffi_wasm", wasm_bindgen)]
@@ -89,7 +48,6 @@ impl Composer {
         }
     }
 
-    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = "addTransaction"))]
     pub fn add_transaction(&self, transaction: Transaction) -> Result<(), ComposerError> {
         self.composer
             .lock()
@@ -100,15 +58,11 @@ impl Composer {
             .map_err(|e| ComposerError::TransactionsError(e.to_string()))
     }
 
-    pub fn encode(&self) -> Result<Vec<Uint8Array>, ComposerError> {
-        Ok(self
-            .composer
+    pub fn encode(&self) -> Result<Vec<Vec<u8>>, ComposerError> {
+        self.composer
             .lock()
             .unwrap()
             .encode()
-            .map_err(|e| ComposerError::TransactionsError(e.to_string()))?
-            .iter()
-            .map(|b| Uint8Array::from(b.as_slice()))
-            .collect::<Vec<Uint8Array>>())
+            .map_err(|e| ComposerError::TransactionsError(e.to_string()))
     }
 }
