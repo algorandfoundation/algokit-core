@@ -7,7 +7,7 @@ edition = "2024"
 crate-type = ["lib", "cdylib", "staticlib"]
 
 [features]
-default = ["ffi_wasm"]
+default = ["ffi_uniffi"]
 ffi_wasm = ["dep:wasm-bindgen", "dep:tsify-next", "algokit_transact_ffi/ffi_wasm"]
 ffi_uniffi = ["dep:uniffi", "algokit_transact_ffi/ffi_uniffi"]
 

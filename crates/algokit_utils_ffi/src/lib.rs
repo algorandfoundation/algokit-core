@@ -1,5 +1,7 @@
 use algokit_transact_ffi::{AlgoKitTransactError, Transaction};
 use algokit_utils::Composer as ComposerRs;
+
+#[cfg(feature = "ffi_wasm")]
 use core::cell::RefCell;
 use js_sys::Uint8Array;
 
@@ -19,14 +21,12 @@ use uniffi::{self};
 #[cfg(feature = "ffi_uniffi")]
 uniffi::setup_scaffolding!();
 
-// We need to use ByteBuf directly in the structs to get Uint8Array in TSify
-// custom_type! and this impl is used to convert the ByteBuf to a Vec<u8> for the UniFFI bindings
 #[cfg(feature = "ffi_uniffi")]
-impl UniffiCustomTypeConverter for ByteBuf {
+impl UniffiCustomTypeConverter for Uint8Array {
     type Builtin = Vec<u8>;
 
     fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(ByteBuf::from(val))
+        Ok(Uint8Array::from(val.as_slice()))
     }
 
     fn from_custom(obj: Self) -> Self::Builtin {
@@ -35,7 +35,7 @@ impl UniffiCustomTypeConverter for ByteBuf {
 }
 
 #[cfg(feature = "ffi_uniffi")]
-uniffi::custom_type!(ByteBuf, Vec<u8>);
+uniffi::custom_type!(Uint8Array, Vec<u8>);
 
 // thiserror is used to easily create errors than can be propagated to the language bindings
 // UniFFI will create classes for errors (i.e. `MsgPackError.EncodingError` in Python)
