@@ -1,0 +1,7 @@
+[package]
+name = "algokit_utils"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+algokit_transact = { version = "0.1.0", path = "../algokit_transact", features = ["test_utils"] }
