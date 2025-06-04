@@ -1,0 +1,24 @@
+[book]
+authors = ["AlgoKit Team"]
+language = "en"
+multilingual = false
+src = "book"
+title = "AlgoKit Core Documentation"
+description = "Comprehensive documentation for AlgoKit Core crates and design decisions"
+
+[output.html]
+default-theme = "navy"
+preferred-dark-theme = "navy"
+git-repository-url = "https://github.com/algorandfoundation/algokit-core"
+
+[output.html.search]
+enable = true
+
+[output.html.print]
+enable = true
+
+[preprocessor.links]
+
+[output.html.fold]
+enable = true
+level = 2

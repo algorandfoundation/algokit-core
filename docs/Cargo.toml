@@ -1,0 +1,11 @@
+[package]
+name = "docs"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+mdbook = "0.4"
+
+[[bin]]
+name = "build-docs"
+path = "src/main.rs"
