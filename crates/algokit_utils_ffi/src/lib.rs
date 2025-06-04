@@ -63,6 +63,7 @@ impl From<ComposerError> for JsValue {
 #[cfg_attr(feature = "ffi_wasm", derive(Tsify))]
 pub struct Composer {
     composer: Mutex<ComposerRs>,
+    fetch: Option<js_sys::Function>,
 }
 
 #[cfg_attr(feature = "ffi_wasm", wasm_bindgen)]
@@ -73,6 +74,7 @@ impl Composer {
     pub fn new() -> Self {
         Composer {
             composer: Mutex::new(ComposerRs::new()),
+            fetch: None,
         }
     }
 
@@ -141,6 +143,20 @@ impl From<&Composer> for JsComposerValue {
 #[cfg(feature = "ffi_wasm")]
 #[cfg_attr(feature = "ffi_wasm", wasm_bindgen)]
 impl Composer {
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = "setFetch"))]
+    pub fn set_fetch(&mut self, fetch: js_sys::Function) {
+        self.fetch = Some(fetch);
+    }
+
+    pub async fn fetch_url(&self, url: &str) -> Result<JsValue, JsValue> {
+        if let Some(fetch_fn) = &self.fetch {
+            let promise = fetch_fn.call1(&JsValue::UNDEFINED, &JsValue::from_str(url))?;
+            Ok(promise)
+        } else {
+            Err(JsValue::from_str("Fetch function not set"))
+        }
+    }
+
     #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = "valueOf"))]
     pub fn value_of(&self) -> Result<JsValue, JsValue> {
         let ser = serde_wasm_bindgen::Serializer::new()

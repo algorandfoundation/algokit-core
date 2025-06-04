@@ -26,3 +26,4 @@ uniffi = { workspace = true, features = [
   "scaffolding-ffi-buffer-fns",
 ], optional = true }
 wasm-bindgen = { workspace = true, optional = true }
+wasm-bindgen-futures = "0.4.50"

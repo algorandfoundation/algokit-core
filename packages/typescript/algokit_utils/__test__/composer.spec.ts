@@ -72,4 +72,16 @@ describe("Composer", () => {
       composer.throwRustError();
     }).toThrow("TransactionsError: This is a Rust error thrown from the Composer");
   });
+
+  test("fetch", async () => {
+    const composer = new Composer();
+    composer.setFetch(fetch);
+    const response: Response = await composer.fetch_url("https://jsonplaceholder.typicode.com/todos/1");
+    expect(await response.json()).toEqual({
+      userId: 1,
+      id: 1,
+      title: "delectus aut autem",
+      completed: false,
+    });
+  });
 });
