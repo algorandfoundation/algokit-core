@@ -114,6 +114,13 @@ impl Composer {
             })
             .collect::<Result<Vec<FfiTransaction>, ComposerError>>()?)
     }
+
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = "throwRustError"))]
+    pub fn throw_rust_error(&self) -> Result<(), ComposerError> {
+        Err(ComposerError::TransactionsError(
+            "This is a Rust error thrown from the Composer".to_string(),
+        ))
+    }
 }
 
 #[cfg(feature = "ffi_wasm")]

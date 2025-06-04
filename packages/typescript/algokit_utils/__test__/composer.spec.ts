@@ -57,7 +57,6 @@ describe("Composer", () => {
       },
     };
 
-    debugger;
     composer.addTransaction(tx);
     expect(composer.toString()).toBeDefined();
     console.debug(composer.toString());
@@ -65,5 +64,12 @@ describe("Composer", () => {
     console.debug(composer);
     console.debug(composer.valueOf());
     console.debug(JSON.stringify(composer, null, 2));
+  });
+
+  test("rustError", () => {
+    const composer = new Composer();
+    expect(() => {
+      composer.throwRustError();
+    }).toThrow("TransactionsError: This is a Rust error thrown from the Composer");
   });
 });
