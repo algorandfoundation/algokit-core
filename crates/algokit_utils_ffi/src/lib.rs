@@ -1,11 +1,9 @@
-use algokit_transact_ffi::{AlgoKitTransactError, Transaction};
+use algokit_transact::Transaction as RsTransaction;
+use algokit_transact_ffi::AlgoKitTransactError;
+use algokit_transact_ffi::Transaction as FfiTransaction;
 use algokit_utils::Composer as ComposerRs;
 
-#[cfg(feature = "ffi_wasm")]
-use core::cell::RefCell;
 use js_sys::Uint8Array;
-
-#[cfg(feature = "ffi_uniffi")]
 use std::sync::Mutex;
 
 #[cfg(feature = "ffi_wasm")]
@@ -56,21 +54,6 @@ impl From<ComposerError> for JsValue {
     }
 }
 
-#[cfg(feature = "ffi_wasm")]
-#[derive(Debug)]
-pub struct Mutex<T>(RefCell<T>);
-
-#[cfg(feature = "ffi_wasm")]
-impl<T> Mutex<T> {
-    pub fn new(inner: T) -> Self {
-        Mutex(RefCell::new(inner))
-    }
-
-    pub fn lock(&self) -> Result<std::cell::RefMut<'_, T>, String> {
-        Ok(self.0.borrow_mut())
-    }
-}
-
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Object))]
 #[cfg_attr(feature = "ffi_wasm", wasm_bindgen)]
 #[cfg_attr(feature = "ffi_wasm", derive(Tsify))]
@@ -90,7 +73,7 @@ impl Composer {
     }
 
     #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = "addTransaction"))]
-    pub fn add_transaction(&self, transaction: Transaction) -> Result<(), ComposerError> {
+    pub fn add_transaction(&self, transaction: FfiTransaction) -> Result<(), ComposerError> {
         self.composer
             .lock()
             .unwrap()
@@ -110,5 +93,26 @@ impl Composer {
             .iter()
             .map(|b| Uint8Array::from(b.as_slice()))
             .collect::<Vec<Uint8Array>>())
+    }
+
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(getter))]
+    pub fn transactions(&self) -> Result<Vec<FfiTransaction>, ComposerError> {
+        Ok(self
+            .composer
+            .lock()
+            .unwrap()
+            .transactions()
+            .into_iter()
+            .map(|tx| {
+                tx.try_into().map_err(|e: AlgoKitTransactError| {
+                    ComposerError::TransactionsError(e.to_string())
+                })
+            })
+            .collect::<Result<Vec<FfiTransaction>, ComposerError>>()?)
+    }
+
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = "toString"))]
+    pub fn to_string(&self) -> String {
+        format!("{:#?}", self.composer.lock().unwrap())
     }
 }

@@ -30,7 +30,7 @@ describe("Composer", () => {
       sender: addressFromString("LAIXFJCAPMTKK5ZYQVWJE7F5P73PJ24QMJE774DHTVGRVH4JAS4RHD6VGQ"),
       firstValid: 1n,
       lastValid: 10n,
-      genesisHash: Buffer.from("a".repeat(64)),
+      genesisHash: Buffer.from("a".repeat(32)),
       genesisId: "",
       payment: {
         receiver: addressFromString("LAIXFJCAPMTKK5ZYQVWJE7F5P73PJ24QMJE774DHTVGRVH4JAS4RHD6VGQ"),
@@ -39,5 +39,26 @@ describe("Composer", () => {
     };
 
     composer.addTransaction(tx);
+    expect(composer.transactions.length).toBe(1);
+  });
+
+  test("toString", () => {
+    const composer = new Composer();
+    const tx: Transaction = {
+      transactionType: "Payment",
+      sender: addressFromString("LAIXFJCAPMTKK5ZYQVWJE7F5P73PJ24QMJE774DHTVGRVH4JAS4RHD6VGQ"),
+      firstValid: 1n,
+      lastValid: 10n,
+      genesisHash: Buffer.from("a".repeat(32)),
+      genesisId: "",
+      payment: {
+        receiver: addressFromString("LAIXFJCAPMTKK5ZYQVWJE7F5P73PJ24QMJE774DHTVGRVH4JAS4RHD6VGQ"),
+        amount: 1000n, // microAlgos
+      },
+    };
+
+    composer.addTransaction(tx);
+    expect(composer.toString()).toBeDefined();
+    console.debug(composer.toString());
   });
 });

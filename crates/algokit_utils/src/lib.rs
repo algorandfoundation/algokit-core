@@ -1,6 +1,7 @@
 use algokit_transact::AlgorandMsgpack;
 use algokit_transact::Transaction;
 
+#[derive(Debug)]
 pub struct Composer {
     transactions: Vec<Transaction>,
 }
@@ -26,6 +27,10 @@ impl Composer {
             .map(|tx| tx.encode())
             .collect::<Result<Vec<_>, _>>()
             .map_err(|e| e.to_string())
+    }
+
+    pub fn transactions(&self) -> Vec<Transaction> {
+        self.transactions.clone()
     }
 }
 
