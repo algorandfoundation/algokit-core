@@ -116,11 +116,13 @@ impl Composer {
     }
 }
 
+#[cfg(feature = "ffi_wasm")]
 #[derive(Serialize, Deserialize)]
 struct JsComposerValue {
     transactions: Vec<FfiTransaction>,
 }
 
+#[cfg(feature = "ffi_wasm")]
 impl From<&Composer> for JsComposerValue {
     fn from(composer: &Composer) -> Self {
         JsComposerValue {
@@ -129,6 +131,7 @@ impl From<&Composer> for JsComposerValue {
     }
 }
 
+#[cfg(feature = "ffi_wasm")]
 #[cfg_attr(feature = "ffi_wasm", wasm_bindgen)]
 impl Composer {
     #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = "valueOf"))]
@@ -139,6 +142,16 @@ impl Composer {
 
         // Ok(serde_wasm_bindgen::to_value(&JsComposerValue::from(self))?)
         Ok(JsComposerValue::from(self).serialize(&ser)?)
+    }
+
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = "toJSON"))]
+    pub fn to_json(&self) -> Result<JsValue, JsValue> {
+        JSON::parse(
+            &self
+                .to_string()?
+                .as_string()
+                .ok_or("Failed to convert JS string to Rust string")?,
+        )
     }
 
     #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = "toString"))]

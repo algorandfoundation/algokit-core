@@ -64,5 +64,6 @@ describe("Composer", () => {
 
     console.debug(composer);
     console.debug(composer.valueOf());
+    console.debug(JSON.stringify(composer, null, 2));
   });
 });
