@@ -84,6 +84,8 @@ jobs:
       BOT_SK: ${{ secrets.BOT_SK }}
 
   deploy_docs:
+    # Only run on pushes to main (not on PRs)
+    if: github.event_name == 'push'
     uses: ./.github/workflows/deploy_docs.yml
     with:
       release: ${{ github.event_name == 'push' }}
