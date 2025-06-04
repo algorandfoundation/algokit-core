@@ -13,7 +13,7 @@ AlgoKit Core consists of several interconnected crates:
 
 ## API Documentation
 
-📚 **[Complete API Documentation](./api/index.html)**
+📚 **[Complete API Documentation](./api_index.html)**
 
 Browse the full Rust API documentation with detailed type information, function signatures, and code examples for all crates.
 
