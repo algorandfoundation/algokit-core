@@ -5,6 +5,7 @@ members = [
   "crates/algokit_transact_ffi",
   "crates/ffi_macros",
   "crates/uniffi-bindgen",
+  "docs",
   "tools/cargo-bin",
 ]
 

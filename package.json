@@ -8,7 +8,10 @@
     "build:algokit_transact:py": "bun scripts/build algokit_transact python",
     "build:algokit_transact:swift": "bun scripts/build algokit_transact swift",
     "build:algokit_transact:ts": "bun scripts/build algokit_transact typescript",
-    "build:algokit_transact:all": "bun scripts/build algokit_transact all"
+    "build:algokit_transact:all": "bun scripts/build algokit_transact all",
+    "docs:build": "cargo run --bin build-docs --manifest-path docs/Cargo.toml",
+    "docs:serve": "python3 -m http.server --directory target/doc/ 8000",
+    "docs:dev": "cargo run --bin build-docs --manifest-path docs/Cargo.toml && python3 -m http.server --directory target/doc/ 8000"
   },
   "dependencies": {
     "@actions/core": "^1.11.1",
