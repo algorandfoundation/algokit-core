@@ -57,8 +57,12 @@ describe("Composer", () => {
       },
     };
 
+    debugger;
     composer.addTransaction(tx);
     expect(composer.toString()).toBeDefined();
     console.debug(composer.toString());
+
+    console.debug(composer);
+    console.debug(composer.valueOf());
   });
 });

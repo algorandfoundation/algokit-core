@@ -1,0 +1,3 @@
+[cargo]
+target = "wasm32-unknown-unknown"
+features = ["ffi_wasm"]

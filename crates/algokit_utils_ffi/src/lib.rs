@@ -1,9 +1,13 @@
-use algokit_transact::Transaction as RsTransaction;
 use algokit_transact_ffi::AlgoKitTransactError;
 use algokit_transact_ffi::Transaction as FfiTransaction;
 use algokit_utils::Composer as ComposerRs;
 
+use js_sys::JSON;
+use js_sys::JsString;
+
 use js_sys::Uint8Array;
+use serde::Deserialize;
+use serde::Serialize;
 use std::sync::Mutex;
 
 #[cfg(feature = "ffi_wasm")]
@@ -110,9 +114,44 @@ impl Composer {
             })
             .collect::<Result<Vec<FfiTransaction>, ComposerError>>()?)
     }
+}
+
+#[derive(Serialize, Deserialize)]
+struct JsComposerValue {
+    transactions: Vec<FfiTransaction>,
+}
+
+impl From<&Composer> for JsComposerValue {
+    fn from(composer: &Composer) -> Self {
+        JsComposerValue {
+            transactions: composer.transactions().unwrap_or_else(|_| vec![]),
+        }
+    }
+}
+
+#[cfg_attr(feature = "ffi_wasm", wasm_bindgen)]
+impl Composer {
+    #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = "valueOf"))]
+    pub fn value_of(&self) -> Result<JsValue, JsValue> {
+        let ser = serde_wasm_bindgen::Serializer::new()
+            .serialize_large_number_types_as_bigints(true)
+            .serialize_bytes_as_arrays(false);
+
+        // Ok(serde_wasm_bindgen::to_value(&JsComposerValue::from(self))?)
+        Ok(JsComposerValue::from(self).serialize(&ser)?)
+    }
 
     #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = "toString"))]
-    pub fn to_string(&self) -> String {
-        format!("{:#?}", self.composer.lock().unwrap())
+    pub fn to_string(&self) -> Result<JsString, JsValue> {
+        let replacer = js_sys::Function::new_with_args(
+            "key, value",
+            r#"
+            if (typeof value === 'bigint') {
+                return value.toString() + 'n';
+            }
+            return value;
+            "#,
+        );
+        JSON::stringify_with_replacer(&self.value_of().unwrap(), &replacer)
     }
 }
