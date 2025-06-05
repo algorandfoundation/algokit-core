@@ -17,7 +17,7 @@ import { HttpFile } from '../http/http';
 */
 export class SimulateRequestTransactionGroup {
     /**
-    * An atomic transaction group. Each transaction must be provided as a base64-encoded, canonically encoded SignedTransaction object. Note: This differs from algosdk\'s simulateTransaction method, which takes an array of SignedTransaction objects and handles the encoding internally.
+    * An atomic transaction group.
     */
     'txns': Array<string>;
 

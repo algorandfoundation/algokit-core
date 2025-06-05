@@ -32,9 +32,9 @@ except ModuleNotFoundError:  # pragma: no cover – optional dependency
     _ak_decode_msgpack = None  # type: ignore
     _AkModelType = None  # type: ignore
 
-from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr
-from typing import Any, ClassVar, Dict, List, Optional
-from algokit_algod_api.models.box import Box
+from pydantic import BaseModel, ConfigDict
+from typing import Any, ClassVar, Dict, List
+from algokit_algod_api.models.box_descriptor import BoxDescriptor
 from typing import Optional, Set
 from typing_extensions import Self
 
@@ -42,10 +42,8 @@ class GetApplicationBoxes200Response(BaseModel):
     """
     GetApplicationBoxes200Response
     """ # noqa: E501
-    round: StrictInt = Field(description="The round for which this information is relevant.")
-    next_token: Optional[StrictStr] = Field(default=None, description="Used for pagination, when making another request provide this token with the next parameter.", alias="next-token")
-    boxes: List[Box]
-    __properties: ClassVar[List[str]] = ["round", "next-token", "boxes"]
+    boxes: List[BoxDescriptor]
+    __properties: ClassVar[List[str]] = ["boxes"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -105,9 +103,7 @@ class GetApplicationBoxes200Response(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "round": obj.get("round"),
-            "next-token": obj.get("next-token"),
-            "boxes": [Box.from_dict(_item) for _item in obj["boxes"]] if obj.get("boxes") is not None else None
+            "boxes": [BoxDescriptor.from_dict(_item) for _item in obj["boxes"]] if obj.get("boxes") is not None else None
         })
         return _obj
 

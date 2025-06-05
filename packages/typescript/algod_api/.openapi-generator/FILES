@@ -6,6 +6,7 @@ apis/AlgodApi.ts
 apis/baseapi.ts
 apis/exception.ts
 auth/auth.ts
+bigint-utils.ts
 configuration.ts
 http/http.ts
 http/isomorphic-fetch.ts
@@ -36,6 +37,7 @@ models/AssetParams.ts
 models/AvmKeyValue.ts
 models/AvmValue.ts
 models/Box.ts
+models/BoxDescriptor.ts
 models/BoxReference.ts
 models/BuildVersion.ts
 models/DebugSettingsProf.ts
@@ -46,6 +48,9 @@ models/DryrunTxnResult.ts
 models/ErrorResponse.ts
 models/EvalDelta.ts
 models/EvalDeltaKeyValue.ts
+models/Genesis.ts
+models/GenesisAllocation.ts
+models/GenesisAllocationState.ts
 models/GetApplicationBoxes200Response.ts
 models/GetBlock200Response.ts
 models/GetBlockHash200Response.ts
@@ -58,6 +63,7 @@ models/GetSupply200Response.ts
 models/GetSyncRound200Response.ts
 models/GetTransactionGroupLedgerStateDeltasForRound200Response.ts
 models/GetTransactionProof200Response.ts
+models/KvDelta.ts
 models/LedgerStateDeltaForTransactionGroup.ts
 models/LightBlockHeaderProof.ts
 models/ObjectSerializer.ts

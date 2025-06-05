@@ -32,8 +32,9 @@ except ModuleNotFoundError:  # pragma: no cover – optional dependency
     _ak_decode_msgpack = None  # type: ignore
     _AkModelType = None  # type: ignore
 
-from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr
+from pydantic import BaseModel, ConfigDict, Field, StrictInt, field_validator
 from typing import Any, ClassVar, Dict, List, Optional
+from typing_extensions import Annotated
 from typing import Optional, Set
 from typing_extensions import Self
 
@@ -42,9 +43,19 @@ class AvmValue(BaseModel):
     Represents an AVM value.
     """ # noqa: E501
     type: StrictInt = Field(description="value type. Value `1` refers to **bytes**, value `2` refers to **uint64**")
-    bytes: Optional[StrictStr] = Field(default=None, description="bytes value.")
+    bytes: Optional[Annotated[str, Field(strict=True)]] = Field(default=None, description="bytes value.")
     uint: Optional[StrictInt] = Field(default=None, description="uint value.")
     __properties: ClassVar[List[str]] = ["type", "bytes", "uint"]
+
+    @field_validator('bytes')
+    def bytes_validate_regular_expression(cls, value):
+        """Validates the regular expression"""
+        if value is None:
+            return value
+
+        if not re.match(r"^(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$", value):
+            raise ValueError(r"must validate the regular expression /^(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$/")
+        return value
 
     model_config = ConfigDict(
         populate_by_name=True,

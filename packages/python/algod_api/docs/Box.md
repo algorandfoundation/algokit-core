@@ -6,9 +6,9 @@ Box name and its content.
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**round** | **int** | The round for which this information is relevant | [optional] 
-**name** | **bytearray** | The box name, base64 encoded | 
-**value** | **bytearray** | The box value, base64 encoded. | 
+**round** | **int** | The round for which this information is relevant | 
+**name** | **bytearray** | \\[name\\] box name, base64 encoded | 
+**value** | **bytearray** | \\[value\\] box value, base64 encoded. | 
 
 ## Example
 

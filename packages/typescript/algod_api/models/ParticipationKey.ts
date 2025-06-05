@@ -28,11 +28,11 @@ export class ParticipationKey {
     /**
     * When registered, this is the first round it may be used.
     */
-    'effectiveFirstValid'?: number;
+    'effectiveFirstValid'?: number | bigint;
     /**
     * When registered, this is the last round it may be used.
     */
-    'effectiveLastValid'?: number;
+    'effectiveLastValid'?: number | bigint;
     /**
     * Round when this key was last used to vote.
     */
@@ -67,13 +67,13 @@ export class ParticipationKey {
         {
             "name": "effectiveFirstValid",
             "baseName": "effective-first-valid",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         },
         {
             "name": "effectiveLastValid",
             "baseName": "effective-last-valid",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         },
         {

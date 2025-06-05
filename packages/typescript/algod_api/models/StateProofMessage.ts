@@ -27,15 +27,15 @@ export class StateProofMessage {
     /**
     * An integer value representing the natural log of the proven weight with 16 bits of precision. This value would be used to verify the next state proof.
     */
-    'lnProvenWeight': number;
+    'lnProvenWeight': number | bigint;
     /**
     * The first round the message attests to.
     */
-    'firstAttestedRound': number;
+    'firstAttestedRound': number | bigint;
     /**
     * The last round the message attests to.
     */
-    'lastAttestedRound': number;
+    'lastAttestedRound': number | bigint;
 
     static readonly discriminator: string | undefined = undefined;
 
@@ -57,19 +57,19 @@ export class StateProofMessage {
         {
             "name": "lnProvenWeight",
             "baseName": "LnProvenWeight",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         },
         {
             "name": "firstAttestedRound",
             "baseName": "FirstAttestedRound",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         },
         {
             "name": "lastAttestedRound",
             "baseName": "LastAttestedRound",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         }    ];
 

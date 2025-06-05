@@ -10,6 +10,7 @@ import { {{classname}}{{#oneOf}}{{#-first}}Class{{/-first}}{{/oneOf}}{{^oneOf}}{
 {{/model}}
 {{/models}}
 import * as algokit_transact from 'algokit_transact';
+import { stringifyJSON, parseJSON, stringifyJSONStandard, parseJSONStandard, IntDecoding } from '../bigint-utils{{importFileExtension}}';
 
 /* tslint:disable:no-unused-variable */
 let primitives = [
@@ -20,6 +21,7 @@ let primitives = [
                     "long",
                     "float",
                     "number",
+                    "bigint",
                     "any"
                  ];
 
@@ -314,7 +316,8 @@ export class ObjectSerializer {
         }
 
         if (isJsonLikeMimeType(mediaType)) {
-            return JSON.stringify(data);
+            // Use BigInt-aware JSON.stringify for JSON-like content
+            return stringifyJSON(data);
         }
 
         if (isOctetStreamMimeType(mediaType) || isBinaryMimeType(mediaType)) {
@@ -324,7 +327,8 @@ export class ObjectSerializer {
 
         if (isMsgpackMimeType(mediaType)) {
             try {
-                const jsonStr = JSON.stringify(data);
+                // Use BigInt-aware JSON.stringify for msgpack
+                const jsonStr = stringifyJSON(data);
                 const modelEnum = typeHint && (algokit_transact.supportedModels() as unknown as string[]).indexOf(typeHint) !== -1
                     ? typeHint as algokit_transact.ModelType
                     : undefined;
@@ -381,7 +385,8 @@ export class ObjectSerializer {
                 }
 
                 const jsonStr = algokit_transact.decodeMsgpackToJson(modelEnum, bytes);
-                return JSON.parse(jsonStr);
+                // Use BigInt-aware JSON.parse for msgpack decoded JSON
+                return parseJSON(jsonStr, { intDecoding: IntDecoding.MIXED });
             } catch (err) {
                 // Fall through to the default handling below so that we can surface
                 // a consistent error message should msgpack decoding fail.
@@ -394,7 +399,9 @@ export class ObjectSerializer {
         }
 
         if (isJsonLikeMimeType(mediaType)) {
-            return typeof rawData === "string" ? JSON.parse(rawData) : JSON.parse(String(rawData));
+            // Use BigInt-aware JSON.parse for JSON-like content
+            const jsonString = typeof rawData === "string" ? rawData : String(rawData);
+            return parseJSON(jsonString, { intDecoding: IntDecoding.MIXED });
         }
 
         if (isOctetStreamMimeType(mediaType) || isBinaryMimeType(mediaType)) {

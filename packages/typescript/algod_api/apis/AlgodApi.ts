@@ -20,6 +20,7 @@ import { Box } from '../models/Box';
 import { DebugSettingsProf } from '../models/DebugSettingsProf';
 import { DryrunRequest } from '../models/DryrunRequest';
 import { ErrorResponse } from '../models/ErrorResponse';
+import { Genesis } from '../models/Genesis';
 import { GetApplicationBoxes200Response } from '../models/GetApplicationBoxes200Response';
 import { GetBlock200Response } from '../models/GetBlock200Response';
 import { GetBlockHash200Response } from '../models/GetBlockHash200Response';
@@ -590,24 +591,18 @@ export class AlgodApiRequestFactory extends BaseAPIRequestFactory {
     }
 
     /**
-     * Given an application ID, return boxes in lexographical order by name. If the results must be truncated, a next-token is supplied to continue the request.
-     * Get boxes for a given application.
+     * Given an application ID, return all Box names. No particular ordering is guaranteed. Request fails when client or server-side configured limits prevent returning all Box names.
+     * Get all box names for a given application.
      * @param applicationId An application identifier
-     * @param max Maximum number of boxes to return. Server may impose a lower limit.
-     * @param prefix A box name prefix, in the goal app call arg form \&#39;encoding:value\&#39;. For ints, use the form \&#39;int:1234\&#39;. For raw bytes, use the form \&#39;b64:A&#x3D;&#x3D;\&#39;. For printable strings, use the form \&#39;str:hello\&#39;. For addresses, use the form \&#39;addr:XYZ...\&#39;.
-     * @param next A box name, in the goal app call arg form \&#39;encoding:value\&#39;. When provided, the returned boxes begin (lexographically) with the supplied name. Callers may implement pagination by reinvoking the endpoint with the token from a previous call\&#39;s next-token.
-     * @param values If true, box values will be returned.
+     * @param max Max number of box names to return. If max is not set, or max &#x3D;&#x3D; 0, returns all box-names.
      */
-    public async getApplicationBoxes(applicationId: number, max?: number, prefix?: string, next?: string, values?: boolean, _options?: Configuration): Promise<RequestContext> {
+    public async getApplicationBoxes(applicationId: number, max?: number, _options?: Configuration): Promise<RequestContext> {
         let _config = _options || this.configuration;
 
         // verify required parameter 'applicationId' is not null or undefined
         if (applicationId === null || applicationId === undefined) {
             throw new RequiredError("AlgodApi", "getApplicationBoxes", "applicationId");
         }
-
-
-
 
 
 
@@ -622,21 +617,6 @@ export class AlgodApiRequestFactory extends BaseAPIRequestFactory {
         // Query Params
         if (max !== undefined) {
             requestContext.setQueryParam("max", ObjectSerializer.serialize(max, "number", ""));
-        }
-
-        // Query Params
-        if (prefix !== undefined) {
-            requestContext.setQueryParam("prefix", ObjectSerializer.serialize(prefix, "string", ""));
-        }
-
-        // Query Params
-        if (next !== undefined) {
-            requestContext.setQueryParam("next", ObjectSerializer.serialize(next, "string", ""));
-        }
-
-        // Query Params
-        if (values !== undefined) {
-            requestContext.setQueryParam("values", ObjectSerializer.serialize(values, "boolean", ""));
         }
 
 
@@ -3431,13 +3411,13 @@ export class AlgodApiResponseProcessor {
      * @params response Response returned by the server for a request to getGenesis
      * @throws ApiException if the response code was not in [200, 299]
      */
-     public async getGenesisResponse(response: ResponseContext): Promise<string > {
+     public async getGenesisResponse(response: ResponseContext): Promise<Genesis > {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
-            const body: string = ObjectSerializer.deserialize(
-                await decodeResponseBody(response, "string", contentType),
-                "string", ""
-            ) as string;
+            const body: Genesis = ObjectSerializer.deserialize(
+                await decodeResponseBody(response, "Genesis", contentType),
+                "Genesis", ""
+            ) as Genesis;
             return body;
         }
         if (isCodeInRange("0", response.httpStatusCode)) {
@@ -3446,10 +3426,10 @@ export class AlgodApiResponseProcessor {
 
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
-            const body: string = ObjectSerializer.deserialize(
-                await decodeResponseBody(response, "string", contentType),
-                "string", ""
-            ) as string;
+            const body: Genesis = ObjectSerializer.deserialize(
+                await decodeResponseBody(response, "Genesis", contentType),
+                "Genesis", ""
+            ) as Genesis;
             return body;
         }
 

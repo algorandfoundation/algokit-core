@@ -5,9 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**round** | **int** | The round for which this information is relevant. | 
-**next_token** | **str** | Used for pagination, when making another request provide this token with the next parameter. | [optional] 
-**boxes** | [**List[Box]**](Box.md) |  | 
+**boxes** | [**List[BoxDescriptor]**](BoxDescriptor.md) |  | 
 
 ## Example
 

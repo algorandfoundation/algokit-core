@@ -20,7 +20,7 @@ export class ApplicationInitialStates {
     /**
     * Application index.
     */
-    'id': number;
+    'id': number | bigint;
     /**
     * An application\'s initial local states tied to different accounts.
     */
@@ -36,7 +36,7 @@ export class ApplicationInitialStates {
         {
             "name": "id",
             "baseName": "id",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         },
         {

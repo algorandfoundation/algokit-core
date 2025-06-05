@@ -23,7 +23,7 @@ export class ApplicationLocalReference {
     /**
     * Application ID of the local state application.
     */
-    'app': number;
+    'app': number | bigint;
 
     static readonly discriminator: string | undefined = undefined;
 
@@ -39,7 +39,7 @@ export class ApplicationLocalReference {
         {
             "name": "app",
             "baseName": "app",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         }    ];
 

@@ -51,7 +51,8 @@ class ApplicationParams(BaseModel):
     local_state_schema: Optional[ApplicationStateSchema] = Field(default=None, alias="local-state-schema")
     global_state_schema: Optional[ApplicationStateSchema] = Field(default=None, alias="global-state-schema")
     global_state: Optional[List[TealKeyValue]] = Field(default=None, description="Represents a key-value store for use in an application.", alias="global-state")
-    __properties: ClassVar[List[str]] = ["creator", "approval-program", "clear-state-program", "extra-program-pages", "local-state-schema", "global-state-schema", "global-state"]
+    version: Optional[StrictInt] = Field(default=None, description="\\[v\\] the number of updates to the application programs")
+    __properties: ClassVar[List[str]] = ["creator", "approval-program", "clear-state-program", "extra-program-pages", "local-state-schema", "global-state-schema", "global-state", "version"]
 
     @field_validator('approval_program')
     def approval_program_validate_regular_expression(cls, value):
@@ -137,7 +138,8 @@ class ApplicationParams(BaseModel):
             "extra-program-pages": obj.get("extra-program-pages"),
             "local-state-schema": ApplicationStateSchema.from_dict(obj["local-state-schema"]) if obj.get("local-state-schema") is not None else None,
             "global-state-schema": ApplicationStateSchema.from_dict(obj["global-state-schema"]) if obj.get("global-state-schema") is not None else None,
-            "global-state": [TealKeyValue.from_dict(_item) for _item in obj["global-state"]] if obj.get("global-state") is not None else None
+            "global-state": [TealKeyValue.from_dict(_item) for _item in obj["global-state"]] if obj.get("global-state") is not None else None,
+            "version": obj.get("version")
         })
         return _obj
 

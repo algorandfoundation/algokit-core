@@ -40,6 +40,10 @@ export class ApplicationParams {
     * Represents a key-value store for use in an application.
     */
     'globalState'?: Array<TealKeyValue>;
+    /**
+    * \\[v\\] the number of updates to the application programs
+    */
+    'version'?: number;
 
     static readonly discriminator: string | undefined = undefined;
 
@@ -86,6 +90,12 @@ export class ApplicationParams {
             "name": "globalState",
             "baseName": "global-state",
             "type": "Array<TealKeyValue>",
+            "format": ""
+        },
+        {
+            "name": "version",
+            "baseName": "version",
+            "type": "number",
             "format": ""
         }    ];
 
