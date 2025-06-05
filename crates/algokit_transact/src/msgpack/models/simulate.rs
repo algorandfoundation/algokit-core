@@ -1,4 +1,6 @@
-use crate::{AlgoKitMsgPackError, ModelHandler, ModelRegistry, ModelType, Result};
+use crate::msgpack::{
+    encode_value_to_msgpack, AlgoKitMsgPackError, ModelHandler, ModelRegistry, ModelType, Result,
+};
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::Engine;
 use serde::{Deserialize, Serialize};
@@ -179,7 +181,7 @@ impl ModelHandler for SimulateRequestHandler {
                     rmp::encode::write_str(&mut buf, key)?;
                     match key.as_str() {
                         "txn-groups" => Self::encode_txn_groups(&mut buf, value)?,
-                        _ => crate::encode_value_to_msgpack(value, &mut buf)?,
+                        _ => encode_value_to_msgpack(value, &mut buf)?,
                     }
                 }
             }
@@ -217,22 +219,22 @@ impl SimulateRequestHandler {
                                             serde_json::Value::String(s) => {
                                                 buf.extend_from_slice(&BASE64.decode(s)?);
                                             }
-                                            _ => crate::encode_value_to_msgpack(txn, buf)?,
+                                            _ => encode_value_to_msgpack(txn, buf)?,
                                         }
                                     }
                                 } else {
-                                    crate::encode_value_to_msgpack(val, buf)?;
+                                    encode_value_to_msgpack(val, buf)?;
                                 }
                             } else {
-                                crate::encode_value_to_msgpack(val, buf)?;
+                                encode_value_to_msgpack(val, buf)?;
                             }
                         }
                     }
-                    _ => crate::encode_value_to_msgpack(group, buf)?,
+                    _ => encode_value_to_msgpack(group, buf)?,
                 }
             }
         } else {
-            crate::encode_value_to_msgpack(value, buf)?;
+            encode_value_to_msgpack(value, buf)?;
         }
         Ok(())
     }

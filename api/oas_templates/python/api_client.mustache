@@ -37,7 +37,7 @@ from {{packageName}}.exceptions import (
 # Optional Algorand MessagePack support (binary wheels built from Rust)
 # ---------------------------------------------------------------------------
 try:
-    from algokit_msgpack import (
+    from algokit_transact import (
         decode_msgpack_to_json as _ak_decode_msgpack,
         ModelType as _AkModelType,
     )
@@ -345,7 +345,7 @@ class ApiClient:
                     match = re.search(r"charset=([a-zA-Z\-\d]+)[\s;]?", content_type)
                 encoding = match.group(1) if match else "utf-8"
                 if content_type and content_type.lower().startswith('application/msgpack'):
-                    # Attempt to decode via algokit_msgpack if available and model supports it
+                    # Attempt to decode via algokit_transact if available and model supports it
                     if _ak_decode_msgpack and _AkModelType:
                         try:
                             variant_name = re.sub(r'(?<!^)(?=[A-Z])', '_', response_type).upper()

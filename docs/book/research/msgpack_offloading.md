@@ -41,5 +41,7 @@ Python and other UniFFI targets follow a similar path through a native shared li
 
 ## Limitations & Future Work
 
-* Only three models (`SimulateRequest`, `SimulateTransaction200Response`, `Account`) are currently implemented – coverage will grow as the OpenAPI surface is expanded.
-* Investigate rmp-serde affecting wasm bundle size and apply pragmatic measures to optimise it.
+* Only two models (`SimulateRequest`, `SimulateTransaction200Response`) are currently implemented – coverage will grow as the OpenAPI surface is expanded.
+* Find a more sophisticated way to filter out and further automate model generation from algod spec that only includes models related to msgpack.
+* Expose SignedTransaction via ffi, modify the autogeneration for rust algod models to reference that core abstraction.
+* Remove or refine model registry mechanism, must be unified with AlgokitMessagePack trait once SignedTransaction is exposed and can be referenced in the algod spec.

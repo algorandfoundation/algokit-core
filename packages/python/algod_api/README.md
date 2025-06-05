@@ -11,7 +11,7 @@ For more information, please visit [https://www.algorand.com/get-in-touch/contac
 
 ## Requirements.
 
-Python 3.8+
+Python 3.9+
 
 ## Installation & Usage
 ### poetry install

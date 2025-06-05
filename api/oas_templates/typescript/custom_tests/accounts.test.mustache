@@ -42,12 +42,6 @@ describe("Account API Tests", () => {
       expect(["Offline", "Online", "NotParticipating"]).toContain((result as any).status);
   });
 
-  test.each(["json", "msgpack"])("should get account information with format %s", async (format) => {
-    const { testAccount } = fixture.context;
-    const result = await algodApi.accountInformation(testAccount.addr.toString(), format as any);
-    expect(result).not.toBeNull();
-  });
-
   test("should get account information with exclude=all", async () => {
     const { testAccount } = fixture.context;
     const result = await algodApi.accountInformation(testAccount.addr.toString(), "json" as any, "all" as any);

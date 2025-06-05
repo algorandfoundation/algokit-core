@@ -38,38 +38,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "algokit_msgpack"
-version = "0.1.0"
-dependencies = [
- "base64 0.22.1",
- "rand",
- "rmp",
- "rmp-serde",
- "rmpv",
- "serde",
- "serde_bytes",
- "serde_json",
- "serde_with",
- "thiserror 2.0.7",
-]
-
-[[package]]
-name = "algokit_msgpack_ffi"
-version = "0.1.0"
-dependencies = [
- "algokit_msgpack",
- "base64 0.22.1",
- "ffi_macros",
- "serde",
- "serde_bytes",
- "serde_json",
- "thiserror 2.0.7",
- "tsify-next",
- "uniffi",
- "wasm-bindgen",
-]
-
-[[package]]
 name = "algokit_transact"
 version = "0.1.0"
 dependencies = [
@@ -80,9 +48,11 @@ dependencies = [
  "derive_builder",
  "ed25519-dalek",
  "pretty_assertions",
+ "rmp",
  "rmp-serde",
  "rmpv",
  "serde",
+ "serde_bytes",
  "serde_json",
  "serde_with",
  "sha2",
@@ -94,6 +64,7 @@ name = "algokit_transact_ffi"
 version = "0.1.0"
 dependencies = [
  "algokit_transact",
+ "base64 0.22.1",
  "ffi_macros",
  "js-sys",
  "pretty_assertions",
@@ -2754,7 +2725,6 @@ version = "1.0.133"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c7fceb2473b9166b2294ef05efcb65a3db80803f0b03ef86a5fc88a2b85ee377"
 dependencies = [
- "indexmap 2.7.0",
  "itoa",
  "memchr",
  "ryu",
@@ -3449,7 +3419,6 @@ dependencies = [
  "cargo_metadata",
  "clap",
  "uniffi_bindgen",
- "uniffi_build",
  "uniffi_core",
  "uniffi_macros",
 ]
@@ -3483,17 +3452,6 @@ dependencies = [
  "uniffi_meta",
  "uniffi_testing",
  "uniffi_udl",
-]
-
-[[package]]
-name = "uniffi_build"
-version = "0.28.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4c7cf32576e08104b7dc2a6a5d815f37616e66c6866c2a639fe16e6d2286b75b"
-dependencies = [
- "anyhow",
- "camino",
- "uniffi_bindgen",
 ]
 
 [[package]]
