@@ -92,7 +92,7 @@ Class | Method | HTTP request | Description
 *AlgodApi* | [**experimental_check**](docs/AlgodApi.md#experimental_check) | **GET** /v2/experimental | Returns OK if experimental API is enabled.
 *AlgodApi* | [**generate_participation_keys**](docs/AlgodApi.md#generate_participation_keys) | **POST** /v2/participation/generate/{address} | Generate and install participation keys to the node.
 *AlgodApi* | [**get_application_box_by_name**](docs/AlgodApi.md#get_application_box_by_name) | **GET** /v2/applications/{application-id}/box | Get box information for a given application.
-*AlgodApi* | [**get_application_boxes**](docs/AlgodApi.md#get_application_boxes) | **GET** /v2/applications/{application-id}/boxes | Get boxes for a given application.
+*AlgodApi* | [**get_application_boxes**](docs/AlgodApi.md#get_application_boxes) | **GET** /v2/applications/{application-id}/boxes | Get all box names for a given application.
 *AlgodApi* | [**get_application_by_id**](docs/AlgodApi.md#get_application_by_id) | **GET** /v2/applications/{application-id} | Get application information.
 *AlgodApi* | [**get_asset_by_id**](docs/AlgodApi.md#get_asset_by_id) | **GET** /v2/assets/{asset-id} | Get asset information.
 *AlgodApi* | [**get_block**](docs/AlgodApi.md#get_block) | **GET** /v2/blocks/{round} | Get the block for the given round.
@@ -165,6 +165,7 @@ Class | Method | HTTP request | Description
  - [AvmKeyValue](docs/AvmKeyValue.md)
  - [AvmValue](docs/AvmValue.md)
  - [Box](docs/Box.md)
+ - [BoxDescriptor](docs/BoxDescriptor.md)
  - [BoxReference](docs/BoxReference.md)
  - [BuildVersion](docs/BuildVersion.md)
  - [DebugSettingsProf](docs/DebugSettingsProf.md)
@@ -175,6 +176,9 @@ Class | Method | HTTP request | Description
  - [ErrorResponse](docs/ErrorResponse.md)
  - [EvalDelta](docs/EvalDelta.md)
  - [EvalDeltaKeyValue](docs/EvalDeltaKeyValue.md)
+ - [Genesis](docs/Genesis.md)
+ - [GenesisAllocation](docs/GenesisAllocation.md)
+ - [GenesisAllocationState](docs/GenesisAllocationState.md)
  - [GetApplicationBoxes200Response](docs/GetApplicationBoxes200Response.md)
  - [GetBlock200Response](docs/GetBlock200Response.md)
  - [GetBlockHash200Response](docs/GetBlockHash200Response.md)
@@ -187,6 +191,7 @@ Class | Method | HTTP request | Description
  - [GetSyncRound200Response](docs/GetSyncRound200Response.md)
  - [GetTransactionGroupLedgerStateDeltasForRound200Response](docs/GetTransactionGroupLedgerStateDeltasForRound200Response.md)
  - [GetTransactionProof200Response](docs/GetTransactionProof200Response.md)
+ - [KvDelta](docs/KvDelta.md)
  - [LedgerStateDeltaForTransactionGroup](docs/LedgerStateDeltaForTransactionGroup.md)
  - [LightBlockHeaderProof](docs/LightBlockHeaderProof.md)
  - [ParticipationKey](docs/ParticipationKey.md)

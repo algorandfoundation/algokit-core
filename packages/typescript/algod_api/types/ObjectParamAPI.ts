@@ -27,6 +27,7 @@ import { AssetParams } from '../models/AssetParams';
 import { AvmKeyValue } from '../models/AvmKeyValue';
 import { AvmValue } from '../models/AvmValue';
 import { Box } from '../models/Box';
+import { BoxDescriptor } from '../models/BoxDescriptor';
 import { BoxReference } from '../models/BoxReference';
 import { BuildVersion } from '../models/BuildVersion';
 import { DebugSettingsProf } from '../models/DebugSettingsProf';
@@ -37,6 +38,9 @@ import { DryrunTxnResult } from '../models/DryrunTxnResult';
 import { ErrorResponse } from '../models/ErrorResponse';
 import { EvalDelta } from '../models/EvalDelta';
 import { EvalDeltaKeyValue } from '../models/EvalDeltaKeyValue';
+import { Genesis } from '../models/Genesis';
+import { GenesisAllocation } from '../models/GenesisAllocation';
+import { GenesisAllocationState } from '../models/GenesisAllocationState';
 import { GetApplicationBoxes200Response } from '../models/GetApplicationBoxes200Response';
 import { GetBlock200Response } from '../models/GetBlock200Response';
 import { GetBlockHash200Response } from '../models/GetBlockHash200Response';
@@ -49,6 +53,7 @@ import { GetSupply200Response } from '../models/GetSupply200Response';
 import { GetSyncRound200Response } from '../models/GetSyncRound200Response';
 import { GetTransactionGroupLedgerStateDeltasForRound200Response } from '../models/GetTransactionGroupLedgerStateDeltasForRound200Response';
 import { GetTransactionProof200Response } from '../models/GetTransactionProof200Response';
+import { KvDelta } from '../models/KvDelta';
 import { LedgerStateDeltaForTransactionGroup } from '../models/LedgerStateDeltaForTransactionGroup';
 import { LightBlockHeaderProof } from '../models/LightBlockHeaderProof';
 import { ParticipationKey } from '../models/ParticipationKey';
@@ -281,33 +286,12 @@ export interface AlgodApiGetApplicationBoxesRequest {
      */
     applicationId: number
     /**
-     * Maximum number of boxes to return. Server may impose a lower limit.
+     * Max number of box names to return. If max is not set, or max &#x3D;&#x3D; 0, returns all box-names.
      * Defaults to: undefined
      * @type number
      * @memberof AlgodApigetApplicationBoxes
      */
     max?: number
-    /**
-     * A box name prefix, in the goal app call arg form \&#39;encoding:value\&#39;. For ints, use the form \&#39;int:1234\&#39;. For raw bytes, use the form \&#39;b64:A&#x3D;&#x3D;\&#39;. For printable strings, use the form \&#39;str:hello\&#39;. For addresses, use the form \&#39;addr:XYZ...\&#39;.
-     * Defaults to: undefined
-     * @type string
-     * @memberof AlgodApigetApplicationBoxes
-     */
-    prefix?: string
-    /**
-     * A box name, in the goal app call arg form \&#39;encoding:value\&#39;. When provided, the returned boxes begin (lexographically) with the supplied name. Callers may implement pagination by reinvoking the endpoint with the token from a previous call\&#39;s next-token.
-     * Defaults to: undefined
-     * @type string
-     * @memberof AlgodApigetApplicationBoxes
-     */
-    next?: string
-    /**
-     * If true, box values will be returned.
-     * Defaults to: undefined
-     * @type boolean
-     * @memberof AlgodApigetApplicationBoxes
-     */
-    values?: boolean
 }
 
 export interface AlgodApiGetApplicationByIDRequest {
@@ -938,21 +922,21 @@ export class ObjectAlgodApi {
     }
 
     /**
-     * Given an application ID, return boxes in lexographical order by name. If the results must be truncated, a next-token is supplied to continue the request.
-     * Get boxes for a given application.
+     * Given an application ID, return all Box names. No particular ordering is guaranteed. Request fails when client or server-side configured limits prevent returning all Box names.
+     * Get all box names for a given application.
      * @param param the request object
      */
     public getApplicationBoxesResponse(param: AlgodApiGetApplicationBoxesRequest, options?: ConfigurationOptions): Promise<ResponseContext> {
-        return this.api.getApplicationBoxesResponse(param.applicationId, param.max, param.prefix, param.next, param.values,  options).toPromise();
+        return this.api.getApplicationBoxesResponse(param.applicationId, param.max,  options).toPromise();
     }
 
     /**
-     * Given an application ID, return boxes in lexographical order by name. If the results must be truncated, a next-token is supplied to continue the request.
-     * Get boxes for a given application.
+     * Given an application ID, return all Box names. No particular ordering is guaranteed. Request fails when client or server-side configured limits prevent returning all Box names.
+     * Get all box names for a given application.
      * @param param the request object
      */
     public getApplicationBoxes(param: AlgodApiGetApplicationBoxesRequest, options?: ConfigurationOptions): Promise<GetApplicationBoxes200Response> {
-        return this.api.getApplicationBoxes(param.applicationId, param.max, param.prefix, param.next, param.values,  options).toPromise();
+        return this.api.getApplicationBoxes(param.applicationId, param.max,  options).toPromise();
     }
 
     /**
@@ -1123,7 +1107,7 @@ export class ObjectAlgodApi {
      * Gets the genesis information.
      * @param param the request object
      */
-    public getGenesis(param: AlgodApiGetGenesisRequest = {}, options?: ConfigurationOptions): Promise<string> {
+    public getGenesis(param: AlgodApiGetGenesisRequest = {}, options?: ConfigurationOptions): Promise<Genesis> {
         return this.api.getGenesis( options).toPromise();
     }
 

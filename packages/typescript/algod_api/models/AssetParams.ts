@@ -59,7 +59,7 @@ export class AssetParams {
     /**
     * \\[t\\] The total number of units of this asset.
     */
-    'total': number;
+    'total': number | bigint;
     /**
     * \\[un\\] Name of a unit of this asset, as supplied by the creator. Included only when the name of a unit of this asset is composed of printable utf-8 characters.
     */
@@ -145,7 +145,7 @@ export class AssetParams {
         {
             "name": "total",
             "baseName": "total",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         },
         {

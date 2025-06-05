@@ -15,7 +15,7 @@ Method | HTTP request | Description
 [**experimentalCheck**](AlgodApi.md#experimentalCheck) | **GET** /v2/experimental | Returns OK if experimental API is enabled.
 [**generateParticipationKeys**](AlgodApi.md#generateParticipationKeys) | **POST** /v2/participation/generate/{address} | Generate and install participation keys to the node.
 [**getApplicationBoxByName**](AlgodApi.md#getApplicationBoxByName) | **GET** /v2/applications/{application-id}/box | Get box information for a given application.
-[**getApplicationBoxes**](AlgodApi.md#getApplicationBoxes) | **GET** /v2/applications/{application-id}/boxes | Get boxes for a given application.
+[**getApplicationBoxes**](AlgodApi.md#getApplicationBoxes) | **GET** /v2/applications/{application-id}/boxes | Get all box names for a given application.
 [**getApplicationByID**](AlgodApi.md#getApplicationByID) | **GET** /v2/applications/{application-id} | Get application information.
 [**getAssetByID**](AlgodApi.md#getAssetByID) | **GET** /v2/assets/{asset-id} | Get asset information.
 [**getBlock**](AlgodApi.md#getBlock) | **GET** /v2/blocks/{round} | Get the block for the given round.
@@ -110,7 +110,7 @@ Name | Type | Description  | Notes
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**200** | Response message indicating the abortion of a catchpoint catchup. |  -  |
+**200** | Catchpoint operation aborted successfully |  -  |
 **400** | Bad Request |  -  |
 **401** | Invalid API Token |  -  |
 **500** | Internal Error |  -  |
@@ -724,7 +724,7 @@ Name | Type | Description  | Notes
 # **getApplicationBoxes**
 > GetApplicationBoxes200Response getApplicationBoxes()
 
-Given an application ID, return boxes in lexographical order by name. If the results must be truncated, a next-token is supplied to continue the request.
+Given an application ID, return all Box names. No particular ordering is guaranteed. Request fails when client or server-side configured limits prevent returning all Box names.
 
 ### Example
 
@@ -739,14 +739,8 @@ const apiInstance = new AlgodApi(configuration);
 const request: AlgodApiGetApplicationBoxesRequest = {
     // An application identifier
   applicationId: 1,
-    // Maximum number of boxes to return. Server may impose a lower limit. (optional)
+    // Max number of box names to return. If max is not set, or max == 0, returns all box-names. (optional)
   max: 1,
-    // A box name prefix, in the goal app call arg form \'encoding:value\'. For ints, use the form \'int:1234\'. For raw bytes, use the form \'b64:A==\'. For printable strings, use the form \'str:hello\'. For addresses, use the form \'addr:XYZ...\'. (optional)
-  prefix: "prefix_example",
-    // A box name, in the goal app call arg form \'encoding:value\'. When provided, the returned boxes begin (lexographically) with the supplied name. Callers may implement pagination by reinvoking the endpoint with the token from a previous call\'s next-token. (optional)
-  next: "next_example",
-    // If true, box values will be returned. (optional)
-  values: true,
 };
 
 const data = await apiInstance.getApplicationBoxes(request);
@@ -759,10 +753,7 @@ console.log('API called successfully. Returned data:', data);
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **applicationId** | [**number**] | An application identifier | defaults to undefined
- **max** | [**number**] | Maximum number of boxes to return. Server may impose a lower limit. | (optional) defaults to undefined
- **prefix** | [**string**] | A box name prefix, in the goal app call arg form \&#39;encoding:value\&#39;. For ints, use the form \&#39;int:1234\&#39;. For raw bytes, use the form \&#39;b64:A&#x3D;&#x3D;\&#39;. For printable strings, use the form \&#39;str:hello\&#39;. For addresses, use the form \&#39;addr:XYZ...\&#39;. | (optional) defaults to undefined
- **next** | [**string**] | A box name, in the goal app call arg form \&#39;encoding:value\&#39;. When provided, the returned boxes begin (lexographically) with the supplied name. Callers may implement pagination by reinvoking the endpoint with the token from a previous call\&#39;s next-token. | (optional) defaults to undefined
- **values** | [**boolean**] | If true, box values will be returned. | (optional) defaults to undefined
+ **max** | [**number**] | Max number of box names to return. If max is not set, or max &#x3D;&#x3D; 0, returns all box-names. | (optional) defaults to undefined
 
 
 ### Return type
@@ -782,7 +773,7 @@ Name | Type | Description  | Notes
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**200** | Boxes of an application |  -  |
+**200** | Box names of an application |  -  |
 **400** | Bad Request |  -  |
 **401** | Invalid API Token |  -  |
 **500** | Internal Error |  -  |
@@ -1282,7 +1273,7 @@ This endpoint does not need any parameter.
 [[Back to top]](#) [[Back to API list]](README.md#documentation-for-api-endpoints) [[Back to Model list]](README.md#documentation-for-models) [[Back to README]](README.md)
 
 # **getGenesis**
-> string getGenesis()
+> Genesis getGenesis()
 
 Returns the entire genesis file in json.
 
@@ -1308,7 +1299,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-**string**
+**Genesis**
 
 ### Authorization
 
@@ -1890,7 +1881,7 @@ This endpoint does not need any parameter.
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**200** | Node status information |  -  |
+**200** | Returns the current node status including sync status, version, and latest round |  -  |
 **401** | Invalid API Token |  -  |
 **500** | Internal Error |  -  |
 **0** | Unknown Error |  -  |
@@ -2472,7 +2463,7 @@ Name | Type | Description  | Notes
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**200** | Transaction accepted. |  -  |
+**200** | Transaction successfully submitted for asynchronous processing |  -  |
 **400** | Bad Request - Malformed Algorand transaction  |  -  |
 **401** | Invalid API Token |  -  |
 **404** | Developer or Experimental API not enabled |  -  |
@@ -2588,7 +2579,7 @@ Name | Type | Description  | Notes
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**200** | Sync round set successfully. |  -  |
+**200** | Ledger sync to specified round initiated successfully |  -  |
 **400** | Can not set sync round to an earlier round than the current round. |  -  |
 **401** | Invalid API Token |  -  |
 **500** | Internal Error |  -  |
@@ -2646,7 +2637,7 @@ Name | Type | Description  | Notes
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**200** | Node shutdown request accepted. |  -  |
+**200** | Node shutdown initiated successfully |  -  |
 
 [[Back to top]](#) [[Back to API list]](README.md#documentation-for-api-endpoints) [[Back to Model list]](README.md#documentation-for-models) [[Back to README]](README.md)
 
@@ -2782,8 +2773,8 @@ Name | Type | Description  | Notes
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**200** | Response message indicating the start of a catchpoint catchup. |  -  |
-**201** | Response message indicating the start of a catchpoint catchup. |  -  |
+**200** | Catchpoint operation started successfully |  -  |
+**201** | Catchpoint operation created and started successfully |  -  |
 **400** | Bad Request |  -  |
 **401** | Invalid API Token |  -  |
 **408** | Request Timeout |  -  |
@@ -3044,6 +3035,7 @@ const request: AlgodApiTealDryrunRequest = {
                   },
                 },
               ],
+              version: 1,
             },
           },
         ],
@@ -3119,6 +3111,7 @@ const request: AlgodApiTealDryrunRequest = {
               },
             },
           ],
+          version: 1,
         },
       },
     ],
@@ -3265,7 +3258,7 @@ This endpoint does not need any parameter.
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**200** | Sync round unset successfully. |  -  |
+**200** | Ledger sync operation stopped successfully |  -  |
 **400** | Sync round not set. |  -  |
 **401** | Invalid API Token |  -  |
 **500** | Internal Error |  -  |
@@ -3323,7 +3316,7 @@ Name | Type | Description  | Notes
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**200** | Node status information |  -  |
+**200** | Returns node status after the specified round is reached |  -  |
 **400** | Bad Request -- number must be non-negative integer |  -  |
 **401** | Invalid API Token |  -  |
 **500** | Internal Error |  -  |

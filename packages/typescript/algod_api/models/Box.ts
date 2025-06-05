@@ -19,13 +19,13 @@ export class Box {
     /**
     * The round for which this information is relevant
     */
-    'round'?: number;
+    'round': number;
     /**
-    * The box name, base64 encoded
+    * \\[name\\] box name, base64 encoded
     */
     'name': string;
     /**
-    * The box value, base64 encoded.
+    * \\[value\\] box value, base64 encoded.
     */
     'value': string;
 

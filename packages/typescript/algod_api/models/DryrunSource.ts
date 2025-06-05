@@ -22,7 +22,7 @@ export class DryrunSource {
     'fieldName': string;
     'source': string;
     'txnIndex': number;
-    'appIndex': number;
+    'appIndex': number | bigint;
 
     static readonly discriminator: string | undefined = undefined;
 
@@ -50,7 +50,7 @@ export class DryrunSource {
         {
             "name": "appIndex",
             "baseName": "app-index",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         }    ];
 

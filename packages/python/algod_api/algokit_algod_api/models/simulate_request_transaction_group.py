@@ -41,7 +41,7 @@ class SimulateRequestTransactionGroup(BaseModel):
     """
     A transaction group to simulate.
     """ # noqa: E501
-    txns: List[StrictStr] = Field(description="An atomic transaction group. Each transaction must be provided as a base64-encoded, canonically encoded SignedTransaction object. Note: This differs from algosdk's simulateTransaction method, which takes an array of SignedTransaction objects and handles the encoding internally.")
+    txns: List[StrictStr] = Field(description="An atomic transaction group.")
     __properties: ClassVar[List[str]] = ["txns"]
 
     model_config = ConfigDict(

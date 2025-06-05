@@ -16,6 +16,9 @@ files:
     tsconfig.cjs.mustache:
         templateType: SupportingFiles
         destinationFilename: tsconfig.cjs.json
+    bigint-utils.mustache:
+        templateType: SupportingFiles
+        destinationFilename: bigint-utils.ts
     custom_tests/transactions.test.mustache:
         templateType: SupportingFiles
         destinationFilename: tests/transactions.test.ts

@@ -33,7 +33,7 @@ except ModuleNotFoundError:  # pragma: no cover – optional dependency
     _AkModelType = None  # type: ignore
 
 from pydantic import BaseModel, ConfigDict, Field, StrictInt, field_validator
-from typing import Any, ClassVar, Dict, List, Optional, Union
+from typing import Any, ClassVar, Dict, List, Union
 from typing_extensions import Annotated
 from typing import Optional, Set
 from typing_extensions import Self
@@ -42,9 +42,9 @@ class Box(BaseModel):
     """
     Box name and its content.
     """ # noqa: E501
-    round: Optional[StrictInt] = Field(default=None, description="The round for which this information is relevant")
-    name: Union[Annotated[bytes, Field(strict=True)], Annotated[str, Field(strict=True)]] = Field(description="The box name, base64 encoded")
-    value: Union[Annotated[bytes, Field(strict=True)], Annotated[str, Field(strict=True)]] = Field(description="The box value, base64 encoded.")
+    round: StrictInt = Field(description="The round for which this information is relevant")
+    name: Union[Annotated[bytes, Field(strict=True)], Annotated[str, Field(strict=True)]] = Field(description="\\[name\\] box name, base64 encoded")
+    value: Union[Annotated[bytes, Field(strict=True)], Annotated[str, Field(strict=True)]] = Field(description="\\[value\\] box value, base64 encoded.")
     __properties: ClassVar[List[str]] = ["round", "name", "value"]
 
     @field_validator('name')
