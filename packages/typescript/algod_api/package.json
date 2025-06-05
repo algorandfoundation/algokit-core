@@ -54,11 +54,10 @@
   "dependencies": {
     "whatwg-fetch": "^3.0.0",
     "es6-promise": "^4.2.4",
-    "algokit_msgpack": "file:../algokit_msgpack"
+    "algokit_transact": "file:../algokit_transact"
   },
   "devDependencies": {
     "@algorandfoundation/algokit-utils": "^9.0.1",
-    "algokit_transact": "file:../algokit_transact",
     "algosdk": "^3.2.0",
     "rimraf": "^6.0.1",
     "typescript": "^5.0.0",

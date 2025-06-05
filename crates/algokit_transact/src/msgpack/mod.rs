@@ -259,7 +259,6 @@ where
 pub enum ModelType {
     SimulateRequest,
     SimulateTransaction200Response,
-    Account,
 }
 
 impl ModelType {
@@ -268,7 +267,6 @@ impl ModelType {
         match self {
             ModelType::SimulateRequest => "SimulateRequest",
             ModelType::SimulateTransaction200Response => "SimulateTransaction200Response",
-            ModelType::Account => "Account",
         }
     }
 
@@ -278,7 +276,6 @@ impl ModelType {
         match s {
             "SimulateRequest" => Some(ModelType::SimulateRequest),
             "SimulateTransaction200Response" => Some(ModelType::SimulateTransaction200Response),
-            "Account" => Some(ModelType::Account),
             _ => None,
         }
     }
@@ -288,7 +285,6 @@ impl ModelType {
         vec![
             ModelType::SimulateRequest,
             ModelType::SimulateTransaction200Response,
-            ModelType::Account,
         ]
     }
 }

@@ -10,13 +10,10 @@
     "build:algokit_transact:swift": "bun scripts/build algokit_transact swift",
     "build:algokit_transact:ts": "bun scripts/build algokit_transact typescript",
     "build:algokit_transact:all": "bun scripts/build algokit_transact all",
-    "build:algokit_msgpack:ts": "bun scripts/build algokit_msgpack typescript",
-    "build:algokit_msgpack:py": "bun scripts/build algokit_msgpack python",
-    "build:algokit_msgpack:all": "bun scripts/build algokit_msgpack all",
     "build:algod_api:ts": "bun run --filter api generate:algod_api:ts",
     "build:algod_api:py": "bun run --filter api generate:algod_api:py",
     "build:algod_api:all": "bun run --filter api generate:algod_api:all",
-    "build:all": "bun run build:algokit_transact:all && bun run build:algokit_msgpack:all && bun run build:algod_api:all"
+    "build:all": "bun run build:algokit_transact:all && bun run build:algod_api:all"
   },
   "dependencies": {
     "@actions/core": "^1.11.1",

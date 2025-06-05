@@ -95,28 +95,6 @@ class TestAccountsAPI:
         except Exception as e:
             pytest.fail(f"Exception when calling AlgodApi->account_information: {e}")
 
-    @pytest.mark.parametrize("format_str", ["json", "msgpack"])
-    def test_account_information_with_format(
-        self,
-        format_str: str,
-        bob: SigningAccount,
-        algod_instance: AlgodApi,
-    ) -> None:
-        """Test case for account_information endpoint with format parameter"""
-        try:
-            # Call the account information endpoint with format parameter
-            response = algod_instance.account_information(
-                address=bob.address,
-                format=format_str
-            )
-
-            # Verify response is not None and has correct type
-            assert response is not None
-            assert isinstance(response, Account)
-
-        except Exception as e:
-            pytest.fail(f"Exception when calling AlgodApi->account_information: {e}")
-
     def test_account_information_with_exclude(
         self,
         bob: SigningAccount,
