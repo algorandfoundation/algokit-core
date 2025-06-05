@@ -39,9 +39,11 @@ dependencies = [
  "derive_builder",
  "ed25519-dalek",
  "pretty_assertions",
+ "rmp",
  "rmp-serde",
  "rmpv",
  "serde",
+ "serde_bytes",
  "serde_json",
  "serde_with",
  "sha2",
@@ -53,6 +55,7 @@ name = "algokit_transact_ffi"
 version = "0.1.0"
 dependencies = [
  "algokit_transact",
+ "base64",
  "ffi_macros",
  "pretty_assertions",
  "rmp-serde",

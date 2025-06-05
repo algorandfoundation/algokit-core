@@ -68,5 +68,9 @@ export async function buildTypescript(crate: string) {
   await build(crate, "esm", cwd);
   await build(crate, "cjs", cwd);
 
-  fs.copyFileSync(`packages/typescript/${crate}/pkg/${crate}_ffi.d.ts`, `packages/typescript/${crate}/dist/index.d.ts`);
+  // Expose the generated type definitions
+  fs.copyFileSync(
+    `packages/typescript/${crate}/pkg/${crate}_ffi.d.ts`,
+    `packages/typescript/${crate}/dist/index.d.ts`,
+  );
 }

@@ -109,5 +109,45 @@ describe("Transaction API Tests", () => {
     expect(pendingTxnsResult).toBeDefined();
   });
 
+  test.each(["json", "msgpack"])("should simulate transaction with format %s", async (format) => {
+    const { testAccount: sender } = fixture.context;
+
+    const suggestedParams = await algodApi.transactionParams();
+    const signedTxnFile = createSignedTxnHttpFile(
+      sender,
+      { address: String(sender.addr), pubKey: sender.publicKey },
+      100000,
+      suggestedParams,
+    );
+
+    // Note: This implementation differs from algosdk's simulateTransaction method.
+    // Here we manually convert the signed transaction to base64-encoded string,
+    // while algosdk takes an array of SignedTransaction objects and handles the encoding internally.
+    const emptyTxnGroup: algodPackage.SimulateRequestTransactionGroup = {
+      "txns": [Buffer.from(await signedTxnFile.arrayBuffer()).toString("base64")],
+    }
+
+    const traceConfig: algodPackage.SimulateTraceConfig = {
+      "enable": true,
+      "stackChange": true,
+      "scratchChange": true,
+      "stateChange": true,
+    }
+
+    const simulateRequest: algodPackage.SimulateRequest = {
+      "allowEmptySignatures": true,
+      "allowMoreLogging": true,
+      "allowUnnamedResources": true,
+      "txnGroups": [emptyTxnGroup],
+      "execTraceConfig": traceConfig,
+    }
+
+    const result = await algodApi.simulateTransaction(simulateRequest, format as "msgpack" | "json", {
+      headers: { "Content-Type": `application/${format}` },
+    } as any);
+
+    expect(result).toBeDefined();
+  });
+
   // TODO: Add more tests based on other endpoints in AlgodApi related to transactions
 });

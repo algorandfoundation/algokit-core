@@ -1,0 +1,114 @@
+# coding: utf-8
+
+{{>partial_header}}
+
+
+from random import randbytes
+from typing import Dict
+
+import pytest
+from algokit_utils import (
+    AlgorandClient,
+    AppFactory,
+    AppFactoryCreateParams,
+    SigningAccount,
+)
+
+from algokit_algod_api.api.algod_api import AlgodApi
+from algokit_algod_api.exceptions import ApiException
+from algokit_algod_api.models.account import Account
+from tests.utils import create_random_asset
+
+
+@pytest.fixture
+def headers() -> Dict[str, str]:
+    """Fixture for common API headers."""
+    return {'Accept': 'application/json'}
+
+
+@pytest.fixture
+def algod_instance(api_client_fixture) -> AlgodApi:
+    """Fixture for AlgodApi instance."""
+    return AlgodApi(api_client_fixture)
+
+
+
+class TestAccountsAPI:
+    """Tests for Account-related endpoints"""
+
+    @pytest.fixture(autouse=True)
+    def setup_method(self, algorand: AlgorandClient, bob: SigningAccount,
+                      arc56_factory: AppFactory) -> None:
+        """Setup method to ensure AlgodApi instance is available for all tests."""
+        for i in range(10):
+            create_random_asset(algorand, bob)
+
+        for i in range(10):
+            arc56_factory.send.bare.create(params=AppFactoryCreateParams(note=randbytes(10)))
+
+    def test_account_information(
+        self,
+        bob: SigningAccount,
+        algod_instance: AlgodApi,
+        headers: Dict[str, str]
+    ) -> None:
+        """Test case for account_information endpoint"""
+        try:
+            # Call the account information endpoint
+            response = algod_instance.account_information(
+                address=bob.address,
+                _headers=headers
+            )
+
+            # Verify response is not None and has correct type
+            assert response is not None
+            assert isinstance(response, Account)
+
+            # Verify required account information fields
+            response_dict = response.to_dict()
+            assert isinstance(response_dict, dict)
+
+            # Check essential account properties
+            assert response_dict["address"] == bob.address
+            assert "amount" in response_dict
+            assert "min-balance" in response_dict
+            assert "status" in response_dict
+            assert "round" in response_dict
+
+            # Check amount is a positive integer
+            assert response_dict["amount"] > 0
+
+            # Check the account status is a valid string value
+            assert response_dict["status"] in ["Offline", "Online", "NotParticipating"]
+
+        except Exception as e:
+            pytest.fail(f"Exception when calling AlgodApi->account_information: {e}")
+
+    def test_account_information_with_exclude(
+        self,
+        bob: SigningAccount,
+        algod_instance: AlgodApi,
+        headers: Dict[str, str]
+    ) -> None:
+        """Test case for account_information endpoint with exclude parameter"""
+        try:
+            # Call the account information endpoint with exclude parameter
+            response = algod_instance.account_information(
+                address=bob.address,
+                exclude="all",
+                _headers=headers
+            )
+
+            # Verify response is not None and has correct type
+            assert response is not None
+            assert isinstance(response, Account)
+
+            # When exclude=all, the following fields should not be present
+            response_dict = response.to_dict()
+            assert "assets" not in response_dict
+            assert "created-assets" not in response_dict
+            assert "apps-local-state" not in response_dict
+            assert "created-apps" not in response_dict
+
+        except Exception as e:
+            pytest.fail(f"Exception when calling AlgodApi->account_information: {e}")

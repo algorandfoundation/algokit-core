@@ -10,19 +10,11 @@
  * Do not edit the class manually.
  */
 
-import { Box } from '../models/Box';
+import { BoxDescriptor } from '../models/BoxDescriptor';
 import { HttpFile } from '../http/http';
 
 export class GetApplicationBoxes200Response {
-    /**
-    * The round for which this information is relevant.
-    */
-    'round': number;
-    /**
-    * Used for pagination, when making another request provide this token with the next parameter.
-    */
-    'nextToken'?: string;
-    'boxes': Array<Box>;
+    'boxes': Array<BoxDescriptor>;
 
     static readonly discriminator: string | undefined = undefined;
 
@@ -30,21 +22,9 @@ export class GetApplicationBoxes200Response {
 
     static readonly attributeTypeMap: Array<{name: string, baseName: string, type: string, format: string}> = [
         {
-            "name": "round",
-            "baseName": "round",
-            "type": "number",
-            "format": ""
-        },
-        {
-            "name": "nextToken",
-            "baseName": "next-token",
-            "type": "string",
-            "format": ""
-        },
-        {
             "name": "boxes",
             "baseName": "boxes",
-            "type": "Array<Box>",
+            "type": "Array<BoxDescriptor>",
             "format": ""
         }    ];
 
