@@ -2,15 +2,17 @@ import { wasm } from "@rollup/plugin-wasm";
 import typescript from "@rollup/plugin-typescript";
 import { nodeResolve } from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
+import esmShim from "@rollup/plugin-esm-shim";
 
 export default {
-  input: "src/esm.ts",
+  input: "src/index.ts",
   output: {
     file: "dist/algokit_utils.node.cjs",
     sourcemap: false,
     format: "commonjs",
   },
   plugins: [
+    esmShim(),
     commonjs(),
     wasm({
       targetEnv: "auto-inline",

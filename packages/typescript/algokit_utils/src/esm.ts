@@ -6,4 +6,4 @@ import mod from "../pkg/algokit_utils_ffi_bg.wasm";
 import { initSync } from "../pkg/algokit_utils_ffi";
 
 //@ts-ignore
-initSync({ module: mod() });
+initSync({ module: await mod() });

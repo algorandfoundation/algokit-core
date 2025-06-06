@@ -1,4 +1,6 @@
-import { addressFromString, Composer, Transaction } from "..";
+// Even with module and exports defined, bun still prefers main for some reason.
+// See https://github.com/oven-sh/bun/issues/13430#issuecomment-2949903681
+import { addressFromString, Composer, Transaction } from "../dist/algokit_utils.bundler.mjs";
 import { expect, describe, test } from "bun:test";
 
 class AlgodClient {
@@ -97,6 +99,12 @@ describe("Composer", () => {
   });
 
   test("params", async () => {
+    const composer = new Composer(algodClient);
+    const params = await composer.get_suggested_params();
+    expect(params).toBeDefined();
+    console.debug("Suggested Params:", params);
+  });
+  test("params2", async () => {
     const composer = new Composer(algodClient);
     const params = await composer.get_suggested_params();
     expect(params).toBeDefined();

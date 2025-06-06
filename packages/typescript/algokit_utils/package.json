@@ -2,7 +2,7 @@
   "name": "@algorandfoundation/algokit-transact",
   "version": "0.1.0",
   "main": "./dist/algokit_utils.wasm2js.mjs",
-  "module": "./dist/algokit_utils.wasm2js.mjs",
+  "module": "./dist/algokit_utils.bundler.mjs",
   "devDependencies": {
     "@jest/globals": "^29.7.0",
     "@microsoft/api-extractor": "^7.50.0",
@@ -29,6 +29,7 @@
   },
   "exports": {
     ".": {
+      "bun": "./dist/algokit_utils.bundler.mjs",
       "types": "./dist/index.d.ts",
       "react-native": "./dist/algokit_utils.wasm2js.mjs",
       "require": "./dist/algokit_utils.node.cjs",
