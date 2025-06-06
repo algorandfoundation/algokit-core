@@ -36,13 +36,36 @@ impl HTTPClient for DefaultHTTPClient {
     }
 }
 
+pub struct AlgodClient {
+    http_client: Box<dyn HTTPClient>,
+}
+
+impl AlgodClient {
+    pub fn new(http_client: Box<dyn HTTPClient>) -> Self {
+        AlgodClient { http_client }
+    }
+
+    pub fn testnet() -> Self {
+        AlgodClient {
+            http_client: Box::new(DefaultHTTPClient::new(
+                "https://testnet-api.4160.nodely.dev",
+            )),
+        }
+    }
+
+    pub async fn get_suggested_params(&self) -> Result<String, String> {
+        let path = "/v2/transactions/params";
+        self.http_client.json(path).await
+    }
+}
+
 pub struct Composer {
     transactions: Vec<Transaction>,
-    algod_client: Box<dyn HTTPClient>,
+    algod_client: AlgodClient,
 }
 
 impl Composer {
-    pub fn new(algod_client: Box<dyn HTTPClient>) -> Self {
+    pub fn new(algod_client: AlgodClient) -> Self {
         Composer {
             transactions: Vec::new(),
             algod_client: algod_client,
@@ -52,14 +75,8 @@ impl Composer {
     pub fn testnet() -> Self {
         Composer {
             transactions: Vec::new(),
-            algod_client: Box::new(DefaultHTTPClient::new(
-                "https://testnet-api.4160.nodely.dev",
-            )),
+            algod_client: AlgodClient::testnet(),
         }
-    }
-
-    pub fn set_http_client(&mut self, client: Box<dyn HTTPClient>) {
-        self.algod_client = client;
     }
 
     pub fn add_transaction(&mut self, transaction: Transaction) -> Result<(), String> {
@@ -83,9 +100,7 @@ impl Composer {
     }
 
     pub async fn get_suggested_params(&self) -> Result<String, String> {
-        let path = "/v2/transactions/params";
-
-        Ok(self.algod_client.json(path).await?)
+        Ok(self.algod_client.get_suggested_params().await?)
     }
 }
 
