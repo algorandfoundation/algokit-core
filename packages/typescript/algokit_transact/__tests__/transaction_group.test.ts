@@ -26,6 +26,10 @@ describe("Transaction Group", () => {
   describe("Transaction Group Tests", () => {
     // Polytest Group: Transaction Group Tests
 
+    test("assign fees to transaction group", () => {
+      throw new Error("TEST NOT IMPLEMENTED");
+    });
+
     test("group transactions", () => {
       const { txs, expectedGroupId } = simpleGroup();
 

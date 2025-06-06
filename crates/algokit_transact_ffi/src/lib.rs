@@ -611,6 +611,31 @@ pub fn group_transactions(txs: Vec<Transaction>) -> Result<Vec<Transaction>, Alg
     Ok(grouped_txs)
 }
 
+/// Assigns fees to each transaction in a transaction group.
+#[ffi_func]
+pub fn assign_fees(
+    txs: Vec<Transaction>,
+    fee_params: Vec<FeeParams>,
+) -> Result<Vec<Transaction>, AlgoKitTransactError> {
+    let txs_internal: Vec<algokit_transact::Transaction> = txs
+        .into_iter()
+        .map(|tx| tx.try_into())
+        .collect::<Result<Vec<_>, _>>()?;
+
+    let fee_params_internal: Vec<algokit_transact::FeeParams> = fee_params
+        .into_iter()
+        .map(|fp| fp.try_into())
+        .collect::<Result<Vec<_>, _>>()?;
+
+    let txs_with_fees: Vec<Transaction> = txs_internal
+        .assign_fees(fee_params_internal)?
+        .into_iter()
+        .map(|tx| tx.try_into())
+        .collect::<Result<Vec<_>, _>>()?;
+
+    Ok(txs_with_fees)
+}
+
 /// Enum containing all constants used in this crate.
 #[ffi_enum]
 pub enum AlgorandConstant {

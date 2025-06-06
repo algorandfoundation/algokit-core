@@ -49,6 +49,7 @@
 | [group transactions](#group-transactions) | A collection of transactions can be grouped |
 | [encode transactions](#encode-transactions) | A collection of transactions can be encoded |
 | [encode signed transactions](#encode-signed-transactions) | A collection of signed transactions can be encoded |
+| [assign fees to transaction group](#assign-fees-to-transaction-group) | Fees can be assigned to each transaction in a transaction group |
 
 ## Test Cases
 
@@ -103,3 +104,7 @@ A collection of transactions can be encoded
 ### encode signed transactions
 
 A collection of signed transactions can be encoded
+
+### assign fees to transaction group
+
+Fees can be assigned to each transaction in a transaction group
