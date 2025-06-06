@@ -7,6 +7,8 @@ edition = "2024"
 algokit_transact = { version = "0.1.0", path = "../algokit_transact", features = ["test_utils"] }
 async-trait = "0.1.88"
 reqwest = { version = "0.12.19", features = ["blocking"] }
+thiserror.workspace = true
+uniffi.workspace = true
 
 [dev-dependencies]
 tokio = { version = "1.45.1", features = ["full", "test-util"] }

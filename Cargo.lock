@@ -73,14 +73,15 @@ dependencies = [
  "algokit_transact",
  "async-trait",
  "reqwest",
+ "thiserror 2.0.7",
  "tokio",
+ "uniffi",
 ]
 
 [[package]]
 name = "algokit_utils_ffi"
 version = "0.1.0"
 dependencies = [
- "algokit_transact",
  "algokit_transact_ffi",
  "algokit_utils",
  "async-trait",
@@ -89,6 +90,7 @@ dependencies = [
  "serde-wasm-bindgen",
  "serde_bytes",
  "thiserror 2.0.7",
+ "tokio",
  "tsify-next",
  "uniffi",
  "wasm-bindgen",

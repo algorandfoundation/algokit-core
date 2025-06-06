@@ -1,12 +1,23 @@
+use std::sync::Arc;
+
 use algokit_transact::AlgorandMsgpack;
 use algokit_transact::Transaction;
 use async_trait::async_trait;
 
 use reqwest;
 
-#[async_trait(?Send)]
-pub trait HTTPClient {
-    async fn json(&self, path: &str) -> Result<String, String>;
+uniffi::setup_scaffolding!();
+
+#[derive(Debug, thiserror::Error, uniffi::Error)]
+pub enum HttpError {
+    #[error("HttpError: {0}")]
+    HttpError(String),
+}
+
+#[uniffi::export(with_foreign)]
+#[async_trait]
+pub trait HTTPClient: Send + Sync {
+    async fn json(&self, path: String) -> Result<String, HttpError>;
 }
 
 // TODO: Put reqwest and this default client behind a feature flag
@@ -22,39 +33,40 @@ impl DefaultHTTPClient {
     }
 }
 
-#[async_trait(?Send)]
+// TODO: break this out into a separate crate
+#[async_trait]
 impl HTTPClient for DefaultHTTPClient {
-    async fn json(&self, path: &str) -> Result<String, String> {
-        let response = reqwest::get(self.host.clone() + path)
+    async fn json(&self, path: String) -> Result<String, HttpError> {
+        let response = reqwest::get(self.host.clone() + &path)
             .await
-            .map_err(|e| e.to_string())?
+            .map_err(|e| HttpError::HttpError(e.to_string()))?
             .text()
             .await
-            .map_err(|e| e.to_string())?;
+            .map_err(|e| HttpError::HttpError(e.to_string()))?;
 
         Ok(response)
     }
 }
 
 pub struct AlgodClient {
-    http_client: Box<dyn HTTPClient>,
+    http_client: Arc<dyn HTTPClient>,
 }
 
 impl AlgodClient {
-    pub fn new(http_client: Box<dyn HTTPClient>) -> Self {
+    pub fn new(http_client: Arc<dyn HTTPClient>) -> Self {
         AlgodClient { http_client }
     }
 
     pub fn testnet() -> Self {
         AlgodClient {
-            http_client: Box::new(DefaultHTTPClient::new(
+            http_client: Arc::new(DefaultHTTPClient::new(
                 "https://testnet-api.4160.nodely.dev",
             )),
         }
     }
 
-    pub async fn get_suggested_params(&self) -> Result<String, String> {
-        let path = "/v2/transactions/params";
+    pub async fn get_suggested_params(&self) -> Result<String, HttpError> {
+        let path = "/v2/transactions/params".to_string();
         self.http_client.json(path).await
     }
 }
@@ -99,7 +111,7 @@ impl Composer {
         self.transactions.clone()
     }
 
-    pub async fn get_suggested_params(&self) -> Result<String, String> {
+    pub async fn get_suggested_params(&self) -> Result<String, HttpError> {
         Ok(self.algod_client.get_suggested_params().await?)
     }
 }
