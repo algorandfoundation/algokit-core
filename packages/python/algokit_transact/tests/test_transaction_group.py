@@ -106,9 +106,9 @@ def test_assign_fees_to_transaction_group():
 
     # Verify that other transaction fields remain unchanged
     assert txs_with_fees[0].sender == txs[0].sender
-    assert txs_with_fees[0].receiver == txs[0].receiver
+    assert txs_with_fees[0].payment.receiver == txs[0].payment.receiver
     assert txs_with_fees[1].sender == txs[1].sender
-    assert txs_with_fees[1].asset_id == txs[1].asset_id
+    assert txs_with_fees[1].asset_transfer.asset_id == txs[1].asset_transfer.asset_id
 
 
 @pytest.mark.group_transaction_group_tests

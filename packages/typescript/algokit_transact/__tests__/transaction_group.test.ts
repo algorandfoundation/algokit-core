@@ -1,6 +1,6 @@
 import { expect, test, describe } from "bun:test";
 import { testData } from "./common.ts";
-import { decodeSignedTransactions, decodeTransactions, encodeSignedTransaction, encodeSignedTransactions, encodeTransaction, encodeTransactions, groupTransactions, SignedTransaction } from "..";
+import { attachSignature, attachSignatures, encodeTransaction, encodeTransactions, groupTransactions, assignFees } from "../src/index";
 import * as ed from "@noble/ed25519";
 import { decode } from "punycode";
 
@@ -27,7 +27,48 @@ describe("Transaction Group", () => {
     // Polytest Group: Transaction Group Tests
 
     test("assign fees to transaction group", () => {
-      throw new Error("TEST NOT IMPLEMENTED");
+      const { txs } = simpleGroup();
+
+      // Create fee parameters for each transaction in the group
+      const feeParams = [
+        {
+          feePerByte: 1n,
+          minFee: 1000n,
+          extraFee: undefined,
+          maxFee: undefined,
+        },
+        {
+          feePerByte: 2n,
+          minFee: 2000n,
+          extraFee: 500n,
+          maxFee: undefined,
+        },
+      ];
+
+      // Assign fees to the transaction group
+      const txsWithFees = assignFees(txs, feeParams);
+
+      // Verify that we get back the same number of transactions
+      expect(txsWithFees.length).toBe(txs.length);
+
+      // Verify that fees have been assigned according to the fee parameters
+      // First transaction: feePerByte=1, minFee=1000, no extraFee
+      // Expected fee should be max(calculated_fee, min_fee) = max(247, 1000) = 1000
+      expect(txsWithFees[0].fee).toBe(1000n);
+
+      // Second transaction: feePerByte=2, minFee=2000, extraFee=500
+      // Expected fee should be max(calculated_fee, min_fee) + extra_fee = max(494, 2000) + 500 = 2500
+      expect(txsWithFees[1].fee).toBe(2500n);
+
+      // Verify that other transaction fields remain unchanged
+      expect(txsWithFees[0].sender).toEqual(txs[0].sender);
+      expect(txsWithFees[0].payment?.receiver).toEqual(txs[0].payment?.receiver);
+      expect(txsWithFees[1].sender).toEqual(txs[1].sender);
+      // TODO: investigate why the assetId is number instead of bigint
+      // likely an issue with the JSON deserialiser
+      expect(txsWithFees[1].assetTransfer?.assetId).toEqual(
+        txs[1].assetTransfer?.assetId !== undefined ? BigInt(txs[1].assetTransfer?.assetId) : undefined,
+      );
     });
 
     test("group transactions", () => {
