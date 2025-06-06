@@ -7,6 +7,8 @@ from algokit_transact import (
     encode_transactions,
     attach_signature,
     attach_signatures,
+    assign_fees,
+    FeeParams,
 )
 
 simple_payment = TEST_DATA.simple_payment
@@ -62,6 +64,50 @@ def simple_group():
 # Polytest Suite: Transaction Group
 
 # Polytest Group: Transaction Group Tests
+
+
+@pytest.mark.group_transaction_group_tests
+def test_assign_fees_to_transaction_group():
+    """Fees can be assigned to each transaction in a transaction group"""
+    data = simple_group()
+    txs = data["txs"]
+
+    # Create fee parameters for each transaction in the group
+    fee_params = [
+        FeeParams(
+            fee_per_byte=1,
+            min_fee=1000,
+            extra_fee=None,
+            max_fee=None,
+        ),
+        FeeParams(
+            fee_per_byte=2,
+            min_fee=2000,
+            extra_fee=500,
+            max_fee=None,
+        ),
+    ]
+
+    # Assign fees to the transaction group
+    txs_with_fees = assign_fees(txs, fee_params)
+
+    # Verify that we get back the same number of transactions
+    assert len(txs_with_fees) == len(txs)
+
+    # Verify that fees have been assigned according to the fee parameters
+    # First transaction: fee_per_byte=1, min_fee=1000, no extra_fee
+    # Expected fee should be max(calculated_fee, min_fee) = max(247, 1000) = 1000
+    assert txs_with_fees[0].fee == 1000
+
+    # Second transaction: fee_per_byte=2, min_fee=2000, extra_fee=500
+    # Expected fee should be max(calculated_fee, min_fee) + extra_fee = max(494, 2000) + 500 = 2500
+    assert txs_with_fees[1].fee == 2500
+
+    # Verify that other transaction fields remain unchanged
+    assert txs_with_fees[0].sender == txs[0].sender
+    assert txs_with_fees[0].receiver == txs[0].receiver
+    assert txs_with_fees[1].sender == txs[1].sender
+    assert txs_with_fees[1].asset_id == txs[1].asset_id
 
 
 @pytest.mark.group_transaction_group_tests
