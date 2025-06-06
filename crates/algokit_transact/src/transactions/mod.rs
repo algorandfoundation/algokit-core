@@ -235,6 +235,37 @@ impl Transactions for &[Transaction] {
             .collect())
     }
 
+    /// Assigns fees to each transaction in the group.
+    ///
+    /// # Parameters
+    /// * `fee_params` - A vector of fee parameters for each transaction. The size must match the number of transactions.
+    ///
+    /// # Returns
+    /// A result containing the transactions with fees assigned or an error if the operation fails.
+    fn assign_fees(
+        &self,
+        fee_params: Vec<FeeParams>,
+    ) -> Result<Vec<Transaction>, AlgoKitTransactError> {
+        if self.len() != fee_params.len() {
+            return Err(AlgoKitTransactError::InputError(format!(
+                "Number of fee parameters ({}) must match number of transactions ({})",
+                fee_params.len(),
+                self.len()
+            )));
+        }
+
+        if self.is_empty() {
+            return Err(AlgoKitTransactError::InputError(String::from(
+                "Transaction group size cannot be 0",
+            )));
+        }
+
+        self.iter()
+            .zip(fee_params.into_iter())
+            .map(|(tx, fee_param)| tx.assign_fee(fee_param))
+            .collect::<Result<Vec<Transaction>, AlgoKitTransactError>>()
+    }
+
     /// Encodes the supplied transactions to MsgPack format with the appropriate prefix (TX).
     ///
     /// This method performs canonical encoding and prepends the domain separation

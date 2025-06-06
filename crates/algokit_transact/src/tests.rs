@@ -373,3 +373,136 @@ fn test_signed_transaction_group_encoding() {
         assert_eq!(decoded_signed_tx, signed_grouped_tx);
     }
 }
+
+#[test]
+fn test_assign_fees_success() {
+    let txs: Vec<Transaction> = TransactionGroupMother::testnet_payment_group();
+    let fee_params = vec![
+        FeeParams {
+            fee_per_byte: 1,
+            min_fee: 1000,
+            extra_fee: None,
+            max_fee: None,
+        },
+        FeeParams {
+            fee_per_byte: 2,
+            min_fee: 2000,
+            extra_fee: Some(500),
+            max_fee: None,
+        },
+    ];
+
+    let txs_with_fees = txs.assign_fees(fee_params).unwrap();
+
+    assert_eq!(txs_with_fees.len(), txs.len());
+
+    // First transaction: fee_per_byte=1, min_fee=1000, no extra_fee
+    // Expected fee should be max(calculated_fee, min_fee) = max(247, 1000) = 1000
+    assert_eq!(txs_with_fees[0].header().fee, Some(1000));
+
+    // Second transaction: fee_per_byte=2, min_fee=2000, extra_fee=500
+    // Expected fee should be max(calculated_fee, min_fee) + extra_fee = max(494, 2000) + 500 = 2500
+    assert_eq!(txs_with_fees[1].header().fee, Some(2500));
+}
+
+#[test]
+fn test_assign_fees_empty_group() {
+    let txs: Vec<Transaction> = vec![];
+    let fee_params: Vec<FeeParams> = vec![];
+
+    let result = txs.assign_fees(fee_params);
+
+    let error = result.unwrap_err();
+    assert!(error
+        .to_string()
+        .starts_with("Transaction group size cannot be 0"));
+}
+
+#[test]
+fn test_assign_fees_mismatched_size() {
+    let txs: Vec<Transaction> = TransactionGroupMother::testnet_payment_group();
+    let fee_params = vec![FeeParams {
+        fee_per_byte: 1,
+        min_fee: 1000,
+        extra_fee: None,
+        max_fee: None,
+    }]; // Only one fee param for two transactions
+
+    let result = txs.assign_fees(fee_params);
+
+    let error = result.unwrap_err();
+    assert_eq!(
+        error.to_string(),
+        "Number of fee parameters (1) must match number of transactions (2)"
+    );
+}
+
+#[test]
+fn test_assign_fees_with_max_fee_violation() {
+    let txs: Vec<Transaction> = vec![TransactionMother::simple_payment().build().unwrap()];
+    let fee_params = vec![FeeParams {
+        fee_per_byte: 10,
+        min_fee: 500,
+        extra_fee: None,
+        max_fee: Some(1000),
+    }];
+
+    let result = txs.assign_fees(fee_params);
+
+    assert!(result.is_err());
+    let err = result.unwrap_err();
+    let msg = format!("{}", err);
+    assert!(
+        msg.contains("Transaction fee") && msg.contains("is greater than max fee"),
+        "Unexpected error message: {}",
+        msg
+    );
+}
+
+#[test]
+fn test_assign_fees_single_transaction() {
+    let txs: Vec<Transaction> = vec![TransactionMother::simple_payment().build().unwrap()];
+    let fee_params = vec![FeeParams {
+        fee_per_byte: 5,
+        min_fee: 1000,
+        extra_fee: Some(200),
+        max_fee: Some(5000),
+    }];
+
+    let txs_with_fees = txs.assign_fees(fee_params).unwrap();
+
+    assert_eq!(txs_with_fees.len(), 1);
+    // Expected fee: max(5 * estimated_size, 1000) + 200
+    // Since estimated_size is around 247, calculated_fee = 5 * 247 = 1235
+    // Final fee = max(1235, 1000) + 200 = 1235 + 200 = 1435
+    assert_eq!(txs_with_fees[0].header().fee, Some(1435));
+}
+
+#[test]
+fn test_assign_fees_different_transaction_types() {
+    let payment_tx = TransactionMother::simple_payment().build().unwrap();
+    let asset_transfer_tx = TransactionMother::opt_in_asset_transfer().build().unwrap();
+    let txs: Vec<Transaction> = vec![payment_tx, asset_transfer_tx];
+
+    let fee_params = vec![
+        FeeParams {
+            fee_per_byte: 1,
+            min_fee: 1000,
+            extra_fee: None,
+            max_fee: None,
+        },
+        FeeParams {
+            fee_per_byte: 1,
+            min_fee: 1500,
+            extra_fee: None,
+            max_fee: None,
+        },
+    ];
+
+    let txs_with_fees = txs.assign_fees(fee_params).unwrap();
+
+    assert_eq!(txs_with_fees.len(), 2);
+    // Both transactions should have fees assigned according to their respective parameters
+    assert_eq!(txs_with_fees[0].header().fee, Some(1000));
+    assert_eq!(txs_with_fees[1].header().fee, Some(1500));
+}
