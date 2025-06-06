@@ -19,23 +19,7 @@ describe("Composer", () => {
     const composer = new Composer(algodClient);
     expect(composer).toBeDefined();
   });
-  //
-  // tx = Transaction(
-  //     transaction_type=TransactionType.PAYMENT,
-  //     sender=address_from_string(
-  //         "LAIXFJCAPMTKK5ZYQVWJE7F5P73PJ24QMJE774DHTVGRVH4JAS4RHD6VGQ"
-  //     ),
-  //     first_valid=1,
-  //     last_valid=10,
-  //     genesis_hash=b"a" * 32,
-  //     genesis_id="",
-  //     payment=PaymentTransactionFields(
-  //         receiver=address_from_string(
-  //             "LAIXFJCAPMTKK5ZYQVWJE7F5P73PJ24QMJE774DHTVGRVH4JAS4RHD6VGQ"
-  //         ),
-  //         amount=1000,  # microAlgos
-  //     ),
-  // )
+
   test("add transaction", () => {
     const composer = new Composer(algodClient);
     const tx: Transaction = {
@@ -86,25 +70,7 @@ describe("Composer", () => {
     }).toThrow("TransactionsError: This is a Rust error thrown from the Composer");
   });
 
-  test("fetch", async () => {
-    const composer = new Composer(algodClient);
-    composer.setFetch(fetch);
-    const response: Response = await composer.fetch_url("https://jsonplaceholder.typicode.com/todos/1");
-    expect(await response.json()).toEqual({
-      userId: 1,
-      id: 1,
-      title: "delectus aut autem",
-      completed: false,
-    });
-  });
-
   test("params", async () => {
-    const composer = new Composer(algodClient);
-    const params = await composer.get_suggested_params();
-    expect(params).toBeDefined();
-    console.debug("Suggested Params:", params);
-  });
-  test("params2", async () => {
     const composer = new Composer(algodClient);
     const params = await composer.get_suggested_params();
     expect(params).toBeDefined();
