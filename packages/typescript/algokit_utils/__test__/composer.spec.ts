@@ -1,14 +1,16 @@
 import { addressFromString, Composer, Transaction } from "..";
 import { expect, describe, test } from "bun:test";
 
-const algodClient = {
-  json: async (path: string) => {
+class AlgodClient {
+  async json(path: string) {
     const response = await (await fetch("https://testnet-api.4160.nodely.dev" + path)).text();
 
     console.debug("Response from algodClient:", response);
     return response;
-  },
-};
+  }
+}
+
+const algodClient = new AlgodClient();
 
 describe("Composer", () => {
   test("create composer", () => {

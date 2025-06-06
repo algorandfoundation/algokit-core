@@ -71,16 +71,14 @@ pub struct Composer {
 extern "C" {
     pub type WasmHTTPClient;
 
-    #[wasm_bindgen(method)]
-    fn json(this: &WasmHTTPClient, path: &str) -> js_sys::Promise;
+    #[wasm_bindgen(method, catch)]
+    async fn json(this: &WasmHTTPClient, path: &str) -> Result<JsValue, JsValue>;
 }
 
 #[async_trait(?Send)]
 impl HTTPClient for WasmHTTPClient {
     async fn json(&self, path: &str) -> Result<String, String> {
-        let promise = self.json(path);
-        let future = wasm_bindgen_futures::JsFuture::from(promise);
-        let result = future.await.unwrap();
+        let result = self.json(path).await.unwrap();
 
         let result = result
             .as_string()
