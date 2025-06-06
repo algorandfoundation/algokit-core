@@ -1,7 +1,8 @@
 use algokit_transact_ffi::AlgoKitTransactError;
 use algokit_transact_ffi::Transaction as FfiTransaction;
 use algokit_utils::Composer as ComposerRs;
-
+use algokit_utils::HTTPClient;
+use async_trait::async_trait;
 use js_sys::JSON;
 use js_sys::JsString;
 
@@ -66,16 +67,49 @@ pub struct Composer {
     fetch: Option<js_sys::Function>,
 }
 
+#[wasm_bindgen]
+extern "C" {
+    pub type WasmHTTPClient;
+
+    #[wasm_bindgen(method)]
+    fn json(this: &WasmHTTPClient, path: &str) -> js_sys::Promise;
+}
+
+#[async_trait(?Send)]
+impl HTTPClient for WasmHTTPClient {
+    async fn json(&self, path: &str) -> Result<String, String> {
+        let promise = self.json(path);
+        let future = wasm_bindgen_futures::JsFuture::from(promise);
+        let result = future.await.unwrap();
+
+        let result = result
+            .as_string()
+            .ok_or_else(|| "Failed to convert JS string to Rust string".to_string())?;
+
+        Ok(result)
+    }
+}
+
 #[cfg_attr(feature = "ffi_wasm", wasm_bindgen)]
 #[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
 impl Composer {
     #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(constructor))]
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new() -> Self {
+    pub fn new(algod_client: WasmHTTPClient) -> Self {
+        let algod_client = algokit_utils::AlgodClient::new(Box::new(algod_client));
         Composer {
-            composer: Mutex::new(ComposerRs::new()),
+            composer: Mutex::new(ComposerRs::new(algod_client)),
             fetch: None,
         }
+    }
+
+    pub async fn get_suggested_params(&self) -> Result<String, ComposerError> {
+        self.composer
+            .lock()
+            .unwrap()
+            .get_suggested_params()
+            .await
+            .map_err(|e| ComposerError::TransactionsError(e.to_string()))
     }
 
     #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = "addTransaction"))]

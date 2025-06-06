@@ -83,6 +83,7 @@ dependencies = [
  "algokit_transact",
  "algokit_transact_ffi",
  "algokit_utils",
+ "async-trait",
  "js-sys",
  "serde",
  "serde-wasm-bindgen",

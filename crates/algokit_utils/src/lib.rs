@@ -4,7 +4,7 @@ use async_trait::async_trait;
 
 use reqwest;
 
-#[async_trait]
+#[async_trait(?Send)]
 pub trait HTTPClient {
     async fn json(&self, path: &str) -> Result<String, String>;
 }
@@ -22,7 +22,7 @@ impl DefaultHTTPClient {
     }
 }
 
-#[async_trait]
+#[async_trait(?Send)]
 impl HTTPClient for DefaultHTTPClient {
     async fn json(&self, path: &str) -> Result<String, String> {
         let response = reqwest::get(self.host.clone() + path)
