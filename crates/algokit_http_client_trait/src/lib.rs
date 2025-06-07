@@ -18,7 +18,33 @@ pub trait HTTPClient: Send + Sync {
 }
 
 #[cfg(feature = "ffi_wasm")]
+use wasm_bindgen::prelude::*;
+
+#[cfg(feature = "ffi_wasm")]
 #[async_trait(?Send)]
 pub trait HTTPClient {
     async fn json(&self, path: String) -> Result<String, HttpError>;
+}
+
+#[wasm_bindgen]
+#[cfg(feature = "ffi_wasm")]
+extern "C" {
+    pub type WasmHTTPClient;
+
+    #[wasm_bindgen(method, catch)]
+    async fn json(this: &WasmHTTPClient, path: &str) -> Result<JsValue, JsValue>;
+}
+
+#[cfg(feature = "ffi_wasm")]
+#[async_trait(?Send)]
+impl HTTPClient for WasmHTTPClient {
+    async fn json(&self, path: String) -> Result<String, HttpError> {
+        let result = self.json(&path).await.unwrap();
+
+        let result = result.as_string().ok_or_else(|| {
+            HttpError::HttpError("Failed to convert JS string to Rust string".to_string())
+        })?;
+
+        Ok(result)
+    }
 }

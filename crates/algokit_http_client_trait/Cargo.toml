@@ -6,9 +6,11 @@ edition = "2024"
 [features]
 default = []
 ffi_uniffi = ["dep:uniffi"]
-ffi_wasm = []
+ffi_wasm = ["dep:wasm-bindgen"]
 
 [dependencies]
 async-trait = "0.1.88"
 thiserror.workspace = true
 uniffi = { workspace = true, optional = true }
+wasm-bindgen = { workspace = true, optional = true }
+wasm-bindgen-futures = "0.4.50"

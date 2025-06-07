@@ -4,7 +4,9 @@ uniffi::setup_scaffolding!();
 #[cfg(feature = "ffi_wasm")]
 include!("wasm.rs");
 
+#[cfg(feature = "ffi_uniffi")]
 use algokit_http_client_trait::HTTPClient;
+
 use algokit_transact_ffi::{AlgoKitTransactError, Transaction};
 use algokit_utils::Composer as ComposerRs;
 use std::sync::Arc;

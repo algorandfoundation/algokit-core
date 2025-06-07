@@ -1,5 +1,4 @@
-use algokit_http_client_trait::HttpError;
-use async_trait::async_trait;
+use algokit_http_client_trait::WasmHTTPClient;
 use js_sys::JSON;
 use js_sys::JsString;
 use js_sys::Uint8Array;
@@ -9,27 +8,6 @@ use tsify_next::Tsify;
 use wasm_bindgen::prelude::*;
 
 pub type InnerMutex<T> = std::cell::RefCell<T>;
-
-#[wasm_bindgen]
-extern "C" {
-    pub type WasmHTTPClient;
-
-    #[wasm_bindgen(method, catch)]
-    async fn json(this: &WasmHTTPClient, path: &str) -> Result<JsValue, JsValue>;
-}
-
-#[async_trait(?Send)]
-impl HTTPClient for WasmHTTPClient {
-    async fn json(&self, path: String) -> Result<String, HttpError> {
-        let result = self.json(&path).await.unwrap();
-
-        let result = result.as_string().ok_or_else(|| {
-            HttpError::HttpError("Failed to convert JS string to Rust string".to_string())
-        })?;
-
-        Ok(result)
-    }
-}
 
 #[derive(Serialize, Deserialize)]
 struct JsComposerValue {

@@ -35,6 +35,8 @@ dependencies = [
  "async-trait",
  "thiserror 2.0.7",
  "uniffi",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
 ]
 
 [[package]]
