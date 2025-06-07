@@ -461,7 +461,7 @@ def _uniffi_check_contract_api_version(lib):
         raise InternalError("UniFFI contract version mismatch: try cleaning and rebuilding your project")
 
 def _uniffi_check_api_checksums(lib):
-    if lib.uniffi_algokit_http_client_trait_checksum_method_httpclient_json() != 34341:
+    if lib.uniffi_algokit_http_client_trait_checksum_method_httpclient_json() != 16675:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
 
 # A ctypes library to expose the extern-C FFI definitions.
