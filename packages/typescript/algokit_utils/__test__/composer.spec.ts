@@ -63,16 +63,9 @@ describe("Composer", () => {
     console.debug(JSON.stringify(composer, null, 2));
   });
 
-  test("rustError", () => {
-    const composer = new Composer(algodClient);
-    expect(() => {
-      composer.throwRustError();
-    }).toThrow("TransactionsError: This is a Rust error thrown from the Composer");
-  });
-
   test("params", async () => {
     const composer = new Composer(algodClient);
-    const params = await composer.get_suggested_params();
+    const params = await composer.getSuggestedParams();
     expect(params).toBeDefined();
     console.debug("Suggested Params:", params);
   });

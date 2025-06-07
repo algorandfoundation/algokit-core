@@ -473,6 +473,8 @@ def _uniffi_check_api_checksums(lib):
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_algokit_utils_ffi_checksum_method_composer_get_suggested_params() != 964:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    if lib.uniffi_algokit_utils_ffi_checksum_method_composer_transactions() != 30006:
+        raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     if lib.uniffi_algokit_utils_ffi_checksum_constructor_composer_new() != 17036:
         raise InternalError("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
 
@@ -611,6 +613,11 @@ _UniffiLib.uniffi_algokit_utils_ffi_fn_method_composer_get_suggested_params.argt
     ctypes.c_void_p,
 )
 _UniffiLib.uniffi_algokit_utils_ffi_fn_method_composer_get_suggested_params.restype = ctypes.c_uint64
+_UniffiLib.uniffi_algokit_utils_ffi_fn_method_composer_transactions.argtypes = (
+    ctypes.c_void_p,
+    ctypes.POINTER(_UniffiRustCallStatus),
+)
+_UniffiLib.uniffi_algokit_utils_ffi_fn_method_composer_transactions.restype = _UniffiRustBuffer
 _UniffiLib.ffi_algokit_utils_ffi_rustbuffer_alloc.argtypes = (
     ctypes.c_uint64,
     ctypes.POINTER(_UniffiRustCallStatus),
@@ -888,6 +895,9 @@ _UniffiLib.uniffi_algokit_utils_ffi_checksum_method_composer_encode.restype = ct
 _UniffiLib.uniffi_algokit_utils_ffi_checksum_method_composer_get_suggested_params.argtypes = (
 )
 _UniffiLib.uniffi_algokit_utils_ffi_checksum_method_composer_get_suggested_params.restype = ctypes.c_uint16
+_UniffiLib.uniffi_algokit_utils_ffi_checksum_method_composer_transactions.argtypes = (
+)
+_UniffiLib.uniffi_algokit_utils_ffi_checksum_method_composer_transactions.restype = ctypes.c_uint16
 _UniffiLib.uniffi_algokit_utils_ffi_checksum_constructor_composer_new.argtypes = (
 )
 _UniffiLib.uniffi_algokit_utils_ffi_checksum_constructor_composer_new.restype = ctypes.c_uint16
@@ -962,6 +972,8 @@ class ComposerProtocol(typing.Protocol):
         raise NotImplementedError
     def get_suggested_params(self, ):
         raise NotImplementedError
+    def transactions(self, ):
+        raise NotImplementedError
 
 
 class Composer:
@@ -1025,6 +1037,15 @@ class Composer:
 _UniffiConverterTypeComposerError,
 
         )
+
+
+
+
+    def transactions(self, ) -> "typing.List[Transaction]":
+        return _UniffiConverterSequenceTypeTransaction.lift(
+            _uniffi_rust_call_with_error(_UniffiConverterTypeComposerError,_UniffiLib.uniffi_algokit_utils_ffi_fn_method_composer_transactions,self._uniffi_clone_pointer(),)
+        )
+
 
 
 
@@ -1136,6 +1157,31 @@ class _UniffiConverterSequenceBytes(_UniffiConverterRustBuffer):
 
         return [
             _UniffiConverterBytes.read(buf) for i in range(count)
+        ]
+
+
+
+class _UniffiConverterSequenceTypeTransaction(_UniffiConverterRustBuffer):
+    @classmethod
+    def check_lower(cls, value):
+        for item in value:
+            _UniffiConverterTypeTransaction.check_lower(item)
+
+    @classmethod
+    def write(cls, value, buf):
+        items = len(value)
+        buf.write_i32(items)
+        for item in value:
+            _UniffiConverterTypeTransaction.write(item, buf)
+
+    @classmethod
+    def read(cls, buf):
+        count = buf.read_i32()
+        if count < 0:
+            raise InternalError("Unexpected negative sequence length")
+
+        return [
+            _UniffiConverterTypeTransaction.read(buf) for i in range(count)
         ]
 
 # External type HttpClient is in namespace "algokit_http_client_trait", crate algokit_http_client_trait
