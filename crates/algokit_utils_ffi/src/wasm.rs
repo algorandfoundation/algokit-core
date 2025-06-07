@@ -1,4 +1,4 @@
-use algokit_http_client_trait::WasmHTTPClient;
+use algokit_http_client_trait::WasmHttpClient;
 use js_sys::JSON;
 use js_sys::JsString;
 use js_sys::Uint8Array;
@@ -23,7 +23,7 @@ impl From<&Composer> for JsComposerValue {
 #[wasm_bindgen]
 impl Composer {
     #[wasm_bindgen(constructor)]
-    pub fn new(algod_client: WasmHTTPClient) -> Self {
+    pub fn new(algod_client: WasmHttpClient) -> Self {
         let algod_client = algokit_utils::AlgodClient::new(Arc::new(algod_client));
         Composer {
             composer: FfiMutex::new(ComposerRs::new(algod_client)),

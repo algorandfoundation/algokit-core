@@ -7,7 +7,7 @@ include!("wasm.rs");
 use ffi_mutex::FfiMutex;
 
 #[cfg(feature = "ffi_uniffi")]
-use algokit_http_client_trait::HTTPClient;
+use algokit_http_client_trait::HttpClient;
 
 use algokit_transact_ffi::{AlgoKitTransactError, Transaction};
 use algokit_utils::Composer as ComposerRs;
@@ -86,7 +86,7 @@ impl Composer {
 #[uniffi::export]
 impl Composer {
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
-    pub fn new(algod_client: Arc<dyn HTTPClient>) -> Self {
+    pub fn new(algod_client: Arc<dyn HttpClient>) -> Self {
         let algod_client = algokit_utils::AlgodClient::new(algod_client);
         Composer {
             composer: FfiMutex::new(ComposerRs::new(algod_client)),

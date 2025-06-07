@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use algokit_http_client_trait::{HTTPClient, HttpError};
+use algokit_http_client_trait::{HttpClient, HttpError};
 use algokit_transact::AlgorandMsgpack;
 use algokit_transact::Transaction;
 
@@ -11,14 +11,14 @@ use async_trait::async_trait;
 use reqwest;
 
 #[cfg(feature = "default_http_client")]
-struct DefaultHTTPClient {
+struct DefaultHttpClient {
     host: String,
 }
 
 #[cfg(feature = "default_http_client")]
-impl DefaultHTTPClient {
+impl DefaultHttpClient {
     pub fn new(host: &str) -> Self {
-        DefaultHTTPClient {
+        DefaultHttpClient {
             host: host.to_string(),
         }
     }
@@ -26,7 +26,7 @@ impl DefaultHTTPClient {
 
 #[cfg(feature = "default_http_client")]
 #[async_trait]
-impl HTTPClient for DefaultHTTPClient {
+impl HttpClient for DefaultHttpClient {
     async fn json(&self, path: String) -> Result<String, HttpError> {
         let response = reqwest::get(self.host.clone() + &path)
             .await
@@ -40,18 +40,18 @@ impl HTTPClient for DefaultHTTPClient {
 }
 
 pub struct AlgodClient {
-    http_client: Arc<dyn HTTPClient>,
+    http_client: Arc<dyn HttpClient>,
 }
 
 impl AlgodClient {
-    pub fn new(http_client: Arc<dyn HTTPClient>) -> Self {
+    pub fn new(http_client: Arc<dyn HttpClient>) -> Self {
         AlgodClient { http_client }
     }
 
     #[cfg(feature = "default_http_client")]
     pub fn testnet() -> Self {
         AlgodClient {
-            http_client: Arc::new(DefaultHTTPClient::new(
+            http_client: Arc::new(DefaultHttpClient::new(
                 "https://testnet-api.4160.nodely.dev",
             )),
         }

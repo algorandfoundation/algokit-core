@@ -13,7 +13,7 @@ pub enum HttpError {
 #[cfg(not(feature = "ffi_wasm"))]
 #[uniffi::export(with_foreign)]
 #[async_trait]
-pub trait HTTPClient: Send + Sync {
+pub trait HttpClient: Send + Sync {
     async fn json(&self, path: String) -> Result<String, HttpError>;
 }
 
@@ -22,22 +22,22 @@ use wasm_bindgen::prelude::*;
 
 #[cfg(feature = "ffi_wasm")]
 #[async_trait(?Send)]
-pub trait HTTPClient {
+pub trait HttpClient {
     async fn json(&self, path: String) -> Result<String, HttpError>;
 }
 
 #[wasm_bindgen]
 #[cfg(feature = "ffi_wasm")]
 extern "C" {
-    pub type WasmHTTPClient;
+    pub type WasmHttpClient;
 
     #[wasm_bindgen(method, catch)]
-    async fn json(this: &WasmHTTPClient, path: &str) -> Result<JsValue, JsValue>;
+    async fn json(this: &WasmHttpClient, path: &str) -> Result<JsValue, JsValue>;
 }
 
 #[cfg(feature = "ffi_wasm")]
 #[async_trait(?Send)]
-impl HTTPClient for WasmHTTPClient {
+impl HttpClient for WasmHttpClient {
     async fn json(&self, path: String) -> Result<String, HttpError> {
         let result = self.json(&path).await.unwrap();
 
