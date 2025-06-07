@@ -3,11 +3,15 @@ name = "algokit_utils"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+default = ["default_http_client"]
+default_http_client = ["dep:reqwest", "dep:async-trait"]
+
 [dependencies]
 algokit_http_client_trait = { version = "0.1.0", path = "../algokit_http_client_trait" }
 algokit_transact = { version = "0.1.0", path = "../algokit_transact", features = ["test_utils"] }
-async-trait = "0.1.88"
-reqwest = { version = "0.12.19", features = ["blocking"] }
+async-trait = { version = "0.1.88", optional = true }
+reqwest = { version = "0.12.19", features = ["blocking"], optional = true }
 thiserror.workspace = true
 
 [dev-dependencies]

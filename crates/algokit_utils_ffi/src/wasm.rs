@@ -1,10 +1,11 @@
+use algokit_http_client_trait::{HTTPClient, HttpError};
 use algokit_transact_ffi::AlgoKitTransactError;
 use algokit_transact_ffi::Transaction as FfiTransaction;
 use algokit_utils::Composer as ComposerRs;
-use algokit_utils::HTTPClient;
 use async_trait::async_trait;
 use js_sys::JSON;
 use js_sys::JsString;
+use std::sync::Arc;
 
 use js_sys::Uint8Array;
 use serde::Deserialize;
@@ -47,12 +48,12 @@ extern "C" {
 
 #[async_trait(?Send)]
 impl HTTPClient for WasmHTTPClient {
-    async fn json(&self, path: &str) -> Result<String, String> {
-        let result = self.json(path).await.unwrap();
+    async fn json(&self, path: String) -> Result<String, HttpError> {
+        let result = self.json(&path).await.unwrap();
 
-        let result = result
-            .as_string()
-            .ok_or_else(|| "Failed to convert JS string to Rust string".to_string())?;
+        let result = result.as_string().ok_or_else(|| {
+            HttpError::HttpError("Failed to convert JS string to Rust string".to_string())
+        })?;
 
         Ok(result)
     }
@@ -62,7 +63,7 @@ impl HTTPClient for WasmHTTPClient {
 impl Composer {
     #[wasm_bindgen(constructor)]
     pub fn new(algod_client: WasmHTTPClient) -> Self {
-        let algod_client = algokit_utils::AlgodClient::new(Box::new(algod_client));
+        let algod_client = algokit_utils::AlgodClient::new(Arc::new(algod_client));
         Composer {
             composer: ComposerRs::new(algod_client),
         }

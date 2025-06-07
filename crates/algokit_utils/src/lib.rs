@@ -3,15 +3,19 @@ use std::sync::Arc;
 use algokit_http_client_trait::{HTTPClient, HttpError};
 use algokit_transact::AlgorandMsgpack;
 use algokit_transact::Transaction;
+
+#[cfg(feature = "default_http_client")]
 use async_trait::async_trait;
 
+#[cfg(feature = "default_http_client")]
 use reqwest;
 
-// TODO: Put reqwest and this default client behind a feature flag
+#[cfg(feature = "default_http_client")]
 struct DefaultHTTPClient {
     host: String,
 }
 
+#[cfg(feature = "default_http_client")]
 impl DefaultHTTPClient {
     pub fn new(host: &str) -> Self {
         DefaultHTTPClient {
@@ -20,6 +24,7 @@ impl DefaultHTTPClient {
     }
 }
 
+#[cfg(feature = "default_http_client")]
 #[async_trait]
 impl HTTPClient for DefaultHTTPClient {
     async fn json(&self, path: String) -> Result<String, HttpError> {
@@ -43,6 +48,7 @@ impl AlgodClient {
         AlgodClient { http_client }
     }
 
+    #[cfg(feature = "default_http_client")]
     pub fn testnet() -> Self {
         AlgodClient {
             http_client: Arc::new(DefaultHTTPClient::new(
@@ -70,6 +76,7 @@ impl Composer {
         }
     }
 
+    #[cfg(feature = "default_http_client")]
     pub fn testnet() -> Self {
         Composer {
             transactions: Vec::new(),
