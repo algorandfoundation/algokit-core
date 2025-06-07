@@ -6,11 +6,12 @@ from algokit_transact import (
     PaymentTransactionFields,
 )
 import requests
+import pytest
 
 
 class AlgodClient:
-    def json(self, path: str):
-        return requests.get("https://testnet-api.4160.nodely.dev" + path)
+    async def json(self, path: str) -> str:
+        return requests.get("https://testnet-api.4160.nodely.dev" + path).text
 
 
 def test_new_composer():
@@ -36,3 +37,10 @@ def test_composer_add_transaction():
     )
     composer = Composer(AlgodClient())
     composer.add_transaction(tx)
+
+
+@pytest.mark.asyncio
+async def test_suggested_params():
+    composer = Composer(AlgodClient())
+    params = await composer.get_suggested_params()
+    assert params.find('"genesis-id":"testnet-v1.0"')

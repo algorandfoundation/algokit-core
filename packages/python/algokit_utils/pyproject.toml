@@ -1,5 +1,5 @@
 [project]
-requires-python = ">=3.8,<4.0"
+requires-python = ">=3.9,<4.0"
 name = "algokit_utils"
 
 [build-system]
@@ -22,7 +22,9 @@ include = [
 
 [tool.poetry.dependencies]
 algokit-transact = {path = "../algokit_transact"}
+pytest-asyncio = "^1.0.0"
 
 [tool.poetry.group.dev.dependencies]
 requests = "^2.32.3"
+asyncio = "^3.4.3"
 
