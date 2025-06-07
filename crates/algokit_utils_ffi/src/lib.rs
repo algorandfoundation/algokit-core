@@ -4,6 +4,8 @@ uniffi::setup_scaffolding!();
 #[cfg(feature = "ffi_wasm")]
 include!("wasm.rs");
 
+use ffi_mutex::UnifiedMutex;
+
 #[cfg(feature = "ffi_uniffi")]
 use algokit_http_client_trait::HTTPClient;
 
@@ -12,42 +14,6 @@ use algokit_utils::Composer as ComposerRs;
 use std::sync::Arc;
 
 use algokit_transact_ffi::Transaction as FfiTransaction;
-
-#[cfg(feature = "ffi_uniffi")]
-pub type InnerMutex<T> = tokio::sync::Mutex<T>;
-
-// Create a wrapper that provides a unified interface
-pub struct UnifiedMutex<T>(InnerMutex<T>);
-
-impl<T> UnifiedMutex<T> {
-    pub fn new(value: T) -> Self {
-        #[cfg(feature = "ffi_uniffi")]
-        return Self(tokio::sync::Mutex::new(value));
-
-        #[cfg(feature = "ffi_wasm")]
-        return Self(std::cell::RefCell::new(value));
-    }
-
-    #[cfg(feature = "ffi_uniffi")]
-    pub fn blocking_lock(&self) -> tokio::sync::MutexGuard<'_, T> {
-        self.0.blocking_lock()
-    }
-
-    #[cfg(feature = "ffi_wasm")]
-    pub fn blocking_lock(&self) -> std::cell::RefMut<'_, T> {
-        self.0.borrow_mut()
-    }
-
-    #[cfg(feature = "ffi_uniffi")]
-    pub async fn lock(&self) -> tokio::sync::MutexGuard<'_, T> {
-        self.0.lock().await
-    }
-
-    #[cfg(feature = "ffi_wasm")]
-    pub async fn lock(&self) -> std::cell::RefMut<'_, T> {
-        self.0.borrow_mut()
-    }
-}
 
 #[cfg(feature = "ffi_uniffi")]
 type Uint8Array = Vec<u8>;

@@ -7,8 +7,6 @@ use serde::{Deserialize, Serialize};
 use tsify_next::Tsify;
 use wasm_bindgen::prelude::*;
 
-pub type InnerMutex<T> = std::cell::RefCell<T>;
-
 #[derive(Serialize, Deserialize)]
 struct JsComposerValue {
     transactions: Vec<FfiTransaction>,

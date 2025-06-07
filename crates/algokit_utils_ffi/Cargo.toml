@@ -8,14 +8,15 @@ crate-type = ["lib", "cdylib", "staticlib"]
 
 [features]
 default = ["ffi_uniffi"]
-ffi_wasm = ["dep:wasm-bindgen", "dep:tsify-next", "algokit_transact_ffi/ffi_wasm", "algokit_http_client_trait/ffi_wasm"]
-ffi_uniffi = ["dep:uniffi", "algokit_transact_ffi/ffi_uniffi", "algokit_http_client_trait/ffi_uniffi"]
+ffi_wasm = ["dep:wasm-bindgen", "dep:tsify-next", "algokit_transact_ffi/ffi_wasm", "algokit_http_client_trait/ffi_wasm", "ffi_mutex/ffi_wasm"]
+ffi_uniffi = ["dep:uniffi", "algokit_transact_ffi/ffi_uniffi", "algokit_http_client_trait/ffi_uniffi", "ffi_mutex/ffi_uniffi"]
 
 [dependencies]
 algokit_http_client_trait = { version = "0.1.0", path = "../algokit_http_client_trait" }
 algokit_transact_ffi = { version = "0.1.0", path = "../algokit_transact_ffi", default-features = false }
 algokit_utils = { version = "0.1.0", path = "../algokit_utils", default-features = false }
 async-trait = "0.1.88"
+ffi_mutex = { version = "0.1.0", path = "../ffi_mutex", optional = true }
 js-sys = "0.3.77"
 serde = { version = "1.0.219", features = ["derive"] }
 serde-wasm-bindgen = "0.6.5"

@@ -97,6 +97,7 @@ dependencies = [
  "algokit_transact_ffi",
  "algokit_utils",
  "async-trait",
+ "ffi_mutex",
  "js-sys",
  "serde",
  "serde-wasm-bindgen",
@@ -892,6 +893,15 @@ dependencies = [
  "convert_case",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "ffi_mutex"
+version = "0.1.0"
+dependencies = [
+ "tokio",
+ "uniffi",
+ "wasm-bindgen",
 ]
 
 [[package]]
