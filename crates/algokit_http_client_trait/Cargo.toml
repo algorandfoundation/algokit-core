@@ -4,12 +4,14 @@ version = "0.1.0"
 edition = "2024"
 
 [features]
-default = []
+default = ["default_client"]
 ffi_uniffi = ["dep:uniffi"]
 ffi_wasm = ["dep:wasm-bindgen"]
+default_client = ["dep:reqwest"]
 
 [dependencies]
 async-trait = "0.1.88"
+reqwest = { version = "0.12.19", optional = true }
 thiserror.workspace = true
 uniffi = { workspace = true, optional = true }
 wasm-bindgen = { workspace = true, optional = true }

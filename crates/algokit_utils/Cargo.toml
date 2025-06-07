@@ -8,7 +8,7 @@ default = ["default_http_client"]
 default_http_client = ["dep:reqwest", "dep:async-trait"]
 
 [dependencies]
-algokit_http_client_trait = { version = "0.1.0", path = "../algokit_http_client_trait" }
+algokit_http_client_trait = { version = "0.1.0", path = "../algokit_http_client_trait", default-features = false }
 algokit_transact = { version = "0.1.0", path = "../algokit_transact", features = ["test_utils"] }
 async-trait = { version = "0.1.88", optional = true }
 reqwest = { version = "0.12.19", features = ["blocking"], optional = true }

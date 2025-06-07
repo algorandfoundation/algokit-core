@@ -911,11 +911,33 @@ class _UniffiConverterString:
 
 
 class HttpClient(typing.Protocol):
+    """
+    This trait must be implemented by any HTTP client that is used by our Rust crates.
+    It is assumed the implementing type will provide the hostname, port, headers, etc. as needed for each request.
+
+    By default, this trait requires the implementing type to be `Send + Sync`.
+    For WASM targets, enable the `ffi_wasm` feature to use a different implementation that is compatible with WASM.
+
+    With the `ffi_uniffi` feature enabled, this is exported as a foreign trait, meaning it is implemented natively in the foreign language.
+
+    """
+
     def json(self, path: "str"):
         raise NotImplementedError
 
 
 class HttpClientImpl:
+    """
+    This trait must be implemented by any HTTP client that is used by our Rust crates.
+    It is assumed the implementing type will provide the hostname, port, headers, etc. as needed for each request.
+
+    By default, this trait requires the implementing type to be `Send + Sync`.
+    For WASM targets, enable the `ffi_wasm` feature to use a different implementation that is compatible with WASM.
+
+    With the `ffi_uniffi` feature enabled, this is exported as a foreign trait, meaning it is implemented natively in the foreign language.
+
+    """
+
     _pointer: ctypes.c_void_p
     
     def __init__(self, *args, **kwargs):

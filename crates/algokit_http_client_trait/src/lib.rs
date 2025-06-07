@@ -25,6 +25,38 @@ pub trait HttpClient: Send + Sync {
     async fn json(&self, path: String) -> Result<String, HttpError>;
 }
 
+#[cfg(feature = "default_client")]
+use reqwest;
+
+#[cfg(feature = "default_client")]
+pub struct DefaultHttpClient {
+    host: String,
+}
+
+#[cfg(feature = "default_client")]
+impl DefaultHttpClient {
+    pub fn new(host: &str) -> Self {
+        DefaultHttpClient {
+            host: host.to_string(),
+        }
+    }
+}
+
+#[cfg(feature = "default_client")]
+#[async_trait]
+impl HttpClient for DefaultHttpClient {
+    async fn json(&self, path: String) -> Result<String, HttpError> {
+        let response = reqwest::get(self.host.clone() + &path)
+            .await
+            .map_err(|e| HttpError::HttpError(e.to_string()))?
+            .text()
+            .await
+            .map_err(|e| HttpError::HttpError(e.to_string()))?;
+
+        Ok(response)
+    }
+}
+
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::*;
 

@@ -5,39 +5,7 @@ use algokit_transact::AlgorandMsgpack;
 use algokit_transact::Transaction;
 
 #[cfg(feature = "default_http_client")]
-use async_trait::async_trait;
-
-#[cfg(feature = "default_http_client")]
-use reqwest;
-
-#[cfg(feature = "default_http_client")]
-struct DefaultHttpClient {
-    host: String,
-}
-
-#[cfg(feature = "default_http_client")]
-impl DefaultHttpClient {
-    pub fn new(host: &str) -> Self {
-        DefaultHttpClient {
-            host: host.to_string(),
-        }
-    }
-}
-
-#[cfg(feature = "default_http_client")]
-#[async_trait]
-impl HttpClient for DefaultHttpClient {
-    async fn json(&self, path: String) -> Result<String, HttpError> {
-        let response = reqwest::get(self.host.clone() + &path)
-            .await
-            .map_err(|e| HttpError::HttpError(e.to_string()))?
-            .text()
-            .await
-            .map_err(|e| HttpError::HttpError(e.to_string()))?;
-
-        Ok(response)
-    }
-}
+use algokit_http_client_trait::DefaultHttpClient;
 
 pub struct AlgodClient {
     http_client: Arc<dyn HttpClient>,
