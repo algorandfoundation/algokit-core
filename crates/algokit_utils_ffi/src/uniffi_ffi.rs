@@ -1,5 +1,7 @@
+use algokit_http_client_trait::HTTPClient;
 use algokit_transact_ffi::{AlgoKitTransactError, Transaction};
-use algokit_utils::{Composer as ComposerRs, HTTPClient};
+use algokit_utils::Composer as ComposerRs;
+
 use std::sync::Arc;
 use tokio::sync::Mutex;
 

@@ -1,24 +1,11 @@
 use std::sync::Arc;
 
+use algokit_http_client_trait::{HTTPClient, HttpError};
 use algokit_transact::AlgorandMsgpack;
 use algokit_transact::Transaction;
 use async_trait::async_trait;
 
 use reqwest;
-
-uniffi::setup_scaffolding!();
-
-#[derive(Debug, thiserror::Error, uniffi::Error)]
-pub enum HttpError {
-    #[error("HttpError: {0}")]
-    HttpError(String),
-}
-
-#[uniffi::export(with_foreign)]
-#[async_trait]
-pub trait HTTPClient: Send + Sync {
-    async fn json(&self, path: String) -> Result<String, HttpError>;
-}
 
 // TODO: Put reqwest and this default client behind a feature flag
 struct DefaultHTTPClient {
@@ -33,7 +20,6 @@ impl DefaultHTTPClient {
     }
 }
 
-// TODO: break this out into a separate crate
 #[async_trait]
 impl HTTPClient for DefaultHTTPClient {
     async fn json(&self, path: String) -> Result<String, HttpError> {

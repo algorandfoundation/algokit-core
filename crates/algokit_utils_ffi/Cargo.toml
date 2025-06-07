@@ -12,6 +12,7 @@ ffi_wasm = ["dep:wasm-bindgen", "dep:tsify-next", "algokit_transact_ffi/ffi_wasm
 ffi_uniffi = ["dep:uniffi", "algokit_transact_ffi/ffi_uniffi"]
 
 [dependencies]
+algokit_http_client_trait = { version = "0.1.0", path = "../algokit_http_client_trait" }
 algokit_transact_ffi = { version = "0.1.0", path = "../algokit_transact_ffi", default-features = false }
 algokit_utils = { version = "0.1.0", path = "../algokit_utils" }
 async-trait = "0.1.88"
