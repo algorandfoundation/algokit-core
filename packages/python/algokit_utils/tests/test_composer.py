@@ -5,10 +5,16 @@ from algokit_transact import (
     address_from_string,
     PaymentTransactionFields,
 )
+import requests
+
+
+class AlgodClient:
+    def json(self, path: str):
+        return requests.get("https://testnet-api.4160.nodely.dev" + path)
 
 
 def test_new_composer():
-    composer = Composer()
+    _ = Composer(AlgodClient())
 
 
 def test_composer_add_transaction():
@@ -28,5 +34,5 @@ def test_composer_add_transaction():
             amount=1000,  # microAlgos
         ),
     )
-    composer = Composer()
+    composer = Composer(AlgodClient())
     composer.add_transaction(tx)

@@ -1,3 +1,7 @@
+[project]
+requires-python = ">=3.8,<4.0"
+name = "algokit_utils"
+
 [build-system]
 requires = ["poetry-core>=1.0.0", "setuptools", "wheel"]
 build-backend = "poetry.core.masonry.api"
@@ -9,8 +13,16 @@ description = ""
 packages = [
     { include = "algokit_utils" }
 ]
+build = "build.py"
 include = [
-    { path = "algokit_utils/*.so", format = "wheel" },
-    { path = "algokit_utils/*.dll", format = "wheel" },
-    { path = "algokit_utils/*.dylib", format = "wheel" }
+    { path = "algokit_utils/*.so" },
+    { path = "algokit_utils/*.dll" },
+    { path = "algokit_utils/*.dylib" }
 ]
+
+[tool.poetry.dependencies]
+algokit-transact = {path = "../algokit_transact"}
+
+[tool.poetry.group.dev.dependencies]
+requests = "^2.32.3"
+

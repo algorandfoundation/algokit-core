@@ -9,7 +9,7 @@ crate-type = ["lib", "cdylib", "staticlib"]
 [features]
 default = ["ffi_uniffi"]
 ffi_wasm = ["dep:wasm-bindgen", "dep:tsify-next", "algokit_transact_ffi/ffi_wasm"]
-ffi_uniffi = ["dep:uniffi", "algokit_transact_ffi/ffi_uniffi"]
+ffi_uniffi = ["dep:uniffi", "algokit_transact_ffi/ffi_uniffi", "algokit_http_client_trait/uniffi"]
 
 [dependencies]
 algokit_http_client_trait = { version = "0.1.0", path = "../algokit_http_client_trait" }

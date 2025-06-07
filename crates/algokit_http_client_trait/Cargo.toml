@@ -3,7 +3,11 @@ name = "algokit_http_client_trait"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+default = []
+uniffi = ["dep:uniffi"]
+
 [dependencies]
 async-trait = "0.1.88"
 thiserror.workspace = true
-uniffi.workspace = true
+uniffi = { workspace = true, optional = true }

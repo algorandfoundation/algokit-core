@@ -5,4 +5,6 @@ export async function buildPython(crate: string) {
   await run(
     `cargo --color always run -p uniffi-bindgen generate --no-format --library target/release/lib${crate}_ffi.dylib --language python --out-dir packages/python/${crate}/${crate}`,
   );
+
+  await run(`poetry build --format wheel`, `packages/python/${crate}`);
 }
