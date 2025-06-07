@@ -1,6 +1,9 @@
 #[cfg(feature = "ffi_uniffi")]
 uniffi::setup_scaffolding!();
 
+#[cfg(feature = "ffi_wasm")]
+include!("wasm.rs");
+
 use algokit_http_client_trait::HTTPClient;
 use algokit_transact_ffi::{AlgoKitTransactError, Transaction};
 use algokit_utils::Composer as ComposerRs;
@@ -8,42 +11,8 @@ use std::sync::Arc;
 
 use algokit_transact_ffi::Transaction as FfiTransaction;
 
-///////////////////////
-// WASM specific code
-////////////////////////
-
-#[cfg(feature = "ffi_wasm")]
-use js_sys::JSON;
-
-#[cfg(feature = "ffi_wasm")]
-use js_sys::JsString;
-
-#[cfg(feature = "ffi_wasm")]
-use serde::{Deserialize, Serialize};
-
-#[cfg(feature = "ffi_wasm")]
-use tsify_next::Tsify;
-
-#[cfg(feature = "ffi_wasm")]
-use async_trait::async_trait;
-
-#[cfg(feature = "ffi_wasm")]
-use wasm_bindgen::prelude::*;
-
-#[cfg(feature = "ffi_wasm")]
-use js_sys::Uint8Array;
-
-#[cfg(feature = "ffi_wasm")]
-use js_sys::wasm_bindgen::JsValue;
-
 #[cfg(feature = "ffi_uniffi")]
 pub type InnerMutex<T> = tokio::sync::Mutex<T>;
-
-#[cfg(feature = "ffi_wasm")]
-pub type InnerMutex<T> = std::cell::RefCell<T>;
-
-#[cfg(feature = "ffi_wasm")]
-use algokit_http_client_trait::HttpError;
 
 // Create a wrapper that provides a unified interface
 pub struct UnifiedMutex<T>(InnerMutex<T>);
@@ -78,33 +47,6 @@ impl<T> UnifiedMutex<T> {
     }
 }
 
-#[cfg(feature = "ffi_wasm")]
-#[wasm_bindgen]
-extern "C" {
-    pub type WasmHTTPClient;
-
-    #[wasm_bindgen(method, catch)]
-    async fn json(this: &WasmHTTPClient, path: &str) -> Result<JsValue, JsValue>;
-}
-
-#[cfg(feature = "ffi_wasm")]
-#[async_trait(?Send)]
-impl HTTPClient for WasmHTTPClient {
-    async fn json(&self, path: String) -> Result<String, HttpError> {
-        let result = self.json(&path).await.unwrap();
-
-        let result = result.as_string().ok_or_else(|| {
-            HttpError::HttpError("Failed to convert JS string to Rust string".to_string())
-        })?;
-
-        Ok(result)
-    }
-}
-
-/////////////////
-// General Code
-////////////////
-
 #[cfg(feature = "ffi_uniffi")]
 type Uint8Array = Vec<u8>;
 
@@ -113,13 +55,6 @@ type Uint8Array = Vec<u8>;
 pub enum ComposerError {
     #[error("TransactionsError: {0}")]
     TransactionsError(String),
-}
-
-#[cfg(feature = "ffi_wasm")]
-impl From<ComposerError> for JsValue {
-    fn from(e: ComposerError) -> Self {
-        JsValue::from(e.to_string())
-    }
 }
 
 #[cfg_attr(feature = "ffi_wasm", derive(Tsify))]
@@ -188,66 +123,5 @@ impl Composer {
         Composer {
             composer: UnifiedMutex::new(ComposerRs::new(algod_client)),
         }
-    }
-}
-
-#[cfg(feature = "ffi_wasm")]
-#[derive(Serialize, Deserialize)]
-struct JsComposerValue {
-    transactions: Vec<FfiTransaction>,
-}
-
-#[cfg(feature = "ffi_wasm")]
-impl From<&Composer> for JsComposerValue {
-    fn from(composer: &Composer) -> Self {
-        JsComposerValue {
-            transactions: composer.transactions().unwrap_or_else(|_| vec![]),
-        }
-    }
-}
-
-#[cfg(feature = "ffi_wasm")]
-#[wasm_bindgen]
-impl Composer {
-    #[wasm_bindgen(constructor)]
-    pub fn new(algod_client: WasmHTTPClient) -> Self {
-        let algod_client = algokit_utils::AlgodClient::new(Arc::new(algod_client));
-        Composer {
-            composer: UnifiedMutex::new(ComposerRs::new(algod_client)),
-        }
-    }
-
-    #[wasm_bindgen(js_name = "valueOf")]
-    pub fn value_of(&self) -> Result<JsValue, JsValue> {
-        let ser = serde_wasm_bindgen::Serializer::new()
-            .serialize_large_number_types_as_bigints(true)
-            .serialize_bytes_as_arrays(false);
-
-        // Ok(serde_wasm_bindgen::to_value(&JsComposerValue::from(self))?)
-        Ok(JsComposerValue::from(self).serialize(&ser)?)
-    }
-
-    #[wasm_bindgen(js_name = "toJSON")]
-    pub fn to_json(&self) -> Result<JsValue, JsValue> {
-        JSON::parse(
-            &self
-                .to_string()?
-                .as_string()
-                .ok_or("Failed to convert JS string to Rust string")?,
-        )
-    }
-
-    #[wasm_bindgen(js_name = "toString")]
-    pub fn to_string(&self) -> Result<JsString, JsValue> {
-        let replacer = js_sys::Function::new_with_args(
-            "key, value",
-            r#"
-            if (typeof value === 'bigint') {
-                return value.toString() + 'n';
-            }
-            return value;
-            "#,
-        );
-        JSON::stringify_with_replacer(&self.value_of().unwrap(), &replacer)
     }
 }
