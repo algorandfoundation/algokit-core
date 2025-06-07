@@ -26,7 +26,7 @@ impl Composer {
     pub fn new(algod_client: WasmHTTPClient) -> Self {
         let algod_client = algokit_utils::AlgodClient::new(Arc::new(algod_client));
         Composer {
-            composer: UnifiedMutex::new(ComposerRs::new(algod_client)),
+            composer: FfiMutex::new(ComposerRs::new(algod_client)),
         }
     }
 

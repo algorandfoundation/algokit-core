@@ -5,9 +5,9 @@ pub type InnerMutex<T> = tokio::sync::Mutex<T>;
 pub type InnerMutex<T> = std::cell::RefCell<T>;
 
 // Create a wrapper that provides a unified interface
-pub struct UnifiedMutex<T>(InnerMutex<T>);
+pub struct FfiMutex<T>(InnerMutex<T>);
 
-impl<T> UnifiedMutex<T> {
+impl<T> FfiMutex<T> {
     pub fn new(value: T) -> Self {
         #[cfg(feature = "ffi_uniffi")]
         return Self(tokio::sync::Mutex::new(value));

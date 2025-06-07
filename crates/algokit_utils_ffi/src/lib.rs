@@ -4,7 +4,7 @@ uniffi::setup_scaffolding!();
 #[cfg(feature = "ffi_wasm")]
 include!("wasm.rs");
 
-use ffi_mutex::UnifiedMutex;
+use ffi_mutex::FfiMutex;
 
 #[cfg(feature = "ffi_uniffi")]
 use algokit_http_client_trait::HTTPClient;
@@ -29,7 +29,7 @@ pub enum ComposerError {
 #[cfg_attr(feature = "ffi_wasm", wasm_bindgen)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Object))]
 pub struct Composer {
-    composer: UnifiedMutex<ComposerRs>,
+    composer: FfiMutex<ComposerRs>,
 }
 
 #[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
@@ -89,7 +89,7 @@ impl Composer {
     pub fn new(algod_client: Arc<dyn HTTPClient>) -> Self {
         let algod_client = algokit_utils::AlgodClient::new(algod_client);
         Composer {
-            composer: UnifiedMutex::new(ComposerRs::new(algod_client)),
+            composer: FfiMutex::new(ComposerRs::new(algod_client)),
         }
     }
 }
