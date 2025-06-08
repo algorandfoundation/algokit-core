@@ -1,5 +1,5 @@
 import * as path from "path";
-import { Transaction } from "../src";
+import { Transaction } from "..";
 
 const jsonString = await Bun.file(path.join(__dirname, "../../../../crates/algokit_transact_ffi/test_data.json")).text();
 

@@ -1,6 +1,6 @@
 import { expect, test, describe } from "bun:test";
 import { testData } from "./common.ts";
-import { decodeTransaction } from "../src";
+import { decodeTransaction } from "..";
 
 describe("Generic Transaction", () => {
   // Polytest Suite: Generic Transaction

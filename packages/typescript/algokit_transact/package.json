@@ -5,8 +5,8 @@
   "files": [
     "dist/**/*"
   ],
-  "main": "./dist/algokit_transact.wasm2js.mjs",
-  "module": "./dist/algokit_transact.wasm2js.mjs",
+  "main": "./dist/algokit_transact.node.mjs",
+  "module": "./dist/algokit_transact.bundler.mjs",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
