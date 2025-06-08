@@ -5,7 +5,7 @@ import commonjs from "@rollup/plugin-commonjs";
 import esmShim from "@rollup/plugin-esm-shim";
 
 export default {
-  input: "src/index.ts",
+  input: "src/esm.ts",
   output: {
     file: "dist/algokit_utils.node.cjs",
     sourcemap: false,
@@ -16,7 +16,7 @@ export default {
     commonjs(),
     wasm({
       targetEnv: "auto-inline",
-      sync: ["pkg/algokit_utilsi_bg.wasm"],
+      sync: ["pkg/algokit_utils_ffi_bg.wasm"],
     }),
     nodeResolve(),
     typescript({

@@ -14,7 +14,7 @@ export default {
     commonjs(),
     wasm({
       targetEnv: "auto-inline",
-      sync: ["pkg/algokit_utilsi_bg.wasm"],
+      sync: ["pkg/algokit_utils_ffi_bg.wasm"],
     }),
     nodeResolve(),
     typescript({

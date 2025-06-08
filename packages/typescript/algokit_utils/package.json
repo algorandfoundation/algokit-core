@@ -1,7 +1,7 @@
 {
   "name": "@algorandfoundation/algokit-transact",
   "version": "0.1.0",
-  "main": "./dist/algokit_utils.wasm2js.mjs",
+  "main": "./dist/algokit_utils.node.cjs",
   "module": "./dist/algokit_utils.bundler.mjs",
   "devDependencies": {
     "@jest/globals": "^29.7.0",
