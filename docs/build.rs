@@ -2,6 +2,7 @@ use std::fs;
 use std::path::Path;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // THIS COMMENTED CODE IS A SAMPLE OF THE CODE THAT COULD BE USED TO MOVE THE FILES TO THE BOOK DIRECTORY
     // Move the necessary files to the book directory
 
     // let source_base = Path::new(".");

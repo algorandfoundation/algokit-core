@@ -7,14 +7,10 @@ The core crate providing transaction building and signing functionality for the 
 `algokit_transact` is the foundational crate that implements:
 
 - Transaction building and serialization
-- Cryptographic signing operations
-- Account and asset management utilities
-- Core Algorand protocol types
 
 ## Features
 
 - **Transaction Types**: Support for all Algorand transaction types
-- **Signing**: Ed25519 signature operations
 - **Serialization**: MessagePack encoding/decoding
 - **Test Utilities**: Optional testing helpers (feature: `test_utils`)
 
