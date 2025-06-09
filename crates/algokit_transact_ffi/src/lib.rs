@@ -139,9 +139,13 @@ impl TryFrom<Address> for algokit_transact::Address {
 }
 
 #[ffi_record]
-pub struct FeeParams {
+pub struct NetworkFeeParams {
     fee_per_byte: u64,
     min_fee: u64,
+}
+
+#[ffi_record]
+pub struct TransactionFeeParams {
     extra_fee: Option<u64>,
     max_fee: Option<u64>,
 }
@@ -615,20 +619,22 @@ pub fn group_transactions(txs: Vec<Transaction>) -> Result<Vec<Transaction>, Alg
 #[ffi_func]
 pub fn assign_fees(
     txs: Vec<Transaction>,
-    fee_params: Vec<FeeParams>,
+    network_params: NetworkFeeParams,
+    transaction_params: Vec<TransactionFeeParams>,
 ) -> Result<Vec<Transaction>, AlgoKitTransactError> {
     let txs_internal: Vec<algokit_transact::Transaction> = txs
         .into_iter()
         .map(|tx| tx.try_into())
         .collect::<Result<Vec<_>, _>>()?;
 
-    let fee_params_internal: Vec<algokit_transact::FeeParams> = fee_params
+    let network_params_internal: algokit_transact::NetworkFeeParams = network_params.into();
+    let transaction_params_internal: Vec<algokit_transact::TransactionFeeParams> = transaction_params
         .into_iter()
-        .map(|fp| fp.try_into())
-        .collect::<Result<Vec<_>, _>>()?;
+        .map(|tp| tp.into())
+        .collect();
 
     let txs_with_fees: Vec<Transaction> = txs_internal
-        .assign_fees(fee_params_internal)?
+        .assign_fees(network_params_internal, transaction_params_internal)?
         .into_iter()
         .map(|tx| tx.try_into())
         .collect::<Result<Vec<_>, _>>()?;
@@ -687,28 +693,35 @@ pub fn get_algorand_constant(constant: AlgorandConstant) -> u64 {
     constant.value()
 }
 
-impl TryFrom<FeeParams> for algokit_transact::FeeParams {
-    type Error = AlgoKitTransactError;
-
-    fn try_from(value: FeeParams) -> Result<Self, Self::Error> {
-        Ok(Self {
+impl From<NetworkFeeParams> for algokit_transact::NetworkFeeParams {
+    fn from(value: NetworkFeeParams) -> Self {
+        Self {
             fee_per_byte: value.fee_per_byte,
             min_fee: value.min_fee,
+        }
+    }
+}
+
+impl From<TransactionFeeParams> for algokit_transact::TransactionFeeParams {
+    fn from(value: TransactionFeeParams) -> Self {
+        Self {
             extra_fee: value.extra_fee,
             max_fee: value.max_fee,
-        })
+        }
     }
 }
 
 #[ffi_func]
 pub fn assign_fee(
     txn: Transaction,
-    fee_params: FeeParams,
+    network_params: NetworkFeeParams,
+    transaction_params: TransactionFeeParams,
 ) -> Result<Transaction, AlgoKitTransactError> {
     let txn_internal: algokit_transact::Transaction = txn.try_into()?;
-    let fee_params_internal: algokit_transact::FeeParams = fee_params.try_into()?;
+    let network_params_internal: algokit_transact::NetworkFeeParams = network_params.into();
+    let transaction_params_internal: algokit_transact::TransactionFeeParams = transaction_params.into();
 
-    let updated_txn = txn_internal.assign_fee(fee_params_internal)?;
+    let updated_txn = txn_internal.assign_fee(network_params_internal, transaction_params_internal)?;
 
     Ok(updated_txn.try_into()?)
 }

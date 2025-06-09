@@ -4,7 +4,7 @@
 //! Algorand data structures and for calculating transaction identifiers.
 
 use crate::error::AlgoKitTransactError;
-use crate::transactions::FeeParams;
+use crate::transactions::{NetworkFeeParams, TransactionFeeParams};
 use crate::utils::sort_msgpack_value;
 use crate::{constants::HASH_BYTES_LENGTH, utils::hash};
 use crate::{SignedTransaction, Transaction};
@@ -152,13 +152,15 @@ pub trait Transactions: Sized {
     /// Assigns fees to each transaction in the group.
     ///
     /// # Parameters
-    /// * `fee_params` - A vector of fee parameters for each transaction. The size must match the number of transactions.
+    /// * `network_params` - Network-level fee parameters that apply to all transactions
+    /// * `transaction_params` - A vector of transaction-specific fee parameters for each transaction. The size must match the number of transactions.
     ///
     /// # Returns
     /// A result containing the transactions with fees assigned or an error if the operation fails.
     fn assign_fees(
         &self,
-        fee_params: Vec<FeeParams>,
+        network_params: NetworkFeeParams,
+        transaction_params: Vec<TransactionFeeParams>,
     ) -> Result<Vec<Transaction>, AlgoKitTransactError>;
 
     /// Encodes the supplied transactions to MessagePack format with the appropriate prefix (TX).

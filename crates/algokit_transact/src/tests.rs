@@ -5,7 +5,7 @@ use crate::{
     test_utils::{
         AddressMother, TransactionGroupMother, TransactionHeaderMother, TransactionMother,
     },
-    transactions::FeeParams,
+    transactions::{NetworkFeeParams, TransactionFeeParams},
     Address, AlgorandMsgpack, EstimateTransactionSize, SignedTransaction, SignedTransactions,
     Transaction, TransactionId, Transactions,
 };
@@ -173,14 +173,16 @@ fn test_estimate_transaction_size() {
 fn test_min_fee() {
     let txn: Transaction = TransactionMother::simple_payment().build().unwrap();
 
-    let updated_transaction = txn
-        .assign_fee(FeeParams {
-            fee_per_byte: 0,
-            min_fee: 1000,
-            extra_fee: None,
-            max_fee: None,
-        })
-        .unwrap();
+    let network_params = NetworkFeeParams {
+        fee_per_byte: 0,
+        min_fee: 1000,
+    };
+    let transaction_params = TransactionFeeParams {
+        extra_fee: None,
+        max_fee: None,
+    };
+
+    let updated_transaction = txn.assign_fee(network_params, transaction_params).unwrap();
     assert_eq!(updated_transaction.header().fee, Some(1000));
 }
 
@@ -188,14 +190,16 @@ fn test_min_fee() {
 fn test_extra_fee() {
     let txn: Transaction = TransactionMother::simple_payment().build().unwrap();
 
-    let updated_transaction = txn
-        .assign_fee(FeeParams {
-            fee_per_byte: 1,
-            min_fee: 1000,
-            extra_fee: Some(500),
-            max_fee: None,
-        })
-        .unwrap();
+    let network_params = NetworkFeeParams {
+        fee_per_byte: 1,
+        min_fee: 1000,
+    };
+    let transaction_params = TransactionFeeParams {
+        extra_fee: Some(500),
+        max_fee: None,
+    };
+
+    let updated_transaction = txn.assign_fee(network_params, transaction_params).unwrap();
     assert_eq!(updated_transaction.header().fee, Some(1500));
 }
 
@@ -203,12 +207,16 @@ fn test_extra_fee() {
 fn test_max_fee() {
     let txn: Transaction = TransactionMother::simple_payment().build().unwrap();
 
-    let result = txn.assign_fee(FeeParams {
+    let network_params = NetworkFeeParams {
         fee_per_byte: 10,
         min_fee: 500,
+    };
+    let transaction_params = TransactionFeeParams {
         extra_fee: None,
         max_fee: Some(1000),
-    });
+    };
+
+    let result = txn.assign_fee(network_params, transaction_params);
 
     assert!(result.is_err());
     let err: crate::AlgoKitTransactError = result.unwrap_err();
@@ -224,14 +232,16 @@ fn test_max_fee() {
 fn test_calculate_fee() {
     let txn: Transaction = TransactionMother::simple_payment().build().unwrap();
 
-    let updated_transaction = txn
-        .assign_fee(FeeParams {
-            fee_per_byte: 5,
-            min_fee: 1000,
-            extra_fee: None,
-            max_fee: None,
-        })
-        .unwrap();
+    let network_params = NetworkFeeParams {
+        fee_per_byte: 5,
+        min_fee: 1000,
+    };
+    let transaction_params = TransactionFeeParams {
+        extra_fee: None,
+        max_fee: None,
+    };
+
+    let updated_transaction = txn.assign_fee(network_params, transaction_params).unwrap();
 
     assert_eq!(updated_transaction.header().fee, Some(1235));
 }
@@ -377,22 +387,22 @@ fn test_signed_transaction_group_encoding() {
 #[test]
 fn test_assign_fees_success() {
     let txs: Vec<Transaction> = TransactionGroupMother::testnet_payment_group();
-    let fee_params = vec![
-        FeeParams {
-            fee_per_byte: 1,
-            min_fee: 1000,
+    let network_params = NetworkFeeParams {
+        fee_per_byte: 1,
+        min_fee: 1000,
+    };
+    let transaction_params = vec![
+        TransactionFeeParams {
             extra_fee: None,
             max_fee: None,
         },
-        FeeParams {
-            fee_per_byte: 2,
-            min_fee: 2000,
+        TransactionFeeParams {
             extra_fee: Some(500),
             max_fee: None,
         },
     ];
 
-    let txs_with_fees = txs.assign_fees(fee_params).unwrap();
+    let txs_with_fees = txs.assign_fees(network_params, transaction_params).unwrap();
 
     assert_eq!(txs_with_fees.len(), txs.len());
 
@@ -400,17 +410,21 @@ fn test_assign_fees_success() {
     // Expected fee should be max(calculated_fee, min_fee) = max(247, 1000) = 1000
     assert_eq!(txs_with_fees[0].header().fee, Some(1000));
 
-    // Second transaction: fee_per_byte=2, min_fee=2000, extra_fee=500
-    // Expected fee should be max(calculated_fee, min_fee) + extra_fee = max(494, 2000) + 500 = 2500
-    assert_eq!(txs_with_fees[1].header().fee, Some(2500));
+    // Second transaction: fee_per_byte=1, min_fee=1000, extra_fee=500
+    // Expected fee should be max(calculated_fee, min_fee) + extra_fee = max(247, 1000) + 500 = 1500
+    assert_eq!(txs_with_fees[1].header().fee, Some(1500));
 }
 
 #[test]
 fn test_assign_fees_empty_group() {
     let txs: Vec<Transaction> = vec![];
-    let fee_params: Vec<FeeParams> = vec![];
+    let network_params = NetworkFeeParams {
+        fee_per_byte: 1,
+        min_fee: 1000,
+    };
+    let transaction_params: Vec<TransactionFeeParams> = vec![];
 
-    let result = txs.assign_fees(fee_params);
+    let result = txs.assign_fees(network_params, transaction_params);
 
     let error = result.unwrap_err();
     assert!(error
@@ -421,33 +435,37 @@ fn test_assign_fees_empty_group() {
 #[test]
 fn test_assign_fees_mismatched_size() {
     let txs: Vec<Transaction> = TransactionGroupMother::testnet_payment_group();
-    let fee_params = vec![FeeParams {
+    let network_params = NetworkFeeParams {
         fee_per_byte: 1,
         min_fee: 1000,
+    };
+    let transaction_params = vec![TransactionFeeParams {
         extra_fee: None,
         max_fee: None,
-    }]; // Only one fee param for two transactions
+    }]; // Only one transaction param for two transactions
 
-    let result = txs.assign_fees(fee_params);
+    let result = txs.assign_fees(network_params, transaction_params);
 
     let error = result.unwrap_err();
     assert_eq!(
         error.to_string(),
-        "Number of fee parameters (1) must match number of transactions (2)"
+        "Number of transaction fee parameters (1) must match number of transactions (2)"
     );
 }
 
 #[test]
 fn test_assign_fees_with_max_fee_violation() {
     let txs: Vec<Transaction> = vec![TransactionMother::simple_payment().build().unwrap()];
-    let fee_params = vec![FeeParams {
+    let network_params = NetworkFeeParams {
         fee_per_byte: 10,
         min_fee: 500,
+    };
+    let transaction_params = vec![TransactionFeeParams {
         extra_fee: None,
         max_fee: Some(1000),
     }];
 
-    let result = txs.assign_fees(fee_params);
+    let result = txs.assign_fees(network_params, transaction_params);
 
     assert!(result.is_err());
     let err = result.unwrap_err();
@@ -462,14 +480,16 @@ fn test_assign_fees_with_max_fee_violation() {
 #[test]
 fn test_assign_fees_single_transaction() {
     let txs: Vec<Transaction> = vec![TransactionMother::simple_payment().build().unwrap()];
-    let fee_params = vec![FeeParams {
+    let network_params = NetworkFeeParams {
         fee_per_byte: 5,
         min_fee: 1000,
+    };
+    let transaction_params = vec![TransactionFeeParams {
         extra_fee: Some(200),
         max_fee: Some(5000),
     }];
 
-    let txs_with_fees = txs.assign_fees(fee_params).unwrap();
+    let txs_with_fees = txs.assign_fees(network_params, transaction_params).unwrap();
 
     assert_eq!(txs_with_fees.len(), 1);
     // Expected fee: max(5 * estimated_size, 1000) + 200
@@ -484,22 +504,22 @@ fn test_assign_fees_different_transaction_types() {
     let asset_transfer_tx = TransactionMother::opt_in_asset_transfer().build().unwrap();
     let txs: Vec<Transaction> = vec![payment_tx, asset_transfer_tx];
 
-    let fee_params = vec![
-        FeeParams {
-            fee_per_byte: 1,
-            min_fee: 1000,
+    let network_params = NetworkFeeParams {
+        fee_per_byte: 1,
+        min_fee: 1000,
+    };
+    let transaction_params = vec![
+        TransactionFeeParams {
             extra_fee: None,
             max_fee: None,
         },
-        FeeParams {
-            fee_per_byte: 1,
-            min_fee: 1500,
-            extra_fee: None,
+        TransactionFeeParams {
+            extra_fee: Some(500),
             max_fee: None,
         },
     ];
 
-    let txs_with_fees = txs.assign_fees(fee_params).unwrap();
+    let txs_with_fees = txs.assign_fees(network_params, transaction_params).unwrap();
 
     assert_eq!(txs_with_fees.len(), 2);
     // Both transactions should have fees assigned according to their respective parameters

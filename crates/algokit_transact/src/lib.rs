@@ -13,9 +13,9 @@ pub use traits::{
     AlgorandMsgpack, EstimateTransactionSize, SignedTransactions, TransactionId, Transactions,
 };
 pub use transactions::{
-    AssetTransferTransactionBuilder, AssetTransferTransactionFields, FeeParams,
+    AssetTransferTransactionBuilder, AssetTransferTransactionFields, NetworkFeeParams,
     PaymentTransactionBuilder, PaymentTransactionFields, SignedTransaction, Transaction,
-    TransactionHeader, TransactionHeaderBuilder,
+    TransactionFeeParams, TransactionHeader, TransactionHeaderBuilder,
 };
 
 #[cfg(test)]
