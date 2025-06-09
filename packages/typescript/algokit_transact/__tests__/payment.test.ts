@@ -12,7 +12,7 @@ import {
   getTransactionIdRaw,
   getTransactionId,
   assignFee,
-} from "../src/index";
+} from "..";
 
 const simplePayment = testData.simplePayment;
 
