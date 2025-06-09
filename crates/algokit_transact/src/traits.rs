@@ -141,10 +141,10 @@ pub trait EstimateTransactionSize: AlgorandMsgpack {
 }
 
 /// Trait for operations which pertain to a collection of transactions.
-pub trait Transactions {
+pub trait Transactions: Sized {
     /// Groups the supplied transactions by calculating and assigning the group to each transaction.
     ///
     /// # Returns
     /// A result containing the transactions with group assign or an error if grouping fails.
-    fn assign_group(&self) -> Result<Vec<Transaction>, AlgoKitTransactError>;
+    fn assign_group(self) -> Result<Vec<Transaction>, AlgoKitTransactError>;
 }

@@ -205,12 +205,12 @@ impl EstimateTransactionSize for SignedTransaction {
     }
 }
 
-impl Transactions for Vec<Transaction> {
+impl Transactions for &[Transaction] {
     /// Groups the supplied transactions by calculating and assigning the group to each transaction.
     ///
     /// # Returns
     /// A result containing the transactions with group assign or an error if grouping fails.
-    fn assign_group(&self) -> Result<Vec<Transaction>, AlgoKitTransactError> {
+    fn assign_group(self) -> Result<Vec<Transaction>, AlgoKitTransactError> {
         if self.len() > MAX_TX_GROUP_SIZE {
             return Err(AlgoKitTransactError::InputError(format!(
                 "Transaction group size exceeds the max limit of {}",
@@ -218,13 +218,13 @@ impl Transactions for Vec<Transaction> {
             )));
         }
 
-        if self.len() == 0 {
+        if self.is_empty() {
             return Err(AlgoKitTransactError::InputError(String::from(
                 "Transaction group size cannot be 0",
             )));
         }
 
-        let group_id = compute_group_id(&self)?;
+        let group_id = compute_group_id(self)?;
         Ok(self
             .iter()
             .map(|tx| {
