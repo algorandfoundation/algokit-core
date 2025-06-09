@@ -1,0 +1,30 @@
+[project]
+requires-python = ">=3.9,<4.0"
+name = "algokit_utils"
+
+[build-system]
+requires = ["poetry-core>=1.0.0", "setuptools", "wheel"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "algokit_utils"
+version = "0.1.0"
+description = ""
+packages = [
+    { include = "algokit_utils" }
+]
+build = "build.py"
+include = [
+    { path = "algokit_utils/*.so" },
+    { path = "algokit_utils/*.dll" },
+    { path = "algokit_utils/*.dylib" }
+]
+
+[tool.poetry.dependencies]
+algokit-transact = {path = "../algokit_transact"}
+pytest-asyncio = "^1.0.0"
+
+[tool.poetry.group.dev.dependencies]
+requests = "^2.32.3"
+asyncio = "^3.4.3"
+
