@@ -3,6 +3,7 @@ resolver = "2"
 members = [
   "crates/algokit_transact",
   "crates/algokit_transact_ffi",
+  "tools/build_pkgs",
   "crates/ffi_macros",
   "crates/uniffi-bindgen",
   "docs",
