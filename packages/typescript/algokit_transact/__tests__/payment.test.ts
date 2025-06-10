@@ -3,7 +3,6 @@ import { testData } from "./common.ts";
 import * as ed from "@noble/ed25519";
 import {
   encodeTransaction,
-  attachSignature,
   decodeTransaction,
   getEncodedTransactionType,
   Transaction,
@@ -12,6 +11,8 @@ import {
   getTransactionIdRaw,
   getTransactionId,
   assignFee,
+  SignedTransaction,
+  encodeSignedTransaction,
 } from "..";
 
 const simplePayment = testData.simplePayment;
@@ -58,8 +59,13 @@ describe("Payment", () => {
       expect(txnWithFee.fee).toBe(1000n);
 
       const sig = await ed.signAsync(encodeTransaction(txnWithFee), aliceSk);
-      const signedTxn = attachSignature(encodeTransaction(txnWithFee), sig);
-      expect(signedTxn.length).toBeGreaterThan(0);
+      const signedTxn: SignedTransaction = {
+        transaction: txnWithFee,
+        signature: sig,
+      };
+      const encodedSignedTxn = encodeSignedTransaction(signedTxn);
+
+      expect(encodedSignedTxn.length).toBeGreaterThan(0);
     });
 
     test("get encoded transaction type", () => {
@@ -68,8 +74,25 @@ describe("Payment", () => {
 
     test("encode with signature", async () => {
       const sig = await ed.signAsync(simplePayment.unsignedBytes, simplePayment.signingPrivateKey);
-      const signedTx = attachSignature(simplePayment.unsignedBytes, sig);
-      expect(signedTx).toEqual(simplePayment.signedBytes);
+      const signedTxn: SignedTransaction = {
+        transaction: simplePayment.transaction,
+        signature: sig,
+      };
+      const encodedSignedTxn = encodeSignedTransaction(signedTxn);
+
+      expect(encodedSignedTxn).toEqual(simplePayment.signedBytes);
+    });
+
+    test("encode with signer", async () => {
+      const sig = await ed.signAsync(simplePayment.unsignedBytes, simplePayment.signingPrivateKey);
+      const signedTxn: SignedTransaction = {
+        transaction: simplePayment.transaction,
+        signature: sig,
+        signer: simplePayment.signer,
+      };
+      const encodedSignedTxn = encodeSignedTransaction(signedTxn);
+
+      expect(encodedSignedTxn).toEqual(simplePayment.signerSignedBytes);
     });
 
     test("encode", () => {
