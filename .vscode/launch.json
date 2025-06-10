@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in algokit_transact",
+      "cargo": {
+        "args": ["test", "--no-run", "--package=algokit_transact"]
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in algokit_transact_ffi",
+      "cargo": {
+        "args": ["test", "--no-run", "--package=algokit_transact_ffi"]
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}
