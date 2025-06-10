@@ -31,7 +31,7 @@ Below is a collection of examples that'll help you formulate transactions that c
 
 ```ts
 import * as ed from "@noble/ed25519";
-import { addressFromString, Transaction, assignFee, encodeTransaction, attachSignature } from "@algorandfoundation/algokit-transact";
+import { addressFromString, Transaction, SignedTransaction, assignFee, encodeTransaction, encodeSignedTransaction } from "@algorandfoundation/algokit-transact";
 
 // Get the sender and reciever addresses
 const alicePubKey = await ed.getPublicKeyAsync(aliceSk);
@@ -66,5 +66,9 @@ const encodedTx = encodeTransaction(tx);
 const txSig = await ed.signAsync(encodedTx, aliceSk);
 
 // Create an encoded signed transaction ready for sending to the algod api
-const encodedSignedTx = attachSignature(encodedTx, txSig);
+const signedTx: SignedTransaction = {
+  transaction: tx,
+  signature: txSig,
+};
+const encodedSignedTx = encodeSignedTransaction(signedTxn);
 ```
