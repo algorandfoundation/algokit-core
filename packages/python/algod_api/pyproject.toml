@@ -1,6 +1,6 @@
 [project]
 name = "algokit_algod_api"
-version = "1.0.0a11"
+version = "1.0.0a12"
 
 [tool.poetry]
 description = "Algod REST API."
