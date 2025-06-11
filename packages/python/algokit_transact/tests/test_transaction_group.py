@@ -7,6 +7,8 @@ from algokit_transact import (
     encode_transactions,
     encode_signed_transaction,
     encode_signed_transactions,
+    decode_transactions,
+    decode_signed_transactions,
     SignedTransaction,
 )
 
@@ -93,10 +95,13 @@ def test_encode_transactions():
     for i in range(len(encoded_grouped_txs)):
         assert encoded_grouped_txs[i] == encode_transaction(grouped_txs[i])
 
+    decoded_grouped_txs = decode_transactions(encoded_grouped_txs)
+    assert decoded_grouped_txs == grouped_txs
+
 
 @pytest.mark.group_transaction_group_tests
-def test_encode_transactions_with_signatures():
-    """Signatures can be attached to a collection of encoded transactions"""
+def test_encode_signed_transactions():
+    """A collection of signed transactions can be encoded"""
     data = simple_group()
     txs = data["txs"]
     grouped_txs = group_transactions(txs)
@@ -129,3 +134,6 @@ def test_encode_transactions_with_signatures():
                 signature=tx_signatures[i],
             )
         )
+
+    decoded_signed_grouped_txs = decode_signed_transactions(encoded_signed_grouped_txs)
+    assert decoded_signed_grouped_txs == signed_grouped_txs
