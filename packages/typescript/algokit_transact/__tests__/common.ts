@@ -26,8 +26,8 @@ type TransactionTestData = {
   unsignedBytes: Uint8Array;
   signedBytes: Uint8Array;
   signingPrivateKey: Uint8Array;
-  signer: Address;
-  signerSignedBytes: Uint8Array;
+  rekeyedSenderAuthAddress: Address;
+  rekeyedSenderSignedBytes: Uint8Array;
 };
 
 export const testData = parseJson<Record<"simplePayment" | "optInAssetTransfer", TransactionTestData>>(jsonString);

@@ -350,8 +350,8 @@ pub struct SignedTransaction {
     /// Optional Ed25519 signature authorizing the transaction.
     pub signature: Option<ByteBuf>,
 
-    /// Optional signer address applicable if the transaction sender is a rekeyed account.
-    pub signer: Option<Address>,
+    /// Optional auth address applicable if the transaction sender is a rekeyed account.
+    pub auth_address: Option<Address>,
 }
 
 impl From<algokit_transact::SignedTransaction> for SignedTransaction {
@@ -359,7 +359,7 @@ impl From<algokit_transact::SignedTransaction> for SignedTransaction {
         Self {
             transaction: signed_tx.transaction.try_into().unwrap(),
             signature: signed_tx.signature.map(|sig| sig.to_vec().into()),
-            signer: signed_tx.signer.map(Into::into),
+            auth_address: signed_tx.auth_address.map(Into::into),
         }
     }
 }
@@ -383,7 +383,7 @@ impl TryFrom<SignedTransaction> for algokit_transact::SignedTransaction {
         Ok(Self {
             transaction: signed_tx.transaction.try_into()?,
             signature,
-            signer: signed_tx.signer.map(TryInto::try_into).transpose()?,
+            auth_address: signed_tx.auth_address.map(TryInto::try_into).transpose()?,
         })
     }
 }

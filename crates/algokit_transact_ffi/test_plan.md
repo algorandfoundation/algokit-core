@@ -28,7 +28,7 @@
 | --- | --- |
 | [encode](#encode) | A transaction with valid fields is encoded properly |
 | [encode with signature](#encode-with-signature) | A signature can be attached to a encoded transaction |
-| [encode with signer](#encode-with-signer) | A signer can be attached to a encoded transaction with a signature |
+| [encode with auth address](#encode-with-auth-address) | An auth address can be attached to a encoded transaction with a signature |
 | [decode with prefix](#decode-with-prefix) | A transaction with TX prefix and valid fields is decoded properly |
 | [decode without prefix](#decode-without-prefix) | A transaction without TX prefix and valid fields is decoded properly |
 | [get encoded transaction type](#get-encoded-transaction-type) | The transaction type of an encoded transaction can be retrieved |
@@ -53,9 +53,9 @@ A transaction with valid fields is encoded properly
 
 A signature can be attached to a encoded transaction
 
-### encode with signer
+### encode with auth address
 
-A signer can be attached to a encoded transaction with a signature
+An auth address can be attached to a encoded transaction with a signature
 
 ### decode with prefix
 

@@ -137,11 +137,11 @@ pub struct SignedTransaction {
     #[serde_as(as = "Option<Bytes>")]
     pub signature: Option<[u8; ALGORAND_SIGNATURE_BYTE_LENGTH]>,
 
-    /// Optional signer address applicable if the transaction sender is a rekeyed account.
+    /// Optional auth address applicable if the transaction sender is a rekeyed account.
     #[serde(rename = "sgnr")]
     #[serde(skip_serializing_if = "is_zero_addr_opt")]
     #[serde(default)]
-    pub signer: Option<Address>,
+    pub auth_address: Option<Address>,
 }
 
 impl AlgorandMsgpack for SignedTransaction {

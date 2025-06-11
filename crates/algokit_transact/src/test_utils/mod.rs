@@ -125,8 +125,8 @@ pub struct TransactionTestData {
     pub unsigned_bytes: Vec<u8>,
     pub signing_private_key: Byte32,
     pub signed_bytes: Vec<u8>,
-    pub signer: Address,
-    pub signer_signed_bytes: Vec<u8>,
+    pub rekeyed_sender_auth_address: Address,
+    pub rekeyed_sender_signed_bytes: Vec<u8>,
 }
 
 impl TransactionTestData {
@@ -139,19 +139,19 @@ impl TransactionTestData {
         let signed_txn = SignedTransaction {
             transaction: transaction.clone(),
             signature: Some(signature.to_bytes()),
-            signer: None,
+            auth_address: None,
         };
         let signed_bytes = signed_txn.encode().unwrap();
 
-        let signer =
+        let rekeyed_sender_auth_address =
             Address::from_str("BKDYDIDVSZCP75JVCB76P3WBJRY6HWAIFDSEOKYHJY5WMNJ2UWJ65MYETU")
                 .unwrap();
         let signer_signed_txn = SignedTransaction {
             transaction: transaction.clone(),
             signature: Some(signature.to_bytes()),
-            signer: Some(signer.clone()),
+            auth_address: Some(rekeyed_sender_auth_address.clone()),
         };
-        let signer_signed_bytes = signer_signed_txn.encode().unwrap();
+        let rekeyed_sender_signed_bytes = signer_signed_txn.encode().unwrap();
 
         Self {
             transaction,
@@ -160,8 +160,8 @@ impl TransactionTestData {
             unsigned_bytes,
             signing_private_key,
             signed_bytes,
-            signer,
-            signer_signed_bytes,
+            rekeyed_sender_auth_address,
+            rekeyed_sender_signed_bytes,
         }
     }
 

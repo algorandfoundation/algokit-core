@@ -20,8 +20,8 @@ class TransactionTestData:
     unsigned_bytes: bytes
     signed_bytes: bytes
     signing_private_key: SigningKey
-    signer: Address
-    signer_signed_bytes: bytes
+    rekeyed_sender_auth_address: Address
+    rekeyed_sender_signed_bytes: bytes
 
 
 @dataclass

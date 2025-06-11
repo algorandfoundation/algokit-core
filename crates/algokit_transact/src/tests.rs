@@ -21,7 +21,7 @@ fn test_payment_transaction_encoding() {
     let signed_tx = SignedTransaction {
         transaction: payment_tx.clone(),
         signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
-        signer: None,
+        auth_address: None,
     };
     let encoded_stx = signed_tx.encode().unwrap();
     let decoded_stx = SignedTransaction::decode(&encoded_stx).unwrap();
@@ -53,7 +53,7 @@ fn test_asset_transfer_transaction_encoding() {
     let signed_tx = SignedTransaction {
         transaction: asset_transfer_tx.clone(),
         signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
-        signer: None,
+        auth_address: None,
     };
     let encoded_stx = signed_tx.encode().unwrap();
     let decoded_stx = SignedTransaction::decode(&encoded_stx).unwrap();
@@ -77,19 +77,19 @@ fn test_signed_transaction_encoding() {
     let signed_tx = SignedTransaction {
         transaction: payment_tx.clone(),
         signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
-        signer: None,
+        auth_address: None,
     };
     let encoded_stx = signed_tx.encode().unwrap();
     assert_eq!(encoded_stx.len(), 247);
     let decoded_stx = SignedTransaction::decode(&encoded_stx).unwrap();
     assert_eq!(decoded_stx, signed_tx);
 
-    // The sender is not signing the transaction (rekeyed account)
-    let signer = AddressMother::address();
+    // The sender is not signing the transaction (rekeyed sender account)
+    let auth_address = AddressMother::address();
     let signed_tx = SignedTransaction {
         transaction: payment_tx.clone(),
         signature: Some([1; ALGORAND_SIGNATURE_BYTE_LENGTH]),
-        signer: Some(signer.clone()),
+        auth_address: Some(auth_address.clone()),
     };
     let encoded_stx: Vec<u8> = signed_tx.encode().unwrap();
     assert_eq!(encoded_stx.len(), 286);
@@ -134,7 +134,7 @@ fn test_pay_transaction_id() {
     let signed_tx = SignedTransaction {
         transaction: payment_tx.clone(),
         signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
-        signer: None,
+        auth_address: None,
     };
 
     assert_eq!(payment_tx.id().unwrap(), expected_tx_id);
@@ -153,7 +153,7 @@ fn test_estimate_transaction_size() {
     let signed_tx = SignedTransaction {
         transaction: payment_tx.clone(),
         signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
-        signer: None,
+        auth_address: None,
     };
     let actual_size = signed_tx.encode().unwrap().len();
 

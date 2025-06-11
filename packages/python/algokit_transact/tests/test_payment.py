@@ -101,19 +101,19 @@ def test_encode_with_signature():
 
 
 @pytest.mark.group_transaction_tests
-def test_encode_with_signer():
-    """A signer can be attached to a encoded transaction with a signature"""
+def test_encode_with_auth_address():
+    """An auth address can be attached to a encoded transaction with a signature"""
     sig = simple_payment.signing_private_key.sign(
         simple_payment.unsigned_bytes
     ).signature
     signed_txn = SignedTransaction(
         transaction=simple_payment.transaction,
         signature=sig,
-        signer=simple_payment.signer,
+        auth_address=simple_payment.rekeyed_sender_auth_address,
     )
     encoded_signed_transaction = encode_signed_transaction(signed_txn)
 
-    assert encoded_signed_transaction == simple_payment.signer_signed_bytes
+    assert encoded_signed_transaction == simple_payment.rekeyed_sender_signed_bytes
 
 
 @pytest.mark.group_transaction_tests
