@@ -21,7 +21,7 @@ from algokit_transact import (
     Address,
     PaymentTransactionFields,
     Transaction,
-	SignedTransaction,
+    SignedTransaction,
     TransactionType,
     encode_signed_transaction,
     encode_transaction,
@@ -101,7 +101,7 @@ def create_test_transaction(
         transaction=txn,
         signature=base64.b64decode(sig),
     )
-    
+
     return encode_signed_transaction(signed_txn)
 
 class TestTransactionAPI:
