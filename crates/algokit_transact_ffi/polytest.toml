@@ -11,6 +11,10 @@ groups = ["Transaction Tests"]
 desc = "Generic transaction tests"
 groups = ["Generic Transaction Tests"]
 
+[suite."Transaction Group"]
+desc = "Transaction Group tests"
+groups = ["Transaction Group Tests"]
+
 # Test Group: Generic Transaction Tests
 
 [group."Generic Transaction Tests"]
@@ -58,6 +62,12 @@ desc = "A transaction id can be obtained from a transaction"
 
 [group."Transaction Tests".test.example]
 desc = "A human-readable example of forming a transaction and signing it"
+
+[group."Transaction Group Tests"]
+desc = "Tests that apply to collections of transactions"
+
+[group."Transaction Group Tests".test."group transactions"]
+desc = "A collection of transactions can be grouped"
 
 # Test Targets
 

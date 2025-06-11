@@ -3,11 +3,11 @@
 //! This module provides traits for standardized MessagePack encoding/decoding of
 //! Algorand data structures and for calculating transaction identifiers.
 
-use crate::constants::HASH_BYTES_LENGTH;
 use crate::error::AlgoKitTransactError;
 use crate::utils::sort_msgpack_value;
+use crate::Transaction;
+use crate::{constants::HASH_BYTES_LENGTH, utils::hash};
 use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha512_256};
 
 /// Trait for Algorand MessagePack encoding and decoding.
 ///
@@ -20,7 +20,7 @@ pub trait AlgorandMsgpack: Serialize + for<'de> Deserialize<'de> {
     /// This prefix is prepended to the encoded data to distinguish different types of
     /// Algorand objects. For example, transactions use "TX" as their prefix.
     /// An empty prefix means no domain separation is applied.
-    const PREFIX: &'static [u8] = b"TX";
+    const PREFIX: &'static [u8] = b"";
 
     /// Encodes the object to MessagePack format without any prefix.
     ///
@@ -116,12 +116,7 @@ pub trait TransactionId: AlgorandMsgpack {
     /// # Returns
     /// The transaction ID as a 32-byte array or an AlgoKitTransactError if encoding fails.
     fn id_raw(&self) -> Result<[u8; HASH_BYTES_LENGTH], AlgoKitTransactError> {
-        let mut hasher = Sha512_256::new();
-        hasher.update(self.encode()?);
-
-        let mut hash = [0u8; HASH_BYTES_LENGTH];
-        hash.copy_from_slice(&hasher.finalize()[..HASH_BYTES_LENGTH]);
-        Ok(hash)
+        Ok(hash(&self.encode()?))
     }
 
     /// Converts the transaction ID to a base32-encoded string.
@@ -143,4 +138,13 @@ pub trait TransactionId: AlgorandMsgpack {
 
 pub trait EstimateTransactionSize: AlgorandMsgpack {
     fn estimate_size(&self) -> Result<usize, AlgoKitTransactError>;
+}
+
+/// Trait for operations which pertain to a collection of transactions.
+pub trait Transactions: Sized {
+    /// Groups the supplied transactions by calculating and assigning the group to each transaction.
+    ///
+    /// # Returns
+    /// A result containing the transactions with group assign or an error if grouping fails.
+    fn assign_group(self) -> Result<Vec<Transaction>, AlgoKitTransactError>;
 }
