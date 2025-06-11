@@ -5,8 +5,9 @@ from algokit_transact import (
     group_transactions,
     encode_transaction,
     encode_transactions,
-    attach_signature,
-    attach_signatures,
+    encode_signed_transaction,
+    encode_signed_transactions,
+    SignedTransaction,
 )
 
 simple_payment = TEST_DATA.simple_payment
@@ -109,10 +110,22 @@ def test_encode_transactions_with_signatures():
         ).signature,
     ]
 
-    encoded_signed_grouped_txs = attach_signatures(encoded_grouped_txs, tx_signatures)
+    # Create SignedTransaction objects from grouped transactions and signatures
+    signed_grouped_txs = [
+        SignedTransaction(
+            transaction=grouped_txs[i],
+            signature=tx_signatures[i],
+        )
+        for i in range(len(grouped_txs))
+    ]
+
+    encoded_signed_grouped_txs = encode_signed_transactions(signed_grouped_txs)
 
     assert len(encoded_signed_grouped_txs) == len(txs)
     for i in range(len(encoded_signed_grouped_txs)):
-        assert encoded_signed_grouped_txs[i] == attach_signature(
-            encoded_grouped_txs[i], tx_signatures[i]
+        assert encoded_signed_grouped_txs[i] == encode_signed_transaction(
+            SignedTransaction(
+                transaction=grouped_txs[i],
+                signature=tx_signatures[i],
+            )
         )

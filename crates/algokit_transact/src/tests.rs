@@ -336,7 +336,7 @@ fn test_transaction_group_encoding() {
         .unwrap();
 
     let encoded_grouped_txs = grouped_txs.encode().unwrap();
-    let decoded_grouped_txs = Vec::<Transaction>::decode(&encoded_grouped_txs).unwrap();
+    let decoded_grouped_txs = <&[Transaction]>::decode(&encoded_grouped_txs).unwrap();
 
     for ((grouped_tx, encoded_tx), decoded_tx) in grouped_txs
         .iter()
@@ -356,12 +356,13 @@ fn test_signed_transaction_group_encoding() {
         .iter()
         .map(|tx| SignedTransaction {
             transaction: tx.clone(),
-            signature: [0; ALGORAND_SIGNATURE_BYTE_LENGTH],
+            signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
+            auth_address: None,
         })
         .collect::<Vec<SignedTransaction>>();
 
     let encoded_signed_group = signed_grouped_txs.encode().unwrap();
-    let decoded_signed_group = Vec::<SignedTransaction>::decode(&encoded_signed_group).unwrap();
+    let decoded_signed_group = <&[SignedTransaction]>::decode(&encoded_signed_group).unwrap();
 
     for ((signed_grouped_tx, encoded_signed_tx), decoded_signed_tx) in signed_grouped_txs
         .iter()

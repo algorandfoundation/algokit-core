@@ -156,7 +156,7 @@ pub trait Transactions: Sized {
     ///
     /// # Returns
     /// The encoded bytes with prefix for the supplied transactions or an AlgoKitTransactError if serialization fails.
-    fn encode(&self) -> Result<Vec<Vec<u8>>, AlgoKitTransactError>;
+    fn encode(self) -> Result<Vec<Vec<u8>>, AlgoKitTransactError>;
 
     /// Encodes the supplied transactions to MessagePack format without any prefix.
     ///
@@ -165,7 +165,7 @@ pub trait Transactions: Sized {
     ///
     /// # Returns
     /// The raw encoded bytes for the supplied transactions or an AlgoKitTransactError if serialization fails.
-    fn encode_raw(&self) -> Result<Vec<Vec<u8>>, AlgoKitTransactError>;
+    fn encode_raw(self) -> Result<Vec<Vec<u8>>, AlgoKitTransactError>;
 
     /// Decodes a collection of MessagePack bytes into a transaction collection.
     ///
@@ -178,18 +178,18 @@ pub trait Transactions: Sized {
     /// # Returns
     /// The decoded transactions or an AlgoKitTransactError if the input is empty or
     /// deserialization fails.
-    fn decode(encoded_txs: &Vec<Vec<u8>>) -> Result<Vec<Transaction>, AlgoKitTransactError>;
+    fn decode(encoded_txs: &[Vec<u8>]) -> Result<Vec<Transaction>, AlgoKitTransactError>;
 }
 
 /// Trait for operations which pertain to a collection of signed transactions.
-pub trait SignedTransactions {
+pub trait SignedTransactions: Sized {
     /// Encodes the supplied signed transactions to MessagePack format.
     ///
     /// This method performs canonical encoding. No domain separation prefix is applicable.
     ///
     /// # Returns
     /// The encoded bytes for the supplied signed transactions or an AlgoKitTransactError if serialization fails.
-    fn encode(&self) -> Result<Vec<Vec<u8>>, AlgoKitTransactError>;
+    fn encode(self) -> Result<Vec<Vec<u8>>, AlgoKitTransactError>;
 
     /// Decodes a collection of MessagePack bytes into a signed transaction collection.
     ///
@@ -199,5 +199,5 @@ pub trait SignedTransactions {
     /// # Returns
     /// The decoded signed transactions or an AlgoKitTransactError if the input is empty or
     /// deserialization fails.
-    fn decode(encoded_txs: &Vec<Vec<u8>>) -> Result<Vec<SignedTransaction>, AlgoKitTransactError>;
+    fn decode(encoded_txs: &[Vec<u8>]) -> Result<Vec<SignedTransaction>, AlgoKitTransactError>;
 }

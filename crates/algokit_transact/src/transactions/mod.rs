@@ -148,10 +148,10 @@ pub struct SignedTransaction {
 }
 
 impl AlgorandMsgpack for SignedTransaction {
-    /// Decodes MessagePack bytes into a SignedTransaction.
+    /// Decodes MsgPack bytes into a SignedTransaction.
     ///
     /// # Parameters
-    /// * `bytes` - The MessagePack encoded signed transaction bytes
+    /// * `bytes` - The MsgPack encoded signed transaction bytes
     ///
     /// # Returns
     /// The decoded SignedTransaction or an error if decoding fails or the transaction type is not recognized.
@@ -235,7 +235,7 @@ impl Transactions for &[Transaction] {
             .collect())
     }
 
-    /// Encodes the supplied transactions to MessagePack format with the appropriate prefix (TX).
+    /// Encodes the supplied transactions to MsgPack format with the appropriate prefix (TX).
     ///
     /// This method performs canonical encoding and prepends the domain separation
     ///
@@ -243,37 +243,37 @@ impl Transactions for &[Transaction] {
     ///
     /// # Returns
     /// The encoded bytes with prefix for the supplied transactions or an AlgoKitTransactError if serialization fails.
-    fn encode(&self) -> Result<Vec<Vec<u8>>, AlgoKitTransactError> {
+    fn encode(self) -> Result<Vec<Vec<u8>>, AlgoKitTransactError> {
         self.iter()
             .map(|tx| tx.encode())
             .collect::<Result<Vec<Vec<u8>>, AlgoKitTransactError>>()
     }
 
-    /// Encodes the supplied transactions to MessagePack format without any prefix.
+    /// Encodes the supplied transactions to MsgPack format without any prefix.
     ///
     /// This method performs canonical encoding with sorted map keys and omitted empty fields,
     /// but does not include any domain separation prefix.
     ///
     /// # Returns
     /// The raw encoded bytes for the supplied transactions or an AlgoKitTransactError if serialization fails.
-    fn encode_raw(&self) -> Result<Vec<Vec<u8>>, AlgoKitTransactError> {
+    fn encode_raw(self) -> Result<Vec<Vec<u8>>, AlgoKitTransactError> {
         self.iter()
             .map(|tx| tx.encode_raw())
             .collect::<Result<Vec<Vec<u8>>, AlgoKitTransactError>>()
     }
 
-    /// Decodes a collection of MessagePack bytes into a transaction collection.
+    /// Decodes a collection of MsgPack bytes into a transaction collection.
     ///
     /// If the bytes start with the expected PREFIX for this type, the prefix is
     /// automatically removed before decoding.
     ///
     /// # Parameters
-    /// * `encoded_txs` - A collection of MessagePack encoded bytes, each representing a transaction.
+    /// * `encoded_txs` - A collection of MsgPack encoded bytes, each representing a transaction.
     ///
     /// # Returns
     /// The decoded transactions or an AlgoKitTransactError if the input is empty or
     /// deserialization fails.
-    fn decode(encoded_txs: &Vec<Vec<u8>>) -> Result<Vec<Transaction>, AlgoKitTransactError> {
+    fn decode(encoded_txs: &[Vec<u8>]) -> Result<Vec<Transaction>, AlgoKitTransactError> {
         if encoded_txs.is_empty() {
             return Err(AlgoKitTransactError::InputError(
                 "attempted to decode 0 bytes".to_string(),
@@ -289,35 +289,40 @@ impl Transactions for &[Transaction] {
     }
 }
 
-impl SignedTransactions for Vec<SignedTransaction> {
-    /// Encodes the supplied signed transactions to MessagePack format.
+impl SignedTransactions for &[SignedTransaction] {
+    /// Encodes signed transactions to MsgPack for sending on the network.
     ///
     /// This method performs canonical encoding. No domain separation prefix is applicable.
     ///
+    /// # Parameters
+    /// * `self` - A collection of signed transactions to encode
+    ///
     /// # Returns
-    /// The encoded bytes for the supplied signed transactions or an AlgoKitTransactError if serialization fails.
-    fn encode(&self) -> Result<Vec<Vec<u8>>, AlgoKitTransactError> {
+    /// A collection of MsgPack encoded bytes or an AlgoKitTransactError if serialization fails.
+    fn encode(self) -> Result<Vec<Vec<u8>>, AlgoKitTransactError> {
         self.iter()
             .map(|stx| stx.encode())
             .collect::<Result<Vec<Vec<u8>>, AlgoKitTransactError>>()
     }
 
-    /// Decodes a collection of MessagePack bytes into a signed transaction collection.
+    /// Decodes a collection of MsgPack bytes into a signed transaction collection.
     ///
     /// # Parameters
-    /// * `encoded_txs` - A collection of MessagePack encoded bytes, each representing a signed transaction.
+    /// * `encoded_signed_txs` - A collection of MsgPack encoded bytes, each representing a signed transaction.
     ///
     /// # Returns
-    /// The decoded signed transactions or an AlgoKitTransactError if the input is empty or
+    /// A collection of decoded SignedTransaction or an AlgoKitTransactError if the input is empty or
     /// deserialization fails.
-    fn decode(encoded_txs: &Vec<Vec<u8>>) -> Result<Vec<SignedTransaction>, AlgoKitTransactError> {
-        if encoded_txs.is_empty() {
+    fn decode(
+        encoded_signed_txs: &[Vec<u8>],
+    ) -> Result<Vec<SignedTransaction>, AlgoKitTransactError> {
+        if encoded_signed_txs.is_empty() {
             return Err(AlgoKitTransactError::InputError(
                 "attempted to decode 0 bytes".to_string(),
             ));
         }
 
-        let stxs = encoded_txs
+        let stxs = encoded_signed_txs
             .iter()
             .map(|bytes| SignedTransaction::decode(bytes))
             .collect::<Result<Vec<SignedTransaction>, AlgoKitTransactError>>()?;

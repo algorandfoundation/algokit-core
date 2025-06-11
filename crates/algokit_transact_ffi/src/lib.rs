@@ -502,47 +502,6 @@ pub fn decode_transactions(
         .collect()
 }
 
-}
-
-#[cfg(feature = "ffi_wasm")]
-#[ffi_func]
-pub fn attach_signatures(
-    encoded_txs: Vec<Uint8Array>,
-    signatures: Vec<Uint8Array>,
-) -> Result<Vec<Uint8Array>, AlgoKitTransactError> {
-    Ok(attach_signatures_impl(
-        encoded_txs.iter().map(|bytes| bytes.to_vec()).collect(),
-        signatures.iter().map(|bytes| bytes.to_vec()).collect(),
-    )?
-    .iter()
-    .map(|s| s.as_slice().into())
-    .collect())
-}
-
-#[cfg(not(feature = "ffi_wasm"))]
-#[ffi_func]
-pub fn attach_signatures(
-    encoded_txs: Vec<Vec<u8>>,
-    signatures: Vec<Vec<u8>>,
-) -> Result<Vec<Vec<u8>>, AlgoKitTransactError> {
-    attach_signatures_impl(encoded_txs, signatures)
-}
-
-fn attach_signatures_impl(
-    encoded_txs: Vec<Vec<u8>>,
-    signatures: Vec<Vec<u8>>,
-) -> Result<Vec<Vec<u8>>, AlgoKitTransactError> {
-    if encoded_txs.len() != signatures.len() {
-        return Err(AlgoKitTransactError::InputError(
-            "Number of transactions and signatures must match".to_string(),
-        ));
-    }
-
-    encoded_txs
-        .into_iter()
-        .zip(signatures)
-        .map(|(encoded_tx, sig)| attach_signature(&encoded_tx, &sig))
-        .collect()
 /// Return the size of the transaction in bytes as if it was already signed and encoded.
 /// This is useful for estimating the fee for the transaction.
 #[ffi_func]
@@ -708,7 +667,45 @@ pub fn decode_signed_transaction(bytes: &[u8]) -> Result<SignedTransaction, Algo
     Ok(signed_tx.into())
 }
 
+/// Decodes signed transactions.
+///
+/// # Parameters
+/// * `encoded_signed_txs` - A collection of MsgPack encoded bytes, each representing a signed transaction.
+///
+/// # Returns
+/// A collection of decoded SignedTransaction or an error if decoding fails.
+#[cfg(feature = "ffi_wasm")]
+#[ffi_func]
+pub fn decode_signed_transactions(
+    encoded_signed_txs: Vec<Uint8Array>,
+) -> Result<Vec<SignedTransaction>, AlgoKitTransactError> {
+    encoded_signed_txs
+        .iter()
+        .map(|bytes| decode_signed_transaction(bytes.to_vec().as_slice()))
+        .collect()
+}
+
+/// Decodes a collection of MsgPack bytes into a signed transaction collection.
+///
+/// # Parameters
+/// * `encoded_signed_txs` - A collection of MsgPack encoded bytes, each representing a signed transaction.
+///
+/// # Returns
+/// A collection of decoded SignedTransaction or an error if decoding fails.
+#[cfg(not(feature = "ffi_wasm"))]
+#[ffi_func]
+pub fn decode_signed_transactions(
+    encoded_signed_txs: Vec<Vec<u8>>,
+) -> Result<Vec<SignedTransaction>, AlgoKitTransactError> {
+    encoded_signed_txs
+        .iter()
+        .map(|tx| decode_signed_transaction(tx))
+        .collect()
+}
+
 /// Encode a signed transaction to MsgPack for sending on the network.
+///
+/// This method performs canonical encoding. No domain separation prefix is applicable.
 ///
 /// # Parameters
 /// * `signed_tx` - The signed transaction to encode
@@ -721,6 +718,46 @@ pub fn encode_signed_transaction(
 ) -> Result<Vec<u8>, AlgoKitTransactError> {
     let signed_tx_internal: algokit_transact::SignedTransaction = signed_tx.try_into()?;
     Ok(signed_tx_internal.encode()?)
+}
+
+/// Encode signed transactions to MsgPack for sending on the network.
+///
+/// This method performs canonical encoding. No domain separation prefix is applicable.
+///
+/// # Parameters
+/// * `signed_txs` - A collection of signed transactions to encode
+///
+/// # Returns
+/// A collection of MsgPack encoded bytes or an error if encoding fails.
+#[cfg(feature = "ffi_wasm")]
+#[ffi_func]
+pub fn encode_signed_transactions(
+    signed_txs: Vec<SignedTransaction>,
+) -> Result<Vec<Uint8Array>, AlgoKitTransactError> {
+    signed_txs
+        .into_iter()
+        .map(|tx| encode_signed_transaction(tx).map(|bytes| bytes.as_slice().into()))
+        .collect()
+}
+
+/// Encode signed transactions to MsgPack for sending on the network.
+///
+/// This method performs canonical encoding. No domain separation prefix is applicable.
+///
+/// # Parameters
+/// * `signed_txs` - A collection of signed transactions to encode
+///
+/// # Returns
+/// A collection of MsgPack encoded bytes or an error if encoding fails.
+#[cfg(not(feature = "ffi_wasm"))]
+#[ffi_func]
+pub fn encode_signed_transactions(
+    signed_txs: Vec<SignedTransaction>,
+) -> Result<Vec<Vec<u8>>, AlgoKitTransactError> {
+    signed_txs
+        .into_iter()
+        .map(encode_signed_transaction)
+        .collect()
 }
 
 #[cfg(test)]
@@ -819,24 +856,35 @@ mod tests {
             .try_into()
             .unwrap();
         let txs = vec![tx1, tx2];
-        let grouped_txs = group_transactions(txs.clone()).unwrap();
+        let grouped_txs = group_transactions(txs).unwrap();
         let tx_sig = [0; ALGORAND_SIGNATURE_BYTE_LENGTH].to_vec();
-        let encoded_grouped_txs = encode_transactions(grouped_txs.clone()).unwrap();
 
-        let signed_encoded_grouped_txs = attach_signatures(
-            encoded_grouped_txs.clone(),
-            vec![tx_sig.clone(), tx_sig.clone()],
-        )
-        .unwrap();
+        let signed_grouped_txs = grouped_txs
+            .iter()
+            .map(|tx| {
+                Ok::<SignedTransaction, AlgoKitTransactError>(SignedTransaction {
+                    transaction: tx.clone(),
+                    signature: Some(tx_sig.clone().into()),
+                    auth_address: None,
+                })
+            })
+            .collect::<Result<Vec<_>, _>>()
+            .unwrap();
 
-        assert_eq!(signed_encoded_grouped_txs.len(), txs.len());
-        for (encoded_tx, encoded_signed_tx) in encoded_grouped_txs
-            .into_iter()
-            .zip(signed_encoded_grouped_txs.into_iter())
+        let encoded_signed_grouped_txs = encode_signed_transactions(signed_grouped_txs).unwrap();
+
+        for (tx, encoded_signed_tx) in grouped_txs
+            .iter()
+            .zip(encoded_signed_grouped_txs.into_iter())
         {
             assert_eq!(
                 encoded_signed_tx,
-                attach_signature(&encoded_tx, &tx_sig).unwrap()
+                encode_signed_transaction(SignedTransaction {
+                    transaction: tx.clone(),
+                    signature: Some(tx_sig.clone().into()),
+                    auth_address: None
+                })
+                .unwrap()
             );
         }
     }
