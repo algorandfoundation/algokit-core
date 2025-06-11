@@ -1,6 +1,6 @@
 import { expect, test, describe } from "bun:test";
 import { testData } from "./common.ts";
-import { attachSignature, attachSignatures, encodeTransaction, encodeTransactions, groupTransactions } from "..";
+import { encodeSignedTransaction, encodeSignedTransactions, encodeTransaction, encodeTransactions, groupTransactions, SignedTransaction } from "..";
 import * as ed from "@noble/ed25519";
 
 const simplePayment = testData.simplePayment;
@@ -58,11 +58,21 @@ describe("Transaction Group", () => {
         await ed.signAsync(encodedGroupedTxs[1], optInAssetTransfer.signingPrivateKey),
       ];
 
-      const encodedSignedGroupedTxs = attachSignatures(encodedGroupedTxs, txSignatures);
+      const signedGroupedTxs = groupedTxs.map((tx, i) => {
+        return {
+          transaction: tx,
+          signature: txSignatures[i],
+        } as SignedTransaction;
+      })
+
+      const encodedSignedGroupedTxs = encodeSignedTransactions(signedGroupedTxs);
 
       expect(encodedSignedGroupedTxs.length).toBe(txs.length);
       for (let i = 0; i < encodedSignedGroupedTxs.length; i++) {
-        expect(encodedSignedGroupedTxs[i]).toEqual(attachSignature(encodedGroupedTxs[i], txSignatures[i]));
+        expect(encodedSignedGroupedTxs[i]).toEqual(encodeSignedTransaction({
+          transaction: groupedTxs[i],
+          signature: txSignatures[i],
+        }));
       }
     });
   });
