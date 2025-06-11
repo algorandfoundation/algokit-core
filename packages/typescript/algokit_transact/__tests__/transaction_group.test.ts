@@ -1,7 +1,8 @@
 import { expect, test, describe } from "bun:test";
 import { testData } from "./common.ts";
-import { encodeSignedTransaction, encodeSignedTransactions, encodeTransaction, encodeTransactions, groupTransactions, SignedTransaction } from "..";
+import { decodeSignedTransactions, decodeTransactions, encodeSignedTransaction, encodeSignedTransactions, encodeTransaction, encodeTransactions, groupTransactions, SignedTransaction } from "..";
 import * as ed from "@noble/ed25519";
+import { decode } from "punycode";
 
 const simplePayment = testData.simplePayment;
 const optInAssetTransfer = testData.optInAssetTransfer;
@@ -47,9 +48,12 @@ describe("Transaction Group", () => {
       for (let i = 0; i < encodedGroupedTxs.length; i++) {
         expect(encodedGroupedTxs[i]).toEqual(encodeTransaction(groupedTxs[i]));
       }
+
+      const decodedGroupedTxs = decodeTransactions(encodedGroupedTxs);
+      expect(decodedGroupedTxs).toEqual(groupedTxs);
     });
 
-    test("encode transactions with signatures", async () => {
+    test("encode signed transactions", async () => {
       const { txs } = simpleGroup();
       const groupedTxs = groupTransactions(txs);
       const encodedGroupedTxs = encodeTransactions(groupedTxs);
@@ -74,6 +78,9 @@ describe("Transaction Group", () => {
           signature: txSignatures[i],
         }));
       }
+
+      const decodedSignedGroupedTxs = decodeSignedTransactions(encodedSignedGroupedTxs);
+      expect(decodedSignedGroupedTxs).toEqual(signedGroupedTxs);
     });
   });
 });

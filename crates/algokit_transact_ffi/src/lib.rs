@@ -450,6 +450,13 @@ pub fn encode_transaction(tx: Transaction) -> Result<Vec<u8>, AlgoKitTransactErr
     Ok(ctx.encode()?)
 }
 
+/// Encode transactions to MsgPack with the domain separation (e.g. "TX") prefix.
+///
+/// # Parameters
+/// * `txs` - A collection of transactions to encode
+///
+/// # Returns
+/// A collection of MsgPack encoded bytes or an error if encoding fails.
 #[cfg(feature = "ffi_wasm")]
 #[ffi_func]
 /// Encode transactions with the domain separation (e.g. "TX") prefix
@@ -459,9 +466,15 @@ pub fn encode_transactions(txs: Vec<Transaction>) -> Result<Vec<Uint8Array>, Alg
         .collect()
 }
 
+/// Encode transactions to MsgPack with the domain separation (e.g. "TX") prefix.
+///
+/// # Parameters
+/// * `txs` - A collection of transactions to encode
+///
+/// # Returns
+/// A collection of MsgPack encoded bytes or an error if encoding fails.
 #[cfg(not(feature = "ffi_wasm"))]
 #[ffi_func]
-/// Encode transactions with the domain separation (e.g. "TX") prefix
 pub fn encode_transactions(txs: Vec<Transaction>) -> Result<Vec<Vec<u8>>, AlgoKitTransactError> {
     txs.into_iter().map(encode_transaction).collect()
 }
@@ -474,12 +487,26 @@ pub fn encode_transaction_raw(tx: Transaction) -> Result<Vec<u8>, AlgoKitTransac
     Ok(ctx.encode_raw()?)
 }
 
+/// Decodes MsgPack bytes into a transaction.
+///
+/// # Parameters
+/// * `encoded_tx` - MsgPack encoded bytes representing a transaction.
+///
+/// # Returns
+/// A decoded transaction or an error if decoding fails.
 #[ffi_func]
 pub fn decode_transaction(encoded_tx: &[u8]) -> Result<Transaction, AlgoKitTransactError> {
     let ctx: algokit_transact::Transaction = algokit_transact::Transaction::decode(encoded_tx)?;
     Ok(ctx.try_into()?)
 }
 
+/// Decodes a collection of MsgPack bytes into a transaction collection.
+///
+/// # Parameters
+/// * `encoded_txs` - A collection of MsgPack encoded bytes, each representing a transaction.
+///
+/// # Returns
+/// A collection of decoded transactions or an error if decoding fails.
 #[cfg(feature = "ffi_wasm")]
 #[ffi_func]
 pub fn decode_transactions(
@@ -491,6 +518,13 @@ pub fn decode_transactions(
         .collect()
 }
 
+/// Decodes a collection of MsgPack bytes into a transaction collection.
+///
+/// # Parameters
+/// * `encoded_txs` - A collection of MsgPack encoded bytes, each representing a transaction.
+///
+/// # Returns
+/// A collection of decoded transactions or an error if decoding fails.
 #[cfg(not(feature = "ffi_wasm"))]
 #[ffi_func]
 pub fn decode_transactions(
@@ -667,13 +701,13 @@ pub fn decode_signed_transaction(bytes: &[u8]) -> Result<SignedTransaction, Algo
     Ok(signed_tx.into())
 }
 
-/// Decodes signed transactions.
+/// Decodes a collection of MsgPack bytes into a signed transaction collection.
 ///
 /// # Parameters
 /// * `encoded_signed_txs` - A collection of MsgPack encoded bytes, each representing a signed transaction.
 ///
 /// # Returns
-/// A collection of decoded SignedTransaction or an error if decoding fails.
+/// A collection of decoded signed transactions or an error if decoding fails.
 #[cfg(feature = "ffi_wasm")]
 #[ffi_func]
 pub fn decode_signed_transactions(
@@ -691,7 +725,7 @@ pub fn decode_signed_transactions(
 /// * `encoded_signed_txs` - A collection of MsgPack encoded bytes, each representing a signed transaction.
 ///
 /// # Returns
-/// A collection of decoded SignedTransaction or an error if decoding fails.
+/// A collection of decoded signed transactions or an error if decoding fails.
 #[cfg(not(feature = "ffi_wasm"))]
 #[ffi_func]
 pub fn decode_signed_transactions(
@@ -815,77 +849,6 @@ mod tests {
         assert_eq!(grouped_txs.len(), txs.len());
         for grouped_tx in grouped_txs.into_iter() {
             assert_eq!(grouped_tx.group.unwrap(), &expected_group);
-        }
-    }
-
-    #[test]
-    fn test_transaction_group_encoding_ffi() {
-        let tx1 = TestDataMother::simple_payment()
-            .transaction
-            .try_into()
-            .unwrap();
-        let tx2 = TestDataMother::opt_in_asset_transfer()
-            .transaction
-            .try_into()
-            .unwrap();
-        let txs = vec![tx1, tx2];
-        let grouped_txs = group_transactions(txs.clone()).unwrap();
-
-        let encoded_grouped_txs = encode_transactions(grouped_txs.clone()).unwrap();
-        let decoded_grouped_txs = decode_transactions(encoded_grouped_txs.clone()).unwrap();
-
-        assert_eq!(encoded_grouped_txs.len(), txs.len());
-        for ((grouped_tx, encoded_tx), decoded_tx) in grouped_txs
-            .into_iter()
-            .zip(encoded_grouped_txs.into_iter())
-            .zip(decoded_grouped_txs.into_iter())
-        {
-            assert_eq!(encoded_tx, encode_transaction(grouped_tx.clone()).unwrap());
-            assert_eq!(decoded_tx, grouped_tx);
-        }
-    }
-
-    #[test]
-    fn test_transaction_group_signing_ffi() {
-        let tx1 = TestDataMother::simple_payment()
-            .transaction
-            .try_into()
-            .unwrap();
-        let tx2 = TestDataMother::opt_in_asset_transfer()
-            .transaction
-            .try_into()
-            .unwrap();
-        let txs = vec![tx1, tx2];
-        let grouped_txs = group_transactions(txs).unwrap();
-        let tx_sig = [0; ALGORAND_SIGNATURE_BYTE_LENGTH].to_vec();
-
-        let signed_grouped_txs = grouped_txs
-            .iter()
-            .map(|tx| {
-                Ok::<SignedTransaction, AlgoKitTransactError>(SignedTransaction {
-                    transaction: tx.clone(),
-                    signature: Some(tx_sig.clone().into()),
-                    auth_address: None,
-                })
-            })
-            .collect::<Result<Vec<_>, _>>()
-            .unwrap();
-
-        let encoded_signed_grouped_txs = encode_signed_transactions(signed_grouped_txs).unwrap();
-
-        for (tx, encoded_signed_tx) in grouped_txs
-            .iter()
-            .zip(encoded_signed_grouped_txs.into_iter())
-        {
-            assert_eq!(
-                encoded_signed_tx,
-                encode_signed_transaction(SignedTransaction {
-                    transaction: tx.clone(),
-                    signature: Some(tx_sig.clone().into()),
-                    auth_address: None
-                })
-                .unwrap()
-            );
         }
     }
 }

@@ -1,4 +1,5 @@
 # Polytest Test Plan
+
 ## Test Suites
 
 ### Payment
@@ -47,7 +48,7 @@
 | --- | --- |
 | [group transactions](#group-transactions) | A collection of transactions can be grouped |
 | [encode transactions](#encode-transactions) | A collection of transactions can be encoded |
-| [encode transactions with signatures](#encode-transactions-with-signatures) | Signatures can be attached to a collection of encoded transactions |
+| [encode signed transactions](#encode-signed-transactions) | A collection of signed transactions can be encoded |
 
 ## Test Cases
 
@@ -99,6 +100,6 @@ A collection of transactions can be grouped
 
 A collection of transactions can be encoded
 
-### encode transactions with signatures
+### encode signed transactions
 
-Signatures can be attached to a collection of encoded transactions
+A collection of signed transactions can be encoded
