@@ -41,9 +41,10 @@ from algokit_transact import (
     FeeParams,
     Transaction,
     TransactionType,
+    SignedTransaction,
     PaymentTransactionFields,
     encode_transaction,
-    attach_signature,
+    encode_signed_transaction,
 )
 
 # Get the sender and reciever addresses
@@ -65,13 +66,17 @@ base_tx = Transaction(
 tx = assign_fee(base_tx, FeeParams(fee_per_byte=0, min_fee=1000, max_fee=2000))
 
 # Encode the transaction for signing
-encoded_tx = encode_transaction(txn)
+encoded_tx = encode_transaction(tx)
 
 # Sign the transaction using PyNaCl
 tx_sig = alice_keypair.sign(encoded_tx).signature
 
 # Create an encoded signed transaction ready for sending to the algod api
-encoded_signed_txn = attach_signature(encoded_tx, tx_sig)
+signed_tx = SignedTransaction(
+    transaction=tx,
+    signature=tx_sig,
+)
+encoded_signed_tx = encode_signed_transaction(signed_tx)
 ```
 
 ## Development Setup

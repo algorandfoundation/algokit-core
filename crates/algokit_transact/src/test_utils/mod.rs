@@ -8,7 +8,7 @@ use convert_case::{Case, Casing};
 use ed25519_dalek::{Signer, SigningKey};
 use serde::Serialize;
 use serde_json::to_writer_pretty;
-use std::fs::File;
+use std::{fs::File, str::FromStr};
 
 pub struct TransactionHeaderMother {}
 impl TransactionHeaderMother {
@@ -125,6 +125,8 @@ pub struct TransactionTestData {
     pub unsigned_bytes: Vec<u8>,
     pub signing_private_key: Byte32,
     pub signed_bytes: Vec<u8>,
+    pub rekeyed_sender_auth_address: Address,
+    pub rekeyed_sender_signed_bytes: Vec<u8>,
 }
 
 impl TransactionTestData {
@@ -136,9 +138,20 @@ impl TransactionTestData {
         let signature = signing_key.sign(&unsigned_bytes);
         let signed_txn = SignedTransaction {
             transaction: transaction.clone(),
-            signature: signature.to_bytes(),
+            signature: Some(signature.to_bytes()),
+            auth_address: None,
         };
         let signed_bytes = signed_txn.encode().unwrap();
+
+        let rekeyed_sender_auth_address =
+            Address::from_str("BKDYDIDVSZCP75JVCB76P3WBJRY6HWAIFDSEOKYHJY5WMNJ2UWJ65MYETU")
+                .unwrap();
+        let signer_signed_txn = SignedTransaction {
+            transaction: transaction.clone(),
+            signature: Some(signature.to_bytes()),
+            auth_address: Some(rekeyed_sender_auth_address.clone()),
+        };
+        let rekeyed_sender_signed_bytes = signer_signed_txn.encode().unwrap();
 
         Self {
             transaction,
@@ -147,6 +160,8 @@ impl TransactionTestData {
             unsigned_bytes,
             signing_private_key,
             signed_bytes,
+            rekeyed_sender_auth_address,
+            rekeyed_sender_signed_bytes,
         }
     }
 

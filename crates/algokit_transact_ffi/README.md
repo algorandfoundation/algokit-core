@@ -18,7 +18,7 @@ Provides interfaces for [UniFFI](https://github.com/mozilla/uniffi-rs) and [wasm
 Example of using the library in TypeScript:
 
 ```ts
-const fields = {
+const tx = {
   header: {
     sender: tx.snd,
     fee: tx.fee,
@@ -30,13 +30,17 @@ const fields = {
   },
   receiver: tx.rcv,
   amount: tx.amt,
-} as PaymentTransactionFields;
+} as Transaction;
 
-const btyesForSigning = encodePayment(fields);
+const encodedTx = encodeTransaction(tx);
 
 // Signing with a ed25519 lib that has no idea about Algorand
-const sig = await ed.signAsync(btyesForSigning, privKey);
-const signedTx = attachSignature(btyesForSigning, sig);
+const txSig = await ed.signAsync(encodedTx, privKey);
+const signedTx: SignedTransaction = {
+  transaction: tx,
+  signature: txSig,
+};
+const encodedSignedTx = encodeSignedTransaction(signedTx);
 ```
 
 See [tests/js/index.ts](tests/js/index.ts) for the full example.

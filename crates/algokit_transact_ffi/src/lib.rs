@@ -295,7 +295,7 @@ impl TryFrom<Transaction> for algokit_transact::AssetTransferTransactionFields {
     type Error = AlgoKitTransactError;
 
     fn try_from(tx: Transaction) -> Result<Self, Self::Error> {
-        if tx.transaction_type != TransactionType::AssetTransfer || tx.payment.is_none() {
+        if tx.transaction_type != TransactionType::AssetTransfer || tx.asset_transfer.is_none() {
             return Err(Self::Error::DecodingError(
                 "Asset Transfer data missing".to_string(),
             ));
@@ -339,6 +339,52 @@ impl TryFrom<algokit_transact::Transaction> for Transaction {
                 )
             }
         }
+    }
+}
+
+#[ffi_record]
+pub struct SignedTransaction {
+    /// The transaction that has been signed.
+    pub transaction: Transaction,
+
+    /// Optional Ed25519 signature authorizing the transaction.
+    pub signature: Option<ByteBuf>,
+
+    /// Optional auth address applicable if the transaction sender is a rekeyed account.
+    pub auth_address: Option<Address>,
+}
+
+impl From<algokit_transact::SignedTransaction> for SignedTransaction {
+    fn from(signed_tx: algokit_transact::SignedTransaction) -> Self {
+        Self {
+            transaction: signed_tx.transaction.try_into().unwrap(),
+            signature: signed_tx.signature.map(|sig| sig.to_vec().into()),
+            auth_address: signed_tx.auth_address.map(Into::into),
+        }
+    }
+}
+
+impl TryFrom<SignedTransaction> for algokit_transact::SignedTransaction {
+    type Error = AlgoKitTransactError;
+
+    fn try_from(signed_tx: SignedTransaction) -> Result<Self, Self::Error> {
+        let signature = signed_tx
+            .signature
+            .map(|sig| {
+                sig.to_vec().try_into().map_err(|_| {
+                    AlgoKitTransactError::EncodingError(format!(
+                        "signature should be {} bytes",
+                        ALGORAND_SIGNATURE_BYTE_LENGTH
+                    ))
+                })
+            })
+            .transpose()?;
+
+        Ok(Self {
+            transaction: signed_tx.transaction.try_into()?,
+            signature,
+            auth_address: signed_tx.auth_address.map(TryInto::try_into).transpose()?,
+        })
     }
 }
 
@@ -414,25 +460,9 @@ pub fn decode_transaction(bytes: &[u8]) -> Result<Transaction, AlgoKitTransactEr
     Ok(ctx.try_into()?)
 }
 
-#[ffi_func]
-pub fn attach_signature(
-    encoded_tx: &[u8],
-    signature: &[u8],
-) -> Result<Vec<u8>, AlgoKitTransactError> {
-    let encoded_tx = algokit_transact::Transaction::decode(encoded_tx)?;
-    let signed_tx = algokit_transact::SignedTransaction {
-        transaction: encoded_tx,
-        signature: signature.try_into().expect(&format!(
-            "signature should be {} bytes",
-            ALGORAND_SIGNATURE_BYTE_LENGTH
-        )),
-    };
-    Ok(signed_tx.encode()?)
-}
-
-#[ffi_func]
 /// Return the size of the transaction in bytes as if it was already signed and encoded.
 /// This is useful for estimating the fee for the transaction.
+#[ffi_func]
 pub fn estimate_transaction_size(transaction: &Transaction) -> Result<u64, AlgoKitTransactError> {
     let core_tx: algokit_transact::Transaction = transaction.clone().try_into()?;
     return core_tx
@@ -559,6 +589,34 @@ pub fn assign_fee(
     let updated_txn = txn_internal.assign_fee(fee_params_internal)?;
 
     Ok(updated_txn.try_into()?)
+}
+
+/// Decodes a signed transaction.
+///
+/// # Parameters
+/// * `bytes` - The MsgPack encoded signed transaction bytes
+///
+/// # Returns
+/// The decoded SignedTransaction or an error if decoding fails.
+#[ffi_func]
+pub fn decode_signed_transaction(bytes: &[u8]) -> Result<SignedTransaction, AlgoKitTransactError> {
+    let signed_tx = algokit_transact::SignedTransaction::decode(bytes)?;
+    Ok(signed_tx.into())
+}
+
+/// Encode a signed transaction to MsgPack for sending on the network.
+///
+/// # Parameters
+/// * `signed_tx` - The signed transaction to encode
+///
+/// # Returns
+/// The MsgPack encoded bytes or an error if encoding fails.
+#[ffi_func]
+pub fn encode_signed_transaction(
+    signed_tx: SignedTransaction,
+) -> Result<Vec<u8>, AlgoKitTransactError> {
+    let signed_tx_internal: algokit_transact::SignedTransaction = signed_tx.try_into()?;
+    Ok(signed_tx_internal.encode()?)
 }
 
 #[cfg(test)]

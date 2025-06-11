@@ -19,6 +19,8 @@ use crate::constants::{
 };
 use crate::error::AlgoKitTransactError;
 use crate::traits::{AlgorandMsgpack, EstimateTransactionSize, TransactionId};
+use crate::utils::is_zero_addr_opt;
+use crate::Address;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, Bytes};
 use std::any::Any;
@@ -130,10 +132,16 @@ pub struct SignedTransaction {
     #[serde(rename = "txn")]
     pub transaction: Transaction,
 
-    /// The Ed25519 signature authorizing the transaction.
+    /// Optional Ed25519 signature authorizing the transaction.
     #[serde(rename = "sig")]
-    #[serde_as(as = "Bytes")]
-    pub signature: [u8; ALGORAND_SIGNATURE_BYTE_LENGTH],
+    #[serde_as(as = "Option<Bytes>")]
+    pub signature: Option<[u8; ALGORAND_SIGNATURE_BYTE_LENGTH]>,
+
+    /// Optional auth address applicable if the transaction sender is a rekeyed account.
+    #[serde(rename = "sgnr")]
+    #[serde(skip_serializing_if = "is_zero_addr_opt")]
+    #[serde(default)]
+    pub auth_address: Option<Address>,
 }
 
 impl AlgorandMsgpack for SignedTransaction {

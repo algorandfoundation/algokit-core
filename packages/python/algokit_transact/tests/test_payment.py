@@ -1,15 +1,17 @@
 import pytest
+
 from . import TEST_DATA
 from algokit_transact import (
     FeeParams,
     assign_fee,
     encode_transaction,
+    encode_signed_transaction,
     PaymentTransactionFields,
     TransactionType,
-    attach_signature,
     decode_transaction,
     get_encoded_transaction_type,
     Transaction,
+    SignedTransaction,
     address_from_string,
     address_from_pub_key,
     get_transaction_id,
@@ -45,9 +47,16 @@ def test_example():
 
     txn_with_fee = assign_fee(txn, FeeParams(fee_per_byte=0, min_fee=1000))
 
+    assert txn_with_fee.fee == 1000
+
     sig = alice_keypair.sign(encode_transaction(txn_with_fee)).signature
-    signed_txn = attach_signature(encode_transaction(txn_with_fee), sig)
-    assert len(signed_txn) > 0
+    signed_txn = SignedTransaction(
+        transaction=txn_with_fee,
+        signature=sig,
+    )
+    encoded_signed_txn = encode_signed_transaction(signed_txn)
+
+    assert len(encoded_signed_txn) > 0
 
 
 @pytest.mark.group_transaction_tests
@@ -82,9 +91,29 @@ def test_encode_with_signature():
     sig = simple_payment.signing_private_key.sign(
         simple_payment.unsigned_bytes
     ).signature
-    print(len(sig))
-    signed_tx = attach_signature(simple_payment.unsigned_bytes, sig)
-    assert signed_tx == simple_payment.signed_bytes
+    signed_txn = SignedTransaction(
+        transaction=simple_payment.transaction,
+        signature=sig,
+    )
+    encoded_signed_transaction = encode_signed_transaction(signed_txn)
+
+    assert encoded_signed_transaction == simple_payment.signed_bytes
+
+
+@pytest.mark.group_transaction_tests
+def test_encode_with_auth_address():
+    """An auth address can be attached to a encoded transaction with a signature"""
+    sig = simple_payment.signing_private_key.sign(
+        simple_payment.unsigned_bytes
+    ).signature
+    signed_txn = SignedTransaction(
+        transaction=simple_payment.transaction,
+        signature=sig,
+        auth_address=simple_payment.rekeyed_sender_auth_address,
+    )
+    encoded_signed_transaction = encode_signed_transaction(signed_txn)
+
+    assert encoded_signed_transaction == simple_payment.rekeyed_sender_signed_bytes
 
 
 @pytest.mark.group_transaction_tests

@@ -19,7 +19,7 @@ from algokit_utils import SigningAccount
 import pytest
 import base64
 from algosdk.encoding import msgpack_decode
-from algosdk.transaction import SignedTransaction
+from algosdk.transaction import SignedTransaction as AlgosdkSignedTransaction
 
 from algokit_algod_api.api.algod_api import AlgodApi
 from algokit_algod_api.exceptions import ApiException
@@ -27,8 +27,9 @@ from algokit_algod_api.models.transaction_params200_response import TransactionP
 from algokit_transact import (
     encode_transaction,
     TransactionType,
-    attach_signature,
+    encode_signed_transaction,
     Transaction,
+    SignedTransaction,
     PaymentTransactionFields,
     Address,
 )
@@ -88,9 +89,13 @@ def create_test_transaction(
     
     # Safely extract signature from the signed transaction
     signed_algosdk_txn = sender.signer.sign_transactions([algosdk_txn], [0])[0]
-    sig = cast(SignedTransaction, signed_algosdk_txn).signature
+    sig = cast(AlgosdkSignedTransaction, signed_algosdk_txn).signature
+    signed_txn = SignedTransaction(
+        transaction=txn,
+        signature=base64.b64decode(sig),
+    )
     
-    return attach_signature(encoded_txn, base64.b64decode(sig))
+    return encode_signed_transaction(signed_txn)
 
 
 def handle_api_exception(e: ApiException) -> None:

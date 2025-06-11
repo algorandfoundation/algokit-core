@@ -1,5 +1,5 @@
 import * as path from "path";
-import { Transaction } from "..";
+import { Address, Transaction } from "..";
 
 const jsonString = await Bun.file(path.join(__dirname, "../../../../crates/algokit_transact_ffi/test_data.json")).text();
 
@@ -26,6 +26,8 @@ type TransactionTestData = {
   unsignedBytes: Uint8Array;
   signedBytes: Uint8Array;
   signingPrivateKey: Uint8Array;
+  rekeyedSenderAuthAddress: Address;
+  rekeyedSenderSignedBytes: Uint8Array;
 };
 
 export const testData = parseJson<Record<"simplePayment" | "optInAssetTransfer", TransactionTestData>>(jsonString);

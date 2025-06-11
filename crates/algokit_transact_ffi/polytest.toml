@@ -37,6 +37,9 @@ desc = "A transaction with valid fields is encoded properly"
 [group."Transaction Tests".test."encode with signature"]
 desc = "A signature can be attached to a encoded transaction"
 
+[group."Transaction Tests".test."encode with auth address"]
+desc = "An auth address can be attached to a encoded transaction with a signature"
+
 [group."Transaction Tests".test."decode with prefix"]
 desc = "A transaction with TX prefix and valid fields is decoded properly"
 
