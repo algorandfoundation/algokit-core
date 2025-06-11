@@ -1,6 +1,6 @@
 import { expect, test, describe } from "bun:test";
 import { testData } from "./common.ts";
-import { groupTransactions } from "../src/index";
+import { groupTransactions } from "..";
 
 const simplePayment = testData.simplePayment;
 const optInAssetTransfer = testData.optInAssetTransfer;
