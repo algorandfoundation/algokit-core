@@ -3,6 +3,9 @@
   "workspaces": {
     "": {
       "name": "@algorandfoundation/algokit-transact",
+      "dependencies": {
+        "binaryen": "^123.0.0",
+      },
       "devDependencies": {
         "@jest/globals": "^29.7.0",
         "@microsoft/api-extractor": "^7.50.0",
@@ -13,7 +16,6 @@
         "@rollup/plugin-wasm": "^6.2.2",
         "@types/bun": "^1.2.4",
         "@types/node": "^22.13.9",
-        "binaryen": "^122.0.0",
         "bun": "^1.2.4",
         "cross-env": "^7.0.3",
         "jest": "^29.7.0",
@@ -330,7 +332,7 @@
 
     "binary-searching": ["binary-searching@2.0.5", "", {}, "sha512-v4N2l3RxL+m4zDxyxz3Ne2aTmiPn8ZUpKFpdPtO+ItW1NcTCXA7JeHG5GMBSvoKSkQZ9ycS+EouDVxYB9ufKWA=="],
 
-    "binaryen": ["binaryen@122.0.0", "", { "bin": { "wasm-as": "bin/wasm-as", "wasm2js": "bin/wasm2js", "wasm-dis": "bin/wasm-dis", "wasm-opt": "bin/wasm-opt", "wasm-merge": "bin/wasm-merge", "wasm-shell": "bin/wasm-shell", "wasm-reduce": "bin/wasm-reduce", "wasm-metadce": "bin/wasm-metadce", "wasm-ctor-eval": "bin/wasm-ctor-eval" } }, "sha512-XOvjvucq04e5UW0cuoiEZX4wxzepuF7q8sz24JtaXltqjgCqQOZHPXAq5ja/eLljF/orWYmaxuWivpp7paVUCQ=="],
+    "binaryen": ["binaryen@123.0.0", "", { "bin": { "wasm-as": "bin/wasm-as", "wasm2js": "bin/wasm2js", "wasm-dis": "bin/wasm-dis", "wasm-opt": "bin/wasm-opt", "wasm-merge": "bin/wasm-merge", "wasm-shell": "bin/wasm-shell", "wasm-reduce": "bin/wasm-reduce", "wasm-metadce": "bin/wasm-metadce", "wasm-ctor-eval": "bin/wasm-ctor-eval" } }, "sha512-/hls/a309aZCc0itqP6uhoR+5DsKSlJVfB8Opd2BY9Ndghs84IScTunlyidyF4r2Xe3lQttnfBNIDjaNpj6mTw=="],
 
     "brace-expansion": ["brace-expansion@1.1.11", "", { "dependencies": { "balanced-match": "^1.0.0", "concat-map": "0.0.1" } }, "sha512-iCuPHDFgrHX7H2vEI/5xpz07zSHB00TpugqhmYtVmMO6518mCuRMoOYFldEBl0g187ufozdaHgWKcYFb61qGiA=="],
 
