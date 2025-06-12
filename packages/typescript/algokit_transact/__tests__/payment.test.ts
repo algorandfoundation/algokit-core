@@ -21,7 +21,6 @@ const simplePayment = testData.simplePayment;
 describe("Payment", () => {
   // Polytest Suite: Payment
 
-
   describe("Transaction Tests", () => {
     // Polytest Group: Transaction Tests
 
@@ -53,10 +52,17 @@ describe("Payment", () => {
         },
       };
 
-      const txnWithFee = assignFee(txn, {
-        feePerByte: 0n,
-        minFee: 1000n,
-      });
+      const txnWithFee = assignFee(
+        txn,
+        {
+          feePerByte: 0n,
+          minFee: 1000n,
+        },
+        {
+          extraFee: undefined,
+          maxFee: undefined,
+        },
+      );
 
       expect(txnWithFee.fee).toBe(1000n);
 
@@ -85,7 +91,7 @@ describe("Payment", () => {
       expect(encodedSignedTxn).toEqual(simplePayment.signedBytes);
     });
 
-     test("encode with auth address", async () => {
+    test("encode with auth address", async () => {
       const sig = await ed.signAsync(simplePayment.unsignedBytes, simplePayment.signingPrivateKey);
       const signedTxn: SignedTransaction = {
         transaction: simplePayment.transaction,
