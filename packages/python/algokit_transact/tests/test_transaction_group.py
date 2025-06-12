@@ -10,6 +10,10 @@ from algokit_transact import (
     decode_transactions,
     decode_signed_transactions,
     SignedTransaction,
+    assign_fees,
+    NetworkFeeParams,
+    IndexedTransactionFeeParams,
+    TransactionFeeParams,
 )
 
 simple_payment = TEST_DATA.simple_payment
@@ -73,24 +77,32 @@ def test_assign_fees_to_transaction_group():
     data = simple_group()
     txs = data["txs"]
 
-    # Create fee parameters for each transaction in the group
-    fee_params = [
-        FeeParams(
-            fee_per_byte=1,
-            min_fee=1000,
-            extra_fee=None,
-            max_fee=None,
+    # Create network fee parameters
+    network_fee_params = NetworkFeeParams(
+        fee_per_byte=1,
+        min_fee=1000,
+    )
+
+    # Create indexed fee parameters for each transaction in the group
+    indexed_fee_params = [
+        IndexedTransactionFeeParams(
+            index=0,
+            fee_params=TransactionFeeParams(
+                extra_fee=None,
+                max_fee=None,
+            ),
         ),
-        FeeParams(
-            fee_per_byte=2,
-            min_fee=2000,
-            extra_fee=500,
-            max_fee=None,
+        IndexedTransactionFeeParams(
+            index=1,
+            fee_params=TransactionFeeParams(
+                extra_fee=500,
+                max_fee=None,
+            ),
         ),
     ]
 
     # Assign fees to the transaction group
-    txs_with_fees = assign_fees(txs, fee_params)
+    txs_with_fees = assign_fees(txs, network_fee_params, indexed_fee_params)
 
     # Verify that we get back the same number of transactions
     assert len(txs_with_fees) == len(txs)
@@ -100,9 +112,9 @@ def test_assign_fees_to_transaction_group():
     # Expected fee should be max(calculated_fee, min_fee) = max(247, 1000) = 1000
     assert txs_with_fees[0].fee == 1000
 
-    # Second transaction: fee_per_byte=2, min_fee=2000, extra_fee=500
-    # Expected fee should be max(calculated_fee, min_fee) + extra_fee = max(494, 2000) + 500 = 2500
-    assert txs_with_fees[1].fee == 2500
+    # Second transaction: fee_per_byte=1, min_fee=1000, extra_fee=500
+    # Expected fee should be max(calculated_fee, min_fee) + extra_fee = max(247, 1000) + 500 = 1500
+    assert txs_with_fees[1].fee == 1500
 
     # Verify that other transaction fields remain unchanged
     assert txs_with_fees[0].sender == txs[0].sender
