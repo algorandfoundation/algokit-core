@@ -6,8 +6,8 @@ use crate::{
         AddressMother, TransactionGroupMother, TransactionHeaderMother, TransactionMother,
     },
     transactions::FeeParams,
-    Address, AlgorandMsgpack, EstimateTransactionSize, SignedTransaction, SignedTransactions,
-    Transaction, TransactionId, Transactions,
+    Address, AlgorandMsgpack, EstimateTransactionSize, SignedTransaction, Transaction,
+    TransactionId, Transactions,
 };
 use base64::{prelude::BASE64_STANDARD, Engine};
 use pretty_assertions::assert_eq;
@@ -335,8 +335,16 @@ fn test_transaction_group_encoding() {
         .assign_group()
         .unwrap();
 
-    let encoded_grouped_txs = grouped_txs.encode().unwrap();
-    let decoded_grouped_txs = <&[Transaction]>::decode(&encoded_grouped_txs).unwrap();
+    let encoded_grouped_txs = grouped_txs
+        .iter()
+        .map(|tx| tx.encode())
+        .collect::<Result<Vec<Vec<u8>>, _>>()
+        .unwrap();
+    let decoded_grouped_txs = encoded_grouped_txs
+        .iter()
+        .map(|tx| Transaction::decode(tx))
+        .collect::<Result<Vec<Transaction>, _>>()
+        .unwrap();
 
     for ((grouped_tx, encoded_tx), decoded_tx) in grouped_txs
         .iter()
@@ -361,8 +369,16 @@ fn test_signed_transaction_group_encoding() {
         })
         .collect::<Vec<SignedTransaction>>();
 
-    let encoded_signed_group = signed_grouped_txs.encode().unwrap();
-    let decoded_signed_group = <&[SignedTransaction]>::decode(&encoded_signed_group).unwrap();
+    let encoded_signed_group = signed_grouped_txs
+        .iter()
+        .map(|tx| tx.encode())
+        .collect::<Result<Vec<Vec<u8>>, _>>()
+        .unwrap();
+    let decoded_signed_group = encoded_signed_group
+        .iter()
+        .map(|tx| SignedTransaction::decode(tx))
+        .collect::<Result<Vec<SignedTransaction>, _>>()
+        .unwrap();
 
     for ((signed_grouped_tx, encoded_signed_tx), decoded_signed_tx) in signed_grouped_txs
         .iter()

@@ -9,9 +9,7 @@ mod utils;
 pub use address::Address;
 pub use constants::*;
 pub use error::AlgoKitTransactError;
-pub use traits::{
-    AlgorandMsgpack, EstimateTransactionSize, SignedTransactions, TransactionId, Transactions,
-};
+pub use traits::{AlgorandMsgpack, EstimateTransactionSize, TransactionId, Transactions};
 pub use transactions::{
     AssetTransferTransactionBuilder, AssetTransferTransactionFields, FeeParams,
     PaymentTransactionBuilder, PaymentTransactionFields, SignedTransaction, Transaction,
