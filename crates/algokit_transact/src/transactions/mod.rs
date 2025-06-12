@@ -249,33 +249,36 @@ impl Transactions for &[Transaction] {
     ///
     /// # Parameters
     /// * `network_params` - Network-level fee parameters that apply to all transactions
-    /// * `transaction_params` - A vector of transaction-specific fee parameters for each transaction. The size must match the number of transactions.
+    /// * `transaction_params` - A vector of tuples containing (index, fee_params) for transactions that should have fees assigned
     ///
     /// # Returns
     /// A result containing the transactions with fees assigned or an error if the operation fails.
     fn assign_fees(
-        &self,
+        self,
         network_params: NetworkFeeParams,
-        transaction_params: Vec<TransactionFeeParams>,
+        transaction_params: Vec<(usize, TransactionFeeParams)>,
     ) -> Result<Vec<Transaction>, AlgoKitTransactError> {
-        if self.len() != transaction_params.len() {
-            return Err(AlgoKitTransactError::InputError(format!(
-                "Number of transaction fee parameters ({}) must match number of transactions ({})",
-                transaction_params.len(),
-                self.len()
-            )));
-        }
-
         if self.is_empty() {
             return Err(AlgoKitTransactError::InputError(String::from(
                 "Transaction group size cannot be 0",
             )));
         }
 
-        self.iter()
-            .zip(transaction_params.into_iter())
-            .map(|(tx, tx_param)| tx.assign_fee(network_params, tx_param))
-            .collect::<Result<Vec<Transaction>, AlgoKitTransactError>>()
+        let mut result = self.to_vec();
+
+        for (index, tx_param) in transaction_params {
+            if index >= result.len() {
+                return Err(AlgoKitTransactError::InputError(format!(
+                    "Transaction index {} is out of bounds for transaction group of size {}",
+                    index,
+                    result.len()
+                )));
+            }
+
+            result[index] = result[index].assign_fee(network_params, tx_param)?;
+        }
+
+        Ok(result)
     }
 
     /// Encodes the supplied transactions to MsgPack format with the appropriate prefix (TX).

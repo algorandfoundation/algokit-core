@@ -153,14 +153,14 @@ pub trait Transactions: Sized {
     ///
     /// # Parameters
     /// * `network_params` - Network-level fee parameters that apply to all transactions
-    /// * `transaction_params` - A vector of transaction-specific fee parameters for each transaction. The size must match the number of transactions.
+    /// * `transaction_params` - A vector of tuples containing (index, fee_params) for transactions that should have fees assigned
     ///
     /// # Returns
     /// A result containing the transactions with fees assigned or an error if the operation fails.
     fn assign_fees(
-        &self,
+        self,
         network_params: NetworkFeeParams,
-        transaction_params: Vec<TransactionFeeParams>,
+        transaction_params: Vec<(usize, TransactionFeeParams)>,
     ) -> Result<Vec<Transaction>, AlgoKitTransactError>;
 
     /// Encodes the supplied transactions to MessagePack format with the appropriate prefix (TX).

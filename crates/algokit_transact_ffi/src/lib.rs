@@ -151,6 +151,12 @@ pub struct TransactionFeeParams {
 }
 
 #[ffi_record]
+pub struct IndexedTransactionFeeParams {
+    index: u64,
+    fee_params: TransactionFeeParams,
+}
+
+#[ffi_record]
 pub struct PaymentTransactionFields {
     receiver: Address,
 
@@ -620,7 +626,7 @@ pub fn group_transactions(txs: Vec<Transaction>) -> Result<Vec<Transaction>, Alg
 pub fn assign_fees(
     txs: Vec<Transaction>,
     network_params: NetworkFeeParams,
-    transaction_params: Vec<TransactionFeeParams>,
+    transaction_params: Vec<IndexedTransactionFeeParams>,
 ) -> Result<Vec<Transaction>, AlgoKitTransactError> {
     let txs_internal: Vec<algokit_transact::Transaction> = txs
         .into_iter()
@@ -628,12 +634,14 @@ pub fn assign_fees(
         .collect::<Result<Vec<_>, _>>()?;
 
     let network_params_internal: algokit_transact::NetworkFeeParams = network_params.into();
-    let transaction_params_internal: Vec<algokit_transact::TransactionFeeParams> = transaction_params
-        .into_iter()
-        .map(|tp| tp.into())
-        .collect();
+    let transaction_params_internal: Vec<(usize, algokit_transact::TransactionFeeParams)> =
+        transaction_params
+            .into_iter()
+            .map(|itp| (itp.index as usize, itp.fee_params.into()))
+            .collect();
 
     let txs_with_fees: Vec<Transaction> = txs_internal
+        .as_slice()
         .assign_fees(network_params_internal, transaction_params_internal)?
         .into_iter()
         .map(|tx| tx.try_into())
@@ -719,9 +727,11 @@ pub fn assign_fee(
 ) -> Result<Transaction, AlgoKitTransactError> {
     let txn_internal: algokit_transact::Transaction = txn.try_into()?;
     let network_params_internal: algokit_transact::NetworkFeeParams = network_params.into();
-    let transaction_params_internal: algokit_transact::TransactionFeeParams = transaction_params.into();
+    let transaction_params_internal: algokit_transact::TransactionFeeParams =
+        transaction_params.into();
 
-    let updated_txn = txn_internal.assign_fee(network_params_internal, transaction_params_internal)?;
+    let updated_txn =
+        txn_internal.assign_fee(network_params_internal, transaction_params_internal)?;
 
     Ok(updated_txn.try_into()?)
 }
