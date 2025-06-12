@@ -5,7 +5,7 @@ use crate::{
     test_utils::{
         AddressMother, TransactionGroupMother, TransactionHeaderMother, TransactionMother,
     },
-    transactions::FeeParams,
+    transactions::{NetworkFeeParams, TransactionFeeParams},
     Address, AlgorandMsgpack, EstimateTransactionSize, SignedTransaction, Transaction,
     TransactionId, Transactions,
 };
