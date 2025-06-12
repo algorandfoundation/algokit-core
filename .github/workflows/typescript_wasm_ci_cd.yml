@@ -54,7 +54,7 @@ jobs:
           bun-version: latest
       - run: bun install --frozen-lockfile
       - name: Build
-        run: bun build:${{ inputs.crate }}:ts
+        run: cargo pkg ${{ inputs.crate }} typescript
       - name: Test
         working-directory: ${{ env.PACKAGE_DIR }}
         run: bun test

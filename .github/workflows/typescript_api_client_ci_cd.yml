@@ -69,7 +69,7 @@ jobs:
           git diff --exit-code --minimal ${{ env.PACKAGE_DIR }}
 
       - name: Build TypeScript algokit_transact
-        run: bun build:algokit_transact:ts
+        run: cargo pkg transact typescript
 
       - name: Build
         working-directory: ${{ env.PACKAGE_DIR }}

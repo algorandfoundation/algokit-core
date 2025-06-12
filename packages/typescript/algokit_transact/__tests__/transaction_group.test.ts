@@ -138,12 +138,10 @@ describe("Transaction Group", () => {
 
       expect(encodedSignedGroupedTxs.length).toBe(txs.length);
       for (let i = 0; i < encodedSignedGroupedTxs.length; i++) {
-        expect(encodedSignedGroupedTxs[i]).toEqual(
-          encodeSignedTransaction({
-            transaction: groupedTxs[i],
-            signature: txSignatures[i],
-          }),
-        );
+        expect(encodedSignedGroupedTxs[i]).toEqual(encodeSignedTransaction({
+          transaction: groupedTxs[i],
+          signature: txSignatures[i],
+        }));
       }
 
       const decodedSignedGroupedTxs = decodeSignedTransactions(encodedSignedGroupedTxs);

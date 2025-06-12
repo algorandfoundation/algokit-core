@@ -32,6 +32,6 @@ jobs:
         with:
           bun-version: latest
       - name: Build
-        run: bun scripts/build ${{ env.CRATE }} typescript
+        run: cargo pkg ${{ env.CRATE }} typescript
       - name: Test
         run: cd packages/typescript/${{ env.CRATE }} && bun test
