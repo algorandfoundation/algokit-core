@@ -80,7 +80,7 @@ impl Transaction {
     pub fn assign_fee(
         &self,
         network_params: NetworkFeeParams,
-        transaction_params: TransactionFeeParams,
+        transaction_params: Option<TransactionFeeParams>,
     ) -> Result<Transaction, AlgoKitTransactError> {
         let mut tx = self.clone();
         let mut calculated_fee: u64 = 0;
@@ -94,16 +94,18 @@ impl Transaction {
             calculated_fee = network_params.min_fee;
         }
 
-        if let Some(extra_fee) = transaction_params.extra_fee {
-            calculated_fee += extra_fee;
-        }
+        if let Some(params) = transaction_params {
+            if let Some(extra_fee) = params.extra_fee {
+                calculated_fee += extra_fee;
+            }
 
-        if let Some(max_fee) = transaction_params.max_fee {
-            if calculated_fee > max_fee {
-                return Err(AlgoKitTransactError::InputError(format!(
-                    "Transaction fee {} µALGO is greater than max fee {} µALGO",
-                    calculated_fee, max_fee
-                )));
+            if let Some(max_fee) = params.max_fee {
+                if calculated_fee > max_fee {
+                    return Err(AlgoKitTransactError::InputError(format!(
+                        "Transaction fee {} µALGO is greater than max fee {} µALGO",
+                        calculated_fee, max_fee
+                    )));
+                }
             }
         }
 
@@ -275,7 +277,7 @@ impl Transactions for &[Transaction] {
                 )));
             }
 
-            result[index] = result[index].assign_fee(network_params, tx_param)?;
+            result[index] = result[index].assign_fee(network_params, Some(tx_param))?;
         }
 
         Ok(result)

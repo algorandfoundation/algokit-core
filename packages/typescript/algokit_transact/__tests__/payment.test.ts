@@ -1,7 +1,6 @@
 import { expect, test, describe } from "bun:test";
 import { testData } from "./common.ts";
 import * as ed from "@noble/ed25519";
-import * as fs from "fs";
 import {
   encodeTransaction,
   decodeTransaction,
@@ -52,17 +51,10 @@ describe("Payment", () => {
         },
       };
 
-      const txnWithFee = assignFee(
-        txn,
-        {
-          feePerByte: 0n,
-          minFee: 1000n,
-        },
-        {
-          extraFee: undefined,
-          maxFee: undefined,
-        },
-      );
+      const txnWithFee = assignFee(txn, {
+        feePerByte: 0n,
+        minFee: 1000n,
+      });
 
       expect(txnWithFee.fee).toBe(1000n);
 

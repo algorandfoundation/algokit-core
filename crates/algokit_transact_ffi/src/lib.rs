@@ -722,12 +722,12 @@ impl From<TransactionFeeParams> for algokit_transact::TransactionFeeParams {
 pub fn assign_fee(
     txn: Transaction,
     network_params: NetworkFeeParams,
-    transaction_params: TransactionFeeParams,
+    transaction_params: Option<TransactionFeeParams>,
 ) -> Result<Transaction, AlgoKitTransactError> {
     let txn_internal: algokit_transact::Transaction = txn.try_into()?;
     let network_params_internal: algokit_transact::NetworkFeeParams = network_params.into();
-    let transaction_params_internal: algokit_transact::TransactionFeeParams =
-        transaction_params.into();
+    let transaction_params_internal: Option<algokit_transact::TransactionFeeParams> =
+        transaction_params.map(|params| params.into());
 
     let updated_txn =
         txn_internal.assign_fee(network_params_internal, transaction_params_internal)?;

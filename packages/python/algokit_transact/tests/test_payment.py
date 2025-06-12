@@ -16,7 +16,6 @@ from algokit_transact import (
     get_transaction_id,
     get_transaction_id_raw,
     NetworkFeeParams,
-    TransactionFeeParams,
 )
 from nacl.signing import SigningKey
 
@@ -46,14 +45,7 @@ def test_example():
         payment=PaymentTransactionFields(amount=1337, receiver=bob),
     )
 
-    txn_with_fee = assign_fee(
-        txn,
-        NetworkFeeParams(fee_per_byte=0, min_fee=1000),
-        TransactionFeeParams(
-            extra_fee=None,
-            max_fee=None,
-        ),
-    )
+    txn_with_fee = assign_fee(txn, NetworkFeeParams(fee_per_byte=0, min_fee=1000), None)
 
     assert txn_with_fee.fee == 1000
 

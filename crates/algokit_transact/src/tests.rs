@@ -177,14 +177,8 @@ fn test_min_fee() {
         fee_per_byte: 0,
         min_fee: 1000,
     };
-    let transaction_fee_params = TransactionFeeParams {
-        extra_fee: None,
-        max_fee: None,
-    };
 
-    let updated_transaction = txn
-        .assign_fee(network_fee_params, transaction_fee_params)
-        .unwrap();
+    let updated_transaction = txn.assign_fee(network_fee_params, None).unwrap();
     assert_eq!(updated_transaction.header().fee, Some(1000));
 }
 
@@ -202,7 +196,7 @@ fn test_extra_fee() {
     };
 
     let updated_transaction = txn
-        .assign_fee(network_fee_params, transaction_fee_params)
+        .assign_fee(network_fee_params, Some(transaction_fee_params))
         .unwrap();
     assert_eq!(updated_transaction.header().fee, Some(1500));
 }
@@ -220,7 +214,7 @@ fn test_max_fee() {
         max_fee: Some(1000),
     };
 
-    let result = txn.assign_fee(network_fee_params, transaction_fee_params);
+    let result = txn.assign_fee(network_fee_params, Some(transaction_fee_params));
 
     assert!(result.is_err());
     let err: crate::AlgoKitTransactError = result.unwrap_err();
@@ -240,14 +234,8 @@ fn test_calculate_fee() {
         fee_per_byte: 5,
         min_fee: 1000,
     };
-    let transaction_fee_params = TransactionFeeParams {
-        extra_fee: None,
-        max_fee: None,
-    };
 
-    let updated_transaction = txn
-        .assign_fee(network_fee_params, transaction_fee_params)
-        .unwrap();
+    let updated_transaction = txn.assign_fee(network_fee_params, None).unwrap();
 
     assert_eq!(updated_transaction.header().fee, Some(1235));
 }
