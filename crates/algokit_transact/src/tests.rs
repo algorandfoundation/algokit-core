@@ -1,9 +1,11 @@
-use crate::constants::{ALGORAND_SIGNATURE_BYTE_LENGTH, ALGORAND_SIGNATURE_ENCODING_INCR};
-use crate::test_utils::{TransactionGroupMother, TransactionHeaderMother};
-use crate::FeeParams;
-use crate::MAX_TX_GROUP_SIZE;
 use crate::{
-    test_utils::{AddressMother, TransactionMother},
+    constants::{
+        ALGORAND_SIGNATURE_BYTE_LENGTH, ALGORAND_SIGNATURE_ENCODING_INCR, MAX_TX_GROUP_SIZE,
+    },
+    test_utils::{
+        AddressMother, TransactionGroupMother, TransactionHeaderMother, TransactionMother,
+    },
+    transactions::FeeParams,
     Address, AlgorandMsgpack, EstimateTransactionSize, SignedTransaction, Transaction,
     TransactionId, Transactions,
 };
@@ -325,4 +327,65 @@ fn test_transaction_group_already_set() {
     assert!(error
         .to_string()
         .starts_with("Transactions must not already be grouped"));
+}
+
+#[test]
+fn test_transaction_group_encoding() {
+    let grouped_txs = TransactionGroupMother::testnet_payment_group()
+        .assign_group()
+        .unwrap();
+
+    let encoded_grouped_txs = grouped_txs
+        .iter()
+        .map(|tx| tx.encode())
+        .collect::<Result<Vec<Vec<u8>>, _>>()
+        .unwrap();
+    let decoded_grouped_txs = encoded_grouped_txs
+        .iter()
+        .map(|tx| Transaction::decode(tx))
+        .collect::<Result<Vec<Transaction>, _>>()
+        .unwrap();
+
+    for ((grouped_tx, encoded_tx), decoded_tx) in grouped_txs
+        .iter()
+        .zip(encoded_grouped_txs.into_iter())
+        .zip(decoded_grouped_txs.iter())
+    {
+        assert_eq!(encoded_tx, grouped_tx.encode().unwrap());
+        assert_eq!(decoded_tx, grouped_tx);
+    }
+}
+
+#[test]
+fn test_signed_transaction_group_encoding() {
+    let signed_grouped_txs = TransactionGroupMother::testnet_payment_group()
+        .assign_group()
+        .unwrap()
+        .iter()
+        .map(|tx| SignedTransaction {
+            transaction: tx.clone(),
+            signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
+            auth_address: None,
+        })
+        .collect::<Vec<SignedTransaction>>();
+
+    let encoded_signed_group = signed_grouped_txs
+        .iter()
+        .map(|tx| tx.encode())
+        .collect::<Result<Vec<Vec<u8>>, _>>()
+        .unwrap();
+    let decoded_signed_group = encoded_signed_group
+        .iter()
+        .map(|tx| SignedTransaction::decode(tx))
+        .collect::<Result<Vec<SignedTransaction>, _>>()
+        .unwrap();
+
+    for ((signed_grouped_tx, encoded_signed_tx), decoded_signed_tx) in signed_grouped_txs
+        .iter()
+        .zip(encoded_signed_group.into_iter())
+        .zip(decoded_signed_group.iter())
+    {
+        assert_eq!(encoded_signed_tx, signed_grouped_tx.encode().unwrap());
+        assert_eq!(decoded_signed_tx, signed_grouped_tx);
+    }
 }

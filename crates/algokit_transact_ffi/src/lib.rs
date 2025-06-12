@@ -65,6 +65,8 @@ use uniffi::{self};
 uniffi::setup_scaffolding!();
 
 #[cfg(feature = "ffi_wasm")]
+use js_sys::Uint8Array;
+#[cfg(feature = "ffi_wasm")]
 use tsify_next::Tsify;
 #[cfg(feature = "ffi_wasm")]
 use wasm_bindgen::prelude::*;
@@ -448,6 +450,35 @@ pub fn encode_transaction(tx: Transaction) -> Result<Vec<u8>, AlgoKitTransactErr
     Ok(ctx.encode()?)
 }
 
+/// Encode transactions to MsgPack with the domain separation (e.g. "TX") prefix.
+///
+/// # Parameters
+/// * `txs` - A collection of transactions to encode
+///
+/// # Returns
+/// A collection of MsgPack encoded bytes or an error if encoding fails.
+#[cfg(feature = "ffi_wasm")]
+#[ffi_func]
+/// Encode transactions with the domain separation (e.g. "TX") prefix
+pub fn encode_transactions(txs: Vec<Transaction>) -> Result<Vec<Uint8Array>, AlgoKitTransactError> {
+    txs.into_iter()
+        .map(|tx| encode_transaction(tx).map(|bytes| bytes.as_slice().into()))
+        .collect()
+}
+
+/// Encode transactions to MsgPack with the domain separation (e.g. "TX") prefix.
+///
+/// # Parameters
+/// * `txs` - A collection of transactions to encode
+///
+/// # Returns
+/// A collection of MsgPack encoded bytes or an error if encoding fails.
+#[cfg(not(feature = "ffi_wasm"))]
+#[ffi_func]
+pub fn encode_transactions(txs: Vec<Transaction>) -> Result<Vec<Vec<u8>>, AlgoKitTransactError> {
+    txs.into_iter().map(encode_transaction).collect()
+}
+
 #[ffi_func]
 /// Encode the transaction without the domain separation (e.g. "TX") prefix
 /// This is useful for encoding the transaction for signing with tools that automatically add "TX" prefix to the transaction bytes.
@@ -456,10 +487,53 @@ pub fn encode_transaction_raw(tx: Transaction) -> Result<Vec<u8>, AlgoKitTransac
     Ok(ctx.encode_raw()?)
 }
 
+/// Decodes MsgPack bytes into a transaction.
+///
+/// # Parameters
+/// * `encoded_tx` - MsgPack encoded bytes representing a transaction.
+///
+/// # Returns
+/// A decoded transaction or an error if decoding fails.
 #[ffi_func]
-pub fn decode_transaction(bytes: &[u8]) -> Result<Transaction, AlgoKitTransactError> {
-    let ctx: algokit_transact::Transaction = algokit_transact::Transaction::decode(bytes)?;
+pub fn decode_transaction(encoded_tx: &[u8]) -> Result<Transaction, AlgoKitTransactError> {
+    let ctx: algokit_transact::Transaction = algokit_transact::Transaction::decode(encoded_tx)?;
     Ok(ctx.try_into()?)
+}
+
+/// Decodes a collection of MsgPack bytes into a transaction collection.
+///
+/// # Parameters
+/// * `encoded_txs` - A collection of MsgPack encoded bytes, each representing a transaction.
+///
+/// # Returns
+/// A collection of decoded transactions or an error if decoding fails.
+#[cfg(feature = "ffi_wasm")]
+#[ffi_func]
+pub fn decode_transactions(
+    encoded_txs: Vec<Uint8Array>,
+) -> Result<Vec<Transaction>, AlgoKitTransactError> {
+    encoded_txs
+        .iter()
+        .map(|bytes| decode_transaction(bytes.to_vec().as_slice()))
+        .collect()
+}
+
+/// Decodes a collection of MsgPack bytes into a transaction collection.
+///
+/// # Parameters
+/// * `encoded_txs` - A collection of MsgPack encoded bytes, each representing a transaction.
+///
+/// # Returns
+/// A collection of decoded transactions or an error if decoding fails.
+#[cfg(not(feature = "ffi_wasm"))]
+#[ffi_func]
+pub fn decode_transactions(
+    encoded_txs: Vec<Vec<u8>>,
+) -> Result<Vec<Transaction>, AlgoKitTransactError> {
+    encoded_txs
+        .iter()
+        .map(|tx| decode_transaction(tx))
+        .collect()
 }
 
 /// Return the size of the transaction in bytes as if it was already signed and encoded.
@@ -627,7 +701,45 @@ pub fn decode_signed_transaction(bytes: &[u8]) -> Result<SignedTransaction, Algo
     Ok(signed_tx.into())
 }
 
+/// Decodes a collection of MsgPack bytes into a signed transaction collection.
+///
+/// # Parameters
+/// * `encoded_signed_txs` - A collection of MsgPack encoded bytes, each representing a signed transaction.
+///
+/// # Returns
+/// A collection of decoded signed transactions or an error if decoding fails.
+#[cfg(feature = "ffi_wasm")]
+#[ffi_func]
+pub fn decode_signed_transactions(
+    encoded_signed_txs: Vec<Uint8Array>,
+) -> Result<Vec<SignedTransaction>, AlgoKitTransactError> {
+    encoded_signed_txs
+        .iter()
+        .map(|bytes| decode_signed_transaction(bytes.to_vec().as_slice()))
+        .collect()
+}
+
+/// Decodes a collection of MsgPack bytes into a signed transaction collection.
+///
+/// # Parameters
+/// * `encoded_signed_txs` - A collection of MsgPack encoded bytes, each representing a signed transaction.
+///
+/// # Returns
+/// A collection of decoded signed transactions or an error if decoding fails.
+#[cfg(not(feature = "ffi_wasm"))]
+#[ffi_func]
+pub fn decode_signed_transactions(
+    encoded_signed_txs: Vec<Vec<u8>>,
+) -> Result<Vec<SignedTransaction>, AlgoKitTransactError> {
+    encoded_signed_txs
+        .iter()
+        .map(|tx| decode_signed_transaction(tx))
+        .collect()
+}
+
 /// Encode a signed transaction to MsgPack for sending on the network.
+///
+/// This method performs canonical encoding. No domain separation prefix is applicable.
 ///
 /// # Parameters
 /// * `signed_tx` - The signed transaction to encode
@@ -640,6 +752,46 @@ pub fn encode_signed_transaction(
 ) -> Result<Vec<u8>, AlgoKitTransactError> {
     let signed_tx_internal: algokit_transact::SignedTransaction = signed_tx.try_into()?;
     Ok(signed_tx_internal.encode()?)
+}
+
+/// Encode signed transactions to MsgPack for sending on the network.
+///
+/// This method performs canonical encoding. No domain separation prefix is applicable.
+///
+/// # Parameters
+/// * `signed_txs` - A collection of signed transactions to encode
+///
+/// # Returns
+/// A collection of MsgPack encoded bytes or an error if encoding fails.
+#[cfg(feature = "ffi_wasm")]
+#[ffi_func]
+pub fn encode_signed_transactions(
+    signed_txs: Vec<SignedTransaction>,
+) -> Result<Vec<Uint8Array>, AlgoKitTransactError> {
+    signed_txs
+        .into_iter()
+        .map(|tx| encode_signed_transaction(tx).map(|bytes| bytes.as_slice().into()))
+        .collect()
+}
+
+/// Encode signed transactions to MsgPack for sending on the network.
+///
+/// This method performs canonical encoding. No domain separation prefix is applicable.
+///
+/// # Parameters
+/// * `signed_txs` - A collection of signed transactions to encode
+///
+/// # Returns
+/// A collection of MsgPack encoded bytes or an error if encoding fails.
+#[cfg(not(feature = "ffi_wasm"))]
+#[ffi_func]
+pub fn encode_signed_transactions(
+    signed_txs: Vec<SignedTransaction>,
+) -> Result<Vec<Vec<u8>>, AlgoKitTransactError> {
+    signed_txs
+        .into_iter()
+        .map(encode_signed_transaction)
+        .collect()
 }
 
 #[cfg(test)]

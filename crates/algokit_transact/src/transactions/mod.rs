@@ -148,10 +148,10 @@ pub struct SignedTransaction {
 }
 
 impl AlgorandMsgpack for SignedTransaction {
-    /// Decodes MessagePack bytes into a SignedTransaction.
+    /// Decodes MsgPack bytes into a SignedTransaction.
     ///
     /// # Parameters
-    /// * `bytes` - The MessagePack encoded signed transaction bytes
+    /// * `bytes` - The MsgPack encoded signed transaction bytes
     ///
     /// # Returns
     /// The decoded SignedTransaction or an error if decoding fails or the transaction type is not recognized.

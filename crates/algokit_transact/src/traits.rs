@@ -90,7 +90,7 @@ pub trait AlgorandMsgpack: Serialize + for<'de> Deserialize<'de> {
     /// # Returns
     /// The encoded bytes with prefix or an AlgoKitTransactError if serialization fails.
     fn encode(&self) -> Result<Vec<u8>, AlgoKitTransactError> {
-        let encoded = self.encode_raw()?;
+        let encoded: Vec<u8> = self.encode_raw()?;
         if Self::PREFIX.is_empty() {
             return Ok(encoded);
         }

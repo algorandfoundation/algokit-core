@@ -69,6 +69,12 @@ desc = "Tests that apply to collections of transactions"
 [group."Transaction Group Tests".test."group transactions"]
 desc = "A collection of transactions can be grouped"
 
+[group."Transaction Group Tests".test."encode transactions"]
+desc = "A collection of transactions can be encoded"
+
+[group."Transaction Group Tests".test."encode signed transactions"]
+desc = "A collection of signed transactions can be encoded"
+
 # Test Targets
 
 [target.bun]
