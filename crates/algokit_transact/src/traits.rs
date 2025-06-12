@@ -6,8 +6,8 @@
 use crate::error::AlgoKitTransactError;
 use crate::transactions::{NetworkFeeParams, TransactionFeeParams};
 use crate::utils::sort_msgpack_value;
+use crate::Transaction;
 use crate::{constants::HASH_BYTES_LENGTH, utils::hash};
-use crate::{SignedTransaction, Transaction};
 use serde::{Deserialize, Serialize};
 
 /// Trait for Algorand MessagePack encoding and decoding.

@@ -641,7 +641,6 @@ pub fn assign_fees(
             .collect();
 
     let txs_with_fees: Vec<Transaction> = txs_internal
-        .as_slice()
         .assign_fees(network_params_internal, transaction_params_internal)?
         .into_iter()
         .map(|tx| tx.try_into())
