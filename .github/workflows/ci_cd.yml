@@ -53,6 +53,7 @@ jobs:
       BOT_SK: ${{ secrets.BOT_SK }}
 
   typescript_api_ci_cd:
+    if: false # Temporarily disabled, as we need a new build of the transact package before we can release the API client
     needs:
       - setup
       - python_uniffi_ci_cd
@@ -69,6 +70,7 @@ jobs:
       NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This is used because the GitHub NPM package registry doesn't support GitHub App tokens
 
   python_api_ci_cd:
+    if: false # Temporarily disabled, as we need a new build of the transact package before we can release the API client
     needs:
       - setup
       - typescript_api_ci_cd
