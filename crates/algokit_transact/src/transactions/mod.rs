@@ -49,9 +49,15 @@ pub enum Transaction {
     // ApplicationCall(...),
 }
 
-pub struct FeeParams {
+/// Network-level fee parameters that apply to all transactions
+#[derive(Clone, Copy)]
+pub struct NetworkFeeParams {
     pub fee_per_byte: u64,
     pub min_fee: u64,
+}
+
+/// Transaction-specific fee parameters
+pub struct TransactionFeeParams {
     pub extra_fee: Option<u64>,
     pub max_fee: Option<u64>,
 }
@@ -71,29 +77,35 @@ impl Transaction {
         }
     }
 
-    pub fn assign_fee(&self, request: FeeParams) -> Result<Transaction, AlgoKitTransactError> {
+    pub fn assign_fee(
+        &self,
+        network_params: NetworkFeeParams,
+        transaction_params: Option<TransactionFeeParams>,
+    ) -> Result<Transaction, AlgoKitTransactError> {
         let mut tx = self.clone();
         let mut calculated_fee: u64 = 0;
 
-        if request.fee_per_byte > 0 {
+        if network_params.fee_per_byte > 0 {
             let estimated_size = tx.estimate_size()?;
-            calculated_fee = request.fee_per_byte * estimated_size as u64;
+            calculated_fee = network_params.fee_per_byte * estimated_size as u64;
         }
 
-        if calculated_fee < request.min_fee {
-            calculated_fee = request.min_fee;
+        if calculated_fee < network_params.min_fee {
+            calculated_fee = network_params.min_fee;
         }
 
-        if let Some(extra_fee) = request.extra_fee {
-            calculated_fee += extra_fee;
-        }
+        if let Some(params) = transaction_params {
+            if let Some(extra_fee) = params.extra_fee {
+                calculated_fee += extra_fee;
+            }
 
-        if let Some(max_fee) = request.max_fee {
-            if calculated_fee > max_fee {
-                return Err(AlgoKitTransactError::InputError(format!(
-                    "Transaction fee {} µALGO is greater than max fee {} µALGO",
-                    calculated_fee, max_fee
-                )));
+            if let Some(max_fee) = params.max_fee {
+                if calculated_fee > max_fee {
+                    return Err(AlgoKitTransactError::InputError(format!(
+                        "Transaction fee {} µALGO is greater than max fee {} µALGO",
+                        calculated_fee, max_fee
+                    )));
+                }
             }
         }
 
@@ -233,5 +245,41 @@ impl Transactions for &[Transaction] {
                 tx
             })
             .collect())
+    }
+
+    /// Assigns fees to each transaction in the group.
+    ///
+    /// # Parameters
+    /// * `network_params` - Network-level fee parameters that apply to all transactions
+    /// * `transaction_params` - A vector of tuples containing (index, fee_params) for transactions that should have fees assigned
+    ///
+    /// # Returns
+    /// A result containing the transactions with fees assigned or an error if the operation fails.
+    fn assign_fees(
+        self,
+        network_params: NetworkFeeParams,
+        transaction_params: Vec<(usize, TransactionFeeParams)>,
+    ) -> Result<Vec<Transaction>, AlgoKitTransactError> {
+        if self.is_empty() {
+            return Err(AlgoKitTransactError::InputError(String::from(
+                "Transaction group size cannot be 0",
+            )));
+        }
+
+        let mut result = self.to_vec();
+
+        for (index, tx_param) in transaction_params {
+            if index >= result.len() {
+                return Err(AlgoKitTransactError::InputError(format!(
+                    "Transaction index {} is out of bounds for transaction group of size {}",
+                    index,
+                    result.len()
+                )));
+            }
+
+            result[index] = result[index].assign_fee(network_params, Some(tx_param))?;
+        }
+
+        Ok(result)
     }
 }

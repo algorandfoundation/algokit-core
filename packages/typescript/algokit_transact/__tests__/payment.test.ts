@@ -1,7 +1,6 @@
 import { expect, test, describe } from "bun:test";
 import { testData } from "./common.ts";
 import * as ed from "@noble/ed25519";
-import * as fs from "fs";
 import {
   encodeTransaction,
   decodeTransaction,
@@ -20,7 +19,6 @@ const simplePayment = testData.simplePayment;
 
 describe("Payment", () => {
   // Polytest Suite: Payment
-
 
   describe("Transaction Tests", () => {
     // Polytest Group: Transaction Tests
@@ -85,7 +83,7 @@ describe("Payment", () => {
       expect(encodedSignedTxn).toEqual(simplePayment.signedBytes);
     });
 
-     test("encode with auth address", async () => {
+    test("encode with auth address", async () => {
       const sig = await ed.signAsync(simplePayment.unsignedBytes, simplePayment.signingPrivateKey);
       const signedTxn: SignedTransaction = {
         transaction: simplePayment.transaction,
