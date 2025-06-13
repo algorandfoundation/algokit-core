@@ -1,6 +1,44 @@
 {
-  "description": "This package.json contains the dependencies for semantic-release and serving the docs",
+  "description": "Defines the workspace for typescript packages and the deps/scripts for serving the docs and semantic release.",
   "type": "module",
+  "workspaces": {
+    "packages": [
+      "packages/typescript/*"
+    ],
+    "catalog": {
+      "@types/bun": "^1.2.4",
+      "@types/node": "^22.13.9",
+      "bun": "^1.2.4",
+      "typescript": "^5.6.3",
+      "rimraf": "^6.0.1"
+    },
+    "catalogs": {
+      "apis": {
+        "@types/json-bigint": "^1.0.0"
+      },
+      "testing": {
+        "@noble/ed25519": "^2.2.3",
+        "@algorandfoundation/algokit-utils": "^9.0.1",
+        "algosdk": "^3.2.0",
+        "vitest": "^3.1.2"
+      },
+      "formatting": {
+        "prettier": "^3.3.3",
+        "prettier-plugin-jsdoc": "^1.3.0"
+      },
+      "bundling": {
+        "@rollup/plugin-commonjs": "^28.0.2",
+        "@rollup/plugin-node-resolve": "^16.0.0",
+        "@rollup/plugin-typescript": "^12.1.2",
+        "@rollup/plugin-wasm": "^6.2.2",
+        "rollup": "^4.34.8",
+        "wasm-pack": "^0.13.1"
+      },
+      "wasm2js": {
+        "binaryen": "^123.0.0"
+      }
+    }
+  },
   "scripts": {
     "docs:build": "cargo run --bin build-docs --manifest-path docs/Cargo.toml",
     "docs:serve": "bunx serve target/doc -p 8000",

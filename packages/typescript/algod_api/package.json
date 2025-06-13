@@ -57,16 +57,16 @@
     "json-bigint": "^1.0.0"
   },
   "devDependencies": {
-    "@algorandfoundation/algokit-utils": "^9.0.1",
-    "algosdk": "^3.2.0",
-    "rimraf": "^6.0.1",
-    "typescript": "^5.0.0",
-    "vitest": "^3.1.2",
-    "@types/node": "^20.11.18",
-    "@types/json-bigint": "^1.0.0"
+    "@algorandfoundation/algokit-utils": "catalog:testing",
+    "algosdk": "catalog:testing",
+    "rimraf": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:testing",
+    "@types/node": "catalog:",
+    "@types/json-bigint": "catalog:apis"
   },
   "peerDependencies": {
-    "@algorandfoundation/algokit-transact": "^1.0.0-alpha.18"
+    "@algorandfoundation/algokit-transact": "workspace:*"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
