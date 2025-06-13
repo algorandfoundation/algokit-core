@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "algokit_transact"
-version = "1.0.0a14"
+version = "1.0.0a15"
 requires-python = ">=3.8,<4.0"
 dependencies = ["cffi>=1.17.1"]
 
