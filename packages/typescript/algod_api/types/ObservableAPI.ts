@@ -28,6 +28,7 @@ import { AssetParams } from '../models/AssetParams';
 import { AvmKeyValue } from '../models/AvmKeyValue';
 import { AvmValue } from '../models/AvmValue';
 import { Box } from '../models/Box';
+import { BoxDescriptor } from '../models/BoxDescriptor';
 import { BoxReference } from '../models/BoxReference';
 import { BuildVersion } from '../models/BuildVersion';
 import { DebugSettingsProf } from '../models/DebugSettingsProf';
@@ -38,6 +39,9 @@ import { DryrunTxnResult } from '../models/DryrunTxnResult';
 import { ErrorResponse } from '../models/ErrorResponse';
 import { EvalDelta } from '../models/EvalDelta';
 import { EvalDeltaKeyValue } from '../models/EvalDeltaKeyValue';
+import { Genesis } from '../models/Genesis';
+import { GenesisAllocation } from '../models/GenesisAllocation';
+import { GenesisAllocationState } from '../models/GenesisAllocationState';
 import { GetApplicationBoxes200Response } from '../models/GetApplicationBoxes200Response';
 import { GetBlock200Response } from '../models/GetBlock200Response';
 import { GetBlockHash200Response } from '../models/GetBlockHash200Response';
@@ -50,6 +54,7 @@ import { GetSupply200Response } from '../models/GetSupply200Response';
 import { GetSyncRound200Response } from '../models/GetSyncRound200Response';
 import { GetTransactionGroupLedgerStateDeltasForRound200Response } from '../models/GetTransactionGroupLedgerStateDeltasForRound200Response';
 import { GetTransactionProof200Response } from '../models/GetTransactionProof200Response';
+import { KvDelta } from '../models/KvDelta';
 import { LedgerStateDeltaForTransactionGroup } from '../models/LedgerStateDeltaForTransactionGroup';
 import { LightBlockHeaderProof } from '../models/LightBlockHeaderProof';
 import { ParticipationKey } from '../models/ParticipationKey';
@@ -806,15 +811,12 @@ export class ObservableAlgodApi {
     }
 
     /**
-     * Given an application ID, return boxes in lexographical order by name. If the results must be truncated, a next-token is supplied to continue the request.
-     * Get boxes for a given application.
+     * Given an application ID, return all Box names. No particular ordering is guaranteed. Request fails when client or server-side configured limits prevent returning all Box names.
+     * Get all box names for a given application.
      * @param applicationId An application identifier
-     * @param [max] Maximum number of boxes to return. Server may impose a lower limit.
-     * @param [prefix] A box name prefix, in the goal app call arg form \&#39;encoding:value\&#39;. For ints, use the form \&#39;int:1234\&#39;. For raw bytes, use the form \&#39;b64:A&#x3D;&#x3D;\&#39;. For printable strings, use the form \&#39;str:hello\&#39;. For addresses, use the form \&#39;addr:XYZ...\&#39;.
-     * @param [next] A box name, in the goal app call arg form \&#39;encoding:value\&#39;. When provided, the returned boxes begin (lexographically) with the supplied name. Callers may implement pagination by reinvoking the endpoint with the token from a previous call\&#39;s next-token.
-     * @param [values] If true, box values will be returned.
+     * @param [max] Max number of box names to return. If max is not set, or max &#x3D;&#x3D; 0, returns all box-names.
      */
-    public getApplicationBoxesResponse(applicationId: number, max?: number, prefix?: string, next?: string, values?: boolean, _options?: ConfigurationOptions): Observable<ResponseContext> {
+    public getApplicationBoxesResponse(applicationId: number, max?: number, _options?: ConfigurationOptions): Observable<ResponseContext> {
     let _config = this.configuration;
     let allMiddleware: Middleware[] = [];
     if (_options && _options.middleware){
@@ -845,7 +847,7 @@ export class ObservableAlgodApi {
 		};
 	}
 
-        const requestContextPromise = this.requestFactory.getApplicationBoxes(applicationId, max, prefix, next, values, _config);
+        const requestContextPromise = this.requestFactory.getApplicationBoxes(applicationId, max, _config);
         // build promise chain
         let middlewarePreObservable = from<RequestContext>(requestContextPromise);
         for (const middleware of allMiddleware) {
@@ -863,16 +865,13 @@ export class ObservableAlgodApi {
     }
 
     /**
-     * Given an application ID, return boxes in lexographical order by name. If the results must be truncated, a next-token is supplied to continue the request.
-     * Get boxes for a given application.
+     * Given an application ID, return all Box names. No particular ordering is guaranteed. Request fails when client or server-side configured limits prevent returning all Box names.
+     * Get all box names for a given application.
      * @param applicationId An application identifier
-     * @param [max] Maximum number of boxes to return. Server may impose a lower limit.
-     * @param [prefix] A box name prefix, in the goal app call arg form \&#39;encoding:value\&#39;. For ints, use the form \&#39;int:1234\&#39;. For raw bytes, use the form \&#39;b64:A&#x3D;&#x3D;\&#39;. For printable strings, use the form \&#39;str:hello\&#39;. For addresses, use the form \&#39;addr:XYZ...\&#39;.
-     * @param [next] A box name, in the goal app call arg form \&#39;encoding:value\&#39;. When provided, the returned boxes begin (lexographically) with the supplied name. Callers may implement pagination by reinvoking the endpoint with the token from a previous call\&#39;s next-token.
-     * @param [values] If true, box values will be returned.
+     * @param [max] Max number of box names to return. If max is not set, or max &#x3D;&#x3D; 0, returns all box-names.
      */
-    public getApplicationBoxes(applicationId: number, max?: number, prefix?: string, next?: string, values?: boolean, _options?: ConfigurationOptions): Observable<GetApplicationBoxes200Response> {
-        return this.getApplicationBoxesResponse(applicationId, max, prefix, next, values, _options)
+    public getApplicationBoxes(applicationId: number, max?: number, _options?: ConfigurationOptions): Observable<GetApplicationBoxes200Response> {
+        return this.getApplicationBoxesResponse(applicationId, max, _options)
           .pipe(map((rsp: ResponseContext) => this.responseProcessor.getApplicationBoxesResponse(rsp)));
     }
 
@@ -1489,7 +1488,7 @@ export class ObservableAlgodApi {
      * Returns the entire genesis file in json.
      * Gets the genesis information.
      */
-    public getGenesis(_options?: ConfigurationOptions): Observable<string> {
+    public getGenesis(_options?: ConfigurationOptions): Observable<Genesis> {
         return this.getGenesisResponse(_options)
           .pipe(map((rsp: ResponseContext) => this.responseProcessor.getGenesisResponse(rsp)));
     }

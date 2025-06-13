@@ -23,6 +23,7 @@ export * from '../models/AssetParams';
 export * from '../models/AvmKeyValue';
 export * from '../models/AvmValue';
 export * from '../models/Box';
+export * from '../models/BoxDescriptor';
 export * from '../models/BoxReference';
 export * from '../models/BuildVersion';
 export * from '../models/DebugSettingsProf';
@@ -33,6 +34,9 @@ export * from '../models/DryrunTxnResult';
 export * from '../models/ErrorResponse';
 export * from '../models/EvalDelta';
 export * from '../models/EvalDeltaKeyValue';
+export * from '../models/Genesis';
+export * from '../models/GenesisAllocation';
+export * from '../models/GenesisAllocationState';
 export * from '../models/GetApplicationBoxes200Response';
 export * from '../models/GetBlock200Response';
 export * from '../models/GetBlockHash200Response';
@@ -45,6 +49,7 @@ export * from '../models/GetSupply200Response';
 export * from '../models/GetSyncRound200Response';
 export * from '../models/GetTransactionGroupLedgerStateDeltasForRound200Response';
 export * from '../models/GetTransactionProof200Response';
+export * from '../models/KvDelta';
 export * from '../models/LedgerStateDeltaForTransactionGroup';
 export * from '../models/LightBlockHeaderProof';
 export * from '../models/ParticipationKey';
@@ -98,6 +103,7 @@ import { AssetParams } from '../models/AssetParams';
 import { AvmKeyValue } from '../models/AvmKeyValue';
 import { AvmValue } from '../models/AvmValue';
 import { Box } from '../models/Box';
+import { BoxDescriptor } from '../models/BoxDescriptor';
 import { BoxReference } from '../models/BoxReference';
 import { BuildVersion } from '../models/BuildVersion';
 import { DebugSettingsProf } from '../models/DebugSettingsProf';
@@ -108,6 +114,9 @@ import { DryrunTxnResult } from '../models/DryrunTxnResult';
 import { ErrorResponse } from '../models/ErrorResponse';
 import { EvalDelta } from '../models/EvalDelta';
 import { EvalDeltaKeyValue } from '../models/EvalDeltaKeyValue';
+import { Genesis } from '../models/Genesis';
+import { GenesisAllocation } from '../models/GenesisAllocation';
+import { GenesisAllocationState } from '../models/GenesisAllocationState';
 import { GetApplicationBoxes200Response } from '../models/GetApplicationBoxes200Response';
 import { GetBlock200Response } from '../models/GetBlock200Response';
 import { GetBlockHash200Response } from '../models/GetBlockHash200Response';
@@ -120,6 +129,7 @@ import { GetSupply200Response } from '../models/GetSupply200Response';
 import { GetSyncRound200Response } from '../models/GetSyncRound200Response';
 import { GetTransactionGroupLedgerStateDeltasForRound200Response } from '../models/GetTransactionGroupLedgerStateDeltasForRound200Response';
 import { GetTransactionProof200Response    , GetTransactionProof200ResponseHashtypeEnum   } from '../models/GetTransactionProof200Response';
+import { KvDelta } from '../models/KvDelta';
 import { LedgerStateDeltaForTransactionGroup } from '../models/LedgerStateDeltaForTransactionGroup';
 import { LightBlockHeaderProof } from '../models/LightBlockHeaderProof';
 import { ParticipationKey } from '../models/ParticipationKey';
@@ -147,6 +157,8 @@ import { TealKeyValue } from '../models/TealKeyValue';
 import { TealValue } from '../models/TealValue';
 import { TransactionParams200Response } from '../models/TransactionParams200Response';
 import { Version } from '../models/Version';
+import { decodeMsgpackToJson, encodeJsonToMsgpack, ModelType, supportedModels } from "@algorandfoundation/algokit-transact";
+import { stringifyJSON, parseJSON, IntDecoding } from "../bigint-utils";
 
 /* tslint:disable:no-unused-variable */
 let primitives = [
@@ -157,6 +169,7 @@ let primitives = [
                     "long",
                     "float",
                     "number",
+                    "bigint",
                     "any"
                  ];
 
@@ -191,6 +204,7 @@ let typeMap: {[index: string]: any} = {
     "AvmKeyValue": AvmKeyValue,
     "AvmValue": AvmValue,
     "Box": Box,
+    "BoxDescriptor": BoxDescriptor,
     "BoxReference": BoxReference,
     "BuildVersion": BuildVersion,
     "DebugSettingsProf": DebugSettingsProf,
@@ -201,6 +215,9 @@ let typeMap: {[index: string]: any} = {
     "ErrorResponse": ErrorResponse,
     "EvalDelta": EvalDelta,
     "EvalDeltaKeyValue": EvalDeltaKeyValue,
+    "Genesis": Genesis,
+    "GenesisAllocation": GenesisAllocation,
+    "GenesisAllocationState": GenesisAllocationState,
     "GetApplicationBoxes200Response": GetApplicationBoxes200Response,
     "GetBlock200Response": GetBlock200Response,
     "GetBlockHash200Response": GetBlockHash200Response,
@@ -213,6 +230,7 @@ let typeMap: {[index: string]: any} = {
     "GetSyncRound200Response": GetSyncRound200Response,
     "GetTransactionGroupLedgerStateDeltasForRound200Response": GetTransactionGroupLedgerStateDeltasForRound200Response,
     "GetTransactionProof200Response": GetTransactionProof200Response,
+    "KvDelta": KvDelta,
     "LedgerStateDeltaForTransactionGroup": LedgerStateDeltaForTransactionGroup,
     "LightBlockHeaderProof": LightBlockHeaderProof,
     "ParticipationKey": ParticipationKey,
@@ -285,9 +303,11 @@ const isJsonLikeMimeType = mimeTypePredicateFactory((descriptor) => descriptor.t
 const isOctetStreamMimeType = mimeTypeSimplePredicateFactory('application', 'octet-stream');
 const isFormUrlencodedMimeType = mimeTypeSimplePredicateFactory('application', 'x-www-form-urlencoded');
 const isBinaryMimeType = mimeTypeSimplePredicateFactory('application', 'x-binary');
+const isMsgpackMimeType = mimeTypePredicateFactory((descriptor) => descriptor.subtypeTokens.indexOf('msgpack') !== -1 || descriptor.subtype === 'msgpack');
 
 // Defining a list of mime-types in the order of prioritization for handling.
 const supportedMimeTypePredicatesWithPriority: MimeTypePredicate[] = [
+    isMsgpackMimeType,
     isJsonMimeType,
     isJsonLikeMimeType,
     isTextLikeMimeType,
@@ -498,13 +518,14 @@ export class ObjectSerializer {
     /**
      * Convert data to a string according the given media type
      */
-    public static stringify(data: any, mediaType: string): string {
+    public static stringify(data: any, mediaType: string, typeHint?: string): any {
         if (isTextLikeMimeType(mediaType)) {
             return String(data);
         }
 
         if (isJsonLikeMimeType(mediaType)) {
-            return JSON.stringify(data);
+            // Use BigInt-aware JSON.stringify for JSON-like content
+            return stringifyJSON(data);
         }
 
         if (isOctetStreamMimeType(mediaType) || isBinaryMimeType(mediaType)) {
@@ -512,23 +533,83 @@ export class ObjectSerializer {
             return data;
         }
 
+        if (isMsgpackMimeType(mediaType)) {
+            try {
+                // Use BigInt-aware JSON.stringify for msgpack
+                const jsonStr = stringifyJSON(data);
+                const modelEnum = typeHint && (supportedModels() as unknown as string[]).indexOf(typeHint) !== -1
+                    ? typeHint as ModelType
+                    : undefined;
+
+                return modelEnum ? encodeJsonToMsgpack(modelEnum, jsonStr) : jsonStr;
+            } catch (err) {
+                console.error(err);
+                // Fall through to default handling below
+            }
+        }
+
         throw new Error("The mediaType " + mediaType + " is not supported by ObjectSerializer.stringify.");
     }
 
     /**
-     * Parse data from a string according to the given media type
+     * Parse data from a payload according to the given media type.
+     *
+     * `rawData` can be either a string (for text-like payloads) **or** a binary container
+     * (e.g. `Uint8Array`, `ArrayBuffer`, `Buffer`) when dealing with binary formats such as msgpack.
+     *
+     * `typeHint` is an optional fully-qualified model name used to help the msgpack
+     * codec choose the correct Algokit schema when decoding.
      */
-    public static parse(rawData: string, mediaType: string | undefined) {
+    public static parse(rawData: any, mediaType: string | undefined, typeHint?: string) {
         if (mediaType === undefined) {
             throw new Error("Cannot parse content. No Content-Type defined.");
         }
 
+        // MsgPack handling — this comes first so that we do not attempt to treat
+        // the binary payload as text.
+        if (isMsgpackMimeType(mediaType)) {
+            try {
+                let bytes: Uint8Array;
+
+                if (rawData instanceof Uint8Array) {
+                    bytes = rawData;
+                } else if (rawData instanceof ArrayBuffer) {
+                    bytes = new Uint8Array(rawData);
+                } else if (typeof Blob !== "undefined" && rawData instanceof Blob) {
+                    // Synchronous parsing of a Blob is impossible; callers should convert
+                    // the Blob to an ArrayBuffer first.
+                    throw new Error("Blob instances must be converted to ArrayBuffer or Uint8Array before calling ObjectSerializer.parse.");
+                } else {
+                    // Attempt best-effort conversion for other array-like objects.
+                    bytes = Uint8Array.from(rawData as any);
+                }
+
+                const modelEnum = typeHint && (supportedModels() as unknown as string[]).indexOf(typeHint) !== -1
+                    ? typeHint as ModelType
+                    : undefined;
+
+                if (!modelEnum) {
+                    throw new Error("No model enum found for type hint: " + typeHint);
+                }
+
+                const jsonStr = decodeMsgpackToJson(modelEnum, bytes);
+                // Use BigInt-aware JSON.parse for msgpack decoded JSON
+                return parseJSON(jsonStr, { intDecoding: IntDecoding.MIXED });
+            } catch (err) {
+                // Fall through to the default handling below so that we can surface
+                // a consistent error message should msgpack decoding fail.
+                console.error(err);
+            }
+        }
+
         if (isTextLikeMimeType(mediaType)) {
-            return rawData;
+            return String(rawData);
         }
 
         if (isJsonLikeMimeType(mediaType)) {
-            return JSON.parse(rawData);
+            // Use BigInt-aware JSON.parse for JSON-like content
+            const jsonString = typeof rawData === "string" ? rawData : String(rawData);
+            return parseJSON(jsonString, { intDecoding: IntDecoding.MIXED });
         }
 
         if (isOctetStreamMimeType(mediaType) || isBinaryMimeType(mediaType)) {

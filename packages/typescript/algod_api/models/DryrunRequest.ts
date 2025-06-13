@@ -29,7 +29,7 @@ export class DryrunRequest {
     /**
     * Round is available to some TEAL scripts. Defaults to the current round on the network this algod is attached to.
     */
-    'round': number;
+    'round': number | bigint;
     /**
     * LatestTimestamp is available to some TEAL scripts. Defaults to the latest confirmed timestamp this algod is attached to.
     */
@@ -68,7 +68,7 @@ export class DryrunRequest {
         {
             "name": "round",
             "baseName": "round",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         },
         {

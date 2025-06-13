@@ -1,6 +1,7 @@
 mod address;
 pub mod constants;
 mod error;
+pub mod msgpack;
 mod traits;
 mod transactions;
 mod utils;
@@ -14,6 +15,13 @@ pub use transactions::{
     AssetTransferTransactionBuilder, AssetTransferTransactionFields, FeeParams,
     PaymentTransactionBuilder, PaymentTransactionFields, SignedTransaction, Transaction,
     TransactionHeader, TransactionHeaderBuilder,
+};
+
+// Re-export msgpack functionality
+pub use msgpack::{
+    decode_base64_msgpack_to_json, decode_msgpack_to_json, encode_json_to_base64_msgpack,
+    encode_json_to_msgpack, sort_and_filter_json, supported_models, AlgoKitMsgPackError,
+    ModelRegistry, ModelType, ToMsgPack,
 };
 
 #[cfg(test)]

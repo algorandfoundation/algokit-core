@@ -53,15 +53,20 @@
   },
   "dependencies": {
     "whatwg-fetch": "^3.0.0",
-    "es6-promise": "^4.2.4"
+    "es6-promise": "^4.2.4",
+    "json-bigint": "^1.0.0"
   },
   "devDependencies": {
     "@algorandfoundation/algokit-utils": "^9.0.1",
-    "algokit_transact": "file:../algokit_transact",
     "algosdk": "^3.2.0",
     "rimraf": "^6.0.1",
     "typescript": "^5.0.0",
-    "vitest": "^3.1.2"
+    "vitest": "^3.1.2",
+    "@types/node": "^20.11.18",
+    "@types/json-bigint": "^1.0.0"
+  },
+  "peerDependencies": {
+    "@algorandfoundation/algokit-transact": "^1.0.0-alpha.17"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"

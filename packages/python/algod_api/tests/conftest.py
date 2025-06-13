@@ -13,10 +13,12 @@
 """  # noqa: E501
 
 
-from algokit_utils import AlgoAmount, AlgorandClient, SigningAccount
-import pytest
 import os
 import os.path
+from pathlib import Path
+
+import pytest
+from algokit_utils import AlgoAmount, AlgorandClient, AppFactory, SigningAccount
 
 from algokit_algod_api.configuration import Configuration
 from algokit_algod_api.api_client import ApiClient
@@ -67,3 +69,15 @@ def alice(algorand: AlgorandClient) -> SigningAccount:
         new_account, dispenser, AlgoAmount.from_algo(100), min_funding_increment=AlgoAmount.from_algo(1)
     )
     return new_account
+
+
+@pytest.fixture
+def arc56_factory(
+    algorand: AlgorandClient,
+    bob: SigningAccount,
+) -> AppFactory:
+    """Create AppFactory fixture"""
+    arc56_raw_spec = (
+        Path(__file__).parent / "artifacts"  / "dummy_app.arc56.json"
+    ).read_text()
+    return algorand.client.get_app_factory(app_spec=arc56_raw_spec, default_sender=bob.address)

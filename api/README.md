@@ -16,6 +16,8 @@ bun install
 
 ## Available Scripts
 
+> NOTE: These scripts must be run inside the `./api` directory.
+
 ### Convert OpenAPI 2.0 to OpenAPI 3.0
 
 Converts the Algod OpenAPI 2.0 spec to OpenAPI 3.0:

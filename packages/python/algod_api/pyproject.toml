@@ -17,6 +17,19 @@ urllib3 = ">= 1.25.3, < 3.0.0"
 python-dateutil = ">= 2.8.2"
 pydantic = ">= 2"
 typing-extensions = ">= 4.7.1"
+# algokit_transact = { path = "../../../packages/python/algokit_transact" }
+algokit_transact = [
+  # macOS
+  { url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.14/algokit_transact-1.0.0a14-py3-none-macosx_10_12_x86_64.whl", markers = "sys_platform == 'darwin' and platform_machine == 'x86_64'" },
+  { url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.14/algokit_transact-1.0.0a14-py3-none-macosx_11_0_arm64.whl", markers = "sys_platform == 'darwin' and platform_machine == 'arm64'" },
+
+  # Windows
+  { url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.14/algokit_transact-1.0.0a14-py3-none-win_amd64.whl", markers = "sys_platform == 'win32' and platform_machine == 'AMD64'" },
+
+  # Linux - manylinux (for most common glibc-based distributions like Ubuntu, Debian, Fedora)
+  { url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.14/algokit_transact-1.0.0a14-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", markers = "sys_platform == 'linux' and platform_machine == 'aarch64'" },
+  { url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.14/algokit_transact-1.0.0a14-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", markers = "sys_platform == 'linux' and platform_machine == 'x86_64'" },
+]
 
 [tool.poetry.group.dev.dependencies]
 types-python-dateutil = ">= 2.8.19.14"
@@ -29,7 +42,6 @@ pytest-cov = ">= 2.8.1"
 pytest-asyncio = "^0.26.0"
 pytest-sugar = "^1.0.0"
 algokit-utils = "4.0.0"
-algokit-transact = { path = "../../../packages/python/algokit_transact" }
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

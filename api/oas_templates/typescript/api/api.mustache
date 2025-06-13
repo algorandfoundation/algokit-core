@@ -166,7 +166,8 @@ export class {{classname}}RequestFactory extends BaseAPIRequestFactory {
         requestContext.setHeaderParam("Content-Type", contentType);
         const serializedBody = ObjectSerializer.stringify(
             ObjectSerializer.serialize({{paramName}}, "{{{dataType}}}", "{{dataFormat}}"),
-            contentType
+            contentType,
+            "{{{dataType}}}"
         );
         requestContext.setBody(serializedBody);
         {{/bodyParam}}
@@ -220,7 +221,7 @@ export class {{classname}}ResponseProcessor {
             {{/isBinary}}
             {{^isBinary}}
             const body: {{{dataType}}} = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "{{{dataType}}}", contentType),
                 "{{{dataType}}}", "{{returnFormat}}"
             ) as {{{dataType}}};
             {{/isBinary}}
@@ -250,7 +251,7 @@ export class {{classname}}ResponseProcessor {
             {{/isBinary}}
             {{^isBinary}}
             const body: {{{returnType}}} = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "{{{returnType}}}", contentType),
                 "{{{returnType}}}", "{{returnFormat}}"
             ) as {{{returnType}}};
             {{/isBinary}}
@@ -267,3 +268,27 @@ export class {{classname}}ResponseProcessor {
     {{/operation}}
 }
 {{/operations}}
+
+const decodeResponseBody = async (response: ResponseContext, expectedType: string, contentType: string | undefined): Promise<any> => {
+    if (contentType && contentType.includes('msgpack')) {
+        // Retrieve the response body as binary and let ObjectSerializer handle the decoding.
+        const binaryData = await response.body.binary();
+        let bytes: Uint8Array;
+
+        if (typeof Blob !== 'undefined' && binaryData instanceof Blob) {
+            bytes = new Uint8Array(await binaryData.arrayBuffer());
+        } else if (binaryData instanceof Uint8Array) {
+            bytes = binaryData;
+        } else if (binaryData instanceof ArrayBuffer) {
+            bytes = new Uint8Array(binaryData);
+        } else {
+            // Fallback: attempt to construct from any array-like object (including Buffer)
+            bytes = Uint8Array.from(binaryData as any);
+        }
+
+        return ObjectSerializer.parse(bytes, contentType, expectedType);
+    }
+
+    // For non-binary payloads we can rely on the text representation.
+    return ObjectSerializer.parse(await response.body.text(), contentType);
+};

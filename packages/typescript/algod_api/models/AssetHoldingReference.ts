@@ -23,7 +23,7 @@ export class AssetHoldingReference {
     /**
     * Asset ID of the holding.
     */
-    'asset': number;
+    'asset': number | bigint;
 
     static readonly discriminator: string | undefined = undefined;
 
@@ -39,7 +39,7 @@ export class AssetHoldingReference {
         {
             "name": "asset",
             "baseName": "asset",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         }    ];
 

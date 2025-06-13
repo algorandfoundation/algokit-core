@@ -31,6 +31,7 @@ from algokit_algod_api.models.asset import Asset
 from algokit_algod_api.models.box import Box
 from algokit_algod_api.models.debug_settings_prof import DebugSettingsProf
 from algokit_algod_api.models.dryrun_request import DryrunRequest
+from algokit_algod_api.models.genesis import Genesis
 from algokit_algod_api.models.get_application_boxes200_response import GetApplicationBoxes200Response
 from algokit_algod_api.models.get_block200_response import GetBlock200Response
 from algokit_algod_api.models.get_block_hash200_response import GetBlockHash200Response
@@ -3290,10 +3291,7 @@ class AlgodApi:
     def get_application_boxes(
         self,
         application_id: Annotated[StrictInt, Field(description="An application identifier")],
-        max: Annotated[Optional[StrictInt], Field(description="Maximum number of boxes to return. Server may impose a lower limit.")] = None,
-        prefix: Annotated[Optional[StrictStr], Field(description="A box name prefix, in the goal app call arg form 'encoding:value'. For ints, use the form 'int:1234'. For raw bytes, use the form 'b64:A=='. For printable strings, use the form 'str:hello'. For addresses, use the form 'addr:XYZ...'.")] = None,
-        next: Annotated[Optional[StrictStr], Field(description="A box name, in the goal app call arg form 'encoding:value'. When provided, the returned boxes begin (lexographically) with the supplied name. Callers may implement pagination by reinvoking the endpoint with the token from a previous call's next-token.")] = None,
-        values: Annotated[Optional[StrictBool], Field(description="If true, box values will be returned.")] = None,
+        max: Annotated[Optional[StrictInt], Field(description="Max number of box names to return. If max is not set, or max == 0, returns all box-names.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -3307,20 +3305,14 @@ class AlgodApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> GetApplicationBoxes200Response:
-        """Get boxes for a given application.
+        """Get all box names for a given application.
 
-        Given an application ID, return boxes in lexographical order by name. If the results must be truncated, a next-token is supplied to continue the request.
+        Given an application ID, return all Box names. No particular ordering is guaranteed. Request fails when client or server-side configured limits prevent returning all Box names.
 
         :param application_id: An application identifier (required)
         :type application_id: int
-        :param max: Maximum number of boxes to return. Server may impose a lower limit.
+        :param max: Max number of box names to return. If max is not set, or max == 0, returns all box-names.
         :type max: int
-        :param prefix: A box name prefix, in the goal app call arg form 'encoding:value'. For ints, use the form 'int:1234'. For raw bytes, use the form 'b64:A=='. For printable strings, use the form 'str:hello'. For addresses, use the form 'addr:XYZ...'.
-        :type prefix: str
-        :param next: A box name, in the goal app call arg form 'encoding:value'. When provided, the returned boxes begin (lexographically) with the supplied name. Callers may implement pagination by reinvoking the endpoint with the token from a previous call's next-token.
-        :type next: str
-        :param values: If true, box values will be returned.
-        :type values: bool
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -3346,9 +3338,6 @@ class AlgodApi:
         _param = self._get_application_boxes_serialize(
             application_id=application_id,
             max=max,
-            prefix=prefix,
-            next=next,
-            values=values,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -3376,10 +3365,7 @@ class AlgodApi:
     def get_application_boxes_with_http_info(
         self,
         application_id: Annotated[StrictInt, Field(description="An application identifier")],
-        max: Annotated[Optional[StrictInt], Field(description="Maximum number of boxes to return. Server may impose a lower limit.")] = None,
-        prefix: Annotated[Optional[StrictStr], Field(description="A box name prefix, in the goal app call arg form 'encoding:value'. For ints, use the form 'int:1234'. For raw bytes, use the form 'b64:A=='. For printable strings, use the form 'str:hello'. For addresses, use the form 'addr:XYZ...'.")] = None,
-        next: Annotated[Optional[StrictStr], Field(description="A box name, in the goal app call arg form 'encoding:value'. When provided, the returned boxes begin (lexographically) with the supplied name. Callers may implement pagination by reinvoking the endpoint with the token from a previous call's next-token.")] = None,
-        values: Annotated[Optional[StrictBool], Field(description="If true, box values will be returned.")] = None,
+        max: Annotated[Optional[StrictInt], Field(description="Max number of box names to return. If max is not set, or max == 0, returns all box-names.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -3393,20 +3379,14 @@ class AlgodApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> ApiResponse[GetApplicationBoxes200Response]:
-        """Get boxes for a given application.
+        """Get all box names for a given application.
 
-        Given an application ID, return boxes in lexographical order by name. If the results must be truncated, a next-token is supplied to continue the request.
+        Given an application ID, return all Box names. No particular ordering is guaranteed. Request fails when client or server-side configured limits prevent returning all Box names.
 
         :param application_id: An application identifier (required)
         :type application_id: int
-        :param max: Maximum number of boxes to return. Server may impose a lower limit.
+        :param max: Max number of box names to return. If max is not set, or max == 0, returns all box-names.
         :type max: int
-        :param prefix: A box name prefix, in the goal app call arg form 'encoding:value'. For ints, use the form 'int:1234'. For raw bytes, use the form 'b64:A=='. For printable strings, use the form 'str:hello'. For addresses, use the form 'addr:XYZ...'.
-        :type prefix: str
-        :param next: A box name, in the goal app call arg form 'encoding:value'. When provided, the returned boxes begin (lexographically) with the supplied name. Callers may implement pagination by reinvoking the endpoint with the token from a previous call's next-token.
-        :type next: str
-        :param values: If true, box values will be returned.
-        :type values: bool
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -3432,9 +3412,6 @@ class AlgodApi:
         _param = self._get_application_boxes_serialize(
             application_id=application_id,
             max=max,
-            prefix=prefix,
-            next=next,
-            values=values,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -3462,10 +3439,7 @@ class AlgodApi:
     def get_application_boxes_without_preload_content(
         self,
         application_id: Annotated[StrictInt, Field(description="An application identifier")],
-        max: Annotated[Optional[StrictInt], Field(description="Maximum number of boxes to return. Server may impose a lower limit.")] = None,
-        prefix: Annotated[Optional[StrictStr], Field(description="A box name prefix, in the goal app call arg form 'encoding:value'. For ints, use the form 'int:1234'. For raw bytes, use the form 'b64:A=='. For printable strings, use the form 'str:hello'. For addresses, use the form 'addr:XYZ...'.")] = None,
-        next: Annotated[Optional[StrictStr], Field(description="A box name, in the goal app call arg form 'encoding:value'. When provided, the returned boxes begin (lexographically) with the supplied name. Callers may implement pagination by reinvoking the endpoint with the token from a previous call's next-token.")] = None,
-        values: Annotated[Optional[StrictBool], Field(description="If true, box values will be returned.")] = None,
+        max: Annotated[Optional[StrictInt], Field(description="Max number of box names to return. If max is not set, or max == 0, returns all box-names.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -3479,20 +3453,14 @@ class AlgodApi:
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
     ) -> RESTResponseType:
-        """Get boxes for a given application.
+        """Get all box names for a given application.
 
-        Given an application ID, return boxes in lexographical order by name. If the results must be truncated, a next-token is supplied to continue the request.
+        Given an application ID, return all Box names. No particular ordering is guaranteed. Request fails when client or server-side configured limits prevent returning all Box names.
 
         :param application_id: An application identifier (required)
         :type application_id: int
-        :param max: Maximum number of boxes to return. Server may impose a lower limit.
+        :param max: Max number of box names to return. If max is not set, or max == 0, returns all box-names.
         :type max: int
-        :param prefix: A box name prefix, in the goal app call arg form 'encoding:value'. For ints, use the form 'int:1234'. For raw bytes, use the form 'b64:A=='. For printable strings, use the form 'str:hello'. For addresses, use the form 'addr:XYZ...'.
-        :type prefix: str
-        :param next: A box name, in the goal app call arg form 'encoding:value'. When provided, the returned boxes begin (lexographically) with the supplied name. Callers may implement pagination by reinvoking the endpoint with the token from a previous call's next-token.
-        :type next: str
-        :param values: If true, box values will be returned.
-        :type values: bool
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
@@ -3518,9 +3486,6 @@ class AlgodApi:
         _param = self._get_application_boxes_serialize(
             application_id=application_id,
             max=max,
-            prefix=prefix,
-            next=next,
-            values=values,
             _request_auth=_request_auth,
             _content_type=_content_type,
             _headers=_headers,
@@ -3544,9 +3509,6 @@ class AlgodApi:
         self,
         application_id,
         max,
-        prefix,
-        next,
-        values,
         _request_auth,
         _content_type,
         _headers,
@@ -3574,18 +3536,6 @@ class AlgodApi:
         if max is not None:
             
             _query_params.append(('max', max))
-            
-        if prefix is not None:
-            
-            _query_params.append(('prefix', prefix))
-            
-        if next is not None:
-            
-            _query_params.append(('next', next))
-            
-        if values is not None:
-            
-            _query_params.append(('values', values))
             
         # process the header parameters
         # process the form parameters
@@ -6044,7 +5994,7 @@ class AlgodApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> str:
+    ) -> Genesis:
         """Gets the genesis information.
 
         Returns the entire genesis file in json.
@@ -6079,7 +6029,7 @@ class AlgodApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "str",
+            '200': "Genesis",
         }
         response_data = self.api_client.call_api(
             *_param,
@@ -6107,7 +6057,7 @@ class AlgodApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[str]:
+    ) -> ApiResponse[Genesis]:
         """Gets the genesis information.
 
         Returns the entire genesis file in json.
@@ -6142,7 +6092,7 @@ class AlgodApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "str",
+            '200': "Genesis",
         }
         response_data = self.api_client.call_api(
             *_param,
@@ -6205,7 +6155,7 @@ class AlgodApi:
         )
 
         _response_types_map: Dict[str, Optional[str]] = {
-            '200': "str",
+            '200': "Genesis",
         }
         response_data = self.api_client.call_api(
             *_param,

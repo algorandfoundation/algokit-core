@@ -27,7 +27,7 @@ export class TealValue {
     /**
     * \\[ui\\] uint value.
     */
-    'uint': number;
+    'uint': number | bigint;
 
     static readonly discriminator: string | undefined = undefined;
 
@@ -49,7 +49,7 @@ export class TealValue {
         {
             "name": "uint",
             "baseName": "uint",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         }    ];
 
