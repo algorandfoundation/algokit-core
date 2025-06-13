@@ -130,28 +130,24 @@ jobs:
           cache: "poetry"
           cache-dependency-path: ${{ env.PACKAGE_DIR }}/poetry.lock
 
-      - name: Poetry install
-        working-directory: ${{ env.PACKAGE_DIR }}
-        run: poetry install --with dev
-
       - name: Build wheel
         working-directory: ${{ env.PACKAGE_DIR }}
-        run: poetry run maturin build --release --features ffi_uniffi
+        run: cargo pkg ${{ inputs.crate }} py
 
       - name: Install wheel
         working-directory: ${{ env.PACKAGE_DIR }}
-        run: poetry run pip install ../../../target/wheels/*.whl --force-reinstall
+        run: poetry run pip install dist/*.whl --force-reinstall
 
       - name: pytest
         working-directory: ${{ env.PACKAGE_DIR }}
-        run: poetry run pytest
+        run: poetry install --with test && poetry run pytest
 
       - name: Upload build artifacts
         if: inputs.release
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.target.name }}-wheel
-          path: target/wheels
+          path: ${{ env.PACKAGE_DIR }}/dist
 
   linux_build_and_test:
     needs: get_version
@@ -220,34 +216,26 @@ jobs:
           RUN: pipx install poetry --python python${{ env.PYTHON_VERSION }}
         run: docker exec build-container bash -c "$RUN"
 
-      - name: Install dependencies
+      - name: Build wheel
         env:
           RUN: |
-            set -e
             cd /workspace/${{ env.PACKAGE_DIR }}
             poetry env use python${{ env.PYTHON_VERSION }}
-            poetry install --with dev
-        run: docker exec build-container bash -c "$RUN"
-
-      - name: maturin build
-        env:
-          RUN: |
-            cd /workspace/${{ env.PACKAGE_DIR }}
-            poetry run maturin build --release --target ${{ env.TARGET }} --compatibility ${{ env.MANYLINUX }} --features ffi_uniffi
+            cargo pkg ${{ inputs.crate }} py
         run: docker exec build-container bash -c "$RUN"
 
       - name: Install wheel
         env:
           RUN: |
             cd /workspace/${{ env.PACKAGE_DIR }}
-            poetry run pip install /workspace/target/wheels/*.whl
+            poetry run pip install wheelhouse/*.whl
         run: docker exec build-container bash -c "$RUN"
 
       - name: pytest
         env:
           RUN: |
             cd /workspace/${{ env.PACKAGE_DIR }}
-            poetry run pytest
+            poetry install --with test && poetry run pytest
         run: docker exec build-container bash -c "$RUN"
 
       - name: Upload build artifacts
@@ -255,7 +243,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.TARGET }}-wheel
-          path: target/wheels
+          path: /workspace/${{ env.PACKAGE_DIR }}/wheelhouse
 
   release:
     if: inputs.release && needs.get_version.outputs.version != ''

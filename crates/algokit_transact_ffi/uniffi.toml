@@ -1,5 +1,2 @@
-[bindings.python]
-cdylib_name = "algokit_transact"
-
 [bindings.swift]
 module_name = "algokit_transact"

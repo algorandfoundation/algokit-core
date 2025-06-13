@@ -66,6 +66,33 @@ impl Package {
         }
         .to_string()
     }
+
+    fn crate_dir(&self) -> PathBuf {
+        get_repo_root().join("crates").join(self.crate_name())
+    }
+
+    fn crate_manifest(&self) -> PathBuf {
+        self.crate_dir().join("Cargo.toml")
+    }
+
+    fn dylib(&self) -> PathBuf {
+        let mut prefix = "lib";
+        let ext = if cfg!(target_os = "windows") {
+            prefix = "";
+            "dll"
+        } else if cfg!(target_os = "macos") {
+            "dylib"
+        } else {
+            "so"
+        };
+
+        get_repo_root().join("target").join("release").join(format!(
+            "{}{}.{}",
+            prefix,
+            self.crate_name(),
+            ext
+        ))
+    }
 }
 
 #[derive(Parser, Debug)]
@@ -106,7 +133,7 @@ fn run(
         }
     }
 
-    println!("\nRunning `{command_str}` in `{}`\n", dir.display());
+    println!("Running the following command: {:#?}", command);
 
     Ok(command.run()?)
 }
