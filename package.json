@@ -1,19 +1,26 @@
 {
-  "description": "This package.json contains the dependencies for semantic-release and serving the docs",
+  "description": "Defines the workspace for typescript packages and the deps/scripts for serving the docs and semantic release.",
   "type": "module",
   "workspaces": {
     "packages": [
-      "packages/typescript/algokit_transact"
+      "packages/typescript/*"
     ],
     "catalog": {
       "@types/bun": "^1.2.4",
       "@types/node": "^22.13.9",
       "bun": "^1.2.4",
-      "typescript": "^5.6.3"
+      "typescript": "^5.6.3",
+      "rimraf": "^6.0.1"
     },
     "catalogs": {
+      "apis": {
+        "@types/json-bigint": "^1.0.0"
+      },
       "testing": {
-        "@noble/ed25519": "^2.2.3"
+        "@noble/ed25519": "^2.2.3",
+        "@algorandfoundation/algokit-utils": "^9.0.1",
+        "algosdk": "^3.2.0",
+        "vitest": "^3.1.2"
       },
       "formatting": {
         "prettier": "^3.3.3",
