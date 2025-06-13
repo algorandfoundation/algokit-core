@@ -2,14 +2,14 @@
 
 [[package]]
 name = "algokit_transact"
-version = "1.0.0a14"
+version = "1.0.0a15"
 description = ""
 optional = false
 python-versions = ">=3.8, <4.0"
 groups = ["main"]
 markers = "sys_platform == \"darwin\" and platform_machine == \"x86_64\""
 files = [
-    {file = "algokit_transact-1.0.0a14-py3-none-macosx_10_12_x86_64.whl", hash = "sha256:621fe83ae1f1cb96bfd0e4782c19e8ff3b270f431222bb3cf59b6305637182cb"},
+    {file = "algokit_transact-1.0.0a15-py3-none-macosx_10_12_x86_64.whl", hash = "sha256:7dcd6d9c7a95699e0c640d7a4b4f2609754f5ce5817cfe8684016c0d0503ad10"},
 ]
 
 [package.dependencies]
@@ -17,18 +17,18 @@ cffi = ">=1.17.1"
 
 [package.source]
 type = "url"
-url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.14/algokit_transact-1.0.0a14-py3-none-macosx_10_12_x86_64.whl"
+url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.15/algokit_transact-1.0.0a15-py3-none-macosx_10_12_x86_64.whl"
 
 [[package]]
 name = "algokit_transact"
-version = "1.0.0a14"
+version = "1.0.0a15"
 description = ""
 optional = false
 python-versions = ">=3.8, <4.0"
 groups = ["main"]
 markers = "sys_platform == \"darwin\" and platform_machine == \"arm64\""
 files = [
-    {file = "algokit_transact-1.0.0a14-py3-none-macosx_11_0_arm64.whl", hash = "sha256:d0bc8f0eeb268a55b419ab4b02e0c779fb347fa16827c5a10b541c3105a04620"},
+    {file = "algokit_transact-1.0.0a15-py3-none-macosx_11_0_arm64.whl", hash = "sha256:6d350d3f00b1011ad808ae46ea08e27c71a4d51f7b3062ff06228bd6d6348e37"},
 ]
 
 [package.dependencies]
@@ -36,18 +36,18 @@ cffi = ">=1.17.1"
 
 [package.source]
 type = "url"
-url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.14/algokit_transact-1.0.0a14-py3-none-macosx_11_0_arm64.whl"
+url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.15/algokit_transact-1.0.0a15-py3-none-macosx_11_0_arm64.whl"
 
 [[package]]
 name = "algokit_transact"
-version = "1.0.0a14"
+version = "1.0.0a15"
 description = ""
 optional = false
 python-versions = ">=3.8, <4.0"
 groups = ["main"]
 markers = "sys_platform == \"linux\" and platform_machine == \"aarch64\""
 files = [
-    {file = "algokit_transact-1.0.0a14-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:9db709596319c1b28281b537650364a5b3d09d001553677a2ce329f10ab7b95c"},
+    {file = "algokit_transact-1.0.0a15-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:bb34e8335da738af7fa1717d7b044857b3b694013f0fd7eb9c2e9996f9fe710e"},
 ]
 
 [package.dependencies]
@@ -55,18 +55,18 @@ cffi = ">=1.17.1"
 
 [package.source]
 type = "url"
-url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.14/algokit_transact-1.0.0a14-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl"
+url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.15/algokit_transact-1.0.0a15-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl"
 
 [[package]]
 name = "algokit_transact"
-version = "1.0.0a14"
+version = "1.0.0a15"
 description = ""
 optional = false
 python-versions = ">=3.8, <4.0"
 groups = ["main"]
 markers = "sys_platform == \"linux\" and platform_machine == \"x86_64\""
 files = [
-    {file = "algokit_transact-1.0.0a14-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:5cb1a7ab25fe4b59d844f484f494f5f54177206c233ce10c47e974b1fffec34d"},
+    {file = "algokit_transact-1.0.0a15-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c65bc1c5bc1dfa342cffab6bbca0d522417e0a86b593ee1b5882029902c50b21"},
 ]
 
 [package.dependencies]
@@ -74,18 +74,18 @@ cffi = ">=1.17.1"
 
 [package.source]
 type = "url"
-url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.14/algokit_transact-1.0.0a14-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
+url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.15/algokit_transact-1.0.0a15-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
 
 [[package]]
 name = "algokit_transact"
-version = "1.0.0a14"
+version = "1.0.0a15"
 description = ""
 optional = false
 python-versions = ">=3.8, <4.0"
 groups = ["main"]
 markers = "sys_platform == \"win32\" and platform_machine == \"AMD64\""
 files = [
-    {file = "algokit_transact-1.0.0a14-py3-none-win_amd64.whl", hash = "sha256:d2a0e60279345aa20a8fb4dd6f2b0c48b4777464ef8bd2ac75d993ed140117c2"},
+    {file = "algokit_transact-1.0.0a15-py3-none-win_amd64.whl", hash = "sha256:9c8a6b2d36be6c83d0d24cd879dd2f7fdecb6583e520bf6d90a480229973df5d"},
 ]
 
 [package.dependencies]
@@ -93,7 +93,7 @@ cffi = ">=1.17.1"
 
 [package.source]
 type = "url"
-url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.14/algokit_transact-1.0.0a14-py3-none-win_amd64.whl"
+url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.15/algokit_transact-1.0.0a15-py3-none-win_amd64.whl"
 
 [[package]]
 name = "algokit-utils"
@@ -1114,4 +1114,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<4.0"
-content-hash = "73226df9d561f78809c24be39716990d60d340d3be5aed332ffb482174c9ec1b"
+content-hash = "423c19fce8994675a35cd1dbe4b3c53f876b56ae649f1fed48b197f556b01359"

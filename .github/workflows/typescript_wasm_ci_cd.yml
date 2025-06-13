@@ -52,7 +52,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-      - run: bun install --frozen-lockfile
+      - run: bun install --frozen-lockfile --ignore-scripts
       - name: Build
         run: cargo pkg ${{ inputs.crate }} typescript
       - name: Test
