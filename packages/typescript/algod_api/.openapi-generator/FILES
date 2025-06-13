@@ -1,5 +1,6 @@
 .gitattributes
 .gitignore
+.npmrc
 AlgodApi.md
 README.md
 apis/AlgodApi.ts

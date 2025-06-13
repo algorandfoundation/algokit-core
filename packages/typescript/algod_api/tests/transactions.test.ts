@@ -2,7 +2,7 @@ import { describe, test, expect, beforeAll } from "vitest";
 import { algorandFixture } from "@algorandfoundation/algokit-utils/testing";
 import * as algosdk from "algosdk";
 import * as algodPackage from "@algorandfoundation/algokit-algod-api";
-import { encodeTransaction, Transaction, Address } from "algokit_transact";
+import { encodeTransaction, Transaction, Address } from "@algorandfoundation/algokit-transact";
 import { Blob } from "buffer";
 import { HttpFile } from "../http/http";
 import { TransactionSignerAccount } from "@algorandfoundation/algokit-utils/types/account";
@@ -123,7 +123,7 @@ describe("Transaction API Tests", () => {
     // Note: This implementation differs from algosdk's simulateTransaction method.
     // Here we manually convert the signed transaction to base64-encoded string,
     // while algosdk takes an array of SignedTransaction objects and handles the encoding internally.
-    const emptyTxnGroup: algodPackage.SimulateRequestTransactionGroup = {
+    const txnGroup: algodPackage.SimulateRequestTransactionGroup = {
       "txns": [Buffer.from(await signedTxnFile.arrayBuffer()).toString("base64")],
     }
 
@@ -138,7 +138,7 @@ describe("Transaction API Tests", () => {
       "allowEmptySignatures": true,
       "allowMoreLogging": true,
       "allowUnnamedResources": true,
-      "txnGroups": [emptyTxnGroup],
+      "txnGroups": [txnGroup],
       "execTraceConfig": traceConfig,
     }
 

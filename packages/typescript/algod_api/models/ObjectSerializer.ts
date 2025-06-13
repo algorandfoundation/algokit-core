@@ -157,8 +157,8 @@ import { TealKeyValue } from '../models/TealKeyValue';
 import { TealValue } from '../models/TealValue';
 import { TransactionParams200Response } from '../models/TransactionParams200Response';
 import { Version } from '../models/Version';
-import * as algokit_transact from 'algokit_transact';
-import { stringifyJSON, parseJSON, stringifyJSONStandard, parseJSONStandard, IntDecoding } from '../bigint-utils';
+import { decodeMsgpackToJson, encodeJsonToMsgpack, ModelType, supportedModels } from "@algorandfoundation/algokit-transact";
+import { stringifyJSON, parseJSON, IntDecoding } from "../bigint-utils";
 
 /* tslint:disable:no-unused-variable */
 let primitives = [
@@ -537,11 +537,11 @@ export class ObjectSerializer {
             try {
                 // Use BigInt-aware JSON.stringify for msgpack
                 const jsonStr = stringifyJSON(data);
-                const modelEnum = typeHint && (algokit_transact.supportedModels() as unknown as string[]).indexOf(typeHint) !== -1
-                    ? typeHint as algokit_transact.ModelType
+                const modelEnum = typeHint && (supportedModels() as unknown as string[]).indexOf(typeHint) !== -1
+                    ? typeHint as ModelType
                     : undefined;
 
-                return modelEnum ? algokit_transact.encodeJsonToMsgpack(modelEnum, jsonStr) : jsonStr;
+                return modelEnum ? encodeJsonToMsgpack(modelEnum, jsonStr) : jsonStr;
             } catch (err) {
                 console.error(err);
                 // Fall through to default handling below
@@ -584,15 +584,15 @@ export class ObjectSerializer {
                     bytes = Uint8Array.from(rawData as any);
                 }
 
-                const modelEnum = typeHint && (algokit_transact.supportedModels() as unknown as string[]).indexOf(typeHint) !== -1
-                    ? typeHint as algokit_transact.ModelType
+                const modelEnum = typeHint && (supportedModels() as unknown as string[]).indexOf(typeHint) !== -1
+                    ? typeHint as ModelType
                     : undefined;
 
                 if (!modelEnum) {
                     throw new Error("No model enum found for type hint: " + typeHint);
                 }
 
-                const jsonStr = algokit_transact.decodeMsgpackToJson(modelEnum, bytes);
+                const jsonStr = decodeMsgpackToJson(modelEnum, bytes);
                 // Use BigInt-aware JSON.parse for msgpack decoded JSON
                 return parseJSON(jsonStr, { intDecoding: IntDecoding.MIXED });
             } catch (err) {
