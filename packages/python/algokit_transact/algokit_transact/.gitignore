@@ -1,0 +1,4 @@
+*.dll
+*.so
+*.dylib
+algokit_transact_ffi.py
