@@ -83,8 +83,6 @@ describe("Transaction Group", () => {
       expect(txsWithFees[0].sender).toEqual(txs[0].sender);
       expect(txsWithFees[0].payment!.receiver).toEqual(txs[0].payment!.receiver);
       expect(txsWithFees[1].sender).toEqual(txs[1].sender);
-      // TODO: investigate why the assetId is number instead of bigint
-      // likely an issue with the JSON deserialiser
       expect(txsWithFees[1].assetTransfer!.assetId).toEqual(BigInt(txs[1].assetTransfer!.assetId));
     });
 
