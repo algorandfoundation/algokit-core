@@ -14,7 +14,6 @@ import {
   IndexedTransactionFeeParams,
 } from "..";
 import * as ed from "@noble/ed25519";
-import { decode } from "punycode";
 
 const simplePayment = testData.simplePayment;
 const optInAssetTransfer = testData.optInAssetTransfer;
@@ -82,13 +81,11 @@ describe("Transaction Group", () => {
 
       // Verify that other transaction fields remain unchanged
       expect(txsWithFees[0].sender).toEqual(txs[0].sender);
-      expect(txsWithFees[0].payment?.receiver).toEqual(txs[0].payment?.receiver);
+      expect(txsWithFees[0].payment!.receiver).toEqual(txs[0].payment!.receiver);
       expect(txsWithFees[1].sender).toEqual(txs[1].sender);
       // TODO: investigate why the assetId is number instead of bigint
       // likely an issue with the JSON deserialiser
-      expect(txsWithFees[1].assetTransfer?.assetId).toEqual(
-        txs[1].assetTransfer?.assetId !== undefined ? BigInt(txs[1].assetTransfer?.assetId) : undefined,
-      );
+      expect(txsWithFees[1].assetTransfer!.assetId).toEqual(txs[1].assetTransfer!.assetId);
     });
 
     test("group transactions", () => {
@@ -138,10 +135,12 @@ describe("Transaction Group", () => {
 
       expect(encodedSignedGroupedTxs.length).toBe(txs.length);
       for (let i = 0; i < encodedSignedGroupedTxs.length; i++) {
-        expect(encodedSignedGroupedTxs[i]).toEqual(encodeSignedTransaction({
-          transaction: groupedTxs[i],
-          signature: txSignatures[i],
-        }));
+        expect(encodedSignedGroupedTxs[i]).toEqual(
+          encodeSignedTransaction({
+            transaction: groupedTxs[i],
+            signature: txSignatures[i],
+          }),
+        );
       }
 
       const decodedSignedGroupedTxs = decodeSignedTransactions(encodedSignedGroupedTxs);
