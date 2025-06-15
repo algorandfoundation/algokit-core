@@ -17,6 +17,20 @@ from __future__ import annotations
 import pprint
 import re  # noqa: F401
 import json
+# Optional support for Algorand compact MessagePack via the `algokit_transact`
+# Python bindings (built from the Rust crate). We do the import lazily so that
+# the generated client can still function even if the optional binary wheel is
+# not available on the target platform.
+try:
+    from algokit_transact import (
+        encode_json_to_msgpack as _ak_encode_msgpack,
+        decode_msgpack_to_json as _ak_decode_msgpack,
+        ModelType as _AkModelType,
+    )
+except ModuleNotFoundError:  # pragma: no cover – optional dependency
+    _ak_encode_msgpack = None  # type: ignore
+    _ak_decode_msgpack = None  # type: ignore
+    _AkModelType = None  # type: ignore
 
 from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, List, Optional, Union
@@ -37,7 +51,8 @@ class ApplicationParams(BaseModel):
     local_state_schema: Optional[ApplicationStateSchema] = Field(default=None, alias="local-state-schema")
     global_state_schema: Optional[ApplicationStateSchema] = Field(default=None, alias="global-state-schema")
     global_state: Optional[List[TealKeyValue]] = Field(default=None, description="Represents a key-value store for use in an application.", alias="global-state")
-    __properties: ClassVar[List[str]] = ["creator", "approval-program", "clear-state-program", "extra-program-pages", "local-state-schema", "global-state-schema", "global-state"]
+    version: Optional[StrictInt] = Field(default=None, description="\\[v\\] the number of updates to the application programs")
+    __properties: ClassVar[List[str]] = ["creator", "approval-program", "clear-state-program", "extra-program-pages", "local-state-schema", "global-state-schema", "global-state", "version"]
 
     @field_validator('approval_program')
     def approval_program_validate_regular_expression(cls, value):
@@ -123,8 +138,64 @@ class ApplicationParams(BaseModel):
             "extra-program-pages": obj.get("extra-program-pages"),
             "local-state-schema": ApplicationStateSchema.from_dict(obj["local-state-schema"]) if obj.get("local-state-schema") is not None else None,
             "global-state-schema": ApplicationStateSchema.from_dict(obj["global-state-schema"]) if obj.get("global-state-schema") is not None else None,
-            "global-state": [TealKeyValue.from_dict(_item) for _item in obj["global-state"]] if obj.get("global-state") is not None else None
+            "global-state": [TealKeyValue.from_dict(_item) for _item in obj["global-state"]] if obj.get("global-state") is not None else None,
+            "version": obj.get("version")
         })
         return _obj
+
+    def to_msgpack(self) -> bytes:  # pragma: no cover – thin wrapper
+        """Return the compact Algorand MessagePack representation of this model.
+
+        Requires the optional ``algokit_transact`` binary package to be
+        installed. If the model is not one of the types supported by that
+        package (for example *SimulateRequest* or *SimulateTransaction200Response*)
+        a :class:`NotImplementedError` is raised.
+        """
+        if _ak_encode_msgpack is None or _AkModelType is None:
+            raise RuntimeError(
+                "algokit_transact is not available — install the algokit_transact package"
+                "to use MessagePack helpers"
+            )
+
+        try:
+            model_type = _AkModelType[self.__class__.__name__]
+        except KeyError as exc:  # pragma: no cover
+            # Fallback: convert CamelCase -> UPPER_SNAKE_CASE (SimulateRequest -> SIMULATE_REQUEST)
+            variant_name = re.sub(r'(?<!^)(?=[A-Z])', '_', self.__class__.__name__).upper()
+            try:
+                model_type = _AkModelType[variant_name]
+            except KeyError as exc:  # pragma: no cover
+                raise NotImplementedError(
+                    f"Model {self.__class__.__name__} ({variant_name}) is not supported by algokit_transact"
+                ) from exc
+
+        return _ak_encode_msgpack(model_type, self.to_json())  # type: ignore[arg-type]
+
+    @classmethod
+    def from_msgpack(cls, data: bytes) -> "Self":  # pragma: no cover – thin wrapper
+        """Create a new instance from Algorand MessagePack *data*.
+
+        The inverse of :pymeth:`to_msgpack`. Requires
+        ``algokit_transact`` to be importable.
+        """
+        if _ak_decode_msgpack is None or _AkModelType is None:
+            raise RuntimeError(
+                "algokit_transact is not available — install the algokit_transact package"
+                "to use MessagePack helpers"
+            )
+
+        try:
+            model_type = _AkModelType[cls.__name__]
+        except KeyError as exc:  # pragma: no cover
+            variant_name = re.sub(r'(?<!^)(?=[A-Z])', '_', cls.__name__).upper()
+            try:
+                model_type = _AkModelType[variant_name]
+            except KeyError as exc:  # pragma: no cover
+                raise NotImplementedError(
+                    f"Model {cls.__name__} ({variant_name}) is not supported by algokit_transact"
+                ) from exc
+
+        json_str = _ak_decode_msgpack(model_type, data)  # type: ignore[arg-type]
+        return cls.from_json(json_str)
 
 

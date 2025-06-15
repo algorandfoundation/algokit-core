@@ -54,7 +54,7 @@ jobs:
         with:
           bun-version: latest
       - working-directory: "."
-        run: bun install --frozen-lockfile
+        run: bun install --frozen-lockfile --ignore-scripts
         if: inputs.release
       - name: Semantic Release (dry-run)
         if: inputs.release
@@ -76,7 +76,7 @@ jobs:
       - working-directory: api
         if: steps.semantic_release.outputs.version != ''
         run: |
-          bun install --frozen-lockfile
+          bun install --frozen-lockfile --ignore-scripts
           bun run generate:${{ inputs.api }}:py
       - name: Commit version bump
         if: steps.semantic_release.outputs.version != ''
@@ -120,12 +120,12 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-      - run: bun install --frozen-lockfile
+      - run: bun install --frozen-lockfile --ignore-scripts
 
       - name: Generate client
         working-directory: api
         run: |
-          bun install --frozen-lockfile
+          bun install --frozen-lockfile --ignore-scripts
           bun run generate:${{ inputs.api }}:py
       - name: Check generated clients have been reviewed
         shell: bash

@@ -53,12 +53,12 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-      - run: bun install --frozen-lockfile
+      - run: bun install --frozen-lockfile --ignore-scripts
 
       - name: Generate client
         working-directory: api
         run: |
-          bun install --frozen-lockfile
+          bun install --frozen-lockfile --ignore-scripts
           bun run generate:${{ inputs.api }}:ts
       - name: Check generated clients have been reviewed
         shell: bash
@@ -71,11 +71,14 @@ jobs:
       - name: Build TypeScript algokit_transact
         run: cargo pkg transact typescript
 
+      - name: Install dependencies
+        working-directory: ${{ env.PACKAGE_DIR }}
+        run: bun install --frozen-lockfile --ignore-scripts
+        env:
+          NPM_CONFIG_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Build
         working-directory: ${{ env.PACKAGE_DIR }}
-        run: |
-          bun install --frozen-lockfile
-          bun run build
+        run: bun run build
 
       - name: Install AlgoKit
         run: pipx install algokit

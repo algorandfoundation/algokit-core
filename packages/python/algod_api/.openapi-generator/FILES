@@ -1,4 +1,5 @@
 .gitignore
+.vscode/settings.json
 README.md
 algokit_algod_api/__init__.py
 algokit_algod_api/api/__init__.py
@@ -33,6 +34,7 @@ algokit_algod_api/models/asset_params.py
 algokit_algod_api/models/avm_key_value.py
 algokit_algod_api/models/avm_value.py
 algokit_algod_api/models/box.py
+algokit_algod_api/models/box_descriptor.py
 algokit_algod_api/models/box_reference.py
 algokit_algod_api/models/build_version.py
 algokit_algod_api/models/debug_settings_prof.py
@@ -43,6 +45,9 @@ algokit_algod_api/models/dryrun_txn_result.py
 algokit_algod_api/models/error_response.py
 algokit_algod_api/models/eval_delta.py
 algokit_algod_api/models/eval_delta_key_value.py
+algokit_algod_api/models/genesis.py
+algokit_algod_api/models/genesis_allocation.py
+algokit_algod_api/models/genesis_allocation_state.py
 algokit_algod_api/models/get_application_boxes200_response.py
 algokit_algod_api/models/get_block200_response.py
 algokit_algod_api/models/get_block_hash200_response.py
@@ -55,6 +60,7 @@ algokit_algod_api/models/get_supply200_response.py
 algokit_algod_api/models/get_sync_round200_response.py
 algokit_algod_api/models/get_transaction_group_ledger_state_deltas_for_round200_response.py
 algokit_algod_api/models/get_transaction_proof200_response.py
+algokit_algod_api/models/kv_delta.py
 algokit_algod_api/models/ledger_state_delta_for_transaction_group.py
 algokit_algod_api/models/light_block_header_proof.py
 algokit_algod_api/models/participation_key.py
@@ -110,6 +116,7 @@ docs/AssetParams.md
 docs/AvmKeyValue.md
 docs/AvmValue.md
 docs/Box.md
+docs/BoxDescriptor.md
 docs/BoxReference.md
 docs/BuildVersion.md
 docs/DebugSettingsProf.md
@@ -120,6 +127,9 @@ docs/DryrunTxnResult.md
 docs/ErrorResponse.md
 docs/EvalDelta.md
 docs/EvalDeltaKeyValue.md
+docs/Genesis.md
+docs/GenesisAllocation.md
+docs/GenesisAllocationState.md
 docs/GetApplicationBoxes200Response.md
 docs/GetBlock200Response.md
 docs/GetBlockHash200Response.md
@@ -132,6 +142,7 @@ docs/GetSupply200Response.md
 docs/GetSyncRound200Response.md
 docs/GetTransactionGroupLedgerStateDeltasForRound200Response.md
 docs/GetTransactionProof200Response.md
+docs/KvDelta.md
 docs/LedgerStateDeltaForTransactionGroup.md
 docs/LightBlockHeaderProof.md
 docs/ParticipationKey.md
@@ -163,5 +174,8 @@ poetry.toml
 pyproject.toml
 pytest.ini
 tests/api/__init__.py
+tests/api/test_accounts.py
 tests/api/test_transactions.py
+tests/artifacts/dummy_app.arc56.json
 tests/conftest.py
+tests/utils.py

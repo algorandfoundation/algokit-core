@@ -20,6 +20,7 @@ import { Box } from '../models/Box';
 import { DebugSettingsProf } from '../models/DebugSettingsProf';
 import { DryrunRequest } from '../models/DryrunRequest';
 import { ErrorResponse } from '../models/ErrorResponse';
+import { Genesis } from '../models/Genesis';
 import { GetApplicationBoxes200Response } from '../models/GetApplicationBoxes200Response';
 import { GetBlock200Response } from '../models/GetBlock200Response';
 import { GetBlockHash200Response } from '../models/GetBlockHash200Response';
@@ -327,7 +328,8 @@ export class AlgodApiRequestFactory extends BaseAPIRequestFactory {
         requestContext.setHeaderParam("Content-Type", contentType);
         const serializedBody = ObjectSerializer.stringify(
             ObjectSerializer.serialize(participationkey, "HttpFile", ""),
-            contentType
+            contentType,
+            "HttpFile"
         );
         requestContext.setBody(serializedBody);
 
@@ -383,7 +385,8 @@ export class AlgodApiRequestFactory extends BaseAPIRequestFactory {
         requestContext.setHeaderParam("Content-Type", contentType);
         const serializedBody = ObjectSerializer.stringify(
             ObjectSerializer.serialize(keymap, "HttpFile", ""),
-            contentType
+            contentType,
+            "HttpFile"
         );
         requestContext.setBody(serializedBody);
 
@@ -588,24 +591,18 @@ export class AlgodApiRequestFactory extends BaseAPIRequestFactory {
     }
 
     /**
-     * Given an application ID, return boxes in lexographical order by name. If the results must be truncated, a next-token is supplied to continue the request.
-     * Get boxes for a given application.
+     * Given an application ID, return all Box names. No particular ordering is guaranteed. Request fails when client or server-side configured limits prevent returning all Box names.
+     * Get all box names for a given application.
      * @param applicationId An application identifier
-     * @param max Maximum number of boxes to return. Server may impose a lower limit.
-     * @param prefix A box name prefix, in the goal app call arg form \&#39;encoding:value\&#39;. For ints, use the form \&#39;int:1234\&#39;. For raw bytes, use the form \&#39;b64:A&#x3D;&#x3D;\&#39;. For printable strings, use the form \&#39;str:hello\&#39;. For addresses, use the form \&#39;addr:XYZ...\&#39;.
-     * @param next A box name, in the goal app call arg form \&#39;encoding:value\&#39;. When provided, the returned boxes begin (lexographically) with the supplied name. Callers may implement pagination by reinvoking the endpoint with the token from a previous call\&#39;s next-token.
-     * @param values If true, box values will be returned.
+     * @param max Max number of box names to return. If max is not set, or max &#x3D;&#x3D; 0, returns all box-names.
      */
-    public async getApplicationBoxes(applicationId: number, max?: number, prefix?: string, next?: string, values?: boolean, _options?: Configuration): Promise<RequestContext> {
+    public async getApplicationBoxes(applicationId: number, max?: number, _options?: Configuration): Promise<RequestContext> {
         let _config = _options || this.configuration;
 
         // verify required parameter 'applicationId' is not null or undefined
         if (applicationId === null || applicationId === undefined) {
             throw new RequiredError("AlgodApi", "getApplicationBoxes", "applicationId");
         }
-
-
-
 
 
 
@@ -620,21 +617,6 @@ export class AlgodApiRequestFactory extends BaseAPIRequestFactory {
         // Query Params
         if (max !== undefined) {
             requestContext.setQueryParam("max", ObjectSerializer.serialize(max, "number", ""));
-        }
-
-        // Query Params
-        if (prefix !== undefined) {
-            requestContext.setQueryParam("prefix", ObjectSerializer.serialize(prefix, "string", ""));
-        }
-
-        // Query Params
-        if (next !== undefined) {
-            requestContext.setQueryParam("next", ObjectSerializer.serialize(next, "string", ""));
-        }
-
-        // Query Params
-        if (values !== undefined) {
-            requestContext.setQueryParam("values", ObjectSerializer.serialize(values, "boolean", ""));
         }
 
 
@@ -1749,7 +1731,8 @@ export class AlgodApiRequestFactory extends BaseAPIRequestFactory {
         requestContext.setHeaderParam("Content-Type", contentType);
         const serializedBody = ObjectSerializer.stringify(
             ObjectSerializer.serialize(rawtxn, "HttpFile", ""),
-            contentType
+            contentType,
+            "HttpFile"
         );
         requestContext.setBody(serializedBody);
 
@@ -1796,7 +1779,8 @@ export class AlgodApiRequestFactory extends BaseAPIRequestFactory {
         requestContext.setHeaderParam("Content-Type", contentType);
         const serializedBody = ObjectSerializer.stringify(
             ObjectSerializer.serialize(rawtxn, "HttpFile", ""),
-            contentType
+            contentType,
+            "HttpFile"
         );
         requestContext.setBody(serializedBody);
 
@@ -1964,7 +1948,8 @@ export class AlgodApiRequestFactory extends BaseAPIRequestFactory {
         requestContext.setHeaderParam("Content-Type", contentType);
         const serializedBody = ObjectSerializer.stringify(
             ObjectSerializer.serialize(request, "SimulateRequest", ""),
-            contentType
+            contentType,
+            "SimulateRequest"
         );
         requestContext.setBody(serializedBody);
 
@@ -2094,7 +2079,8 @@ export class AlgodApiRequestFactory extends BaseAPIRequestFactory {
         requestContext.setHeaderParam("Content-Type", contentType);
         const serializedBody = ObjectSerializer.stringify(
             ObjectSerializer.serialize(source, "HttpFile", ""),
-            contentType
+            contentType,
+            "HttpFile"
         );
         requestContext.setBody(serializedBody);
 
@@ -2142,7 +2128,8 @@ export class AlgodApiRequestFactory extends BaseAPIRequestFactory {
         requestContext.setHeaderParam("Content-Type", contentType);
         const serializedBody = ObjectSerializer.stringify(
             ObjectSerializer.serialize(source, "string", ""),
-            contentType
+            contentType,
+            "string"
         );
         requestContext.setBody(serializedBody);
 
@@ -2187,7 +2174,8 @@ export class AlgodApiRequestFactory extends BaseAPIRequestFactory {
         requestContext.setHeaderParam("Content-Type", contentType);
         const serializedBody = ObjectSerializer.stringify(
             ObjectSerializer.serialize(request, "DryrunRequest", ""),
-            contentType
+            contentType,
+            "DryrunRequest"
         );
         requestContext.setBody(serializedBody);
 
@@ -2318,28 +2306,28 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: AbortCatchup200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "AbortCatchup200Response", contentType),
                 "AbortCatchup200Response", ""
             ) as AbortCatchup200Response;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Bad Request", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
@@ -2351,7 +2339,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: AbortCatchup200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "AbortCatchup200Response", contentType),
                 "AbortCatchup200Response", ""
             ) as AbortCatchup200Response;
             return body;
@@ -2371,28 +2359,28 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: AccountApplicationInformation200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "AccountApplicationInformation200Response", contentType),
                 "AccountApplicationInformation200Response", ""
             ) as AccountApplicationInformation200Response;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Malformed address or application ID", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
@@ -2404,7 +2392,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: AccountApplicationInformation200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "AccountApplicationInformation200Response", contentType),
                 "AccountApplicationInformation200Response", ""
             ) as AccountApplicationInformation200Response;
             return body;
@@ -2424,28 +2412,28 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: AccountAssetInformation200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "AccountAssetInformation200Response", contentType),
                 "AccountAssetInformation200Response", ""
             ) as AccountAssetInformation200Response;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Malformed address or asset ID", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
@@ -2457,7 +2445,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: AccountAssetInformation200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "AccountAssetInformation200Response", contentType),
                 "AccountAssetInformation200Response", ""
             ) as AccountAssetInformation200Response;
             return body;
@@ -2477,28 +2465,28 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: AccountAssetsInformation200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "AccountAssetsInformation200Response", contentType),
                 "AccountAssetsInformation200Response", ""
             ) as AccountAssetsInformation200Response;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Malformed address", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
@@ -2510,7 +2498,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: AccountAssetsInformation200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "AccountAssetsInformation200Response", contentType),
                 "AccountAssetsInformation200Response", ""
             ) as AccountAssetsInformation200Response;
             return body;
@@ -2530,28 +2518,28 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: Account = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "Account", contentType),
                 "Account", ""
             ) as Account;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Bad request", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
@@ -2563,7 +2551,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: Account = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "Account", contentType),
                 "Account", ""
             ) as Account;
             return body;
@@ -2583,42 +2571,42 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: AddParticipationKey200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "AddParticipationKey200Response", contentType),
                 "AddParticipationKey200Response", ""
             ) as AddParticipationKey200Response;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Bad Request", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("404", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Participation Key Not Found", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
         }
         if (isCodeInRange("503", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Service Temporarily Unavailable", body, response.headers);
@@ -2630,7 +2618,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: AddParticipationKey200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "AddParticipationKey200Response", contentType),
                 "AddParticipationKey200Response", ""
             ) as AddParticipationKey200Response;
             return body;
@@ -2650,35 +2638,35 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: ParticipationKey = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ParticipationKey", contentType),
                 "ParticipationKey", ""
             ) as ParticipationKey;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Bad Request", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("404", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Participation Key Not Found", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
@@ -2690,7 +2678,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: ParticipationKey = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ParticipationKey", contentType),
                 "ParticipationKey", ""
             ) as ParticipationKey;
             return body;
@@ -2713,28 +2701,28 @@ export class AlgodApiResponseProcessor {
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Bad Request", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("404", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Participation Key Not Found", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
@@ -2746,7 +2734,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: void = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "void", contentType),
                 "void", ""
             ) as void;
             return body;
@@ -2777,7 +2765,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: void = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "void", contentType),
                 "void", ""
             ) as void;
             return body;
@@ -2797,35 +2785,35 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: string = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "string", contentType),
                 "string", ""
             ) as string;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Bad Request", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
         }
         if (isCodeInRange("503", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Service Temporarily Unavailable", body, response.headers);
@@ -2837,7 +2825,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: string = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "string", contentType),
                 "string", ""
             ) as string;
             return body;
@@ -2857,35 +2845,35 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: Box = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "Box", contentType),
                 "Box", ""
             ) as Box;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Bad Request", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("404", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Box Not Found", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
@@ -2897,7 +2885,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: Box = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "Box", contentType),
                 "Box", ""
             ) as Box;
             return body;
@@ -2917,28 +2905,28 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: GetApplicationBoxes200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "GetApplicationBoxes200Response", contentType),
                 "GetApplicationBoxes200Response", ""
             ) as GetApplicationBoxes200Response;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Bad Request", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
@@ -2950,7 +2938,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: GetApplicationBoxes200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "GetApplicationBoxes200Response", contentType),
                 "GetApplicationBoxes200Response", ""
             ) as GetApplicationBoxes200Response;
             return body;
@@ -2970,35 +2958,35 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: Application = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "Application", contentType),
                 "Application", ""
             ) as Application;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Bad Request", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("404", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Application Not Found", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
@@ -3010,7 +2998,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: Application = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "Application", contentType),
                 "Application", ""
             ) as Application;
             return body;
@@ -3030,35 +3018,35 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: Asset = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "Asset", contentType),
                 "Asset", ""
             ) as Asset;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Bad Request", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("404", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Application Not Found", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
@@ -3070,7 +3058,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: Asset = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "Asset", contentType),
                 "Asset", ""
             ) as Asset;
             return body;
@@ -3090,35 +3078,35 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: GetBlock200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "GetBlock200Response", contentType),
                 "GetBlock200Response", ""
             ) as GetBlock200Response;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Bad Request - Non integer number", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("404", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "None existing block ", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
@@ -3130,7 +3118,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: GetBlock200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "GetBlock200Response", contentType),
                 "GetBlock200Response", ""
             ) as GetBlock200Response;
             return body;
@@ -3150,35 +3138,35 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: GetBlockHash200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "GetBlockHash200Response", contentType),
                 "GetBlockHash200Response", ""
             ) as GetBlockHash200Response;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Bad Request - Non integer number", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("404", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "None existing block ", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
@@ -3190,7 +3178,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: GetBlockHash200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "GetBlockHash200Response", contentType),
                 "GetBlockHash200Response", ""
             ) as GetBlockHash200Response;
             return body;
@@ -3210,35 +3198,35 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: GetBlockLogs200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "GetBlockLogs200Response", contentType),
                 "GetBlockLogs200Response", ""
             ) as GetBlockLogs200Response;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Bad Request - Non integer number", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("404", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Nonexistent block ", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
@@ -3247,7 +3235,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: GetBlockLogs200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "GetBlockLogs200Response", contentType),
                 "GetBlockLogs200Response", ""
             ) as GetBlockLogs200Response;
             return body;
@@ -3267,14 +3255,14 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: GetBlockTimeStampOffset200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "GetBlockTimeStampOffset200Response", contentType),
                 "GetBlockTimeStampOffset200Response", ""
             ) as GetBlockTimeStampOffset200Response;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "TimeStamp offset not set.", body, response.headers);
@@ -3286,7 +3274,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: GetBlockTimeStampOffset200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "GetBlockTimeStampOffset200Response", contentType),
                 "GetBlockTimeStampOffset200Response", ""
             ) as GetBlockTimeStampOffset200Response;
             return body;
@@ -3306,35 +3294,35 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: GetBlockTxids200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "GetBlockTxids200Response", contentType),
                 "GetBlockTxids200Response", ""
             ) as GetBlockTxids200Response;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Bad Request - Non integer number", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("404", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Non existing block", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
@@ -3346,7 +3334,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: GetBlockTxids200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "GetBlockTxids200Response", contentType),
                 "GetBlockTxids200Response", ""
             ) as GetBlockTxids200Response;
             return body;
@@ -3366,7 +3354,7 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: string = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "string", contentType),
                 "string", ""
             ) as string;
             return body;
@@ -3378,7 +3366,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: string = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "string", contentType),
                 "string", ""
             ) as string;
             return body;
@@ -3398,7 +3386,7 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: DebugSettingsProf = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "DebugSettingsProf", contentType),
                 "DebugSettingsProf", ""
             ) as DebugSettingsProf;
             return body;
@@ -3407,7 +3395,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: DebugSettingsProf = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "DebugSettingsProf", contentType),
                 "DebugSettingsProf", ""
             ) as DebugSettingsProf;
             return body;
@@ -3423,13 +3411,13 @@ export class AlgodApiResponseProcessor {
      * @params response Response returned by the server for a request to getGenesis
      * @throws ApiException if the response code was not in [200, 299]
      */
-     public async getGenesisResponse(response: ResponseContext): Promise<string > {
+     public async getGenesisResponse(response: ResponseContext): Promise<Genesis > {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
-            const body: string = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
-                "string", ""
-            ) as string;
+            const body: Genesis = ObjectSerializer.deserialize(
+                await decodeResponseBody(response, "Genesis", contentType),
+                "Genesis", ""
+            ) as Genesis;
             return body;
         }
         if (isCodeInRange("0", response.httpStatusCode)) {
@@ -3438,10 +3426,10 @@ export class AlgodApiResponseProcessor {
 
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
-            const body: string = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
-                "string", ""
-            ) as string;
+            const body: Genesis = ObjectSerializer.deserialize(
+                await decodeResponseBody(response, "Genesis", contentType),
+                "Genesis", ""
+            ) as Genesis;
             return body;
         }
 
@@ -3459,42 +3447,42 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: any = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "any", contentType),
                 "any", ""
             ) as any;
             return body;
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("404", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Could not find a delta for round", body, response.headers);
         }
         if (isCodeInRange("408", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "timed out on request", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
         }
         if (isCodeInRange("503", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Service Temporarily Unavailable", body, response.headers);
@@ -3506,7 +3494,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: any = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "any", contentType),
                 "any", ""
             ) as any;
             return body;
@@ -3526,42 +3514,42 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: any = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "any", contentType),
                 "any", ""
             ) as any;
             return body;
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("404", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Could not find a delta for transaction ID or group ID", body, response.headers);
         }
         if (isCodeInRange("408", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "timed out on request", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
         }
         if (isCodeInRange("501", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Not Implemented", body, response.headers);
@@ -3573,7 +3561,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: any = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "any", contentType),
                 "any", ""
             ) as any;
             return body;
@@ -3593,42 +3581,42 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: LightBlockHeaderProof = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "LightBlockHeaderProof", contentType),
                 "LightBlockHeaderProof", ""
             ) as LightBlockHeaderProof;
             return body;
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("404", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Could not create proof since some data is missing", body, response.headers);
         }
         if (isCodeInRange("408", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "timed out on request", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
         }
         if (isCodeInRange("503", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Service Temporarily Unavailable", body, response.headers);
@@ -3640,7 +3628,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: LightBlockHeaderProof = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "LightBlockHeaderProof", contentType),
                 "LightBlockHeaderProof", ""
             ) as LightBlockHeaderProof;
             return body;
@@ -3660,35 +3648,35 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: ParticipationKey = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ParticipationKey", contentType),
                 "ParticipationKey", ""
             ) as ParticipationKey;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Bad Request", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("404", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Participation Key Not Found", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
@@ -3700,7 +3688,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: ParticipationKey = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ParticipationKey", contentType),
                 "ParticipationKey", ""
             ) as ParticipationKey;
             return body;
@@ -3720,35 +3708,35 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: Array<ParticipationKey> = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "Array<ParticipationKey>", contentType),
                 "Array<ParticipationKey>", ""
             ) as Array<ParticipationKey>;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Bad Request", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("404", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Participation Key Not Found", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
@@ -3760,7 +3748,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: Array<ParticipationKey> = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "Array<ParticipationKey>", contentType),
                 "Array<ParticipationKey>", ""
             ) as Array<ParticipationKey>;
             return body;
@@ -3780,28 +3768,28 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: GetPendingTransactionsByAddress200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "GetPendingTransactionsByAddress200Response", contentType),
                 "GetPendingTransactionsByAddress200Response", ""
             ) as GetPendingTransactionsByAddress200Response;
             return body;
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
         }
         if (isCodeInRange("503", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Service Temporarily Unavailable", body, response.headers);
@@ -3813,7 +3801,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: GetPendingTransactionsByAddress200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "GetPendingTransactionsByAddress200Response", contentType),
                 "GetPendingTransactionsByAddress200Response", ""
             ) as GetPendingTransactionsByAddress200Response;
             return body;
@@ -3833,35 +3821,35 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: GetPendingTransactionsByAddress200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "GetPendingTransactionsByAddress200Response", contentType),
                 "GetPendingTransactionsByAddress200Response", ""
             ) as GetPendingTransactionsByAddress200Response;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Max must be a non-negative integer", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
         }
         if (isCodeInRange("503", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Service Temporarily Unavailable", body, response.headers);
@@ -3873,7 +3861,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: GetPendingTransactionsByAddress200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "GetPendingTransactionsByAddress200Response", contentType),
                 "GetPendingTransactionsByAddress200Response", ""
             ) as GetPendingTransactionsByAddress200Response;
             return body;
@@ -3907,7 +3895,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: void = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "void", contentType),
                 "void", ""
             ) as void;
             return body;
@@ -3927,42 +3915,42 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: StateProof = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "StateProof", contentType),
                 "StateProof", ""
             ) as StateProof;
             return body;
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("404", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Could not find a state proof that covers a given round", body, response.headers);
         }
         if (isCodeInRange("408", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "timed out on request", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
         }
         if (isCodeInRange("503", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Service Temporarily Unavailable", body, response.headers);
@@ -3974,7 +3962,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: StateProof = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "StateProof", contentType),
                 "StateProof", ""
             ) as StateProof;
             return body;
@@ -3994,21 +3982,21 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: GetStatus200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "GetStatus200Response", contentType),
                 "GetStatus200Response", ""
             ) as GetStatus200Response;
             return body;
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: string = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "string", contentType),
                 "string", ""
             ) as string;
             throw new ApiException<string>(response.httpStatusCode, "Internal Error", body, response.headers);
@@ -4020,7 +4008,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: GetStatus200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "GetStatus200Response", contentType),
                 "GetStatus200Response", ""
             ) as GetStatus200Response;
             return body;
@@ -4040,14 +4028,14 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: GetSupply200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "GetSupply200Response", contentType),
                 "GetSupply200Response", ""
             ) as GetSupply200Response;
             return body;
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
@@ -4059,7 +4047,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: GetSupply200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "GetSupply200Response", contentType),
                 "GetSupply200Response", ""
             ) as GetSupply200Response;
             return body;
@@ -4079,35 +4067,35 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: GetSyncRound200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "GetSyncRound200Response", contentType),
                 "GetSyncRound200Response", ""
             ) as GetSyncRound200Response;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Sync round not set.", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
         }
         if (isCodeInRange("503", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Service Temporarily Unavailable", body, response.headers);
@@ -4119,7 +4107,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: GetSyncRound200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "GetSyncRound200Response", contentType),
                 "GetSyncRound200Response", ""
             ) as GetSyncRound200Response;
             return body;
@@ -4139,42 +4127,42 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: GetTransactionGroupLedgerStateDeltasForRound200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "GetTransactionGroupLedgerStateDeltasForRound200Response", contentType),
                 "GetTransactionGroupLedgerStateDeltasForRound200Response", ""
             ) as GetTransactionGroupLedgerStateDeltasForRound200Response;
             return body;
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("404", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Could not find deltas for round", body, response.headers);
         }
         if (isCodeInRange("408", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "timed out on request", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
         }
         if (isCodeInRange("501", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Not Implemented", body, response.headers);
@@ -4186,7 +4174,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: GetTransactionGroupLedgerStateDeltasForRound200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "GetTransactionGroupLedgerStateDeltasForRound200Response", contentType),
                 "GetTransactionGroupLedgerStateDeltasForRound200Response", ""
             ) as GetTransactionGroupLedgerStateDeltasForRound200Response;
             return body;
@@ -4206,35 +4194,35 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: GetTransactionProof200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "GetTransactionProof200Response", contentType),
                 "GetTransactionProof200Response", ""
             ) as GetTransactionProof200Response;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Malformed round number or transaction ID", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API token", body, response.headers);
         }
         if (isCodeInRange("404", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Non-existent block or transaction", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal error, including protocol not supporting proofs.", body, response.headers);
@@ -4246,7 +4234,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: GetTransactionProof200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "GetTransactionProof200Response", contentType),
                 "GetTransactionProof200Response", ""
             ) as GetTransactionProof200Response;
             return body;
@@ -4266,7 +4254,7 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: Version = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "Version", contentType),
                 "Version", ""
             ) as Version;
             return body;
@@ -4275,7 +4263,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: Version = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "Version", contentType),
                 "Version", ""
             ) as Version;
             return body;
@@ -4303,7 +4291,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: void = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "void", contentType),
                 "void", ""
             ) as void;
             return body;
@@ -4331,7 +4319,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: void = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "void", contentType),
                 "void", ""
             ) as void;
             return body;
@@ -4351,28 +4339,28 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: PendingTransactionResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "PendingTransactionResponse", contentType),
                 "PendingTransactionResponse", ""
             ) as PendingTransactionResponse;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Bad Request", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("404", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Transaction Not Found", body, response.headers);
@@ -4384,7 +4372,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: PendingTransactionResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "PendingTransactionResponse", contentType),
                 "PendingTransactionResponse", ""
             ) as PendingTransactionResponse;
             return body;
@@ -4404,7 +4392,7 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: DebugSettingsProf = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "DebugSettingsProf", contentType),
                 "DebugSettingsProf", ""
             ) as DebugSettingsProf;
             return body;
@@ -4413,7 +4401,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: DebugSettingsProf = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "DebugSettingsProf", contentType),
                 "DebugSettingsProf", ""
             ) as DebugSettingsProf;
             return body;
@@ -4433,35 +4421,35 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: RawTransaction200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "RawTransaction200Response", contentType),
                 "RawTransaction200Response", ""
             ) as RawTransaction200Response;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Bad Request - Malformed Algorand transaction ", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
         }
         if (isCodeInRange("503", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Service Temporarily Unavailable", body, response.headers);
@@ -4473,7 +4461,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: RawTransaction200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "RawTransaction200Response", contentType),
                 "RawTransaction200Response", ""
             ) as RawTransaction200Response;
             return body;
@@ -4496,14 +4484,14 @@ export class AlgodApiResponseProcessor {
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Bad Request - Malformed Algorand transaction ", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
@@ -4513,14 +4501,14 @@ export class AlgodApiResponseProcessor {
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
         }
         if (isCodeInRange("503", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Service Temporarily Unavailable", body, response.headers);
@@ -4532,7 +4520,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: void = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "void", contentType),
                 "void", ""
             ) as void;
             return body;
@@ -4555,21 +4543,21 @@ export class AlgodApiResponseProcessor {
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Cannot set timestamp offset to a negative integer.", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
@@ -4581,7 +4569,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: void = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "void", contentType),
                 "void", ""
             ) as void;
             return body;
@@ -4604,28 +4592,28 @@ export class AlgodApiResponseProcessor {
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Can not set sync round to an earlier round than the current round.", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
         }
         if (isCodeInRange("503", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Service Temporarily Unavailable", body, response.headers);
@@ -4637,7 +4625,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: void = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "void", contentType),
                 "void", ""
             ) as void;
             return body;
@@ -4657,7 +4645,7 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: any = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "any", contentType),
                 "any", ""
             ) as any;
             return body;
@@ -4666,7 +4654,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: any = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "any", contentType),
                 "any", ""
             ) as any;
             return body;
@@ -4686,35 +4674,35 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: SimulateTransaction200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "SimulateTransaction200Response", contentType),
                 "SimulateTransaction200Response", ""
             ) as SimulateTransaction200Response;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Bad Request", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
         }
         if (isCodeInRange("503", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Service Temporarily Unavailable", body, response.headers);
@@ -4726,7 +4714,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: SimulateTransaction200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "SimulateTransaction200Response", contentType),
                 "SimulateTransaction200Response", ""
             ) as SimulateTransaction200Response;
             return body;
@@ -4746,42 +4734,42 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: StartCatchup200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "StartCatchup200Response", contentType),
                 "StartCatchup200Response", ""
             ) as StartCatchup200Response;
             return body;
         }
         if (isCodeInRange("201", response.httpStatusCode)) {
             const body: StartCatchup200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "StartCatchup200Response", contentType),
                 "StartCatchup200Response", ""
             ) as StartCatchup200Response;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Bad Request", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("408", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Request Timeout", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
@@ -4793,7 +4781,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: StartCatchup200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "StartCatchup200Response", contentType),
                 "StartCatchup200Response", ""
             ) as StartCatchup200Response;
             return body;
@@ -4813,7 +4801,7 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: string = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "string", contentType),
                 "string", ""
             ) as string;
             return body;
@@ -4825,7 +4813,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: string = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "string", contentType),
                 "string", ""
             ) as string;
             return body;
@@ -4845,21 +4833,21 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: TealCompile200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "TealCompile200Response", contentType),
                 "TealCompile200Response", ""
             ) as TealCompile200Response;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Bad Request - Teal Compile Error", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
@@ -4869,7 +4857,7 @@ export class AlgodApiResponseProcessor {
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
@@ -4881,7 +4869,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: TealCompile200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "TealCompile200Response", contentType),
                 "TealCompile200Response", ""
             ) as TealCompile200Response;
             return body;
@@ -4901,21 +4889,21 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: TealDisassemble200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "TealDisassemble200Response", contentType),
                 "TealDisassemble200Response", ""
             ) as TealDisassemble200Response;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Bad Request - Teal Compile Error", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
@@ -4925,7 +4913,7 @@ export class AlgodApiResponseProcessor {
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
@@ -4937,7 +4925,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: TealDisassemble200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "TealDisassemble200Response", contentType),
                 "TealDisassemble200Response", ""
             ) as TealDisassemble200Response;
             return body;
@@ -4957,21 +4945,21 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: TealDryrun200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "TealDryrun200Response", contentType),
                 "TealDryrun200Response", ""
             ) as TealDryrun200Response;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Bad Request", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
@@ -4981,7 +4969,7 @@ export class AlgodApiResponseProcessor {
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
@@ -4993,7 +4981,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: TealDryrun200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "TealDryrun200Response", contentType),
                 "TealDryrun200Response", ""
             ) as TealDryrun200Response;
             return body;
@@ -5013,28 +5001,28 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: TransactionParams200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "TransactionParams200Response", contentType),
                 "TransactionParams200Response", ""
             ) as TransactionParams200Response;
             return body;
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
         }
         if (isCodeInRange("503", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Service Temporarily Unavailable", body, response.headers);
@@ -5046,7 +5034,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: TransactionParams200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "TransactionParams200Response", contentType),
                 "TransactionParams200Response", ""
             ) as TransactionParams200Response;
             return body;
@@ -5069,28 +5057,28 @@ export class AlgodApiResponseProcessor {
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Sync round not set.", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
         }
         if (isCodeInRange("503", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Service Temporarily Unavailable", body, response.headers);
@@ -5102,7 +5090,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: void = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "void", contentType),
                 "void", ""
             ) as void;
             return body;
@@ -5122,35 +5110,35 @@ export class AlgodApiResponseProcessor {
         const contentType = ObjectSerializer.normalizeMediaType(response.headers["content-type"]);
         if (isCodeInRange("200", response.httpStatusCode)) {
             const body: GetStatus200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "GetStatus200Response", contentType),
                 "GetStatus200Response", ""
             ) as GetStatus200Response;
             return body;
         }
         if (isCodeInRange("400", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Bad Request -- number must be non-negative integer", body, response.headers);
         }
         if (isCodeInRange("401", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Invalid API Token", body, response.headers);
         }
         if (isCodeInRange("500", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Internal Error", body, response.headers);
         }
         if (isCodeInRange("503", response.httpStatusCode)) {
             const body: ErrorResponse = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "ErrorResponse", contentType),
                 "ErrorResponse", ""
             ) as ErrorResponse;
             throw new ApiException<ErrorResponse>(response.httpStatusCode, "Service Temporarily Unavailable", body, response.headers);
@@ -5162,7 +5150,7 @@ export class AlgodApiResponseProcessor {
         // Work around for missing responses in specification, e.g. for petstore.yaml
         if (response.httpStatusCode >= 200 && response.httpStatusCode <= 299) {
             const body: GetStatus200Response = ObjectSerializer.deserialize(
-                ObjectSerializer.parse(await response.body.text(), contentType),
+                await decodeResponseBody(response, "GetStatus200Response", contentType),
                 "GetStatus200Response", ""
             ) as GetStatus200Response;
             return body;
@@ -5172,3 +5160,27 @@ export class AlgodApiResponseProcessor {
     }
 
 }
+
+const decodeResponseBody = async (response: ResponseContext, expectedType: string, contentType: string | undefined): Promise<any> => {
+    if (contentType && contentType.includes('msgpack')) {
+        // Retrieve the response body as binary and let ObjectSerializer handle the decoding.
+        const binaryData = await response.body.binary();
+        let bytes: Uint8Array;
+
+        if (typeof Blob !== 'undefined' && binaryData instanceof Blob) {
+            bytes = new Uint8Array(await binaryData.arrayBuffer());
+        } else if (binaryData instanceof Uint8Array) {
+            bytes = binaryData;
+        } else if (binaryData instanceof ArrayBuffer) {
+            bytes = new Uint8Array(binaryData);
+        } else {
+            // Fallback: attempt to construct from any array-like object (including Buffer)
+            bytes = Uint8Array.from(binaryData as any);
+        }
+
+        return ObjectSerializer.parse(bytes, contentType, expectedType);
+    }
+
+    // For non-binary payloads we can rely on the text representation.
+    return ObjectSerializer.parse(await response.body.text(), contentType);
+};

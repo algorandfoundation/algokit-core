@@ -33,6 +33,18 @@ from {{packageName}}.exceptions import (
     ServiceException
 )
 
+# ---------------------------------------------------------------------------
+# Optional Algorand MessagePack support (binary wheels built from Rust)
+# ---------------------------------------------------------------------------
+try:
+    from algokit_transact import (
+        decode_msgpack_to_json as _ak_decode_msgpack,
+        ModelType as _AkModelType,
+    )
+except ModuleNotFoundError:  # pragma: no cover
+    _ak_decode_msgpack = None  # type: ignore
+    _AkModelType = None  # type: ignore
+
 RequestSerialized = Tuple[str, str, Dict[str, str], Optional[str], List[str]]
 
 class ApiClient:
@@ -231,7 +243,16 @@ class ApiClient:
 
         # body
         if body:
-            body = self.sanitize_for_serialization(body)
+            # If the request will be sent as MessagePack and the model exposes
+            # `to_msgpack`, use it for compact binary encoding.
+            content_type_hdr = header_params.get('Content-Type', '') if header_params else ''
+            if content_type_hdr.startswith('application/msgpack') and hasattr(body, 'to_msgpack'):
+                try:
+                    body = body.to_msgpack()  # type: ignore[attr-defined]
+                except Exception as e:  # pragma: no cover – raise MessagePack encoding error
+                    raise e 
+            else:
+                body = self.sanitize_for_serialization(body)
 
         # request url
         if _host is None or self.configuration.ignore_operation_servers:
@@ -323,8 +344,22 @@ class ApiClient:
                 if content_type is not None:
                     match = re.search(r"charset=([a-zA-Z\-\d]+)[\s;]?", content_type)
                 encoding = match.group(1) if match else "utf-8"
-                response_text = response_data.data.decode(encoding)
-                return_data = self.deserialize(response_text, response_type, content_type)
+                if content_type and content_type.lower().startswith('application/msgpack'):
+                    # Attempt to decode via algokit_transact if available and model supports it
+                    if _ak_decode_msgpack and _AkModelType:
+                        try:
+                            variant_name = re.sub(r'(?<!^)(?=[A-Z])', '_', response_type).upper()
+                            model_type = _AkModelType[variant_name]
+                            json_str = _ak_decode_msgpack(model_type, response_data.data)  # type: ignore[arg-type]
+                            return_data = self.deserialize(json_str, response_type, 'application/json')
+                        except KeyError:
+                            # Fall back to returning raw bytes if model not mapped
+                            return_data = response_data.data
+                    else:
+                        return_data = response_data.data
+                else:
+                    response_text = response_data.data.decode(encoding)
+                    return_data = self.deserialize(response_text, response_type, content_type)
         finally:
             if not 200 <= response_data.status <= 299:
                 raise ApiException.from_response(
@@ -588,6 +623,10 @@ class ApiClient:
             return None
 
         for accept in accepts:
+            if 'msgpack' in accept:
+                return accept
+
+        for accept in accepts:
             if re.search('json', accept, re.IGNORECASE):
                 return accept
 
@@ -601,6 +640,10 @@ class ApiClient:
         """
         if not content_types:
             return None
+
+        for content_type in content_types:
+            if 'msgpack' in content_type:
+                return content_type
 
         for content_type in content_types:
             if re.search('json', content_type, re.IGNORECASE):

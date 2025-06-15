@@ -55,3 +55,25 @@
 | GET /v2/experimental                                     | ❌               | N/A           | ✅            | N/A        |
 | GET /v2/devmode/blocks/offset                            | ❌               | N/A           | ✅            | N/A        |
 | POST /v2/devmode/blocks/offset/{offset}                  | ❌               | N/A           | ✅            | N/A        |
+
+Similar to above but focused on abstractions:
+
+| Abstraction                         | Related Endpoints                                                             | Supports msgpack Encoding | Supports msgpack Decoding |
+| ----------------------------------- | ----------------------------------------------------------------------------- | ------------------------- | ------------------------- |
+| Account                             | GET /v2/accounts/{address}                                                    | No                        | Yes                       |
+| AccountAssetResponse                | GET /v2/accounts/{address}/assets/{asset-id}                                  | No                        | Yes                       |
+| AccountApplicationResponse          | GET /v2/accounts/{address}/applications/{application-id}                      | No                        | Yes                       |
+| AssetHolding                        | GET /v2/accounts/{address}/assets/{asset-id}                                  | No                        | Yes                       |
+| ApplicationLocalState               | GET /v2/accounts/{address}/applications/{application-id}                      | No                        | Yes                       |
+| BlockResponse                       | GET /v2/blocks/{round}                                                        | No                        | Yes                       |
+| PendingTransactions                 | GET /v2/transactions/pending, GET /v2/accounts/{address}/transactions/pending | No                        | Yes                       |
+| PendingTransactionResponse          | GET /v2/transactions/pending/{txid}                                           | No                        | Yes                       |
+| LedgerStateDelta                    | GET /v2/deltas/{round}, GET /v2/deltas/txn/group/{id}                         | No                        | Yes                       |
+| LedgerStateDeltaForTransactionGroup | GET /v2/deltas/{round}/txn/group                                              | No                        | Yes                       |
+| SimulateRequest                     | POST /v2/transactions/simulate                                                | Yes                       | No                        |
+| SimulateResponse                    | POST /v2/transactions/simulate (response)                                     | No                        | Yes                       |
+| DryrunRequest                       | POST /v2/teal/dryrun                                                          | Yes                       | No                        |
+| DryrunResponse                      | POST /v2/teal/dryrun (response)                                               | No                        | Yes                       |
+| ErrorResponse                       | Various error responses across all endpoints                                  | No                        | Yes                       |
+
+This table shows that while many abstractions in the Algorand API support msgpack decoding (receiving msgpack from the API), only two abstractions - SimulateRequest and DryrunRequest - support msgpack encoding (sending msgpack to the API).

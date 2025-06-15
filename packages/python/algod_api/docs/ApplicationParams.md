@@ -13,6 +13,7 @@ Name | Type | Description | Notes
 **local_state_schema** | [**ApplicationStateSchema**](ApplicationStateSchema.md) |  | [optional] 
 **global_state_schema** | [**ApplicationStateSchema**](ApplicationStateSchema.md) |  | [optional] 
 **global_state** | [**List[TealKeyValue]**](TealKeyValue.md) | Represents a key-value store for use in an application. | [optional] 
+**version** | **int** | \\[v\\] the number of updates to the application programs | [optional] 
 
 ## Example
 

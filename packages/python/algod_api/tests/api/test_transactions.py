@@ -13,25 +13,32 @@
 """  # noqa: E501
 
 
-
-from typing import Dict, cast
-from algokit_utils import SigningAccount
-import pytest
 import base64
+from typing import Dict, cast
+
+import pytest
+from algokit_transact import (
+    Address,
+    PaymentTransactionFields,
+    Transaction,
+    SignedTransaction,
+    TransactionType,
+    encode_signed_transaction,
+    encode_transaction,
+)
+from algokit_utils import SigningAccount
 from algosdk.encoding import msgpack_decode
 from algosdk.transaction import SignedTransaction as AlgosdkSignedTransaction
 
 from algokit_algod_api.api.algod_api import AlgodApi
 from algokit_algod_api.exceptions import ApiException
-from algokit_algod_api.models.transaction_params200_response import TransactionParams200Response
-from algokit_transact import (
-    encode_transaction,
-    TransactionType,
-    encode_signed_transaction,
-    Transaction,
-    SignedTransaction,
-    PaymentTransactionFields,
-    Address,
+from algokit_algod_api.models.simulate_request import SimulateRequest
+from algokit_algod_api.models.simulate_request_transaction_group import (
+    SimulateRequestTransactionGroup,
+)
+from algokit_algod_api.models.simulate_trace_config import SimulateTraceConfig
+from algokit_algod_api.models.transaction_params200_response import (
+    TransactionParams200Response,
 )
 
 
@@ -60,12 +67,12 @@ def create_test_transaction(
 ) -> bytes:
     """
     Create and sign a test payment transaction.
-    
+
     Args:
         sender: Account sending the transaction
         receiver: Account receiving the transaction
         params: Transaction parameters
-        
+
     Returns:
         bytes: Signed transaction
     """
@@ -83,10 +90,10 @@ def create_test_transaction(
             receiver=Address(address=receiver.address, pub_key=receiver.public_key)
         ),
     )
-    
+
     encoded_txn = encode_transaction(txn)
     algosdk_txn = msgpack_decode(base64.b64encode(encoded_txn[2:]))
-    
+
     # Safely extract signature from the signed transaction
     signed_algosdk_txn = sender.signer.sign_transactions([algosdk_txn], [0])[0]
     sig = cast(AlgosdkSignedTransaction, signed_algosdk_txn).signature
@@ -94,33 +101,15 @@ def create_test_transaction(
         transaction=txn,
         signature=base64.b64decode(sig),
     )
-    
+
     return encode_signed_transaction(signed_txn)
-
-
-def handle_api_exception(e: ApiException) -> None:
-    """
-    Handle API exceptions consistently.
-    
-    Args:
-        e: API exception to handle
-    """
-    if e.status == 401:
-        pytest.skip(f"Authentication required or failed: {e}")
-    elif e.status == 404:
-        pytest.skip(f"Endpoint not available or resource not found: {e}")
-    elif e.status == 501:
-        pytest.skip(f"API not implemented: {e}")
-    else:
-        pytest.fail(f"API Exception: {e}")
-
 
 class TestTransactionAPI:
     """Specialized tests for transaction endpoints"""
 
     def test_transaction_params(
-        self, 
-        algod_instance: AlgodApi, 
+        self,
+        algod_instance: AlgodApi,
         headers: Dict[str, str]
     ) -> None:
         """Test case for TransactionParams"""
@@ -130,81 +119,118 @@ class TestTransactionAPI:
             assert response is not None
             response_dict = response.to_dict()
             assert isinstance(response_dict, dict)
-            
+
             # Required transaction parameters
             required_fields = [
-                'consensus-version', 'fee', 'genesis-hash', 
+                'consensus-version', 'fee', 'genesis-hash',
                 'genesis-id', 'last-round', 'min-fee'
             ]
             for field in required_fields:
                 assert field in response_dict
-            
-        except ApiException as e:
-            handle_api_exception(e)
+
         except Exception as e:
             pytest.fail(f"Exception when calling AlgodApi->transaction_params: {e}")
 
     def test_raw_transaction(
-        self, 
-        bob: SigningAccount, 
-        alice: SigningAccount, 
-        algod_instance: AlgodApi, 
+        self,
+        bob: SigningAccount,
+        alice: SigningAccount,
+        algod_instance: AlgodApi,
         headers: Dict[str, str],
         transaction_params: TransactionParams200Response,
     ) -> None:
         """
         Test case for RawTransaction
-        
+
         Broadcasts a raw transaction or transaction group to the network.
         """
         try:
             signed_txn = create_test_transaction(alice, bob, transaction_params)
-            
+
             # Call API and validate response
             response = algod_instance.raw_transaction(
-                rawtxn=signed_txn, 
+                rawtxn=signed_txn,
                 _headers=headers
             )
-            
+
             assert response is not None
             response_dict = response.to_dict()
             assert isinstance(response_dict, dict)
             assert 'txId' in response_dict
             assert len(response_dict['txId']) > 0
-            
-        except ApiException as e:
-            handle_api_exception(e)
+
         except Exception as e:
             pytest.fail(f"Exception when calling AlgodApi->raw_transaction: {e}")
 
     def test_pending_transactions(
-        self, 
-        bob: SigningAccount, 
-        algod_instance: AlgodApi, 
+        self,
+        bob: SigningAccount,
+        algod_instance: AlgodApi,
         headers: Dict[str, str],
         transaction_params: TransactionParams200Response,
     ) -> None:
         """Test case for PendingTransactions"""
         try:
             signed_txn = create_test_transaction(bob, bob, transaction_params)
-            
+
             # Call API and validate response
             sent_txn = algod_instance.raw_transaction(
-                rawtxn=signed_txn, 
+                rawtxn=signed_txn,
                 _headers=headers
             )
             response = algod_instance.pending_transaction_information(
                 txid=sent_txn.tx_id,
                 _headers=headers
             )
-            
+
             assert response is not None
             response_dict = response.to_dict()
             assert response_dict['txn'] is not None
             assert "confirmed-round" in response_dict
             assert "pool-error" in response_dict
-            
-        except ApiException as e:
-            handle_api_exception(e)
+
+        except Exception as e:
+            pytest.fail(f"Exception when calling AlgodApi->pending_transaction_information: {e}")
+
+
+    @pytest.mark.parametrize("format_str", ["json", "msgpack"])
+    def test_simulate_transaction(
+        self,
+        bob: SigningAccount,
+        algod_instance: AlgodApi,
+        headers: Dict[str, str],
+        transaction_params: TransactionParams200Response,
+        format_str: str,
+    ) -> None:
+        """Test case for PendingTransactions"""
+        try:
+            signed_txn = create_test_transaction(bob, bob, transaction_params)
+
+            empty_txn_group = SimulateRequestTransactionGroup(txns=[base64.b64encode(signed_txn).decode()])
+            # Use unpacked dict with correct field names (with hyphens)
+            trace_config = SimulateTraceConfig(
+                enable=True,
+                **{"stack-change": True, "state-change": True, "scratch-change": True}
+            )
+
+            request = SimulateRequest.from_dict(
+                {
+                    "allow-empty-signatures": True,
+                    "allow-more-logging": True,
+                    "allow-unnamed-resources": True,
+                    "txn-groups": [empty_txn_group],
+                    "exec-trace-config": trace_config
+                }
+            )
+
+            assert request is not None
+
+            response = algod_instance.simulate_transaction(
+                request=request,
+                format=format_str,
+                _content_type="application/msgpack",
+            )
+
+            assert response is not None
         except Exception as e:
             pytest.fail(f"Exception when calling AlgodApi->pending_transaction_information: {e}")

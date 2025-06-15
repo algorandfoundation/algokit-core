@@ -13,5 +13,13 @@
   },
   "[markdown]": {
     "editor.defaultFormatter": "DavidAnson.vscode-markdownlint"
+  },
+  "files.associations": {
+    "**/algod.oas2.json": "jsonc",
+    "**/algod.oas3.json": "jsonc"
+  },
+  "[jsonc]": {
+    "editor.formatOnSave": false,
+    "editor.formatOnPaste": false
   }
 }
