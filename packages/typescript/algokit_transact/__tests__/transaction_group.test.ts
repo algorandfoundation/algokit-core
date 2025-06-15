@@ -85,7 +85,7 @@ describe("Transaction Group", () => {
       expect(txsWithFees[1].sender).toEqual(txs[1].sender);
       // TODO: investigate why the assetId is number instead of bigint
       // likely an issue with the JSON deserialiser
-      expect(txsWithFees[1].assetTransfer!.assetId).toEqual(txs[1].assetTransfer!.assetId);
+      expect(txsWithFees[1].assetTransfer!.assetId).toEqual(BigInt(txs[1].assetTransfer!.assetId));
     });
 
     test("group transactions", () => {
