@@ -15,7 +15,7 @@
 """  # noqa: E501
 
 
-__version__ = "1.0.0a16"
+__version__ = "1.0.0a17"
 
 # import apis into sdk package
 from algokit_algod_api.api.algod_api import AlgodApi
