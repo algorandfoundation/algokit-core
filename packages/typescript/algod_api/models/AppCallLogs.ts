@@ -23,7 +23,7 @@ export class AppCallLogs {
     /**
     * The application from which the logs were generated
     */
-    'applicationIndex': number;
+    'applicationIndex': number | bigint;
     /**
     * The transaction ID of the outer app call that lead to these logs
     */
@@ -43,7 +43,7 @@ export class AppCallLogs {
         {
             "name": "applicationIndex",
             "baseName": "application-index",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         },
         {

@@ -23,7 +23,7 @@ export class TransactionParams200Response {
     /**
     * Fee is the suggested transaction fee Fee is in units of micro-Algos per byte. Fee may fall to zero but transactions must still have a fee of at least MinTxnFee for the current network protocol.
     */
-    'fee': number;
+    'fee': number | bigint;
     /**
     * GenesisHash is the hash of the genesis block.
     */
@@ -35,11 +35,11 @@ export class TransactionParams200Response {
     /**
     * LastRound indicates the last round seen
     */
-    'lastRound': number;
+    'lastRound': number | bigint;
     /**
     * The minimum transaction fee (not per byte) required for the txn to validate for the current network protocol.
     */
-    'minFee': number;
+    'minFee': number | bigint;
 
     static readonly discriminator: string | undefined = undefined;
 
@@ -55,7 +55,7 @@ export class TransactionParams200Response {
         {
             "name": "fee",
             "baseName": "fee",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         },
         {
@@ -73,13 +73,13 @@ export class TransactionParams200Response {
         {
             "name": "lastRound",
             "baseName": "last-round",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         },
         {
             "name": "minFee",
             "baseName": "min-fee",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         }    ];
 

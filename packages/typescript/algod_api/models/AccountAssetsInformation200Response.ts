@@ -17,7 +17,7 @@ export class AccountAssetsInformation200Response {
     /**
     * The round for which this information is relevant.
     */
-    'round': number;
+    'round': number | bigint;
     /**
     * Used for pagination, when making another request provide this token with the next parameter.
     */
@@ -32,7 +32,7 @@ export class AccountAssetsInformation200Response {
         {
             "name": "round",
             "baseName": "round",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         },
         {

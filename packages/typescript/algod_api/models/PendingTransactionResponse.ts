@@ -25,7 +25,7 @@ export class PendingTransactionResponse {
     /**
     * The application index if the transaction was found and it created an application.
     */
-    'applicationIndex'?: number;
+    'applicationIndex'?: number | bigint;
     /**
     * Rewards in microalgos applied to the close remainder to account.
     */
@@ -41,7 +41,7 @@ export class PendingTransactionResponse {
     /**
     * The round where this transaction was confirmed, if present.
     */
-    'confirmedRound'?: number;
+    'confirmedRound'?: number | bigint;
     /**
     * Indicates that the transaction was kicked out of this node\'s transaction pool (and specifies why that happened).  An empty string indicates the transaction wasn\'t kicked out of this node\'s txpool due to an error. 
     */
@@ -89,7 +89,7 @@ export class PendingTransactionResponse {
         {
             "name": "applicationIndex",
             "baseName": "application-index",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         },
         {
@@ -113,7 +113,7 @@ export class PendingTransactionResponse {
         {
             "name": "confirmedRound",
             "baseName": "confirmed-round",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         },
         {

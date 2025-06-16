@@ -18,7 +18,7 @@ export class AccountAssetInformation200Response {
     /**
     * The round for which this information is relevant.
     */
-    'round': number;
+    'round': number | bigint;
     'assetHolding'?: AssetHolding;
     'createdAsset'?: AssetParams;
 
@@ -30,7 +30,7 @@ export class AccountAssetInformation200Response {
         {
             "name": "round",
             "baseName": "round",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         },
         {

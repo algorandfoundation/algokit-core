@@ -16,7 +16,7 @@ export class GetSyncRound200Response {
     /**
     * The minimum sync round for the ledger.
     */
-    'round': number;
+    'round': number | bigint;
 
     static readonly discriminator: string | undefined = undefined;
 
@@ -26,7 +26,7 @@ export class GetSyncRound200Response {
         {
             "name": "round",
             "baseName": "round",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         }    ];
 

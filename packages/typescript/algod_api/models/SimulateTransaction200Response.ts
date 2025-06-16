@@ -24,7 +24,7 @@ export class SimulateTransaction200Response {
     /**
     * The round immediately preceding this simulation. State changes through this round were used to run this simulation.
     */
-    'lastRound': number;
+    'lastRound': number | bigint;
     /**
     * A result object for each transaction group that was simulated.
     */
@@ -47,7 +47,7 @@ export class SimulateTransaction200Response {
         {
             "name": "lastRound",
             "baseName": "last-round",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         },
         {

@@ -25,7 +25,7 @@ export class SimulateRequest {
     /**
     * If provided, specifies the round preceding the simulation. State changes through this round will be used to run this simulation. Usually only the 4 most recent rounds will be available (controlled by the node config value MaxAcctLookback). If not specified, defaults to the latest available round.
     */
-    'round'?: number;
+    'round'?: number | bigint;
     /**
     * Allows transactions without signatures to be simulated as if they had correct signatures.
     */
@@ -62,7 +62,7 @@ export class SimulateRequest {
         {
             "name": "round",
             "baseName": "round",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         },
         {
