@@ -407,7 +407,8 @@
                   "properties": {
                     "round": {
                       "type": "integer",
-                      "description": "The round for which this information is relevant."
+                      "description": "The round for which this information is relevant.",
+                      "x-algokit-bigint": true
                     },
                     "asset-holding": {
                       "$ref": "#/components/schemas/AssetHolding"
@@ -427,7 +428,8 @@
                   "properties": {
                     "round": {
                       "type": "integer",
-                      "description": "The round for which this information is relevant."
+                      "description": "The round for which this information is relevant.",
+                      "x-algokit-bigint": true
                     },
                     "asset-holding": {
                       "$ref": "#/components/schemas/AssetHolding"
@@ -542,7 +544,8 @@
                   "properties": {
                     "round": {
                       "type": "integer",
-                      "description": "The round for which this information is relevant."
+                      "description": "The round for which this information is relevant.",
+                      "x-algokit-bigint": true
                     },
                     "next-token": {
                       "type": "string",
@@ -651,7 +654,8 @@
                   "properties": {
                     "round": {
                       "type": "integer",
-                      "description": "The round for which this information is relevant."
+                      "description": "The round for which this information is relevant.",
+                      "x-algokit-bigint": true
                     },
                     "app-local-state": {
                       "$ref": "#/components/schemas/ApplicationLocalState"
@@ -671,7 +675,8 @@
                   "properties": {
                     "round": {
                       "type": "integer",
-                      "description": "The round for which this information is relevant."
+                      "description": "The round for which this information is relevant.",
+                      "x-algokit-bigint": true
                     },
                     "app-local-state": {
                       "$ref": "#/components/schemas/ApplicationLocalState"
@@ -1491,15 +1496,18 @@
                   "properties": {
                     "current_round": {
                       "type": "integer",
-                      "description": "Round"
+                      "description": "Round",
+                      "x-algokit-bigint": true
                     },
                     "online-money": {
                       "type": "integer",
-                      "description": "OnlineMoney"
+                      "description": "OnlineMoney",
+                      "x-algokit-bigint": true
                     },
                     "total-money": {
                       "type": "integer",
-                      "description": "TotalMoney"
+                      "description": "TotalMoney",
+                      "x-algokit-bigint": true
                     }
                   },
                   "description": "Supply represents the current supply of MicroAlgos in the system"
@@ -2090,7 +2098,8 @@
                     },
                     "last-round": {
                       "type": "integer",
-                      "description": "LastRound indicates the last round seen"
+                      "description": "LastRound indicates the last round seen",
+                      "x-algokit-bigint": true
                     },
                     "last-version": {
                       "type": "string",
@@ -2266,7 +2275,8 @@
                     },
                     "last-round": {
                       "type": "integer",
-                      "description": "LastRound indicates the last round seen"
+                      "description": "LastRound indicates the last round seen",
+                      "x-algokit-bigint": true
                     },
                     "last-version": {
                       "type": "string",
@@ -2640,7 +2650,8 @@
                     },
                     "last-round": {
                       "type": "integer",
-                      "description": "The round immediately preceding this simulation. State changes through this round were used to run this simulation."
+                      "description": "The round immediately preceding this simulation. State changes through this round were used to run this simulation.",
+                      "x-algokit-bigint": true
                     },
                     "txn-groups": {
                       "type": "array",
@@ -2676,7 +2687,8 @@
                     },
                     "last-round": {
                       "type": "integer",
-                      "description": "The round immediately preceding this simulation. State changes through this round were used to run this simulation."
+                      "description": "The round immediately preceding this simulation. State changes through this round were used to run this simulation.",
+                      "x-algokit-bigint": true
                     },
                     "txn-groups": {
                       "type": "array",
@@ -2797,7 +2809,8 @@
                     },
                     "fee": {
                       "type": "integer",
-                      "description": "Fee is the suggested transaction fee\nFee is in units of micro-Algos per byte.\nFee may fall to zero but transactions must still have a fee of\nat least MinTxnFee for the current network protocol."
+                      "description": "Fee is the suggested transaction fee\nFee is in units of micro-Algos per byte.\nFee may fall to zero but transactions must still have a fee of\nat least MinTxnFee for the current network protocol.",
+                      "x-algokit-bigint": true
                     },
                     "genesis-hash": {
                       "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
@@ -2811,11 +2824,13 @@
                     },
                     "last-round": {
                       "type": "integer",
-                      "description": "LastRound indicates the last round seen"
+                      "description": "LastRound indicates the last round seen",
+                      "x-algokit-bigint": true
                     },
                     "min-fee": {
                       "type": "integer",
-                      "description": "The minimum transaction fee (not per byte) required for the\ntxn to validate for the current network protocol."
+                      "description": "The minimum transaction fee (not per byte) required for the\ntxn to validate for the current network protocol.",
+                      "x-algokit-bigint": true
                     }
                   },
                   "description": "TransactionParams contains the parameters that help a client construct\na new transaction."
@@ -4043,7 +4058,8 @@
                   "properties": {
                     "round": {
                       "type": "integer",
-                      "description": "The minimum sync round for the ledger."
+                      "description": "The minimum sync round for the ledger.",
+                      "x-algokit-bigint": true
                     }
                   }
                 }
@@ -4999,7 +5015,8 @@
           },
           "amount": {
             "type": "integer",
-            "description": "\\[algo\\] total number of MicroAlgos in the account"
+            "description": "\\[algo\\] total number of MicroAlgos in the account",
+            "x-algokit-bigint": true
           },
           "min-balance": {
             "type": "integer",
@@ -5089,7 +5106,8 @@
           },
           "round": {
             "type": "integer",
-            "description": "The round for which this information is relevant."
+            "description": "The round for which this information is relevant.",
+            "x-algokit-bigint": true
           },
           "status": {
             "type": "string",
@@ -5111,11 +5129,13 @@
           },
           "last-proposed": {
             "type": "integer",
-            "description": "The round in which this account last proposed the block."
+            "description": "The round in which this account last proposed the block.",
+            "x-algokit-bigint": true
           },
           "last-heartbeat": {
             "type": "integer",
-            "description": "The round in which this account last went online, or explicitly renewed their online status."
+            "description": "The round in which this account last went online, or explicitly renewed their online status.",
+            "x-algokit-bigint": true
           }
         },
         "description": "Account information at a given round.\n\nDefinition:\ndata/basics/userBalance.go : AccountData\n"
@@ -5187,7 +5207,8 @@
         "properties": {
           "index": {
             "type": "integer",
-            "description": "unique asset identifier"
+            "description": "unique asset identifier",
+            "x-algokit-bigint": true
           },
           "params": {
             "$ref": "#/components/schemas/AssetParams"
@@ -5211,7 +5232,8 @@
           "asset-id": {
             "type": "integer",
             "description": "Asset ID of the holding.",
-            "x-go-name": "AssetID"
+            "x-go-name": "AssetID",
+            "x-algokit-bigint": true
           },
           "is-frozen": {
             "type": "boolean",
@@ -5369,7 +5391,8 @@
         "properties": {
           "id": {
             "type": "integer",
-            "description": "The application which this local state is for."
+            "description": "The application which this local state is for.",
+            "x-algokit-bigint": true
           },
           "schema": {
             "$ref": "#/components/schemas/ApplicationStateSchema"
@@ -5583,7 +5606,8 @@
         "properties": {
           "id": {
             "type": "integer",
-            "description": "\\[appidx\\] application index."
+            "description": "\\[appidx\\] application index.",
+            "x-algokit-bigint": true
           },
           "params": {
             "$ref": "#/components/schemas/ApplicationParams"
@@ -5858,7 +5882,8 @@
           },
           "round": {
             "type": "integer",
-            "description": "If provided, specifies the round preceding the simulation. State changes through this round will be used to run this simulation. Usually only the 4 most recent rounds will be available (controlled by the node config value MaxAcctLookback). If not specified, defaults to the latest available round."
+            "description": "If provided, specifies the round preceding the simulation. State changes through this round will be used to run this simulation. Usually only the 4 most recent rounds will be available (controlled by the node config value MaxAcctLookback). If not specified, defaults to the latest available round.",
+            "x-algokit-bigint": true
           },
           "allow-empty-signatures": {
             "type": "boolean",
@@ -5937,7 +5962,8 @@
         "properties": {
           "round": {
             "type": "integer",
-            "description": "The round for which this information is relevant"
+            "description": "The round for which this information is relevant",
+            "x-algokit-bigint": true
           },
           "name": {
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
@@ -6102,7 +6128,8 @@
           },
           "application-index": {
             "type": "integer",
-            "description": "The application index if the transaction was found and it created an application."
+            "description": "The application index if the transaction was found and it created an application.",
+            "x-algokit-bigint": true
           },
           "close-rewards": {
             "type": "integer",
@@ -6118,7 +6145,8 @@
           },
           "confirmed-round": {
             "type": "integer",
-            "description": "The round where this transaction was confirmed, if present."
+            "description": "The round where this transaction was confirmed, if present.",
+            "x-algokit-bigint": true
           },
           "pool-error": {
             "type": "string",
@@ -6640,7 +6668,8 @@
           },
           "application-index": {
             "type": "integer",
-            "description": "The application from which the logs were generated"
+            "description": "The application from which the logs were generated",
+            "x-algokit-bigint": true
           },
           "txId": {
             "type": "string",
@@ -6682,7 +6711,8 @@
               "properties": {
                 "round": {
                   "type": "integer",
-                  "description": "The minimum sync round for the ledger."
+                  "description": "The minimum sync round for the ledger.",
+                  "x-algokit-bigint": true
                 }
               }
             }
@@ -6772,7 +6802,8 @@
               "properties": {
                 "round": {
                   "type": "integer",
-                  "description": "The round for which this information is relevant."
+                  "description": "The round for which this information is relevant.",
+                  "x-algokit-bigint": true
                 },
                 "asset-holding": {
                   "$ref": "#/components/schemas/AssetHolding"
@@ -6797,7 +6828,8 @@
               "properties": {
                 "round": {
                   "type": "integer",
-                  "description": "The round for which this information is relevant."
+                  "description": "The round for which this information is relevant.",
+                  "x-algokit-bigint": true
                 },
                 "next-token": {
                   "type": "string",
@@ -6826,7 +6858,8 @@
               "properties": {
                 "round": {
                   "type": "integer",
-                  "description": "The round for which this information is relevant."
+                  "description": "The round for which this information is relevant.",
+                  "x-algokit-bigint": true
                 },
                 "app-local-state": {
                   "$ref": "#/components/schemas/ApplicationLocalState"
@@ -7016,7 +7049,8 @@
                 },
                 "last-round": {
                   "type": "integer",
-                  "description": "LastRound indicates the last round seen"
+                  "description": "LastRound indicates the last round seen",
+                  "x-algokit-bigint": true
                 },
                 "last-version": {
                   "type": "string",
@@ -7230,7 +7264,8 @@
                 },
                 "last-round": {
                   "type": "integer",
-                  "description": "The round immediately preceding this simulation. State changes through this round were used to run this simulation."
+                  "description": "The round immediately preceding this simulation. State changes through this round were used to run this simulation.",
+                  "x-algokit-bigint": true
                 },
                 "txn-groups": {
                   "type": "array",
@@ -7288,15 +7323,18 @@
               "properties": {
                 "current_round": {
                   "type": "integer",
-                  "description": "Round"
+                  "description": "Round",
+                  "x-algokit-bigint": true
                 },
                 "online-money": {
                   "type": "integer",
-                  "description": "OnlineMoney"
+                  "description": "OnlineMoney",
+                  "x-algokit-bigint": true
                 },
                 "total-money": {
                   "type": "integer",
-                  "description": "TotalMoney"
+                  "description": "TotalMoney",
+                  "x-algokit-bigint": true
                 }
               },
               "description": "Supply represents the current supply of MicroAlgos in the system"
@@ -7325,7 +7363,8 @@
                 },
                 "fee": {
                   "type": "integer",
-                  "description": "Fee is the suggested transaction fee\nFee is in units of micro-Algos per byte.\nFee may fall to zero but transactions must still have a fee of\nat least MinTxnFee for the current network protocol."
+                  "description": "Fee is the suggested transaction fee\nFee is in units of micro-Algos per byte.\nFee may fall to zero but transactions must still have a fee of\nat least MinTxnFee for the current network protocol.",
+                  "x-algokit-bigint": true
                 },
                 "genesis-hash": {
                   "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
@@ -7339,11 +7378,13 @@
                 },
                 "last-round": {
                   "type": "integer",
-                  "description": "LastRound indicates the last round seen"
+                  "description": "LastRound indicates the last round seen",
+                  "x-algokit-bigint": true
                 },
                 "min-fee": {
                   "type": "integer",
-                  "description": "The minimum transaction fee (not per byte) required for the\ntxn to validate for the current network protocol."
+                  "description": "The minimum transaction fee (not per byte) required for the\ntxn to validate for the current network protocol.",
+                  "x-algokit-bigint": true
                 }
               },
               "description": "TransactionParams contains the parameters that help a client construct\na new transaction."

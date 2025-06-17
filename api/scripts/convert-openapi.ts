@@ -21,11 +21,11 @@ interface OpenAPISpec {
 }
 
 interface VendorExtensionTransform {
-  sourceProperty: string;  // e.g., "x-algorand-format" or "format"
-  sourceValue: string;     // e.g., "uint64"
-  targetProperty: string;  // e.g., "x-algokit-bigint"
-  targetValue: boolean;    // value to set
-  removeSource?: boolean;  // whether to remove the source property (default false)
+  sourceProperty: string; // e.g., "x-algorand-format" or "format"
+  sourceValue: string; // e.g., "uint64"
+  targetProperty: string; // e.g., "x-algokit-bigint"
+  targetValue: boolean; // value to set
+  removeSource?: boolean; // whether to remove the source property (default false)
 }
 
 interface ProcessingConfig {
@@ -41,20 +41,23 @@ interface ProcessingConfig {
 // Known missing descriptions to auto-fix
 const MISSING_DESCRIPTIONS = new Map([
   // Component responses
-  ['components.responses.NodeStatusResponse.description', 'Returns the current status of the node'],
-  ['components.responses.CatchpointStartResponse.description', 'Catchpoint start operation response'],
-  ['components.responses.CatchpointAbortResponse.description', 'Catchpoint abort operation response'],
+  ["components.responses.NodeStatusResponse.description", "Returns the current status of the node"],
+  ["components.responses.CatchpointStartResponse.description", "Catchpoint start operation response"],
+  ["components.responses.CatchpointAbortResponse.description", "Catchpoint abort operation response"],
 
   // Path responses
-  ["paths.'/v2/transactions/async'(post).responses.200.description", 'Transaction successfully submitted for asynchronous processing'],
-  ["paths.'/v2/status'(get).responses.200.description", 'Returns the current node status including sync status, version, and latest round'],
-  ["paths.'/v2/catchup/{catchpoint}'(post).responses.200.description", 'Catchpoint operation started successfully'],
-  ["paths.'/v2/catchup/{catchpoint}'(post).responses.201.description", 'Catchpoint operation created and started successfully'],
-  ["paths.'/v2/catchup/{catchpoint}'(delete).responses.200.description", 'Catchpoint operation aborted successfully'],
-  ["paths.'/v2/ledger/sync/{round}'(post).responses.200.description", 'Ledger sync to specified round initiated successfully'],
-  ["paths.'/v2/shutdown'(post).responses.200.description", 'Node shutdown initiated successfully'],
-  ["paths.'/v2/status/wait-for-block-after/{round}'(get).responses.200.description", 'Returns node status after the specified round is reached'],
-  ["paths.'/v2/ledger/sync'(delete).responses.200.description", 'Ledger sync operation stopped successfully'],
+  ["paths.'/v2/transactions/async'(post).responses.200.description", "Transaction successfully submitted for asynchronous processing"],
+  ["paths.'/v2/status'(get).responses.200.description", "Returns the current node status including sync status, version, and latest round"],
+  ["paths.'/v2/catchup/{catchpoint}'(post).responses.200.description", "Catchpoint operation started successfully"],
+  ["paths.'/v2/catchup/{catchpoint}'(post).responses.201.description", "Catchpoint operation created and started successfully"],
+  ["paths.'/v2/catchup/{catchpoint}'(delete).responses.200.description", "Catchpoint operation aborted successfully"],
+  ["paths.'/v2/ledger/sync/{round}'(post).responses.200.description", "Ledger sync to specified round initiated successfully"],
+  ["paths.'/v2/shutdown'(post).responses.200.description", "Node shutdown initiated successfully"],
+  [
+    "paths.'/v2/status/wait-for-block-after/{round}'(get).responses.200.description",
+    "Returns node status after the specified round is reached",
+  ],
+  ["paths.'/v2/ledger/sync'(delete).responses.200.description", "Ledger sync operation stopped successfully"],
 ]);
 
 /**
@@ -67,7 +70,7 @@ function fixMissingDescriptions(spec: OpenAPISpec): number {
   // Check component responses
   if (spec.components?.responses) {
     for (const [name, response] of Object.entries(spec.components.responses)) {
-      if (response && typeof response === 'object' && !response.description) {
+      if (response && typeof response === "object" && !response.description) {
         const path = `components.responses.${name}.description`;
         const description = MISSING_DESCRIPTIONS.get(path);
 
@@ -84,16 +87,16 @@ function fixMissingDescriptions(spec: OpenAPISpec): number {
   // Check path responses
   if (spec.paths) {
     for (const [pathName, pathObj] of Object.entries(spec.paths)) {
-      if (!pathObj || typeof pathObj !== 'object') continue;
+      if (!pathObj || typeof pathObj !== "object") continue;
 
-      const methods = ['get', 'post', 'put', 'delete', 'patch', 'head', 'options', 'trace'];
+      const methods = ["get", "post", "put", "delete", "patch", "head", "options", "trace"];
 
       for (const method of methods) {
         const operation = pathObj[method];
         if (!operation?.responses) continue;
 
         for (const [statusCode, response] of Object.entries(operation.responses)) {
-          if (response && typeof response === 'object' && !(response as any).description) {
+          if (response && typeof response === "object" && !(response as any).description) {
             const path = `paths.'${pathName}'(${method}).responses.${statusCode}.description`;
             const description = MISSING_DESCRIPTIONS.get(path);
 
@@ -112,7 +115,7 @@ function fixMissingDescriptions(spec: OpenAPISpec): number {
   // Report new missing descriptions
   if (missingPaths.length > 0) {
     console.warn(`⚠️  Found ${missingPaths.length} new missing descriptions:`);
-    missingPaths.forEach(path => console.warn(`  - ${path}`));
+    missingPaths.forEach((path) => console.warn(`  - ${path}`));
   }
 
   return fixedCount;
@@ -146,10 +149,10 @@ function transformVendorExtensions(spec: OpenAPISpec, transforms: VendorExtensio
   const transformCounts: Record<string, number> = {};
 
   // Initialize counts
-  transforms.forEach(t => transformCounts[`${t.sourceProperty}:${t.sourceValue}`] = 0);
+  transforms.forEach((t) => (transformCounts[`${t.sourceProperty}:${t.sourceValue}`] = 0));
 
   const transform = (obj: any): void => {
-    if (!obj || typeof obj !== 'object') return;
+    if (!obj || typeof obj !== "object") return;
 
     // Check each configured transformation
     for (const transform of transforms) {
@@ -170,14 +173,72 @@ function transformVendorExtensions(spec: OpenAPISpec, transforms: VendorExtensio
 
     // Recursively process all properties
     if (Array.isArray(obj)) {
-      obj.forEach(item => transform(item));
+      obj.forEach((item) => transform(item));
     } else {
-      Object.keys(obj).forEach(key => transform(obj[key]));
+      Object.keys(obj).forEach((key) => transform(obj[key]));
     }
   };
 
   transform(spec);
   return transformCounts;
+}
+
+/**
+ * Fix bigint - Add x-algokit-bigint: true to properties that represent large integers
+ */
+function fixBigInt(spec: OpenAPISpec): number {
+  let fixedCount = 0;
+
+  // Properties that commonly represent large integers in Algorand/blockchain context
+  const bigIntFields = [
+    { fieldName: "fee" },
+    { fieldName: "min-fee" },
+    { fieldName: "round" },
+    { fieldName: "last-round" },
+    { fieldName: "confirmed-round" },
+    { fieldName: "asset-id" },
+    { fieldName: "current_round" },
+    { fieldName: "online-money" },
+    { fieldName: "total-money" },
+    { fieldName: "amount" },
+    { fieldName: "id" },
+    { fieldName: "index", excludedModels: ["LightBlockHeaderProof"] },
+    { fieldName: "last-proposed" },
+    { fieldName: "last-heartbeat" },
+    { fieldName: "application-index" },
+  ];
+
+  const processObject = (obj: any, objName?: string): void => {
+    if (!obj || typeof obj !== "object") return;
+
+    if (Array.isArray(obj)) {
+      obj.forEach((o) => processObject(o));
+      return;
+    }
+
+    // Iterate through all properties
+    for (const [key, value] of Object.entries(obj)) {
+      // Check if this is a properties object (schema properties)
+      if (key === "properties" && value && typeof value === "object") {
+        for (const [propName, propDef] of Object.entries(value as Record<string, any>)) {
+          if (propDef && typeof propDef === "object" && propDef.type === "integer" && !propDef["x-algokit-bigint"]) {
+            if (bigIntFields.findIndex((f) => f.fieldName === propName && (!objName || !f.excludedModels?.includes(objName))) > -1) {
+              propDef["x-algokit-bigint"] = true;
+              fixedCount++;
+            }
+          }
+        }
+      }
+
+      // Recursively process nested objects
+      if (value && typeof value === "object") {
+        processObject(value, key);
+      }
+    }
+  };
+
+  processObject(spec);
+  return fixedCount;
 }
 
 // ===== MAIN PROCESSOR =====
@@ -192,18 +253,18 @@ class OpenAPIProcessor {
     console.log(`ℹ️  Fetching OpenAPI spec from ${this.config.sourceUrl}...`);
 
     // Check if it's a file path or URL
-    if (this.config.sourceUrl.startsWith('http://') || this.config.sourceUrl.startsWith('https://')) {
+    if (this.config.sourceUrl.startsWith("http://") || this.config.sourceUrl.startsWith("https://")) {
       const response = await fetch(this.config.sourceUrl);
       if (!response.ok) {
         throw new Error(`Failed to fetch spec: ${response.status} ${response.statusText}`);
       }
       const spec = await response.json();
-      console.log('✅ Successfully fetched OpenAPI specification');
+      console.log("✅ Successfully fetched OpenAPI specification");
       return spec;
     } else {
       // Local file
       const spec = await SwaggerParser.parse(this.config.sourceUrl);
-      console.log('✅ Successfully loaded OpenAPI specification from file');
+      console.log("✅ Successfully loaded OpenAPI specification from file");
       return spec as OpenAPISpec;
     }
   }
@@ -213,18 +274,18 @@ class OpenAPIProcessor {
    */
   private async convertToOpenAPI3(spec: OpenAPISpec): Promise<OpenAPISpec> {
     if (!spec.swagger || spec.openapi) {
-      console.log('ℹ️  Specification is already OpenAPI 3.0');
+      console.log("ℹ️  Specification is already OpenAPI 3.0");
       return spec;
     }
 
     const endpoint = this.config.converterEndpoint || "https://converter.swagger.io/api/convert";
-    console.log('ℹ️  Converting Swagger 2.0 to OpenAPI 3.0...');
+    console.log("ℹ️  Converting Swagger 2.0 to OpenAPI 3.0...");
 
     const response = await fetch(endpoint, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
+        "Content-Type": "application/json",
+        Accept: "application/json",
       },
       body: JSON.stringify(spec),
     });
@@ -234,7 +295,7 @@ class OpenAPIProcessor {
     }
 
     const converted = await response.json();
-    console.log('✅ Successfully converted to OpenAPI 3.0');
+    console.log("✅ Successfully converted to OpenAPI 3.0");
     return converted;
   }
 
@@ -248,7 +309,7 @@ class OpenAPIProcessor {
     const indent = this.config.indent || 2;
     const content = JSON.stringify(spec, null, indent);
 
-    writeFileSync(this.config.outputPath, content, 'utf8');
+    writeFileSync(this.config.outputPath, content, "utf8");
     console.log(`✅ Specification saved to ${this.config.outputPath}`);
   }
 
@@ -257,7 +318,7 @@ class OpenAPIProcessor {
    */
   async process(): Promise<void> {
     try {
-      console.log('ℹ️  Starting OpenAPI processing...');
+      console.log("ℹ️  Starting OpenAPI processing...");
 
       // Fetch and parse the spec
       let spec = await this.fetchSpec();
@@ -266,10 +327,10 @@ class OpenAPIProcessor {
       spec = await this.convertToOpenAPI3(spec);
 
       // Validate the spec
-      console.log('ℹ️  Validating OpenAPI specification...');
+      console.log("ℹ️  Validating OpenAPI specification...");
 
       // Apply transformations
-      console.log('ℹ️  Applying transformations...');
+      console.log("ℹ️  Applying transformations...");
 
       // 1. Fix missing descriptions
       const descriptionCount = fixMissingDescriptions(spec);
@@ -279,14 +340,18 @@ class OpenAPIProcessor {
       const pydanticCount = fixPydanticRecursionError(spec);
       console.log(`ℹ️  Fixed ${pydanticCount} pydantic recursion errors`);
 
-      // 3. Transform vendor extensions if configured
+      // 3. Fix bigint properties
+      const bigIntCount = fixBigInt(spec);
+      console.log(`ℹ️  Added x-algokit-bigint to ${bigIntCount} properties`);
+
+      // 4. Transform vendor extensions if configured
       if (this.config.vendorExtensionTransforms && this.config.vendorExtensionTransforms.length > 0) {
         const transformCounts = transformVendorExtensions(spec, this.config.vendorExtensionTransforms);
 
         for (const [countKey, count] of Object.entries(transformCounts)) {
-          const [sourceProperty, sourceValue] = countKey.split(':');
-          const transform = this.config.vendorExtensionTransforms.find(t =>
-            t.sourceProperty === sourceProperty && t.sourceValue === sourceValue
+          const [sourceProperty, sourceValue] = countKey.split(":");
+          const transform = this.config.vendorExtensionTransforms.find(
+            (t) => t.sourceProperty === sourceProperty && t.sourceValue === sourceValue,
           );
           if (transform) {
             console.log(`ℹ️  Transformed ${count} ${sourceProperty}: ${sourceValue} to ${transform.targetProperty}`);
@@ -296,14 +361,13 @@ class OpenAPIProcessor {
 
       // Save the processed spec
       await SwaggerParser.validate(JSON.parse(JSON.stringify(spec)));
-      console.log('✅ Specification is valid');
+      console.log("✅ Specification is valid");
 
       await this.saveSpec(spec);
 
-      console.log('✅ OpenAPI processing completed successfully!');
+      console.log("✅ OpenAPI processing completed successfully!");
       console.log(`📄 Source: ${this.config.sourceUrl}`);
       console.log(`📄 Output: ${this.config.outputPath}`);
-
     } catch (error) {
       console.error(`❌ Processing failed: ${error instanceof Error ? error.message : error}`);
       throw error;
@@ -317,10 +381,10 @@ class OpenAPIProcessor {
  * Fetch the latest stable tag from GitHub API
  */
 async function getLatestStableTag(): Promise<string> {
-  console.log('ℹ️  Fetching latest stable tag from GitHub...');
+  console.log("ℹ️  Fetching latest stable tag from GitHub...");
 
   try {
-    const response = await fetch('https://api.github.com/repos/algorand/go-algorand/tags');
+    const response = await fetch("https://api.github.com/repos/algorand/go-algorand/tags");
     if (!response.ok) {
       throw new Error(`GitHub API request failed: ${response.status} ${response.statusText}`);
     }
@@ -328,18 +392,18 @@ async function getLatestStableTag(): Promise<string> {
     const tags = await response.json();
 
     // Find the latest tag that contains '-stable'
-    const stableTag = tags.find((tag: any) => tag.name.includes('-stable'));
+    const stableTag = tags.find((tag: any) => tag.name.includes("-stable"));
 
     if (!stableTag) {
-      throw new Error('No stable tag found in the repository');
+      throw new Error("No stable tag found in the repository");
     }
 
     console.log(`✅ Found latest stable tag: ${stableTag.name}`);
     return stableTag.name;
   } catch (error) {
-    console.error('❌ Failed to fetch stable tag, falling back to master branch');
+    console.error("❌ Failed to fetch stable tag, falling back to master branch");
     console.error(error instanceof Error ? error.message : error);
-    return 'master';
+    return "master";
   }
 }
 
@@ -364,34 +428,33 @@ async function main() {
           sourceValue: "uint64",
           targetProperty: "x-algokit-bigint",
           targetValue: true,
-          removeSource: true
+          removeSource: true,
         },
         {
           sourceProperty: "format",
           sourceValue: "uint64",
           targetProperty: "x-algokit-bigint",
           targetValue: true,
-          removeSource: false
+          removeSource: false,
         },
         {
           sourceProperty: "x-go-type",
           sourceValue: "uint64",
           targetProperty: "x-algokit-bigint",
           targetValue: true,
-          removeSource: true
+          removeSource: true,
         },
         {
           sourceProperty: "x-algorand-format",
           sourceValue: "SignedTransaction",
           targetProperty: "x-algokit-signed-txn",
           targetValue: true,
-          removeSource: true
-        }
-      ]
+          removeSource: true,
+        },
+      ],
     };
 
     await processAlgorandSpec(config);
-
   } catch (error) {
     console.error("❌ Fatal error:", error instanceof Error ? error.message : error);
     process.exit(1);

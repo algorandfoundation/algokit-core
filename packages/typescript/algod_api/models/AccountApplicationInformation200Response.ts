@@ -18,7 +18,7 @@ export class AccountApplicationInformation200Response {
     /**
     * The round for which this information is relevant.
     */
-    'round': number;
+    'round': number | bigint;
     'appLocalState'?: ApplicationLocalState;
     'createdApp'?: ApplicationParams;
 
@@ -30,7 +30,7 @@ export class AccountApplicationInformation200Response {
         {
             "name": "round",
             "baseName": "round",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         },
         {

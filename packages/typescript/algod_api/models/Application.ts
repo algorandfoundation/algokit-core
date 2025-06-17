@@ -20,7 +20,7 @@ export class Application {
     /**
     * \\[appidx\\] application index.
     */
-    'id': number;
+    'id': number | bigint;
     'params': ApplicationParams;
 
     static readonly discriminator: string | undefined = undefined;
@@ -31,7 +31,7 @@ export class Application {
         {
             "name": "id",
             "baseName": "id",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         },
         {

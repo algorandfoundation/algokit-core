@@ -29,7 +29,7 @@ export class Account {
     /**
     * \\[algo\\] total number of MicroAlgos in the account
     */
-    'amount': number;
+    'amount': number | bigint;
     /**
     * MicroAlgo balance required by the account.  The requirement grows based on asset and application usage.
     */
@@ -103,7 +103,7 @@ export class Account {
     /**
     * The round for which this information is relevant.
     */
-    'round': number;
+    'round': number | bigint;
     /**
     * \\[onl\\] delegation status of the account\'s MicroAlgos * Offline - indicates that the associated account is delegated. *  Online  - indicates that the associated account used as part of the delegation pool. *   NotParticipating - indicates that the associated account is neither a delegator nor a delegate.
     */
@@ -119,11 +119,11 @@ export class Account {
     /**
     * The round in which this account last proposed the block.
     */
-    'lastProposed'?: number;
+    'lastProposed'?: number | bigint;
     /**
     * The round in which this account last went online, or explicitly renewed their online status.
     */
-    'lastHeartbeat'?: number;
+    'lastHeartbeat'?: number | bigint;
 
     static readonly discriminator: string | undefined = undefined;
 
@@ -139,7 +139,7 @@ export class Account {
         {
             "name": "amount",
             "baseName": "amount",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         },
         {
@@ -259,7 +259,7 @@ export class Account {
         {
             "name": "round",
             "baseName": "round",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         },
         {
@@ -283,13 +283,13 @@ export class Account {
         {
             "name": "lastProposed",
             "baseName": "last-proposed",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         },
         {
             "name": "lastHeartbeat",
             "baseName": "last-heartbeat",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         }    ];
 

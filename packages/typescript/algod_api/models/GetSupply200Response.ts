@@ -19,15 +19,15 @@ export class GetSupply200Response {
     /**
     * Round
     */
-    'currentRound': number;
+    'currentRound': number | bigint;
     /**
     * OnlineMoney
     */
-    'onlineMoney': number;
+    'onlineMoney': number | bigint;
     /**
     * TotalMoney
     */
-    'totalMoney': number;
+    'totalMoney': number | bigint;
 
     static readonly discriminator: string | undefined = undefined;
 
@@ -37,19 +37,19 @@ export class GetSupply200Response {
         {
             "name": "currentRound",
             "baseName": "current_round",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         },
         {
             "name": "onlineMoney",
             "baseName": "online-money",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         },
         {
             "name": "totalMoney",
             "baseName": "total-money",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         }    ];
 

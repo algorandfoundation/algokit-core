@@ -23,7 +23,7 @@ export class GetStatus200Response {
     /**
     * LastRound indicates the last round seen
     */
-    'lastRound': number;
+    'lastRound': number | bigint;
     /**
     * LastVersion indicates the last consensus version supported
     */
@@ -135,7 +135,7 @@ export class GetStatus200Response {
         {
             "name": "lastRound",
             "baseName": "last-round",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         },
         {

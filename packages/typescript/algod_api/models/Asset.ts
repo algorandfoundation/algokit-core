@@ -20,7 +20,7 @@ export class Asset {
     /**
     * unique asset identifier
     */
-    'index': number;
+    'index': number | bigint;
     'params': AssetParams;
 
     static readonly discriminator: string | undefined = undefined;
@@ -31,7 +31,7 @@ export class Asset {
         {
             "name": "index",
             "baseName": "index",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         },
         {

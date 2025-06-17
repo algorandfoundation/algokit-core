@@ -21,7 +21,7 @@ export class ApplicationLocalState {
     /**
     * The application which this local state is for.
     */
-    'id': number;
+    'id': number | bigint;
     'schema': ApplicationStateSchema;
     /**
     * Represents a key-value store for use in an application.
@@ -36,7 +36,7 @@ export class ApplicationLocalState {
         {
             "name": "id",
             "baseName": "id",
-            "type": "number",
+            "type": "bigint",
             "format": ""
         },
         {
