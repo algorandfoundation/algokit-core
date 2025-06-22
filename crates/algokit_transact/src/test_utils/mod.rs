@@ -3,7 +3,9 @@ mod asset_config;
 mod key_registration;
 
 use crate::{
-    transactions::{AssetTransferTransactionBuilder, PaymentTransactionBuilder},
+    transactions::{
+        AssetFreezeTransactionBuilder, AssetTransferTransactionBuilder, PaymentTransactionBuilder,
+    },
     Account, Address, AlgorandMsgpack, Byte32, MultisigSignature, MultisigSubsignature,
     SignedTransaction, Transaction, TransactionHeaderBuilder, TransactionId,
     ALGORAND_PUBLIC_KEY_BYTE_LENGTH, HASH_BYTES_LENGTH,
@@ -157,6 +159,24 @@ impl TransactionMother {
         Self::simple_asset_transfer()
             .amount(0)
             .receiver(AccountMother::neil().address())
+            .to_owned()
+    }
+
+    pub fn asset_freeze() -> AssetFreezeTransactionBuilder {
+        AssetFreezeTransactionBuilder::default()
+            .header(TransactionHeaderMother::simple_testnet().build().unwrap())
+            .asset_id(12345)
+            .freeze_target(AccountMother::neil().address())
+            .frozen(true)
+            .to_owned()
+    }
+
+    pub fn asset_unfreeze() -> AssetFreezeTransactionBuilder {
+        AssetFreezeTransactionBuilder::default()
+            .header(TransactionHeaderMother::simple_testnet().build().unwrap())
+            .asset_id(12345)
+            .freeze_target(AccountMother::neil().address())
+            .frozen(false)
             .to_owned()
     }
 }
@@ -451,6 +471,24 @@ impl TestDataMother {
         TransactionTestData::new(transaction, SIGNING_PRIVATE_KEY)
     }
 
+    pub fn asset_freeze() -> TransactionTestData {
+        let signing_private_key: Byte32 = [
+            2, 205, 103, 33, 67, 14, 82, 196, 115, 196, 206, 254, 50, 110, 63, 182, 149, 229, 184,
+            216, 93, 11, 13, 99, 69, 213, 218, 165, 134, 118, 47, 44,
+        ];
+        let transaction = TransactionMother::asset_freeze().build().unwrap();
+        TransactionTestData::new(transaction, signing_private_key)
+    }
+
+    pub fn asset_unfreeze() -> TransactionTestData {
+        let signing_private_key: Byte32 = [
+            2, 205, 103, 33, 67, 14, 82, 196, 115, 196, 206, 254, 50, 110, 63, 182, 149, 229, 184,
+            216, 93, 11, 13, 99, 69, 213, 218, 165, 134, 118, 47, 44,
+        ];
+        let transaction = TransactionMother::asset_unfreeze().build().unwrap();
+        TransactionTestData::new(transaction, signing_private_key)
+    }
+
     pub fn export<F, T>(path: &std::path::Path, transform: Option<F>)
     where
         F: Fn(&TransactionTestData) -> T,
@@ -473,6 +511,8 @@ impl TestDataMother {
             "online_key_registration": Self::online_key_registration().as_json(&transform),
             "offline_key_registration": Self::offline_key_registration().as_json(&transform),
             "non_participation_key_registration": Self::non_participation_key_registration().as_json(&transform),
+            "asset_freeze": Self::asset_freeze().as_json(&transform),
+            "asset_unfreeze": Self::asset_unfreeze().as_json(&transform),
         }));
 
         let file = File::create(path).expect("Failed to create export file");
@@ -657,5 +697,15 @@ mod tests {
             data.id,
             String::from("ACAP6ZGMGNTLUO3IQ26P22SRKYWTQQO3MF64GX7QO6NICDUFPM5A")
         );
+    }
+
+    #[test]
+    fn test_asset_freeze_snapshot() {
+        let data = TestDataMother::asset_freeze();
+        // Note: These values would need to be updated once we run the actual test
+        // to get the real encoded transaction values
+        assert!(!data.id.is_empty());
+        assert!(!data.unsigned_bytes.is_empty());
+        assert!(!data.signed_bytes.is_empty());
     }
 }

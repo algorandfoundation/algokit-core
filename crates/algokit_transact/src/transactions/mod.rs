@@ -6,6 +6,7 @@
 
 mod application_call;
 mod asset_config;
+mod asset_freeze;
 mod asset_transfer;
 mod common;
 mod key_registration;
@@ -20,6 +21,8 @@ pub use asset_config::{
     asset_config_deserializer, asset_config_serializer, AssetConfigTransactionBuilder,
     AssetConfigTransactionFields,
 };
+use asset_freeze::AssetFreezeTransactionBuilderError;
+pub use asset_freeze::{AssetFreezeTransactionBuilder, AssetFreezeTransactionFields};
 pub use asset_transfer::{AssetTransferTransactionBuilder, AssetTransferTransactionFields};
 pub use common::{TransactionHeader, TransactionHeaderBuilder};
 pub use key_registration::{KeyRegistrationTransactionBuilder, KeyRegistrationTransactionFields};
@@ -57,6 +60,9 @@ pub enum Transaction {
     #[serde(rename = "appl")]
     ApplicationCall(ApplicationCallTransactionFields),
 
+    #[serde(rename = "afrz")]
+    AssetFreeze(AssetFreezeTransactionFields),
+
     #[serde(rename = "keyreg")]
     KeyRegistration(KeyRegistrationTransactionFields),
 }
@@ -76,6 +82,7 @@ impl Transaction {
             Transaction::AssetConfig(a) => &a.header,
             Transaction::ApplicationCall(a) => &a.header,
             Transaction::KeyRegistration(k) => &k.header,
+            Transaction::AssetFreeze(f) => &f.header,
         }
     }
 
@@ -86,6 +93,7 @@ impl Transaction {
             Transaction::AssetConfig(a) => &mut a.header,
             Transaction::ApplicationCall(a) => &mut a.header,
             Transaction::KeyRegistration(k) => &mut k.header,
+            Transaction::AssetFreeze(f) => &mut f.header,
         }
     }
 
@@ -119,6 +127,12 @@ impl Transaction {
         header.fee = Some(calculated_fee);
 
         Ok(tx)
+    }
+}
+
+impl AssetFreezeTransactionBuilder {
+    pub fn build(&self) -> Result<Transaction, AssetFreezeTransactionBuilderError> {
+        self.build_fields().map(|d| Transaction::AssetFreeze(d))
     }
 }
 
