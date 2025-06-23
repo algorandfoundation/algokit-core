@@ -20,7 +20,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Then generate API documentation to a temporary location to move to the docs directory
     println!("Generating API documentation...");
     let cargo_doc = Command::new("cargo")
-        .args(&[
+        .args([
             "doc",
             "-p",
             "algokit_transact",
@@ -46,7 +46,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     if api_source.exists() {
         println!("Copying API documentation...");
-        copy_dir_all(api_source, &api_target)?;
+        copy_dir_all(api_source, api_target)?;
 
         // Clean up temporary directory
         let _ = fs::remove_dir_all("target/temp_cargo");

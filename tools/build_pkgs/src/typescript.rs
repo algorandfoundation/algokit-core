@@ -48,16 +48,16 @@ fn wasm_pack(package: &Package, target: &WasmPackTarget, dir: &Path) -> Result<O
 fn pack_and_bundle(package: &Package, mode: &WasmPackMode, dir: &Path) -> Result<Output> {
     run("bun install", Some(dir), None)?;
     match mode {
-        WasmPackMode::Esm => wasm_pack(&package, &WasmPackTarget::Web, dir),
-        WasmPackMode::Cjs => wasm_pack(&package, &WasmPackTarget::Web, dir),
+        WasmPackMode::Esm => wasm_pack(package, &WasmPackTarget::Web, dir),
+        WasmPackMode::Cjs => wasm_pack(package, &WasmPackTarget::Web, dir),
         WasmPackMode::Wasm2js => {
-            let output = wasm_pack(&package, &WasmPackTarget::Bundler, dir)?;
+            let output = wasm_pack(package, &WasmPackTarget::Bundler, dir)?;
 
             run(
                 &format!(
                     "bunx wasm2js -O pkg/{package}_ffi_bg.wasm -o pkg/{package}_ffi_bg.wasm.js",
                 ),
-                Some(&dir),
+                Some(dir),
                 None,
             )?;
 

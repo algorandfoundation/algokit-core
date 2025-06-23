@@ -69,12 +69,12 @@ pub trait AlgorandMsgpack: Serialize + for<'de> Deserialize<'de> {
 
         // If there is a PREFIX defined, bytes is longer than the prefix, and the bytes start
         // with the prefix, decode the bytes without the prefix
-        if Self::PREFIX.len() > 0
+        if !Self::PREFIX.is_empty()
             && bytes.len() > Self::PREFIX.len()
             && &bytes[..Self::PREFIX.len()] == Self::PREFIX
         {
             let without_prefix = &bytes[Self::PREFIX.len()..];
-            Ok(rmp_serde::from_slice(&without_prefix)?)
+            Ok(rmp_serde::from_slice(without_prefix)?)
         } else {
             Ok(rmp_serde::from_slice(bytes)?)
         }

@@ -2,8 +2,8 @@ use crate::{Package, get_repo_root, run};
 use color_eyre::eyre::{Result, eyre};
 
 pub fn build(package: &Package) -> Result<()> {
-    let crate_name = package.crate_name();
-    let ext = if cfg!(target_os = "windows") {
+    let _crate_name = package.crate_name();
+    let _ext = if cfg!(target_os = "windows") {
         "dll"
     } else if cfg!(target_os = "macos") {
         "dylib"
@@ -48,7 +48,7 @@ pub fn build(package: &Package) -> Result<()> {
     if cfg!(target_os = "linux") {
         let dist_files: Vec<_> = std::fs::read_dir(package_dir.join("dist"))?
             .filter_map(Result::ok)
-            .filter(|entry| entry.path().extension().map_or(false, |ext| ext == "whl"))
+            .filter(|entry| entry.path().extension().is_some_and(|ext| ext == "whl"))
             .collect();
 
         if dist_files.is_empty() {

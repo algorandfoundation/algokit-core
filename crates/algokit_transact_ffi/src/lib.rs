@@ -143,10 +143,10 @@ pub struct Address {
 
 impl From<algokit_transact::Address> for Address {
     fn from(value: algokit_transact::Address) -> Self {
-        return Self {
+        Self {
             address: value.to_string(),
             pub_key: value.pub_key.to_vec().into(),
-        };
+        }
     }
 }
 
@@ -255,9 +255,9 @@ impl TryFrom<Transaction> for algokit_transact::Transaction {
                 Ok(algokit_transact::Transaction::AssetTransfer(tx.try_into()?))
             }
             _ => {
-                return Err(Self::Error::DecodingError(
+                Err(Self::Error::DecodingError(
                     "Transaction type is not implemented".to_string(),
-                ));
+                ))
             }
         }
     }
@@ -528,7 +528,7 @@ pub fn encode_transaction_raw(tx: Transaction) -> Result<Vec<u8>, AlgoKitTransac
 #[ffi_func]
 pub fn decode_transaction(encoded_tx: &[u8]) -> Result<Transaction, AlgoKitTransactError> {
     let ctx: algokit_transact::Transaction = algokit_transact::Transaction::decode(encoded_tx)?;
-    Ok(ctx.try_into()?)
+    ctx.try_into()
 }
 
 /// Decodes a collection of MsgPack bytes into a transaction collection.
@@ -572,7 +572,7 @@ pub fn decode_transactions(
 #[ffi_func]
 pub fn estimate_transaction_size(transaction: Transaction) -> Result<u64, AlgoKitTransactError> {
     let core_tx: algokit_transact::Transaction = transaction.try_into()?;
-    return core_tx
+    core_tx
         .estimate_size()
         .map_err(|e| {
             AlgoKitTransactError::EncodingError(format!(
@@ -583,7 +583,7 @@ pub fn estimate_transaction_size(transaction: Transaction) -> Result<u64, AlgoKi
         .try_into()
         .map_err(|_| {
             AlgoKitTransactError::EncodingError("Failed to convert size to u64".to_string())
-        });
+        })
 }
 
 #[ffi_func]
@@ -716,7 +716,7 @@ pub fn assign_fee(
 
     let updated_txn = txn_internal.assign_fee(fee_params_internal)?;
 
-    Ok(updated_txn.try_into()?)
+    updated_txn.try_into()
 }
 
 /// Decodes a signed transaction.
