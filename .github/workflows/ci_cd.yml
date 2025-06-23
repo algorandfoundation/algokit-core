@@ -9,6 +9,24 @@ on:
       - main
 
 jobs:
+  check_rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.85.0
+      - name: Check formatting
+        run: cargo fmt --check
+      - name: Clippy
+        run: cargo clippy
+      - name: Check
+        run: cargo check
+      - name: Check WASM
+        run: cargo check --no-default-features --features ffi_wasm
+
   # A setup job to define the matricies that will be used across all of the jobs in this workflow
   setup:
     runs-on: ubuntu-latest
