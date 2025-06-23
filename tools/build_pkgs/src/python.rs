@@ -2,15 +2,6 @@ use crate::{Package, get_repo_root, run};
 use color_eyre::eyre::{Result, eyre};
 
 pub fn build(package: &Package) -> Result<()> {
-    let _crate_name = package.crate_name();
-    let _ext = if cfg!(target_os = "windows") {
-        "dll"
-    } else if cfg!(target_os = "macos") {
-        "dylib"
-    } else {
-        "so"
-    };
-
     run(
         &format!(
             r#"cargo --color always build --release --manifest-path "{}""#,
