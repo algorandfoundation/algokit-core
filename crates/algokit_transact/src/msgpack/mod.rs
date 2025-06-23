@@ -315,6 +315,27 @@ pub fn supported_models() -> Vec<ModelType> {
     registry.list_models()
 }
 
+// Allow users to use the standard `str::parse()` style API as well.
+impl std::str::FromStr for ModelType {
+    type Err = ();
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        ModelType::from_str(s).ok_or(())
+    }
+}
+
+// Provide a blanket implementation so every `Serialize` type automatically
+// gets the `ToMsgPack` methods.
+impl<T> ToMsgPack for T where T: Serialize {}
+
+// Implement `Display` for `ModelType` so it can be printed directly and used in
+// other error types if needed.
+impl std::fmt::Display for ModelType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
