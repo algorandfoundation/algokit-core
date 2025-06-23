@@ -180,12 +180,10 @@ impl AlgorandMsgpack for SignedTransaction {
 
                 Ok(stxn)
             }
-            _ => {
-                Err(AlgoKitTransactError::InputError(format!(
-                    "expected signed transaction to be a map, but got a: {:#?}",
-                    value.type_id()
-                )))
-            }
+            _ => Err(AlgoKitTransactError::InputError(format!(
+                "expected signed transaction to be a map, but got a: {:#?}",
+                value.type_id()
+            ))),
         }
     }
 }
