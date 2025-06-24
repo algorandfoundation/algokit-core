@@ -5,10 +5,17 @@ const jsonString = await Bun.file(path.join(__dirname, "../../../../crates/algok
 
 const defaultReviver = (key: string, value: unknown) => {
   if (Array.isArray(value) && value.every((n) => typeof n === "number")) {
+    // assetReferences and appReferences should be arrays of BigInts
+    if (key === "assetReferences" || key === "appReferences") {
+      return value.map((n) => BigInt(n));
+    }
     return new Uint8Array(value);
   }
 
-  if (typeof value === "number" && ["fee", "amount", "firstValid", "lastValid"].includes(key)) {
+  if (
+    typeof value === "number" &&
+    ["fee", "amount", "firstValid", "lastValid", "appId", "extraProgramPages", "numUints", "numByteSlices"].includes(key)
+  ) {
     return BigInt(value);
   }
 
@@ -19,7 +26,7 @@ export const parseJson = <T = any>(json: string, reviver: (_: string, value: unk
   return JSON.parse(json, reviver) as T;
 };
 
-type TransactionTestData = {
+export type TransactionTestData = {
   transaction: Transaction;
   id: string;
   idRaw: Uint8Array;
@@ -30,4 +37,10 @@ type TransactionTestData = {
   rekeyedSenderSignedBytes: Uint8Array;
 };
 
-export const testData = parseJson<Record<"simplePayment" | "optInAssetTransfer", TransactionTestData>>(jsonString);
+export const testData =
+  parseJson<
+    Record<
+      "simplePayment" | "optInAssetTransfer" | "applicationCall" | "applicationCreate" | "applicationUpdate" | "applicationDelete",
+      TransactionTestData
+    >
+  >(jsonString);

@@ -1,3 +1,5 @@
+mod transactions;
+
 use algokit_transact::constants::*;
 use algokit_transact::msgpack::{
     decode_base64_msgpack_to_json as internal_decode_base64_msgpack_to_json,
@@ -12,6 +14,8 @@ use algokit_transact::{
 use ffi_macros::{ffi_enum, ffi_func, ffi_record};
 use serde::{Deserialize, Serialize};
 use serde_bytes::ByteBuf;
+
+pub use transactions::ApplicationCallTransactionFields;
 
 // thiserror is used to easily create errors than can be propagated to the language bindings
 // UniFFI will create classes for errors (i.e. `MsgPackError.EncodingError` in Python)
@@ -233,6 +237,8 @@ pub struct Transaction {
     payment: Option<PaymentTransactionFields>,
 
     asset_transfer: Option<AssetTransferTransactionFields>,
+
+    application_call: Option<ApplicationCallTransactionFields>,
 }
 
 impl TryFrom<Transaction> for algokit_transact::Transaction {
@@ -240,10 +246,14 @@ impl TryFrom<Transaction> for algokit_transact::Transaction {
 
     fn try_from(tx: Transaction) -> Result<Self, AlgoKitTransactError> {
         // Ensure there is never more than 1 transaction type specific field set
-        if [tx.payment.is_some(), tx.asset_transfer.is_some()]
-            .iter()
-            .filter(|&&x| x)
-            .count()
+        if [
+            tx.payment.is_some(),
+            tx.asset_transfer.is_some(),
+            tx.application_call.is_some(),
+        ]
+        .into_iter()
+        .filter(|&x| x)
+        .count()
             > 1
         {
             return Err(Self::Error::DecodingError(
@@ -256,6 +266,9 @@ impl TryFrom<Transaction> for algokit_transact::Transaction {
             TransactionType::AssetTransfer => {
                 Ok(algokit_transact::Transaction::AssetTransfer(tx.try_into()?))
             }
+            TransactionType::ApplicationCall => Ok(algokit_transact::Transaction::ApplicationCall(
+                tx.try_into()?,
+            )),
             _ => Err(Self::Error::DecodingError(
                 "Transaction type is not implemented".to_string(),
             )),
@@ -362,6 +375,7 @@ impl TryFrom<algokit_transact::Transaction> for Transaction {
                     TransactionType::Payment,
                     Some(payment_fields),
                     None,
+                    None,
                 )
             }
             algokit_transact::Transaction::AssetTransfer(asset_transfer) => {
@@ -371,6 +385,17 @@ impl TryFrom<algokit_transact::Transaction> for Transaction {
                     TransactionType::AssetTransfer,
                     None,
                     Some(asset_transfer_fields),
+                    None,
+                )
+            }
+            algokit_transact::Transaction::ApplicationCall(application_call) => {
+                let application_call_fields = application_call.clone().into();
+                build_transaction(
+                    application_call.header,
+                    TransactionType::ApplicationCall,
+                    None,
+                    None,
+                    Some(application_call_fields),
                 )
             }
         }
@@ -441,6 +466,7 @@ fn build_transaction(
     transaction_type: TransactionType,
     payment: Option<PaymentTransactionFields>,
     asset_transfer: Option<AssetTransferTransactionFields>,
+    application_call: Option<ApplicationCallTransactionFields>,
 ) -> Result<Transaction, AlgoKitTransactError> {
     Ok(Transaction {
         transaction_type,
@@ -456,6 +482,7 @@ fn build_transaction(
         group: header.group.map(byte32_to_bytebuf),
         payment,
         asset_transfer,
+        application_call,
     })
 }
 
@@ -471,6 +498,7 @@ pub fn get_encoded_transaction_type(bytes: &[u8]) -> Result<TransactionType, Alg
     match decoded {
         algokit_transact::Transaction::Payment(_) => Ok(TransactionType::Payment),
         algokit_transact::Transaction::AssetTransfer(_) => Ok(TransactionType::AssetTransfer),
+        algokit_transact::Transaction::ApplicationCall(_) => Ok(TransactionType::ApplicationCall),
     }
 }
 
@@ -832,7 +860,7 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     #[test]
-    fn test_get_encoded_transaction_type() {
+    fn test_get_encoded_payment_transaction_type() {
         let txn: Transaction = TransactionMother::simple_payment()
             .build()
             .unwrap()
@@ -848,8 +876,36 @@ mod tests {
     }
 
     #[test]
-    fn test_transaction_id_ffi() {
+    fn test_get_encoded_asset_transfer_transaction_type() {
+        let txn: Transaction = TransactionMother::simple_asset_transfer()
+            .build()
+            .unwrap()
+            .try_into()
+            .unwrap();
+
+        // Encode the transaction
+        let encoded = encode_transaction(txn).unwrap();
+
+        // Test the get_encoded_transaction_type function
+        let tx_type = get_encoded_transaction_type(&encoded).unwrap();
+        assert_eq!(tx_type, TransactionType::AssetTransfer);
+    }
+
+    #[test]
+    fn test_payment_transaction_id_ffi() {
         let data = TestDataMother::simple_payment();
+        let tx_ffi: Transaction = data.transaction.try_into().unwrap();
+
+        let actual_id = get_transaction_id(tx_ffi.clone()).unwrap();
+        let actual_id_raw = get_transaction_id_raw(tx_ffi.clone()).unwrap();
+
+        assert_eq!(actual_id, data.id);
+        assert_eq!(actual_id_raw, data.id_raw);
+    }
+
+    #[test]
+    fn test_asset_transfer_transaction_id_ffi() {
+        let data = TestDataMother::simple_asset_transfer();
         let tx_ffi: Transaction = data.transaction.try_into().unwrap();
 
         let actual_id = get_transaction_id(tx_ffi.clone()).unwrap();
@@ -862,18 +918,22 @@ mod tests {
     #[test]
     fn test_group_transactions_ffi() {
         let expected_group = [
-            202, 79, 82, 7, 197, 237, 213, 55, 117, 226, 131, 74, 221, 85, 86, 215, 64, 133, 212,
-            7, 58, 234, 248, 162, 222, 53, 161, 29, 141, 101, 133, 49,
+            157, 37, 101, 171, 205, 211, 38, 98, 250, 86, 254, 215, 115, 126, 212, 252, 24, 53,
+            199, 142, 152, 75, 250, 200, 173, 128, 52, 142, 13, 193, 184, 137,
         ];
         let tx1 = TestDataMother::simple_payment()
             .transaction
             .try_into()
             .unwrap();
-        let tx2 = TestDataMother::opt_in_asset_transfer()
+        let tx2 = TestDataMother::simple_asset_transfer()
             .transaction
             .try_into()
             .unwrap();
-        let txs = vec![tx1, tx2];
+        let tx3 = TestDataMother::opt_in_asset_transfer()
+            .transaction
+            .try_into()
+            .unwrap();
+        let txs = vec![tx1, tx2, tx3];
 
         let grouped_txs = group_transactions(txs.clone()).unwrap();
 

@@ -1,13 +1,16 @@
 from dataclasses import dataclass
 from pathlib import Path
 import json
-from pprint import pprint
+from typing import Any
 from algokit_transact import (
     Address,
     PaymentTransactionFields,
     TransactionType,
     Transaction,
     AssetTransferTransactionFields,
+    ApplicationCallTransactionFields,
+    OnApplicationComplete,
+    StateSchema,
 )
 from nacl.signing import SigningKey
 
@@ -28,29 +31,49 @@ class TransactionTestData:
 class TestData:
     simple_payment: TransactionTestData
     opt_in_asset_transfer: TransactionTestData
+    application_call: TransactionTestData
+    application_create: TransactionTestData
+    application_update: TransactionTestData
+    application_delete: TransactionTestData
 
 
-def convert_values(obj):
+def convert_values(obj: Any) -> Any:
+    """Recursively convert values in the data structure to appropriate types"""
     if isinstance(obj, dict):
+        # Convert Address objects
         if "address" in obj and "pub_key" in obj:
-            pprint(Address(**obj))
             return Address(address=obj["address"], pub_key=bytes(obj["pub_key"]))
+
+        # Convert StateSchema objects
+        if "num_uints" in obj and "num_byte_slices" in obj and len(obj) == 2:
+            return StateSchema(
+                num_uints=obj["num_uints"], num_byte_slices=obj["num_byte_slices"]
+            )
+
+        # Convert on_complete field if present
+        if "on_complete" in obj:
+            obj = obj.copy()
+            obj["on_complete"] = convert_on_complete(obj["on_complete"])
+
         return {key: convert_values(value) for key, value in obj.items()}
-    elif isinstance(obj, list) and all(isinstance(x, int) for x in obj):
+    elif isinstance(obj, list) and all(
+        isinstance(x, int) and 0 <= x <= 255 for x in obj
+    ):
+        # Convert list of integers (0-255) to bytes
         return bytes(obj)
     elif isinstance(obj, list):
         return [convert_values(x) for x in obj]
     return obj
 
 
-def camel_to_snake(name):
+def camel_to_snake(name: str) -> str:
     import re
 
     name = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", name)
     return re.sub("([a-z0-9])([A-Z])", r"\1_\2", name).lower()
 
 
-def convert_case_recursive(obj):
+def convert_case_recursive(obj: Any) -> Any:
     if isinstance(obj, dict):
         return {
             camel_to_snake(key): convert_case_recursive(value)
@@ -61,7 +84,73 @@ def convert_case_recursive(obj):
     return obj
 
 
-def load_test_data():
+def convert_on_complete(value: str) -> OnApplicationComplete:
+    """Convert string on_complete values to enum values"""
+    on_complete_mapping = {
+        "NoOp": OnApplicationComplete.NO_OP,
+        "OptIn": OnApplicationComplete.OPT_IN,
+        "CloseOut": OnApplicationComplete.CLOSE_OUT,
+        "ClearState": OnApplicationComplete.CLEAR_STATE,
+        "UpdateApplication": OnApplicationComplete.UPDATE_APPLICATION,
+        "DeleteApplication": OnApplicationComplete.DELETE_APPLICATION,
+    }
+    return on_complete_mapping.get(value, value)
+
+
+def create_transaction_test_data(test_data: dict[str, Any]) -> TransactionTestData:
+    """Generic function to create TransactionTestData from test data"""
+    # Extract transaction data and signing key
+    transaction_data = test_data.pop("transaction")
+    signing_private_key = test_data.pop("signing_private_key")
+
+    # Extract transaction type and remove it from transaction data
+    transaction_type_str = transaction_data.pop("transaction_type")
+
+    # Map transaction types to their corresponding classes and field names
+    transaction_type_mapping = {
+        "Payment": {
+            "type": TransactionType.PAYMENT,
+            "field_name": "payment",
+            "field_class": PaymentTransactionFields,
+        },
+        "AssetTransfer": {
+            "type": TransactionType.ASSET_TRANSFER,
+            "field_name": "asset_transfer",
+            "field_class": AssetTransferTransactionFields,
+        },
+        "ApplicationCall": {
+            "type": TransactionType.APPLICATION_CALL,
+            "field_name": "application_call",
+            "field_class": ApplicationCallTransactionFields,
+        },
+    }
+
+    # Get the transaction type configuration
+    transaction_config = transaction_type_mapping.get(transaction_type_str)
+    if not transaction_config:
+        raise ValueError(f"Unknown transaction type: {transaction_type_str}")
+
+    # Extract the specific transaction field data
+    transaction_field_data = transaction_data.pop(transaction_config["field_name"])
+
+    # Build the transaction kwargs
+    transaction_kwargs = {
+        **transaction_data,
+        "transaction_type": transaction_config["type"],
+        transaction_config["field_name"]: transaction_config["field_class"](
+            **transaction_field_data
+        ),
+    }
+
+    return TransactionTestData(
+        **test_data,
+        transaction=Transaction(**transaction_kwargs),
+        signing_private_key=SigningKey(signing_private_key),
+    )
+
+
+def load_test_data() -> TestData:
+    """Load and process test data from JSON file"""
     # Get the path to test_data.json relative to this test file
     test_data_path = (
         Path(__file__).parent.parent.parent.parent.parent
@@ -73,44 +162,15 @@ def load_test_data():
     with open(test_data_path) as f:
         data = json.load(f)
 
+    # Convert values and case
     data = convert_values(convert_case_recursive(data))
 
-    simple_payment_txn = data["simple_payment"].pop("transaction")
-    _ = simple_payment_txn.pop("transaction_type")
-    simple_payment_txn_data = simple_payment_txn.pop("payment")
-    simple_payment_signing_private_key = data["simple_payment"].pop(
-        "signing_private_key"
-    )
+    # Create test data objects generically
+    test_data_objects = {
+        key: create_transaction_test_data(value.copy()) for key, value in data.items()
+    }
 
-    opt_in_asset_transfer_txn = data["opt_in_asset_transfer"].pop("transaction")
-    _ = opt_in_asset_transfer_txn.pop("transaction_type")
-    opt_in_asset_transfer_txn_data = opt_in_asset_transfer_txn.pop("asset_transfer")
-    opt_in_asset_transfer_signing_private_key = data["opt_in_asset_transfer"].pop(
-        "signing_private_key"
-    )
-
-    return TestData(
-        simple_payment=TransactionTestData(
-            **data["simple_payment"],
-            transaction=Transaction(
-                **simple_payment_txn,
-                transaction_type=TransactionType.PAYMENT,
-                payment=PaymentTransactionFields(**simple_payment_txn_data),
-            ),
-            signing_private_key=SigningKey(simple_payment_signing_private_key),
-        ),
-        opt_in_asset_transfer=TransactionTestData(
-            **data["opt_in_asset_transfer"],
-            transaction=Transaction(
-                **opt_in_asset_transfer_txn,
-                transaction_type=TransactionType.ASSET_TRANSFER,
-                asset_transfer=AssetTransferTransactionFields(
-                    **opt_in_asset_transfer_txn_data
-                ),
-            ),
-            signing_private_key=SigningKey(opt_in_asset_transfer_signing_private_key),
-        ),
-    )
+    return TestData(**test_data_objects)
 
 
 TEST_DATA = load_test_data()
