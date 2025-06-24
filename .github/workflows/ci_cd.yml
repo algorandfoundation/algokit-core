@@ -22,7 +22,8 @@ jobs:
       - name: Check formatting
         run: cargo fmt --check
       - name: Clippy
-        run: cargo clippy
+        # Run clippy and treat warnings as errors
+        run: cargo clippy -- -D warnings
       - name: Check
         run: cargo check
       - name: Check WASM
