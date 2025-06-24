@@ -36,6 +36,22 @@ fn check_transaction_encoding(tx: &Transaction, expected_encoded_len: usize) {
     assert_eq!(encoded.len(), expected_encoded_len);
 }
 
+fn check_signed_transaction_encoding(
+    tx: &Transaction,
+    expected_encoded_len: usize,
+    auth_address: Option<Address>,
+) {
+    let signed_tx = SignedTransaction {
+        transaction: tx.clone(),
+        signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
+        auth_address: auth_address.clone(),
+    };
+    let encoded_stx = signed_tx.encode().unwrap();
+    assert_eq!(encoded_stx.len(), expected_encoded_len);
+    let decoded_stx = SignedTransaction::decode(&encoded_stx).unwrap();
+    assert_eq!(decoded_stx, signed_tx);
+}
+
 fn check_transaction_id(tx: &Transaction, expected_tx_id: &str) {
     let signed_tx = SignedTransaction {
         transaction: tx.clone(),
@@ -49,92 +65,64 @@ fn check_transaction_id(tx: &Transaction, expected_tx_id: &str) {
 
 #[test]
 fn test_payment_transaction_encoding() {
-    let tx_builder = TransactionMother::simple_payment();
-    let payment_tx_fields = tx_builder.build_fields().unwrap();
-    let payment_tx = tx_builder.build().unwrap();
+    let payment_tx = TransactionMother::observed_payment().build().unwrap();
 
-    let encoded = payment_tx.encode().unwrap();
-    let decoded = Transaction::decode(&encoded).unwrap();
-    assert_eq!(decoded, payment_tx);
-    assert_eq!(decoded, Transaction::Payment(payment_tx_fields));
-
-    let signed_tx = SignedTransaction {
-        transaction: payment_tx.clone(),
-        signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
-        auth_address: None,
-    };
-    let encoded_stx = signed_tx.encode().unwrap();
-    let decoded_stx = SignedTransaction::decode(&encoded_stx).unwrap();
-    assert_eq!(decoded_stx, signed_tx);
-    assert_eq!(decoded_stx.transaction, payment_tx);
-
-    let raw_encoded = payment_tx.encode_raw().unwrap();
-    assert_eq!(encoded[0], b'T');
-    assert_eq!(encoded[1], b'X');
-    assert_eq!(encoded.len(), raw_encoded.len() + 2);
-    assert_eq!(encoded[2..], raw_encoded);
-    assert_eq!(encoded.len(), 174);
+    check_transaction_id(
+        &payment_tx,
+        "VTADY3NGJGE4DVZ4CKLX43NTEE3C2J4JJANZ5TPBR4OYJ2D4F2CA",
+    );
+    check_transaction_encoding(&payment_tx, 212);
 }
 
 #[test]
 fn test_asset_transfer_transaction_encoding() {
-    let tx_builder = TransactionMother::opt_in_asset_transfer();
-    let asset_transfer_tx_fields = tx_builder.build_fields().unwrap();
-    let asset_transfer_tx = tx_builder.build().unwrap();
+    let asset_transfer_tx = TransactionMother::simple_asset_transfer().build().unwrap();
 
-    let encoded = asset_transfer_tx.encode().unwrap();
-    let decoded = Transaction::decode(&encoded).unwrap();
-    assert_eq!(decoded, asset_transfer_tx);
-    assert_eq!(
-        decoded,
-        Transaction::AssetTransfer(asset_transfer_tx_fields)
+    check_transaction_id(
+        &asset_transfer_tx,
+        "VAHP4FRJH4GRV6ID2BZRK5VYID376EV3VE6T2TKKDFJBBDOXWCCA",
     );
-
-    let signed_tx = SignedTransaction {
-        transaction: asset_transfer_tx.clone(),
-        signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
-        auth_address: None,
-    };
-    let encoded_stx = signed_tx.encode().unwrap();
-    let decoded_stx = SignedTransaction::decode(&encoded_stx).unwrap();
-    assert_eq!(decoded_stx, signed_tx);
-    assert_eq!(decoded_stx.transaction, asset_transfer_tx);
-
-    let raw_encoded = asset_transfer_tx.encode_raw().unwrap();
-    assert_eq!(encoded[0], b'T');
-    assert_eq!(encoded[1], b'X');
-    assert_eq!(encoded.len(), raw_encoded.len() + 2);
-    assert_eq!(encoded[2..], raw_encoded);
-    assert_eq!(encoded.len(), 178);
+    check_transaction_encoding(&asset_transfer_tx, 186);
 }
 
 #[test]
-fn test_signed_transaction_encoding() {
-    let tx_builder = TransactionMother::simple_payment();
-    let payment_tx = tx_builder.build().unwrap();
+fn test_asset_opt_in_transaction_encoding() {
+    let asset_opt_in_tx = TransactionMother::opt_in_asset_transfer().build().unwrap();
 
-    // The sender is signing the transaction
-    let signed_tx = SignedTransaction {
-        transaction: payment_tx.clone(),
-        signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
-        auth_address: None,
-    };
-    let encoded_stx = signed_tx.encode().unwrap();
-    assert_eq!(encoded_stx.len(), 247);
-    let decoded_stx = SignedTransaction::decode(&encoded_stx).unwrap();
-    assert_eq!(decoded_stx, signed_tx);
+    check_transaction_id(
+        &asset_opt_in_tx,
+        "JIDBHDPLBASULQZFI4EY5FJWR6VQRMPPFSGYBKE2XKW65N3UQJXA",
+    );
+    check_transaction_encoding(&asset_opt_in_tx, 178);
+}
 
-    // The sender is not signing the transaction (rekeyed sender account)
-    let auth_address = AddressMother::address();
-    let signed_tx = SignedTransaction {
-        transaction: payment_tx.clone(),
-        signature: Some([1; ALGORAND_SIGNATURE_BYTE_LENGTH]),
-        auth_address: Some(auth_address.clone()),
-    };
-    let encoded_stx: Vec<u8> = signed_tx.encode().unwrap();
-    assert_eq!(encoded_stx.len(), 286);
-    let decoded_stx = SignedTransaction::decode(&encoded_stx).unwrap();
-    assert_eq!(decoded_stx, signed_tx);
+#[test]
+fn test_payment_signed_transaction_encoding() {
+    let payment_tx = TransactionMother::simple_payment().build().unwrap();
+    check_signed_transaction_encoding(&payment_tx, 247, None);
+    check_signed_transaction_encoding(&payment_tx, 286, Some(AddressMother::address().clone()));
+}
+
+#[test]
+fn test_asset_transfer_signed_transaction_encoding() {
+    let asset_transfer_tx = TransactionMother::simple_asset_transfer().build().unwrap();
+    check_signed_transaction_encoding(&asset_transfer_tx, 259, None);
+    check_signed_transaction_encoding(
+        &asset_transfer_tx,
+        298,
+        Some(AddressMother::address().clone()),
+    );
+}
+
+#[test]
+fn test_asset_opt_in_signed_transaction_encoding() {
+    let asset_opt_in_tx = TransactionMother::opt_in_asset_transfer().build().unwrap();
+    check_signed_transaction_encoding(&asset_opt_in_tx, 251, None);
+    check_signed_transaction_encoding(
+        &asset_opt_in_tx,
+        290,
+        Some(AddressMother::address().clone()),
+    );
 }
 
 #[test]
@@ -162,29 +150,7 @@ fn test_address() {
 }
 
 #[test]
-fn test_pay_transaction_id() {
-    let expected_tx_id_raw = [
-        35, 93, 0, 170, 96, 221, 1, 74, 119, 147, 131, 116, 7, 31, 225, 40, 215, 47, 44, 120, 128,
-        245, 41, 65, 116, 255, 147, 64, 90, 80, 147, 223,
-    ];
-    let expected_tx_id = "ENOQBKTA3UAUU54TQN2AOH7BFDLS6LDYQD2SSQLU76JUAWSQSPPQ";
-
-    let tx_builder = TransactionMother::payment_with_note();
-    let payment_tx = tx_builder.build().unwrap();
-    let signed_tx = SignedTransaction {
-        transaction: payment_tx.clone(),
-        signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
-        auth_address: None,
-    };
-
-    assert_eq!(payment_tx.id().unwrap(), expected_tx_id);
-    assert_eq!(payment_tx.id_raw().unwrap(), expected_tx_id_raw);
-    assert_eq!(signed_tx.id().unwrap(), expected_tx_id);
-    assert_eq!(signed_tx.id_raw().unwrap(), expected_tx_id_raw);
-}
-
-#[test]
-fn test_estimate_transaction_size() {
+fn test_pay_estimate_transaction_size() {
     let tx_builder = TransactionMother::simple_payment();
     let payment_tx = tx_builder.build().unwrap();
     let encoding_length = payment_tx.encode_raw().unwrap().len();
@@ -192,6 +158,27 @@ fn test_estimate_transaction_size() {
 
     let signed_tx = SignedTransaction {
         transaction: payment_tx.clone(),
+        signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
+        auth_address: None,
+    };
+    let actual_size = signed_tx.encode().unwrap().len();
+
+    assert_eq!(
+        estimation,
+        encoding_length + ALGORAND_SIGNATURE_ENCODING_INCR
+    );
+    assert_eq!(estimation, actual_size);
+}
+
+#[test]
+fn test_axfer_estimate_transaction_size() {
+    let tx_builder = TransactionMother::simple_asset_transfer();
+    let asset_transfer_tx = tx_builder.build().unwrap();
+    let encoding_length = asset_transfer_tx.encode_raw().unwrap().len();
+    let estimation = asset_transfer_tx.estimate_size().unwrap();
+
+    let signed_tx = SignedTransaction {
+        transaction: asset_transfer_tx.clone(),
         signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
         auth_address: None,
     };

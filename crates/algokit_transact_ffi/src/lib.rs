@@ -862,7 +862,7 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     #[test]
-    fn test_get_encoded_transaction_type() {
+    fn test_get_encoded_payment_transaction_type() {
         let txn: Transaction = TransactionMother::simple_payment()
             .build()
             .unwrap()
@@ -878,8 +878,36 @@ mod tests {
     }
 
     #[test]
-    fn test_transaction_id_ffi() {
+    fn test_get_encoded_asset_transfer_transaction_type() {
+        let txn: Transaction = TransactionMother::simple_asset_transfer()
+            .build()
+            .unwrap()
+            .try_into()
+            .unwrap();
+
+        // Encode the transaction
+        let encoded = encode_transaction(txn).unwrap();
+
+        // Test the get_encoded_transaction_type function
+        let tx_type = get_encoded_transaction_type(&encoded).unwrap();
+        assert_eq!(tx_type, TransactionType::AssetTransfer);
+    }
+
+    #[test]
+    fn test_payment_transaction_id_ffi() {
         let data = TestDataMother::simple_payment();
+        let tx_ffi: Transaction = data.transaction.try_into().unwrap();
+
+        let actual_id = get_transaction_id(tx_ffi.clone()).unwrap();
+        let actual_id_raw = get_transaction_id_raw(tx_ffi.clone()).unwrap();
+
+        assert_eq!(actual_id, data.id);
+        assert_eq!(actual_id_raw, data.id_raw);
+    }
+
+    #[test]
+    fn test_asset_transfer_transaction_id_ffi() {
+        let data = TestDataMother::simple_asset_transfer();
         let tx_ffi: Transaction = data.transaction.try_into().unwrap();
 
         let actual_id = get_transaction_id(tx_ffi.clone()).unwrap();
@@ -892,18 +920,22 @@ mod tests {
     #[test]
     fn test_group_transactions_ffi() {
         let expected_group = [
-            202, 79, 82, 7, 197, 237, 213, 55, 117, 226, 131, 74, 221, 85, 86, 215, 64, 133, 212,
-            7, 58, 234, 248, 162, 222, 53, 161, 29, 141, 101, 133, 49,
+            157, 37, 101, 171, 205, 211, 38, 98, 250, 86, 254, 215, 115, 126, 212, 252, 24, 53,
+            199, 142, 152, 75, 250, 200, 173, 128, 52, 142, 13, 193, 184, 137,
         ];
         let tx1 = TestDataMother::simple_payment()
             .transaction
             .try_into()
             .unwrap();
-        let tx2 = TestDataMother::opt_in_asset_transfer()
+        let tx2 = TestDataMother::simple_asset_transfer()
             .transaction
             .try_into()
             .unwrap();
-        let txs = vec![tx1, tx2];
+        let tx3 = TestDataMother::opt_in_asset_transfer()
+            .transaction
+            .try_into()
+            .unwrap();
+        let txs = vec![tx1, tx2, tx3];
 
         let grouped_txs = group_transactions(txs.clone()).unwrap();
 
