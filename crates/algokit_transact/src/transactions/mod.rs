@@ -131,7 +131,7 @@ impl AssetTransferTransactionBuilder {
 
 impl ApplicationCallTransactionBuilder {
     pub fn build(&self) -> Result<Transaction, ApplicationCallTransactionBuilderError> {
-        self.build_fields().map(|d| Transaction::ApplicationCall(d))
+        self.build_fields().map(Transaction::ApplicationCall)
     }
 }
 
