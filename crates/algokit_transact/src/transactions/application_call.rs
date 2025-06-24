@@ -46,7 +46,6 @@ pub enum OnApplicationComplete {
     DeleteApplication = 5,
 }
 
-
 /// Schema for application state storage.
 ///
 /// Defines the maximum number of values that may be stored in application
