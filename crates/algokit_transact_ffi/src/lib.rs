@@ -1,3 +1,5 @@
+mod transactions;
+
 use algokit_transact::constants::*;
 use algokit_transact::msgpack::{
     decode_base64_msgpack_to_json as internal_decode_base64_msgpack_to_json,
@@ -6,10 +8,14 @@ use algokit_transact::msgpack::{
     encode_json_to_msgpack as internal_encode_json_to_msgpack,
     AlgoKitMsgPackError as InternalMsgPackError, ModelType as InternalModelType,
 };
-use algokit_transact::{AlgorandMsgpack, Byte32, EstimateTransactionSize, TransactionId, Transactions};
+use algokit_transact::{
+    AlgorandMsgpack, Byte32, EstimateTransactionSize, TransactionId, Transactions,
+};
 use ffi_macros::{ffi_enum, ffi_func, ffi_record};
 use serde::{Deserialize, Serialize};
 use serde_bytes::ByteBuf;
+
+pub use transactions::ApplicationCallTransactionFields;
 
 // thiserror is used to easily create errors than can be propagated to the language bindings
 // UniFFI will create classes for errors (i.e. `MsgPackError.EncodingError` in Python)
@@ -231,6 +237,8 @@ pub struct Transaction {
     payment: Option<PaymentTransactionFields>,
 
     asset_transfer: Option<AssetTransferTransactionFields>,
+
+    application_call: Option<ApplicationCallTransactionFields>,
 }
 
 impl TryFrom<Transaction> for algokit_transact::Transaction {
@@ -238,10 +246,14 @@ impl TryFrom<Transaction> for algokit_transact::Transaction {
 
     fn try_from(tx: Transaction) -> Result<Self, AlgoKitTransactError> {
         // Ensure there is never more than 1 transaction type specific field set
-        if [tx.payment.is_some(), tx.asset_transfer.is_some()]
-            .iter()
-            .filter(|&&x| x)
-            .count()
+        if [
+            tx.payment.is_some(),
+            tx.asset_transfer.is_some(),
+            tx.application_call.is_some(),
+        ]
+        .into_iter()
+        .filter(|&x| x)
+        .count()
             > 1
         {
             return Err(Self::Error::DecodingError(
@@ -254,6 +266,9 @@ impl TryFrom<Transaction> for algokit_transact::Transaction {
             TransactionType::AssetTransfer => {
                 Ok(algokit_transact::Transaction::AssetTransfer(tx.try_into()?))
             }
+            TransactionType::ApplicationCall => Ok(algokit_transact::Transaction::ApplicationCall(
+                tx.try_into()?,
+            )),
             _ => {
                 return Err(Self::Error::DecodingError(
                     "Transaction type is not implemented".to_string(),
@@ -362,6 +377,7 @@ impl TryFrom<algokit_transact::Transaction> for Transaction {
                     TransactionType::Payment,
                     Some(payment_fields),
                     None,
+                    None,
                 )
             }
             algokit_transact::Transaction::AssetTransfer(asset_transfer) => {
@@ -371,6 +387,17 @@ impl TryFrom<algokit_transact::Transaction> for Transaction {
                     TransactionType::AssetTransfer,
                     None,
                     Some(asset_transfer_fields),
+                    None,
+                )
+            }
+            algokit_transact::Transaction::ApplicationCall(application_call) => {
+                let application_call_fields = application_call.clone().into();
+                build_transaction(
+                    application_call.header,
+                    TransactionType::ApplicationCall,
+                    None,
+                    None,
+                    Some(application_call_fields),
                 )
             }
         }
@@ -441,6 +468,7 @@ fn build_transaction(
     transaction_type: TransactionType,
     payment: Option<PaymentTransactionFields>,
     asset_transfer: Option<AssetTransferTransactionFields>,
+    application_call: Option<ApplicationCallTransactionFields>,
 ) -> Result<Transaction, AlgoKitTransactError> {
     Ok(Transaction {
         transaction_type,
@@ -456,6 +484,7 @@ fn build_transaction(
         group: header.group.map(byte32_to_bytebuf),
         payment,
         asset_transfer,
+        application_call,
     })
 }
 
@@ -471,6 +500,7 @@ pub fn get_encoded_transaction_type(bytes: &[u8]) -> Result<TransactionType, Alg
     match decoded {
         algokit_transact::Transaction::Payment(_) => Ok(TransactionType::Payment),
         algokit_transact::Transaction::AssetTransfer(_) => Ok(TransactionType::AssetTransfer),
+        algokit_transact::Transaction::ApplicationCall(_) => Ok(TransactionType::ApplicationCall),
     }
 }
 

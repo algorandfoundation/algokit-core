@@ -4,10 +4,19 @@
 //! This module includes support for various transaction types, along with the ability to sign,
 //! serialize, and deserialize them.
 
+mod application_call;
 mod asset_transfer;
 mod common;
 mod payment;
 
+use application_call::{
+    application_call_deserializer, application_call_serializer,
+    ApplicationCallTransactionBuilderError,
+};
+pub use application_call::{
+    ApplicationCallTransactionBuilder, ApplicationCallTransactionFields, BoxReference,
+    OnApplicationComplete, StateSchema,
+};
 use asset_transfer::AssetTransferTransactionBuilderError;
 pub use asset_transfer::{AssetTransferTransactionBuilder, AssetTransferTransactionFields};
 pub use common::{TransactionHeader, TransactionHeaderBuilder};
@@ -35,6 +44,11 @@ pub enum Transaction {
 
     #[serde(rename = "axfer")]
     AssetTransfer(AssetTransferTransactionFields),
+
+    #[serde(serialize_with = "application_call_serializer")]
+    #[serde(deserialize_with = "application_call_deserializer")]
+    #[serde(rename = "appl")]
+    ApplicationCall(ApplicationCallTransactionFields),
     // All the below transaction variants will be implemented in the future
     // #[serde(rename = "afrz")]
     // AssetFreeze(...),
@@ -44,9 +58,6 @@ pub enum Transaction {
 
     // #[serde(rename = "keyreg")]
     // KeyRegistration(...),
-
-    // #[serde(rename = "appl")]
-    // ApplicationCall(...),
 }
 
 pub struct FeeParams {
@@ -61,6 +72,7 @@ impl Transaction {
         match self {
             Transaction::Payment(p) => &p.header,
             Transaction::AssetTransfer(a) => &a.header,
+            Transaction::ApplicationCall(a) => &a.header,
         }
     }
 
@@ -68,6 +80,7 @@ impl Transaction {
         match self {
             Transaction::Payment(p) => &mut p.header,
             Transaction::AssetTransfer(a) => &mut a.header,
+            Transaction::ApplicationCall(a) => &mut a.header,
         }
     }
 
@@ -113,6 +126,12 @@ impl PaymentTransactionBuilder {
 impl AssetTransferTransactionBuilder {
     pub fn build(&self) -> Result<Transaction, AssetTransferTransactionBuilderError> {
         self.build_fields().map(|d| Transaction::AssetTransfer(d))
+    }
+}
+
+impl ApplicationCallTransactionBuilder {
+    pub fn build(&self) -> Result<Transaction, ApplicationCallTransactionBuilderError> {
+        self.build_fields().map(|d| Transaction::ApplicationCall(d))
     }
 }
 

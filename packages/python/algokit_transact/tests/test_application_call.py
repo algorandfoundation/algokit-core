@@ -1,5 +1,4 @@
 import pytest
-
 from tests.transaction_asserts import (
     assert_assign_fee,
     assert_decode_with_prefix,
@@ -14,10 +13,13 @@ from tests.transaction_asserts import (
 from . import TEST_DATA
 
 txn_test_data = {
-    "payment": TEST_DATA.simple_payment,
+    "application call": TEST_DATA.application_call,
+    "application create": TEST_DATA.application_create,
+    "application update": TEST_DATA.application_update,
+    "application delete": TEST_DATA.application_delete,
 }
 
-# Polytest Suite: Payment
+# Polytest Suite: Application Call
 
 # Polytest Group: Transaction Tests
 

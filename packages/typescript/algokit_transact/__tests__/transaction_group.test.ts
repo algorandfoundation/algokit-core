@@ -1,6 +1,15 @@
 import { expect, test, describe } from "bun:test";
 import { testData } from "./common.ts";
-import { decodeSignedTransactions, decodeTransactions, encodeSignedTransaction, encodeSignedTransactions, encodeTransaction, encodeTransactions, groupTransactions, SignedTransaction } from "..";
+import {
+  decodeSignedTransactions,
+  decodeTransactions,
+  encodeSignedTransaction,
+  encodeSignedTransactions,
+  encodeTransaction,
+  encodeTransactions,
+  groupTransactions,
+  SignedTransaction,
+} from "..";
 import * as ed from "@noble/ed25519";
 import { decode } from "punycode";
 
@@ -67,16 +76,18 @@ describe("Transaction Group", () => {
           transaction: tx,
           signature: txSignatures[i],
         } as SignedTransaction;
-      })
+      });
 
       const encodedSignedGroupedTxs = encodeSignedTransactions(signedGroupedTxs);
 
       expect(encodedSignedGroupedTxs.length).toBe(txs.length);
       for (let i = 0; i < encodedSignedGroupedTxs.length; i++) {
-        expect(encodedSignedGroupedTxs[i]).toEqual(encodeSignedTransaction({
-          transaction: groupedTxs[i],
-          signature: txSignatures[i],
-        }));
+        expect(encodedSignedGroupedTxs[i]).toEqual(
+          encodeSignedTransaction({
+            transaction: groupedTxs[i],
+            signature: txSignatures[i],
+          }),
+        );
       }
 
       const decodedSignedGroupedTxs = decodeSignedTransactions(encodedSignedGroupedTxs);

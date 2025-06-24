@@ -35,6 +35,7 @@ pub struct TransactionHeader {
     /// When None, the fee will be interpreted as 0 by the network.
     #[serde(skip_serializing_if = "is_zero_opt")]
     #[serde(default)]
+    #[builder(default)]
     pub fee: Option<u64>,
 
     /// First round for when the transaction is valid.

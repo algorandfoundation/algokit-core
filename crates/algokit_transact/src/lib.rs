@@ -12,9 +12,10 @@ pub use constants::*;
 pub use error::AlgoKitTransactError;
 pub use traits::{AlgorandMsgpack, EstimateTransactionSize, TransactionId, Transactions};
 pub use transactions::{
-    AssetTransferTransactionBuilder, AssetTransferTransactionFields, FeeParams,
-    PaymentTransactionBuilder, PaymentTransactionFields, SignedTransaction, Transaction,
-    TransactionHeader, TransactionHeaderBuilder,
+    ApplicationCallTransactionBuilder, ApplicationCallTransactionFields,
+    AssetTransferTransactionBuilder, AssetTransferTransactionFields, BoxReference, FeeParams,
+    OnApplicationComplete, PaymentTransactionBuilder, PaymentTransactionFields, SignedTransaction,
+    StateSchema, Transaction, TransactionHeader, TransactionHeaderBuilder,
 };
 
 // Re-export msgpack functionality

@@ -7,6 +7,10 @@ package_name = "algokit_transact"
 desc = "Tests for payment transactions"
 groups = ["Transaction Tests"]
 
+[suite."Application Call"]
+desc = "Tests for application call transactions"
+groups = ["Transaction Tests"]
+
 [suite."Generic Transaction"]
 desc = "Generic transaction tests"
 groups = ["Generic Transaction Tests"]
@@ -62,6 +66,9 @@ desc = "A transaction id can be obtained from a transaction"
 
 [group."Transaction Tests".test.example]
 desc = "A human-readable example of forming a transaction and signing it"
+
+[group."Transaction Tests".test."assign fee"]
+desc = "A fee can be calculated and assigned to a transaction"
 
 [group."Transaction Group Tests"]
 desc = "Tests that apply to collections of transactions"
