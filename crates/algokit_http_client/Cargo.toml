@@ -1,0 +1,19 @@
+[package]
+name = "algokit_http_client"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+default = ["default_client"]
+ffi_uniffi = ["dep:uniffi"]
+ffi_wasm = ["dep:wasm-bindgen", "dep:js-sys"]
+default_client = ["dep:reqwest"]
+
+[dependencies]
+async-trait = "0.1.88"
+js-sys = { workspace = true, optional = true }
+reqwest = { version = "0.12.19", optional = true }
+thiserror.workspace = true
+uniffi = { workspace = true, optional = true }
+wasm-bindgen = { workspace = true, optional = true }
+wasm-bindgen-futures = "0.4.50"
