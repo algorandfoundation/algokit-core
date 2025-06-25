@@ -16,9 +16,11 @@ use serde_with::{serde_as, skip_serializing_none, Bytes};
 /// These values define what additional actions occur with the transaction.
 #[derive(Serialize_repr, Deserialize_repr, Debug, PartialEq, Clone, Copy)]
 #[repr(u8)]
+#[derive(Default)]
 pub enum OnApplicationComplete {
     /// NoOp indicates that an application transaction will simply call its
     /// approval program without any additional action.
+    #[default]
     NoOp = 0,
 
     /// OptIn indicates that an application transaction will allocate some
@@ -42,12 +44,6 @@ pub enum OnApplicationComplete {
     /// delete the application parameters for the application from the creator's
     /// balance record.
     DeleteApplication = 5,
-}
-
-impl Default for OnApplicationComplete {
-    fn default() -> Self {
-        OnApplicationComplete::NoOp
-    }
 }
 
 /// Schema for application state storage.

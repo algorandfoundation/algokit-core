@@ -113,25 +113,25 @@ impl Transaction {
         let header = tx.header_mut();
         header.fee = Some(calculated_fee);
 
-        return Ok(tx);
+        Ok(tx)
     }
 }
 
 impl PaymentTransactionBuilder {
     pub fn build(&self) -> Result<Transaction, PaymentTransactionBuilderError> {
-        self.build_fields().map(|d| Transaction::Payment(d))
+        self.build_fields().map(Transaction::Payment)
     }
 }
 
 impl AssetTransferTransactionBuilder {
     pub fn build(&self) -> Result<Transaction, AssetTransferTransactionBuilderError> {
-        self.build_fields().map(|d| Transaction::AssetTransfer(d))
+        self.build_fields().map(Transaction::AssetTransfer)
     }
 }
 
 impl ApplicationCallTransactionBuilder {
     pub fn build(&self) -> Result<Transaction, ApplicationCallTransactionBuilderError> {
-        self.build_fields().map(|d| Transaction::ApplicationCall(d))
+        self.build_fields().map(Transaction::ApplicationCall)
     }
 }
 
@@ -142,7 +142,7 @@ impl TransactionId for Transaction {}
 
 impl EstimateTransactionSize for Transaction {
     fn estimate_size(&self) -> Result<usize, AlgoKitTransactError> {
-        return Ok(self.encode_raw()?.len() + ALGORAND_SIGNATURE_ENCODING_INCR);
+        Ok(self.encode_raw()?.len() + ALGORAND_SIGNATURE_ENCODING_INCR)
     }
 }
 
@@ -190,21 +190,19 @@ impl AlgorandMsgpack for SignedTransaction {
                     .1;
 
                 let mut txn_buf = Vec::new();
-                rmpv::encode::write_value(&mut txn_buf, &txn_value)?;
+                rmpv::encode::write_value(&mut txn_buf, txn_value)?;
 
                 let stxn = SignedTransaction {
                     transaction: Transaction::decode(&txn_buf)?,
                     ..rmp_serde::from_slice(bytes)?
                 };
 
-                return Ok(stxn);
+                Ok(stxn)
             }
-            _ => {
-                return Err(AlgoKitTransactError::InputError(format!(
-                    "expected signed transaction to be a map, but got a: {:#?}",
-                    value.type_id()
-                )))
-            }
+            _ => Err(AlgoKitTransactError::InputError(format!(
+                "expected signed transaction to be a map, but got a: {:#?}",
+                value.type_id()
+            ))),
         }
     }
 }
@@ -220,7 +218,7 @@ impl TransactionId for SignedTransaction {
 
 impl EstimateTransactionSize for SignedTransaction {
     fn estimate_size(&self) -> Result<usize, AlgoKitTransactError> {
-        return Ok(self.encode()?.len());
+        Ok(self.encode()?.len())
     }
 }
 

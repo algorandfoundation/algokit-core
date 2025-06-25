@@ -161,11 +161,11 @@ impl From<algokit_transact::BoxReference> for BoxReference {
     }
 }
 
-impl Into<algokit_transact::BoxReference> for BoxReference {
-    fn into(self) -> algokit_transact::BoxReference {
+impl From<BoxReference> for algokit_transact::BoxReference {
+    fn from(val: BoxReference) -> Self {
         algokit_transact::BoxReference {
-            app_id: self.app_id,
-            name: self.name.into_vec(),
+            app_id: val.app_id,
+            name: val.name.into_vec(),
         }
     }
 }
@@ -224,9 +224,9 @@ impl From<algokit_transact::OnApplicationComplete> for OnApplicationComplete {
     }
 }
 
-impl Into<algokit_transact::OnApplicationComplete> for OnApplicationComplete {
-    fn into(self) -> algokit_transact::OnApplicationComplete {
-        match self {
+impl From<OnApplicationComplete> for algokit_transact::OnApplicationComplete {
+    fn from(val: OnApplicationComplete) -> Self {
+        match val {
             OnApplicationComplete::NoOp => algokit_transact::OnApplicationComplete::NoOp,
             OnApplicationComplete::OptIn => algokit_transact::OnApplicationComplete::OptIn,
             OnApplicationComplete::CloseOut => algokit_transact::OnApplicationComplete::CloseOut,
@@ -265,11 +265,11 @@ impl From<algokit_transact::StateSchema> for StateSchema {
     }
 }
 
-impl Into<algokit_transact::StateSchema> for StateSchema {
-    fn into(self) -> algokit_transact::StateSchema {
+impl From<StateSchema> for algokit_transact::StateSchema {
+    fn from(val: StateSchema) -> Self {
         algokit_transact::StateSchema {
-            num_uints: self.num_uints,
-            num_byte_slices: self.num_byte_slices,
+            num_uints: val.num_uints,
+            num_byte_slices: val.num_byte_slices,
         }
     }
 }

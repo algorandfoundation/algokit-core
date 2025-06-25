@@ -574,7 +574,7 @@ fn normalise_json(value: serde_json::Value) -> serde_json::Value {
                 .collect(),
         ),
         serde_json::Value::Array(arr) => {
-            serde_json::Value::Array(arr.into_iter().map(|v| normalise_json(v)).collect())
+            serde_json::Value::Array(arr.into_iter().map(normalise_json).collect())
         }
         other => other,
     }
