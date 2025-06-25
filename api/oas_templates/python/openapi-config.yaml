@@ -1,6 +1,6 @@
 templateDir: oas_templates/python
 additionalProperties:
-    packageVersion: "1.0.0a20"
+    packageVersion: "1.0.0a21"
     packageName: algokit_algod_api
     licenseInfo: MIT
 
