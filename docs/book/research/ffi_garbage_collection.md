@@ -12,10 +12,10 @@ This table indicates whether the specific language can safely use Rust-owned obj
 | --------------------- | ------ |
 | JavaScript (Web/Node) | ✅     |
 | Python                | ✅     |
-| Swift                 | ❓     |
+| Swift                 | ✅     |
+| Go                    | ✅     |
 | React Native          | ❌     |
 | Kotlin                | ❌     |
-| Go                    | ❌     |
 
 ## Languages
 
@@ -51,12 +51,8 @@ Kotlin provides various ways to handle object lifecycles, but it is not possible
 
 ### Go
 
-Go has [runtime.SetFinalizer](https://pkg.go.dev/runtime#SetFinalizer) but it is not a perfect solution, especially for objects in memory. From the documentation:
-
-> The finalizer is scheduled to run at some arbitrary time after the program can no longer reach the object to which obj points. There is no guarantee that finalizers will run before a program exits, so typically they are useful only for releasing non-memory resources associated with an object during a long-running program.
-
-This means we should likely not rely on `SetFinalizer` for garbage collecting Rust-owned objects. Or, at the very least, more extensive testing will be required if we were to use `SetFinalizer`
+As of Go 1.24, we can call `runtime.AddCleanup` along with a `weak.Pointer` to the Rust-owned object (or anything else other than a reference to itself) to have the garbage collector safely clean up the Rust-owned memory. An article on this topic can be read [here](https://go.dev/blog/cleanups-and-weak).
 
 ### Swift
 
-Swift is not a GC language, but uses reference-counted pointers. All objects going over the FFI via UniFFI are wrapped in a Rust ARC (even if not explicit, it is done automatically by the binding generator). This presumably means that the reference count is shared between Swift and Rust
+Swift is not a GC language, but the compiler uses reference-counted pointers. On the Rust side, all objects going over the FFI via UniFFI are wrapped in a Rust ARC (even if not explicit, it is done automatically by the binding generator).
