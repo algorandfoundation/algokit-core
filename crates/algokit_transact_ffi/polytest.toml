@@ -7,6 +7,10 @@ package_name = "algokit_transact"
 desc = "Tests for payment transactions"
 groups = ["Transaction Tests"]
 
+[suite.AssetConfig]
+desc = "Tests for asset config transactions"
+groups = ["Transaction Tests"]
+
 [suite."Application Call"]
 desc = "Tests for application call transactions"
 groups = ["Transaction Tests"]
@@ -81,6 +85,7 @@ desc = "A collection of transactions can be encoded"
 
 [group."Transaction Group Tests".test."encode signed transactions"]
 desc = "A collection of signed transactions can be encoded"
+
 
 # Test Targets
 

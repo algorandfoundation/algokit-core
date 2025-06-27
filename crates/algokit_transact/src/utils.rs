@@ -37,11 +37,17 @@ pub fn sort_msgpack_value(value: rmpv::Value) -> rmpv::Value {
     }
 }
 
-pub fn is_zero(n: &u64) -> bool {
-    *n == 0u64
+pub fn is_zero<T>(n: &T) -> bool
+where
+    T: PartialEq + From<u8>,
+{
+    *n == T::from(0u8)
 }
 
-pub fn is_zero_opt(n: &Option<u64>) -> bool {
+pub fn is_zero_opt<T>(n: &Option<T>) -> bool
+where
+    T: PartialEq + From<u8>,
+{
     n.as_ref().is_none_or(is_zero)
 }
 
@@ -107,6 +113,10 @@ pub fn compute_group_id(txs: &[Transaction]) -> Result<Byte32, AlgoKitTransactEr
     .unwrap();
 
     Ok(hash(&grouped))
+}
+
+pub fn is_false_opt(bool: &Option<bool>) -> bool {
+    bool.as_ref().is_none_or(|b| !b)
 }
 
 // This struct is only used internally for generating the group id

@@ -9,13 +9,14 @@ use algokit_transact::msgpack::{
     AlgoKitMsgPackError as InternalMsgPackError, ModelType as InternalModelType,
 };
 use algokit_transact::{
-    AlgorandMsgpack, Byte32, EstimateTransactionSize, TransactionId, Transactions,
+    AlgorandMsgpack, Byte32, EstimateTransactionSize, TransactionId, Transactions, Validate,
 };
 use ffi_macros::{ffi_enum, ffi_func, ffi_record};
 use serde::{Deserialize, Serialize};
 use serde_bytes::ByteBuf;
 
 pub use transactions::ApplicationCallTransactionFields;
+pub use transactions::AssetConfigTransactionFields;
 
 // thiserror is used to easily create errors than can be propagated to the language bindings
 // UniFFI will create classes for errors (i.e. `MsgPackError.EncodingError` in Python)
@@ -238,6 +239,8 @@ pub struct Transaction {
 
     asset_transfer: Option<AssetTransferTransactionFields>,
 
+    asset_config: Option<AssetConfigTransactionFields>,
+
     application_call: Option<ApplicationCallTransactionFields>,
 }
 
@@ -249,6 +252,7 @@ impl TryFrom<Transaction> for algokit_transact::Transaction {
         if [
             tx.payment.is_some(),
             tx.asset_transfer.is_some(),
+            tx.asset_config.is_some(),
             tx.application_call.is_some(),
         ]
         .into_iter()
@@ -265,6 +269,9 @@ impl TryFrom<Transaction> for algokit_transact::Transaction {
             TransactionType::Payment => Ok(algokit_transact::Transaction::Payment(tx.try_into()?)),
             TransactionType::AssetTransfer => {
                 Ok(algokit_transact::Transaction::AssetTransfer(tx.try_into()?))
+            }
+            TransactionType::AssetConfig => {
+                Ok(algokit_transact::Transaction::AssetConfig(tx.try_into()?))
             }
             TransactionType::ApplicationCall => Ok(algokit_transact::Transaction::ApplicationCall(
                 tx.try_into()?,
@@ -376,6 +383,7 @@ impl TryFrom<algokit_transact::Transaction> for Transaction {
                     Some(payment_fields),
                     None,
                     None,
+                    None,
                 )
             }
             algokit_transact::Transaction::AssetTransfer(asset_transfer) => {
@@ -386,6 +394,18 @@ impl TryFrom<algokit_transact::Transaction> for Transaction {
                     None,
                     Some(asset_transfer_fields),
                     None,
+                    None,
+                )
+            }
+            algokit_transact::Transaction::AssetConfig(asset_config) => {
+                let asset_config_fields = asset_config.clone().into();
+                build_transaction(
+                    asset_config.header.clone(),
+                    TransactionType::AssetConfig,
+                    None,
+                    None,
+                    Some(asset_config_fields),
+                    None,
                 )
             }
             algokit_transact::Transaction::ApplicationCall(application_call) => {
@@ -393,6 +413,7 @@ impl TryFrom<algokit_transact::Transaction> for Transaction {
                 build_transaction(
                     application_call.header,
                     TransactionType::ApplicationCall,
+                    None,
                     None,
                     None,
                     Some(application_call_fields),
@@ -466,6 +487,7 @@ fn build_transaction(
     transaction_type: TransactionType,
     payment: Option<PaymentTransactionFields>,
     asset_transfer: Option<AssetTransferTransactionFields>,
+    asset_config: Option<AssetConfigTransactionFields>,
     application_call: Option<ApplicationCallTransactionFields>,
 ) -> Result<Transaction, AlgoKitTransactError> {
     Ok(Transaction {
@@ -482,6 +504,7 @@ fn build_transaction(
         group: header.group.map(byte32_to_bytebuf),
         payment,
         asset_transfer,
+        asset_config,
         application_call,
     })
 }
@@ -498,6 +521,7 @@ pub fn get_encoded_transaction_type(bytes: &[u8]) -> Result<TransactionType, Alg
     match decoded {
         algokit_transact::Transaction::Payment(_) => Ok(TransactionType::Payment),
         algokit_transact::Transaction::AssetTransfer(_) => Ok(TransactionType::AssetTransfer),
+        algokit_transact::Transaction::AssetConfig(_) => Ok(TransactionType::AssetConfig),
         algokit_transact::Transaction::ApplicationCall(_) => Ok(TransactionType::ApplicationCall),
     }
 }

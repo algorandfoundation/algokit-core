@@ -11,7 +11,6 @@ import {
   SignedTransaction,
 } from "..";
 import * as ed from "@noble/ed25519";
-import { decode } from "punycode";
 
 const simplePayment = testData.simplePayment;
 const optInAssetTransfer = testData.optInAssetTransfer;

@@ -8,6 +8,7 @@ from algokit_transact import (
     TransactionType,
     Transaction,
     AssetTransferTransactionFields,
+    AssetConfigTransactionFields,
     ApplicationCallTransactionFields,
     OnApplicationComplete,
     StateSchema,
@@ -31,6 +32,9 @@ class TransactionTestData:
 class TestData:
     simple_payment: TransactionTestData
     opt_in_asset_transfer: TransactionTestData
+    asset_create: TransactionTestData
+    asset_destroy: TransactionTestData
+    asset_reconfigure: TransactionTestData
     application_call: TransactionTestData
     application_create: TransactionTestData
     application_update: TransactionTestData
@@ -118,6 +122,11 @@ def create_transaction_test_data(test_data: dict[str, Any]) -> TransactionTestDa
             "field_name": "asset_transfer",
             "field_class": AssetTransferTransactionFields,
         },
+        "AssetConfig": {
+            "type": TransactionType.ASSET_CONFIG,
+            "field_name": "asset_config",
+            "field_class": AssetConfigTransactionFields,
+        },
         "ApplicationCall": {
             "type": TransactionType.APPLICATION_CALL,
             "field_name": "application_call",
@@ -141,6 +150,10 @@ def create_transaction_test_data(test_data: dict[str, Any]) -> TransactionTestDa
             **transaction_field_data
         ),
     }
+
+    # default genesis_id to None
+    if "genesis_id" not in transaction_kwargs:
+        transaction_kwargs["genesis_id"] = None
 
     return TransactionTestData(
         **test_data,

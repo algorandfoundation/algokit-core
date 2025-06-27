@@ -1,7 +1,14 @@
 # Polytest Test Plan
+
 ## Test Suites
 
 ### Payment
+
+| Name | Description |
+| --- | --- |
+| [Transaction Tests](#transaction-tests) | Tests that apply to all transaction types |
+
+### Asset Config
 
 | Name | Description |
 | --- | --- |

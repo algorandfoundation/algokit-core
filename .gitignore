@@ -9,3 +9,5 @@ node_modules/
 .bin/
 .DS_Store
 wheelhouse/
+CLAUDE.local.md
+.claude/settings.local.json
