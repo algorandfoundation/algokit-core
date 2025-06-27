@@ -72,37 +72,6 @@ jobs:
       BOT_ID: ${{ secrets.BOT_ID }}
       BOT_SK: ${{ secrets.BOT_SK }}
 
-  typescript_api_ci_cd:
-    needs:
-      - setup
-      - python_uniffi_ci_cd
-    uses: ./.github/workflows/typescript_api_client_ci_cd.yml
-    strategy:
-      matrix:
-        api: ${{ fromJSON(needs.setup.outputs.api_packages) }}
-    with:
-      api: ${{ matrix.api }}
-      release: ${{ github.event_name == 'push' }}
-    secrets:
-      BOT_ID: ${{ secrets.BOT_ID }}
-      BOT_SK: ${{ secrets.BOT_SK }}
-      NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This is used because the GitHub NPM package registry doesn't support GitHub App tokens
-
-  python_api_ci_cd:
-    needs:
-      - setup
-      - typescript_api_ci_cd
-    uses: ./.github/workflows/python_api_client_ci_cd.yml
-    strategy:
-      matrix:
-        api: ${{ fromJSON(needs.setup.outputs.api_packages) }}
-    with:
-      api: ${{ matrix.api }}
-      release: ${{ github.event_name == 'push' }}
-    secrets:
-      BOT_ID: ${{ secrets.BOT_ID }}
-      BOT_SK: ${{ secrets.BOT_SK }}
-
   deploy_docs:
     # Only run on pushes to main (not on PRs)
     if: github.event_name == 'push'
