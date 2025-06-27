@@ -148,3 +148,9 @@ pub trait Transactions: Sized {
     /// A result containing the transactions with group assign or an error if grouping fails.
     fn assign_group(self) -> Result<Vec<Transaction>, AlgoKitTransactError>;
 }
+
+pub trait Validate {
+    fn validate(&self) -> Result<(), Vec<String>> {
+        Ok(())
+    }
+}

@@ -5,6 +5,7 @@
 //! serialize, and deserialize them.
 
 mod application_call;
+mod asset_config;
 mod asset_transfer;
 mod common;
 mod payment;
@@ -16,6 +17,10 @@ use application_call::{
 pub use application_call::{
     ApplicationCallTransactionBuilder, ApplicationCallTransactionFields, BoxReference,
     OnApplicationComplete, StateSchema,
+};
+pub use asset_config::{
+    asset_config_deserializer, asset_config_serializer, AssetConfigTransactionBuilder,
+    AssetConfigTransactionFields,
 };
 use asset_transfer::AssetTransferTransactionBuilderError;
 pub use asset_transfer::{AssetTransferTransactionBuilder, AssetTransferTransactionFields};
@@ -45,6 +50,11 @@ pub enum Transaction {
     #[serde(rename = "axfer")]
     AssetTransfer(AssetTransferTransactionFields),
 
+    #[serde(serialize_with = "asset_config_serializer")]
+    #[serde(deserialize_with = "asset_config_deserializer")]
+    #[serde(rename = "acfg")]
+    AssetConfig(AssetConfigTransactionFields),
+
     #[serde(serialize_with = "application_call_serializer")]
     #[serde(deserialize_with = "application_call_deserializer")]
     #[serde(rename = "appl")]
@@ -52,9 +62,6 @@ pub enum Transaction {
     // All the below transaction variants will be implemented in the future
     // #[serde(rename = "afrz")]
     // AssetFreeze(...),
-
-    // #[serde(rename = "acfg")]
-    // AssetConfig(...),
 
     // #[serde(rename = "keyreg")]
     // KeyRegistration(...),
@@ -72,6 +79,7 @@ impl Transaction {
         match self {
             Transaction::Payment(p) => &p.header,
             Transaction::AssetTransfer(a) => &a.header,
+            Transaction::AssetConfig(a) => &a.header,
             Transaction::ApplicationCall(a) => &a.header,
         }
     }
@@ -80,6 +88,7 @@ impl Transaction {
         match self {
             Transaction::Payment(p) => &mut p.header,
             Transaction::AssetTransfer(a) => &mut a.header,
+            Transaction::AssetConfig(a) => &mut a.header,
             Transaction::ApplicationCall(a) => &mut a.header,
         }
     }
@@ -138,6 +147,7 @@ impl ApplicationCallTransactionBuilder {
 impl AlgorandMsgpack for Transaction {
     const PREFIX: &'static [u8] = b"TX";
 }
+
 impl TransactionId for Transaction {}
 
 impl EstimateTransactionSize for Transaction {

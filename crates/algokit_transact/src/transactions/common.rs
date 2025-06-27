@@ -114,3 +114,43 @@ pub struct TransactionHeader {
     #[builder(default)]
     pub group: Option<Byte32>,
 }
+
+/// Validation errors for asset configuration transactions.
+#[derive(Debug, Clone, PartialEq)]
+pub enum TransactionValidationError {
+    RequiredField(String),
+    FieldTooLong {
+        field: String,
+        actual: usize,
+        max: usize,
+        unit: String,
+    },
+    ImmutableField(String),
+}
+
+impl std::fmt::Display for TransactionValidationError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TransactionValidationError::RequiredField(field) => {
+                write!(f, "{} is required", field)
+            }
+            TransactionValidationError::FieldTooLong {
+                field,
+                actual,
+                max,
+                unit,
+            } => {
+                write!(
+                    f,
+                    "{} cannot exceed {} {}, got {}",
+                    field, max, unit, actual
+                )
+            }
+            TransactionValidationError::ImmutableField(field) => {
+                write!(f, "Field '{}' is immutable and cannot be changed", field)
+            }
+        }
+    }
+}
+
+impl std::error::Error for TransactionValidationError {}

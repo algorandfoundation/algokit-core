@@ -10,12 +10,13 @@ mod utils;
 pub use address::Address;
 pub use constants::*;
 pub use error::AlgoKitTransactError;
-pub use traits::{AlgorandMsgpack, EstimateTransactionSize, TransactionId, Transactions};
+pub use traits::{AlgorandMsgpack, EstimateTransactionSize, TransactionId, Transactions, Validate};
 pub use transactions::{
     ApplicationCallTransactionBuilder, ApplicationCallTransactionFields,
-    AssetTransferTransactionBuilder, AssetTransferTransactionFields, BoxReference, FeeParams,
-    OnApplicationComplete, PaymentTransactionBuilder, PaymentTransactionFields, SignedTransaction,
-    StateSchema, Transaction, TransactionHeader, TransactionHeaderBuilder,
+    AssetConfigTransactionBuilder, AssetConfigTransactionFields, AssetTransferTransactionBuilder,
+    AssetTransferTransactionFields, BoxReference, FeeParams, OnApplicationComplete,
+    PaymentTransactionBuilder, PaymentTransactionFields, SignedTransaction, StateSchema,
+    Transaction, TransactionHeader, TransactionHeaderBuilder,
 };
 
 // Re-export msgpack functionality

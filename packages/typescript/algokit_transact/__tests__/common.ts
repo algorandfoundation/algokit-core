@@ -14,7 +14,9 @@ const defaultReviver = (key: string, value: unknown) => {
 
   if (
     typeof value === "number" &&
-    ["fee", "amount", "firstValid", "lastValid", "appId", "extraProgramPages", "numUints", "numByteSlices"].includes(key)
+    ["fee", "amount", "firstValid", "lastValid", "assetId", "total", "appId", "extraProgramPages", "numUints", "numByteSlices"].includes(
+      key,
+    )
   ) {
     return BigInt(value);
   }
@@ -40,7 +42,15 @@ export type TransactionTestData = {
 export const testData =
   parseJson<
     Record<
-      "simplePayment" | "optInAssetTransfer" | "applicationCall" | "applicationCreate" | "applicationUpdate" | "applicationDelete",
+      | "simplePayment"
+      | "optInAssetTransfer"
+      | "assetCreate"
+      | "assetDestroy"
+      | "assetReconfigure"
+      | "applicationCall"
+      | "applicationCreate"
+      | "applicationUpdate"
+      | "applicationDelete",
       TransactionTestData
     >
   >(jsonString);

@@ -1,3 +1,5 @@
+mod asset_config;
+
 use crate::{
     transactions::{
         ApplicationCallTransactionBuilder, AssetTransferTransactionBuilder, OnApplicationComplete,
@@ -542,6 +544,27 @@ impl TestDataMother {
         TransactionTestData::new(transaction, SIGNING_PRIVATE_KEY)
     }
 
+    pub fn asset_create() -> TransactionTestData {
+        let transaction = asset_config::AssetConfigTransactionMother::asset_create()
+            .build()
+            .unwrap();
+        TransactionTestData::new(transaction, SIGNING_PRIVATE_KEY)
+    }
+
+    pub fn asset_destroy() -> TransactionTestData {
+        let transaction = asset_config::AssetConfigTransactionMother::asset_destroy()
+            .build()
+            .unwrap();
+        TransactionTestData::new(transaction, SIGNING_PRIVATE_KEY)
+    }
+
+    pub fn asset_reconfigure() -> TransactionTestData {
+        let transaction = asset_config::AssetConfigTransactionMother::asset_reconfigure()
+            .build()
+            .unwrap();
+        TransactionTestData::new(transaction, SIGNING_PRIVATE_KEY)
+    }
+
     pub fn export<F, T>(path: &std::path::Path, transform: Option<F>)
     where
         F: Fn(&TransactionTestData) -> T,
@@ -558,6 +581,9 @@ impl TestDataMother {
             "application_update": Self::application_update().as_json(&transform),
             "application_delete": Self::application_delete().as_json(&transform),
             "application_call": Self::application_call().as_json(&transform),
+            "asset_create": Self::asset_create().as_json(&transform),
+            "asset_destroy": Self::asset_destroy().as_json(&transform),
+            "asset_reconfigure": Self::asset_reconfigure().as_json(&transform),
         }));
 
         let file = File::create(path).expect("Failed to create export file");
@@ -566,10 +592,26 @@ impl TestDataMother {
 }
 
 fn normalise_json(value: serde_json::Value) -> serde_json::Value {
+    const ZERO_VALUE_EXCLUDED_FIELDS: &[&str] = &[
+        "amount",
+        "asset_id",
+        "app_id",
+        "num_byte_slices",
+        "num_uints",
+    ];
+
     match value {
         serde_json::Value::Object(map) => serde_json::Value::Object(
             map.into_iter()
-                .filter(|(_, v)| !v.is_null())
+                .filter(|(k, v)| {
+                    !(v.is_null()
+                        || v.is_boolean() && v.as_bool() == Some(false)
+                        || v.is_number()
+                            && v.as_u64() == Some(0)
+                            && !ZERO_VALUE_EXCLUDED_FIELDS
+                                // Convert to snake case because when building for FFI WASM the field names are in camelCase
+                                .contains(&k.to_case(Case::Snake).as_str()))
+                })
                 .map(|(k, v)| (k.to_case(Case::Camel), normalise_json(v)))
                 .collect(),
         ),
@@ -687,6 +729,33 @@ mod tests {
         assert_eq!(
             data.id,
             String::from("XVVC7UDLCPI622KCJZLWK3SEAWWVUEPEXUM5CO3DFLWOBH7NOPDQ")
+        );
+    }
+
+    #[test]
+    fn test_asset_create_snapshot() {
+        let data = TestDataMother::asset_create();
+        assert_eq!(
+            data.id,
+            String::from("NXAHS2NA46DJHIULXYPJV2NOJSKKFFNFFXRZP35TA5IDCZNE2MUA")
+        );
+    }
+
+    #[test]
+    fn test_asset_reconfigure_snapshot() {
+        let data = TestDataMother::asset_reconfigure();
+        assert_eq!(
+            data.id,
+            String::from("GAMRAG3KCG23U2HOELJF32OQAWAISLIFBB5RLDDDYHUSOZNYN7MQ")
+        );
+    }
+
+    #[test]
+    fn test_asset_destroy_snapshot() {
+        let data = TestDataMother::asset_destroy();
+        assert_eq!(
+            data.id,
+            String::from("U4XH6AS5UUYQI4IZ3E5JSUEIU64Y3FGNYKLH26W4HRY7T6PK745A")
         );
     }
 }
