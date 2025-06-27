@@ -1,9 +1,0 @@
-# Ignore everything by default
-**
-
-# Allow only models and their documentation
-!src/models/
-!src/models/**
-!docs/
-!docs/*.md
-!docs/**/
