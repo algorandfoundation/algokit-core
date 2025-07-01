@@ -10,10 +10,7 @@ mod asset_transfer;
 mod common;
 mod payment;
 
-use application_call::{
-    application_call_deserializer, application_call_serializer,
-    ApplicationCallTransactionBuilderError,
-};
+use application_call::{application_call_deserializer, application_call_serializer};
 pub use application_call::{
     ApplicationCallTransactionBuilder, ApplicationCallTransactionFields, BoxReference,
     OnApplicationComplete, StateSchema,
@@ -22,10 +19,8 @@ pub use asset_config::{
     asset_config_deserializer, asset_config_serializer, AssetConfigTransactionBuilder,
     AssetConfigTransactionFields,
 };
-use asset_transfer::AssetTransferTransactionBuilderError;
 pub use asset_transfer::{AssetTransferTransactionBuilder, AssetTransferTransactionFields};
 pub use common::{TransactionHeader, TransactionHeaderBuilder};
-use payment::PaymentTransactionBuilderError;
 pub use payment::{PaymentTransactionBuilder, PaymentTransactionFields};
 
 use crate::constants::{
@@ -123,24 +118,6 @@ impl Transaction {
         header.fee = Some(calculated_fee);
 
         Ok(tx)
-    }
-}
-
-impl PaymentTransactionBuilder {
-    pub fn build(&self) -> Result<Transaction, PaymentTransactionBuilderError> {
-        self.build_fields().map(Transaction::Payment)
-    }
-}
-
-impl AssetTransferTransactionBuilder {
-    pub fn build(&self) -> Result<Transaction, AssetTransferTransactionBuilderError> {
-        self.build_fields().map(Transaction::AssetTransfer)
-    }
-}
-
-impl ApplicationCallTransactionBuilder {
-    pub fn build(&self) -> Result<Transaction, ApplicationCallTransactionBuilderError> {
-        self.build_fields().map(Transaction::ApplicationCall)
     }
 }
 
