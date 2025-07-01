@@ -1,13 +1,6 @@
 mod transactions;
 
 use algokit_transact::constants::*;
-use algokit_transact::msgpack::{
-    decode_base64_msgpack_to_json as internal_decode_base64_msgpack_to_json,
-    decode_msgpack_to_json as internal_decode_msgpack_to_json,
-    encode_json_to_base64_msgpack as internal_encode_json_to_base64_msgpack,
-    encode_json_to_msgpack as internal_encode_json_to_msgpack,
-    AlgoKitMsgPackError as InternalMsgPackError, ModelType as InternalModelType,
-};
 use algokit_transact::{
     AlgorandMsgpack, Byte32, EstimateTransactionSize, TransactionId, Transactions, Validate,
 };
@@ -68,30 +61,6 @@ impl From<algokit_transact::AlgoKitTransactError> for AlgoKitTransactError {
             algokit_transact::AlgoKitTransactError::InvalidAddress(_) => {
                 AlgoKitTransactError::DecodingError(e.to_string())
             }
-        }
-    }
-}
-
-// Convert msgpack errors to FFI errors
-impl From<InternalMsgPackError> for AlgoKitTransactError {
-    fn from(e: InternalMsgPackError) -> Self {
-        match e {
-            InternalMsgPackError::SerializationError(e) => {
-                AlgoKitTransactError::MsgPackError(e.to_string())
-            }
-            InternalMsgPackError::MsgpackEncodingError(e) => {
-                AlgoKitTransactError::MsgPackError(e.to_string())
-            }
-            InternalMsgPackError::MsgpackDecodingError(e) => {
-                AlgoKitTransactError::MsgPackError(e.to_string())
-            }
-            InternalMsgPackError::Base64DecodingError(e) => {
-                AlgoKitTransactError::MsgPackError(e.to_string())
-            }
-            InternalMsgPackError::MsgpackWriteError(s) => AlgoKitTransactError::MsgPackError(s),
-            InternalMsgPackError::UnknownModelError(s) => AlgoKitTransactError::MsgPackError(s),
-            InternalMsgPackError::IoError(s) => AlgoKitTransactError::MsgPackError(s),
-            InternalMsgPackError::ValueWriteError(s) => AlgoKitTransactError::MsgPackError(s),
         }
     }
 }
@@ -966,90 +935,4 @@ mod tests {
             assert_eq!(grouped_tx.group.unwrap(), &expected_group);
         }
     }
-}
-
-// ========== MessagePack FFI Functions ==========
-
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
-#[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
-#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Enum))]
-pub enum ModelType {
-    SimulateRequest,
-    SimulateTransaction200Response,
-}
-
-impl From<ModelType> for InternalModelType {
-    fn from(model_type: ModelType) -> Self {
-        match model_type {
-            ModelType::SimulateRequest => InternalModelType::SimulateRequest,
-            ModelType::SimulateTransaction200Response => {
-                InternalModelType::SimulateTransaction200Response
-            }
-        }
-    }
-}
-
-impl From<InternalModelType> for ModelType {
-    fn from(model_type: InternalModelType) -> Self {
-        match model_type {
-            InternalModelType::SimulateRequest => ModelType::SimulateRequest,
-            InternalModelType::SimulateTransaction200Response => {
-                ModelType::SimulateTransaction200Response
-            }
-        }
-    }
-}
-
-#[ffi_func]
-pub fn encode_json_to_msgpack(
-    model_type: ModelType,
-    json_str: &str,
-) -> Result<Vec<u8>, AlgoKitTransactError> {
-    let internal_type: InternalModelType = model_type.into();
-    Ok(internal_encode_json_to_msgpack(internal_type, json_str)?)
-}
-
-#[ffi_func]
-pub fn decode_msgpack_to_json(
-    model_type: ModelType,
-    msgpack_bytes: &[u8],
-) -> Result<String, AlgoKitTransactError> {
-    let internal_type: InternalModelType = model_type.into();
-    Ok(internal_decode_msgpack_to_json(
-        internal_type,
-        msgpack_bytes,
-    )?)
-}
-
-#[ffi_func]
-pub fn encode_json_to_base64_msgpack(
-    model_type: ModelType,
-    json_str: &str,
-) -> Result<String, AlgoKitTransactError> {
-    let internal_type: InternalModelType = model_type.into();
-    Ok(internal_encode_json_to_base64_msgpack(
-        internal_type,
-        json_str,
-    )?)
-}
-
-#[ffi_func]
-pub fn decode_base64_msgpack_to_json(
-    model_type: ModelType,
-    base64_str: &str,
-) -> Result<String, AlgoKitTransactError> {
-    let internal_type: InternalModelType = model_type.into();
-    Ok(internal_decode_base64_msgpack_to_json(
-        internal_type,
-        base64_str,
-    )?)
-}
-
-#[ffi_func]
-pub fn supported_models() -> Vec<ModelType> {
-    algokit_transact::msgpack::supported_models()
-        .into_iter()
-        .map(Into::into)
-        .collect()
 }

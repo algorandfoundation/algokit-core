@@ -1,13 +1,19 @@
 [workspace]
 resolver = "2"
-members = [ "crates/algod_api", "crates/algokit_http_client",
+members = [
+  "crates/algokit_http_client",
   "crates/algokit_transact",
-  "crates/algokit_transact_ffi", "crates/algokit_utils",
-  "crates/ffi_macros", "crates/ffi_mutex",
+  "crates/algokit_transact_ffi",
+  "crates/algokit_utils",
+  "crates/ffi_macros",
+  "crates/ffi_mutex",
+  "crates/algod_client",
+  "crates/algod_client_tests",
   "tools/build_pkgs",
   "crates/uniffi-bindgen",
   "docs",
   "tools/cargo-bin",
+  "tools/api_tools",
 ]
 
 [workspace.dependencies]

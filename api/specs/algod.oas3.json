@@ -2094,7 +2094,8 @@
                   "properties": {
                     "catchup-time": {
                       "type": "integer",
-                      "description": "CatchupTime in nanoseconds"
+                      "description": "CatchupTime in nanoseconds",
+                      "x-algokit-bigint": true
                     },
                     "last-round": {
                       "type": "integer",
@@ -2123,7 +2124,8 @@
                     },
                     "time-since-last-round": {
                       "type": "integer",
-                      "description": "TimeSinceLastRound in nanoseconds"
+                      "description": "TimeSinceLastRound in nanoseconds",
+                      "x-algokit-bigint": true
                     },
                     "last-catchpoint": {
                       "type": "string",
@@ -2271,7 +2273,8 @@
                   "properties": {
                     "catchup-time": {
                       "type": "integer",
-                      "description": "CatchupTime in nanoseconds"
+                      "description": "CatchupTime in nanoseconds",
+                      "x-algokit-bigint": true
                     },
                     "last-round": {
                       "type": "integer",
@@ -2300,7 +2303,8 @@
                     },
                     "time-since-last-round": {
                       "type": "integer",
-                      "description": "TimeSinceLastRound in nanoseconds"
+                      "description": "TimeSinceLastRound in nanoseconds",
+                      "x-algokit-bigint": true
                     },
                     "last-catchpoint": {
                       "type": "string",
@@ -5020,11 +5024,13 @@
           },
           "min-balance": {
             "type": "integer",
-            "description": "MicroAlgo balance required by the account.\n\nThe requirement grows based on asset and application usage."
+            "description": "MicroAlgo balance required by the account.\n\nThe requirement grows based on asset and application usage.",
+            "x-algokit-bigint": true
           },
           "amount-without-pending-rewards": {
             "type": "integer",
-            "description": "specifies the amount of MicroAlgos in the account, without the pending rewards."
+            "description": "specifies the amount of MicroAlgos in the account, without the pending rewards.",
+            "x-algokit-bigint": true
           },
           "apps-local-state": {
             "type": "array",
@@ -5094,15 +5100,18 @@
           },
           "pending-rewards": {
             "type": "integer",
-            "description": "amount of MicroAlgos of pending rewards in this account."
+            "description": "amount of MicroAlgos of pending rewards in this account.",
+            "x-algokit-bigint": true
           },
           "reward-base": {
             "type": "integer",
-            "description": "\\[ebase\\] used as part of the rewards computation. Only applicable to accounts which are participating."
+            "description": "\\[ebase\\] used as part of the rewards computation. Only applicable to accounts which are participating.",
+            "x-algokit-bigint": true
           },
           "rewards": {
             "type": "integer",
-            "description": "\\[ern\\] total rewards of MicroAlgos the account has received, including pending rewards."
+            "description": "\\[ern\\] total rewards of MicroAlgos the account has received, including pending rewards.",
+            "x-algokit-bigint": true
           },
           "round": {
             "type": "integer",
@@ -5173,15 +5182,18 @@
           },
           "vote-first-valid": {
             "type": "integer",
-            "description": "\\[voteFst\\] First round for which this participation is valid."
+            "description": "\\[voteFst\\] First round for which this participation is valid.",
+            "x-algokit-bigint": true
           },
           "vote-key-dilution": {
             "type": "integer",
-            "description": "\\[voteKD\\] Number of subkeys in each batch of participation keys."
+            "description": "\\[voteKD\\] Number of subkeys in each batch of participation keys.",
+            "x-algokit-bigint": true
           },
           "vote-last-valid": {
             "type": "integer",
-            "description": "\\[voteLst\\] Last round for which this participation is valid."
+            "description": "\\[voteLst\\] Last round for which this participation is valid.",
+            "x-algokit-bigint": true
           },
           "vote-participation-key": {
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
@@ -6124,7 +6136,8 @@
         "properties": {
           "asset-index": {
             "type": "integer",
-            "description": "The asset index if the transaction was found and it created an asset."
+            "description": "The asset index if the transaction was found and it created an asset.",
+            "x-algokit-bigint": true
           },
           "application-index": {
             "type": "integer",
@@ -6137,11 +6150,13 @@
           },
           "closing-amount": {
             "type": "integer",
-            "description": "Closing amount for the transaction."
+            "description": "Closing amount for the transaction.",
+            "x-algokit-bigint": true
           },
           "asset-closing-amount": {
             "type": "integer",
-            "description": "The number of the asset's unit that were transferred to the close-to address."
+            "description": "The number of the asset's unit that were transferred to the close-to address.",
+            "x-algokit-bigint": true
           },
           "confirmed-round": {
             "type": "integer",
@@ -7045,7 +7060,8 @@
               "properties": {
                 "catchup-time": {
                   "type": "integer",
-                  "description": "CatchupTime in nanoseconds"
+                  "description": "CatchupTime in nanoseconds",
+                  "x-algokit-bigint": true
                 },
                 "last-round": {
                   "type": "integer",
@@ -7074,7 +7090,8 @@
                 },
                 "time-since-last-round": {
                   "type": "integer",
-                  "description": "TimeSinceLastRound in nanoseconds"
+                  "description": "TimeSinceLastRound in nanoseconds",
+                  "x-algokit-bigint": true
                 },
                 "last-catchpoint": {
                   "type": "string",

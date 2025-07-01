@@ -1,0 +1,96 @@
+name: API OAS Generator CI
+# This workflow tests the OpenAPI Specification (OAS) generator in the api/ folder.
+# It validates the Python-based Jinja2 generator, ensures generated Rust code compiles,
+# and checks for output stability. For testing the generated algod_client crate itself,
+# see the algod_client_tests.yml workflow.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "api/**"
+      - "tools/api_tools/**"
+      - ".github/workflows/api_ci.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "api/**"
+      - "tools/api_tools/**"
+      - ".github/workflows/api_ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  API_DIR: api
+  OUTPUT_DIR: crates/algod_client
+
+jobs:
+  oas_generator_check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.85.0
+          components: rustfmt
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install bun dependencies
+        working-directory: ${{ env.API_DIR }}
+        run: bun install
+
+      - name: Install uv dependencies
+        working-directory: ${{ env.API_DIR }}/oas_generator
+        run: uv sync --extra dev
+
+      - name: Run OAS generator linting
+        run: cargo api lint-oas
+
+      - name: Run OAS generator tests
+        run: cargo api test-oas
+
+      - name: Store original state for stability check
+        run: |
+          git diff --name-only HEAD~1..HEAD -- ${{ env.OUTPUT_DIR }} > /tmp/initial_changes.txt || true
+          git status --porcelain ${{ env.OUTPUT_DIR }} > /tmp/initial_status.txt || true
+
+      - name: Generate algod API client
+        run: cargo api generate-algod
+
+      - name: Check for output stability
+        run: |
+          git status --porcelain ${{ env.OUTPUT_DIR }} > /tmp/post_generation_status.txt
+
+          if [ -s /tmp/post_generation_status.txt ]; then
+            echo "❌ Output instability detected! The following files were modified or created:"
+            cat /tmp/post_generation_status.txt
+            echo ""
+            echo "🔍 Detailed diff:"
+            git diff --no-pager ${{ env.OUTPUT_DIR }}
+            echo ""
+            echo "💡 This indicates that the generated code is not in sync with the current specification."
+            echo "   Please run 'cargo api generate-algod' and commit the changes."
+            exit 1
+          else
+            echo "✅ Output stability check passed - no unexpected changes detected"
+          fi
+
+      - name: Verify generated code compiles
+        run: |
+          cargo check --manifest-path Cargo.toml -p algod_client

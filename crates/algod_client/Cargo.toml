@@ -1,0 +1,43 @@
+[package]
+name = "algod_client"
+version = "0.0.1"
+authors = ["AlgoKit Core Team"]
+description = "API client for algod interaction."
+license = "MIT"
+edition = "2024"
+
+[features]
+default = ["default_client"]
+default_client = ["algokit_http_client/default_client"]
+
+[dependencies]
+# Core serialization
+serde = { version = "^1.0", features = ["derive"] }
+serde_with = { version = "^3.8", default-features = false, features = [
+  "base64",
+  "std",
+  "macros",
+] }
+serde_json = "^1.0"
+serde_repr = "^0.1"
+serde_bytes = "^0.11"
+
+# HTTP client
+algokit_http_client = { path = "../algokit_http_client", features = ["ffi_uniffi"] }
+url = "^2.5"
+
+# AlgoKit dependencies for msgpack and signed transactions
+algokit_transact = { path = "../algokit_transact" }
+# MessagePack serialization
+rmp-serde = "^1.1"
+
+# Error handling
+thiserror = "^1.0"
+
+# Utilities
+base64 = "^0.22"
+uuid = { version = "^1.0", features = ["v4"] }
+
+[dev-dependencies]
+tokio = { version = "1.0", features = ["full"] }
+tokio-test = "^0.4"

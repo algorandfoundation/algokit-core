@@ -1,0 +1,189 @@
+# {{ spec.info.title }}
+
+{{ spec.info.description or "Rust API client generated from OpenAPI specification" }}
+
+**Version:** {{ spec.info.version }}
+{% if spec.info.contact and spec.info.contact.email %}**Contact:** {{ spec.info.contact.email }}
+{% endif %}
+
+This Rust crate provides a client library for the {{ spec.info.title }} API.
+
+## Installation
+
+Add this to your `Cargo.toml`:
+
+```toml
+[dependencies]
+{{ package_name | snake_case }} = "{{ spec.info.version }}"
+```
+
+## Usage
+
+```rust
+use {{ package_name | snake_case }}::{{ package_name | pascal_case }};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize client (choose one based on your network)
+    let client = {{ package_name | pascal_case }}::localnet();  // For local development
+    // let client = {{ package_name | pascal_case }}::testnet();  // For TestNet
+    // let client = {{ package_name | pascal_case }}::mainnet();  // For MainNet
+
+    // Example: Get network status
+    let status = client.get_status().await?;
+    println!("Network status: {:?}", status);
+
+    // Example: Get transaction parameters
+    let params = client.transaction_params().await?;
+    println!("Min fee: {}", params.min_fee);
+    println!("Last round: {}", params.last_round);
+
+    // Example: Get account information
+    let account_address = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+    let account_info = client.account_information(
+        None,  // format
+        account_address,
+        None,  // exclude
+    ).await?;
+    println!("Account balance: {}", account_info.amount);
+
+    Ok(())
+}
+```
+
+## Configuration
+
+The client provides convenient constructors for different networks:
+
+```rust
+use {{ package_name | snake_case }}::{{ package_name | pascal_case }};
+
+// For local development (uses localhost:4001 with default API token)
+let client = {{ package_name | pascal_case }}::localnet();
+
+// For Algorand TestNet
+let client = {{ package_name | pascal_case }}::testnet();
+
+// For Algorand MainNet
+let client = {{ package_name | pascal_case }}::mainnet();
+```
+
+For custom configurations, you can use a custom HTTP client:
+
+```rust
+use {{ package_name | snake_case }}::{{ package_name | pascal_case }};
+use algokit_http_client::DefaultHttpClient;
+use std::sync::Arc;
+
+// Custom endpoint with API token
+let http_client = Arc::new(
+    DefaultHttpClient::with_header(
+        "{{ spec.servers[0].url if spec.servers else 'https://api.example.com' }}",
+        "X-API-Key",
+        "your-api-key"
+    )?
+);
+let client = {{ package_name | pascal_case }}::new(http_client);
+```
+
+## Complete Example
+
+Here's a more comprehensive example showing how to check network status, get account information, and prepare for transactions:
+
+```rust
+use {{ package_name | snake_case }}::{{ package_name | pascal_case }};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Connect to localnet
+    let client = {{ package_name | pascal_case }}::localnet();
+
+    // Check if the node is healthy and ready
+    client.health_check().await?;
+    client.get_ready().await?;
+    println!("✓ Node is healthy and ready");
+
+    // Get network information
+    let status = client.get_status().await?;
+    println!("✓ Connected to network");
+    println!("  Last round: {}", status.last_round);
+    println!("  Catching up: {}", status.catchup_time.unwrap_or(0));
+
+    // Get transaction parameters needed for building transactions
+    let params = client.transaction_params().await?;
+    println!("✓ Retrieved transaction parameters");
+    println!("  Genesis ID: {}", params.genesis_id);
+    println!("  Min fee: {}", params.min_fee);
+
+    // Example: Get account information
+    let test_address = "7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q";
+    match client.account_information(None, test_address, None).await {
+        Ok(account) => {
+            println!("✓ Account information retrieved");
+            println!("  Address: {}", account.address);
+            println!("  Balance: {} microAlgos", account.amount);
+            println!("  Min balance: {} microAlgos", account.min_balance);
+        }
+        Err(e) => {
+            println!("⚠ Could not retrieve account info: {}", e);
+        }
+    }
+
+    // Example: Get application information (if you have an app ID)
+    // let app_id = 123456;
+    // let app_info = client.get_application_by_id(app_id).await?;
+    // println!("App global state: {:?}", app_info.params.global_state);
+
+    Ok(())
+}
+```
+
+## API Operations
+
+This client provides access to {{ operations | length }} API operations:
+
+{% for operation in operations %}
+- `{{ operation.rust_function_name }}` - {{ operation.summary or operation.description or "No description" }}
+{% endfor %}
+
+## Models
+
+The following data models are available:
+
+{% for schema_name, schema in schemas.items() %}
+- `{{ schema.rust_struct_name }}` - {{ schema.description or "No description" }}
+{% endfor %}
+
+## Error Handling
+
+All API operations return a `Result` type. Errors include:
+
+- Network errors (connection issues, timeouts)
+- HTTP errors (4xx, 5xx status codes)
+- Serialization errors (invalid JSON responses)
+
+```rust
+// Example error handling
+match client.get_status().await {
+    Ok(status) => {
+        println!("Node is running on round: {}", status.last_round);
+    }
+    Err(error) => {
+        eprintln!("Failed to get node status: {:?}", error);
+        // Handle specific error types if needed
+    }
+}
+
+// Or use the ? operator for early returns
+let params = client.transaction_params().await
+    .map_err(|e| format!("Failed to get transaction params: {}", e))?;
+```
+
+## Generated Code
+
+This client was generated from an OpenAPI specification using a custom Rust code generator.
+
+**Generated on:** Generated by Rust OpenAPI Generator
+**OpenAPI Version:** {{ spec.openapi or "3.0.0" }}
+**Generator:** Rust OpenAPI Generator
+

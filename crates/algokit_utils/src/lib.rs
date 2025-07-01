@@ -1,14 +1,8 @@
-use algod_api::AlgodClient;
-
-use algod_api::TransactionParams;
-use algokit_transact::Address;
-use algokit_transact::FeeParams;
-use algokit_transact::PaymentTransactionFields;
-use algokit_transact::SignedTransaction;
-use algokit_transact::Transaction;
-use algokit_transact::TransactionHeader;
-use algokit_transact::Transactions;
-use base64::{Engine as _, engine::general_purpose};
+use algod_client::{AlgodClient, apis::Error as AlgodError, models::TransactionParams};
+use algokit_transact::{
+    Address, FeeParams, PaymentTransactionFields, SignedTransaction, Transaction,
+    TransactionHeader, Transactions,
+};
 use derive_more::Debug;
 use std::sync::Arc;
 
@@ -16,8 +10,8 @@ use async_trait::async_trait;
 
 #[derive(Debug, thiserror::Error)]
 pub enum ComposerError {
-    #[error(transparent)]
-    HttpError(#[from] algokit_http_client::HttpError),
+    #[error("Algod client error: {0}")]
+    AlgodClientError(#[from] AlgodError),
     #[error("Decode Error: {0}")]
     DecodeError(String),
     #[error("Transaction Error: {0}")]
@@ -52,78 +46,17 @@ pub struct PaymentParams {
     pub close_remainder_to: Option<Address>,
 }
 
-#[derive(Debug)]
-pub struct AssetTransferParams {
-    /// Part of the "specialized" asset transaction types.
-    /// Based on the primitive asset transfer, this struct implements asset transfers
-    /// without additional side effects.
-    /// Only in the case where the receiver is equal to the sender and the amount is zero,
-    /// this is an asset opt-in transaction.
-    pub common_params: CommonParams,
-    pub asset_id: u64,
-    pub amount: u64,
-    pub receiver: Address,
-}
-
-#[derive(Debug)]
-pub struct AssetOptInParams {
-    /// Part of the "specialized" asset transaction types.
-    /// Based on the primitive asset transfer, this struct implements asset opt-in
-    /// without additional side effects.
-    pub common_params: CommonParams,
-    pub asset_id: u64,
-}
-
-#[derive(Debug)]
-pub struct AssetOptOutParams {
-    /// Part of the "specialized" asset transaction types.
-    /// Based on the primitive asset transfer, this struct implements asset opt-out
-    /// without additional side effects.
-    pub common_params: CommonParams,
-    pub asset_id: u64,
-    pub close_remainder_to: Option<Address>,
-}
-
-#[derive(Debug)]
-pub struct AssetClawbackParams {
-    /// Part of the "specialized" asset transaction types.
-    /// Based on the primitive asset transfer, this struct implements asset clawback
-    /// without additional side effects.
-    pub common_params: CommonParams,
-    pub asset_id: u64,
-    pub amount: u64,
-    pub receiver: Address,
-    // The address from which ASAs are taken.
-    pub clawback_target: Address,
-}
-
 // TODO: TransactionWithSigner
 #[derive(Debug)]
 pub enum ComposerTxn {
     Transaction(Transaction),
     Payment(PaymentParams),
-    AssetTransfer(AssetTransferParams),
-    AssetOptIn(AssetOptInParams),
-    AssetOptOut(AssetOptOutParams),
-    AssetClawback(AssetClawbackParams),
 }
 
 impl ComposerTxn {
     pub fn common_params(&self) -> CommonParams {
         match self {
             ComposerTxn::Payment(payment_params) => payment_params.common_params.clone(),
-            ComposerTxn::AssetTransfer(asset_transfer_params) => {
-                asset_transfer_params.common_params.clone()
-            }
-            ComposerTxn::AssetOptIn(asset_opt_in_params) => {
-                asset_opt_in_params.common_params.clone()
-            }
-            ComposerTxn::AssetOptOut(asset_opt_out_params) => {
-                asset_opt_out_params.common_params.clone()
-            }
-            ComposerTxn::AssetClawback(asset_clawback_params) => {
-                asset_clawback_params.common_params.clone()
-            }
             _ => CommonParams::default(),
         }
     }
@@ -227,34 +160,6 @@ impl Composer {
         self.push(ComposerTxn::Payment(payment_params))
     }
 
-    pub fn add_asset_transfer(
-        &mut self,
-        asset_transfer_params: AssetTransferParams,
-    ) -> Result<(), String> {
-        self.push(ComposerTxn::AssetTransfer(asset_transfer_params))
-    }
-
-    pub fn add_asset_opt_in(
-        &mut self,
-        asset_opt_in_params: AssetOptInParams,
-    ) -> Result<(), String> {
-        self.push(ComposerTxn::AssetOptIn(asset_opt_in_params))
-    }
-
-    pub fn add_asset_opt_out(
-        &mut self,
-        asset_opt_out_params: AssetOptOutParams,
-    ) -> Result<(), String> {
-        self.push(ComposerTxn::AssetOptOut(asset_opt_out_params))
-    }
-
-    pub fn add_asset_clawback(
-        &mut self,
-        asset_clawback_params: AssetClawbackParams,
-    ) -> Result<(), String> {
-        self.push(ComposerTxn::AssetClawback(asset_clawback_params))
-    }
-
     pub fn add_transaction(&mut self, transaction: Transaction) -> Result<(), String> {
         self.push(ComposerTxn::Transaction(transaction))
     }
@@ -272,7 +177,7 @@ impl Composer {
         self.algod_client
             .transaction_params()
             .await
-            .map_err(ComposerError::HttpError)
+            .map_err(Into::into)
     }
 
     pub async fn build(&mut self) -> Result<&mut Self, ComposerError> {
@@ -282,32 +187,22 @@ impl Composer {
 
         let suggested_params = self.get_suggested_params().await?;
 
-        let default_header = TransactionHeader {
-            fee: Some(suggested_params.fee),
-            genesis_id: Some(suggested_params.genesis_id),
-            genesis_hash: Some(
-                general_purpose::STANDARD
-                    .decode(suggested_params.genesis_hash)
-                    .map_err(|e| {
-                        ComposerError::DecodeError(format!("Failed to decode genesis hash: {}", e))
-                    })?
-                    .try_into()
-                    .map_err(|e| {
-                        ComposerError::DecodeError(format!(
-                            "Failed to convert genesis hash: {:?}",
-                            e
-                        ))
-                    })?,
-            ),
-            // The rest of these fields are set further down per txn
-            first_valid: 0,
-            last_valid: 0,
-            sender: Address::default(),
-            rekey_to: None,
-            note: None,
-            lease: None,
-            group: None,
-        };
+        let default_header =
+            TransactionHeader {
+                fee: Some(suggested_params.fee),
+                genesis_id: Some(suggested_params.genesis_id),
+                genesis_hash: Some(suggested_params.genesis_hash.try_into().map_err(|_e| {
+                    ComposerError::DecodeError("Invalid genesis hash".to_string())
+                })?),
+                // The rest of these fields are set further down per txn
+                first_valid: 0,
+                last_valid: 0,
+                sender: Address::default(),
+                rekey_to: None,
+                note: None,
+                lease: None,
+                group: None,
+            };
 
         let txs = self
             .transactions
@@ -318,56 +213,14 @@ impl Composer {
                 let mut transaction: algokit_transact::Transaction = match composer_txn {
                     ComposerTxn::Transaction(txn) => txn.clone(),
                     ComposerTxn::Payment(pay_params) => {
-                        Transaction::Payment(PaymentTransactionFields {
+                        let pay_params = PaymentTransactionFields {
                             header: default_header.clone(),
                             receiver: pay_params.receiver.clone(),
                             amount: pay_params.amount,
                             close_remainder_to: pay_params.close_remainder_to.clone(),
-                        })
-                    }
-                    ComposerTxn::AssetTransfer(asset_transfer_params) => {
-                        Transaction::AssetTransfer(
-                            algokit_transact::AssetTransferTransactionFields {
-                                header: default_header.clone(),
-                                asset_id: asset_transfer_params.asset_id,
-                                amount: asset_transfer_params.amount,
-                                receiver: asset_transfer_params.receiver.clone(),
-                                asset_sender: None,
-                                close_remainder_to: None,
-                            },
-                        )
-                    }
-                    ComposerTxn::AssetOptIn(asset_opt_in_params) => Transaction::AssetTransfer(
-                        algokit_transact::AssetTransferTransactionFields {
-                            header: default_header.clone(),
-                            asset_id: asset_opt_in_params.asset_id,
-                            amount: 0,
-                            receiver: asset_opt_in_params.common_params.sender.clone(),
-                            asset_sender: None,
-                            close_remainder_to: None,
-                        },
-                    ),
-                    ComposerTxn::AssetOptOut(asset_opt_out_params) => Transaction::AssetTransfer(
-                        algokit_transact::AssetTransferTransactionFields {
-                            header: default_header.clone(),
-                            asset_id: asset_opt_out_params.asset_id,
-                            amount: 0,
-                            receiver: asset_opt_out_params.common_params.sender.clone(),
-                            asset_sender: None,
-                            close_remainder_to: asset_opt_out_params.close_remainder_to.clone(),
-                        },
-                    ),
-                    ComposerTxn::AssetClawback(asset_clawback_params) => {
-                        Transaction::AssetTransfer(
-                            algokit_transact::AssetTransferTransactionFields {
-                                header: default_header.clone(),
-                                asset_id: asset_clawback_params.asset_id,
-                                amount: asset_clawback_params.amount,
-                                receiver: asset_clawback_params.receiver.clone(),
-                                asset_sender: Some(asset_clawback_params.clawback_target.clone()),
-                                close_remainder_to: None,
-                            },
-                        )
+                        };
+
+                        Transaction::Payment(pay_params)
                     }
                 };
 
@@ -428,6 +281,7 @@ impl Composer {
 mod tests {
     use super::*;
     use algokit_transact::test_utils::{AddressMother, TransactionMother};
+    use base64::{Engine, prelude::BASE64_STANDARD};
 
     #[test]
     fn test_add_transaction() {
@@ -454,7 +308,9 @@ mod tests {
 
         assert_eq!(
             response.genesis_hash,
-            "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI="
+            BASE64_STANDARD
+                .decode("SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=")
+                .unwrap()
         );
     }
 
@@ -504,108 +360,6 @@ mod tests {
             close_remainder_to: None,
         };
         assert!(composer.add_payment(payment_params).is_ok());
-        assert!(composer.build().await.is_ok());
-        assert!(composer.built_group().is_some());
-    }
-
-    #[tokio::test]
-    async fn test_build_asset_transfer() {
-        let mut composer = Composer::testnet();
-        let asset_transfer_params = AssetTransferParams {
-            common_params: CommonParams {
-                sender: AddressMother::address(),
-                signer: None,
-                rekey_to: None,
-                note: None,
-                lease: None,
-                static_fee: None,
-                extra_fee: None,
-                max_fee: None,
-                validity_window: None,
-                first_valid_round: None,
-                last_valid_round: None,
-            },
-            asset_id: 12345,
-            amount: 1000,
-            receiver: AddressMother::address(),
-        };
-        assert!(composer.add_asset_transfer(asset_transfer_params).is_ok());
-        assert!(composer.build().await.is_ok());
-        assert!(composer.built_group().is_some());
-    }
-
-    #[tokio::test]
-    async fn test_build_asset_opt_in() {
-        let mut composer = Composer::testnet();
-        let asset_opt_in_params = AssetOptInParams {
-            common_params: CommonParams {
-                sender: AddressMother::address(),
-                signer: None,
-                rekey_to: None,
-                note: None,
-                lease: None,
-                static_fee: None,
-                extra_fee: None,
-                max_fee: None,
-                validity_window: None,
-                first_valid_round: None,
-                last_valid_round: None,
-            },
-            asset_id: 12345,
-        };
-        assert!(composer.add_asset_opt_in(asset_opt_in_params).is_ok());
-        assert!(composer.build().await.is_ok());
-        assert!(composer.built_group().is_some());
-    }
-
-    #[tokio::test]
-    async fn test_build_asset_opt_out() {
-        let mut composer = Composer::testnet();
-        let asset_opt_out_params = AssetOptOutParams {
-            common_params: CommonParams {
-                sender: AddressMother::address(),
-                signer: None,
-                rekey_to: None,
-                note: None,
-                lease: None,
-                static_fee: None,
-                extra_fee: None,
-                max_fee: None,
-                validity_window: None,
-                first_valid_round: None,
-                last_valid_round: None,
-            },
-            asset_id: 12345,
-            close_remainder_to: Some(AddressMother::neil()),
-        };
-        assert!(composer.add_asset_opt_out(asset_opt_out_params).is_ok());
-        assert!(composer.build().await.is_ok());
-        assert!(composer.built_group().is_some());
-    }
-
-    #[tokio::test]
-    async fn test_build_asset_clawback() {
-        let mut composer = Composer::testnet();
-        let asset_clawback_params = AssetClawbackParams {
-            common_params: CommonParams {
-                sender: AddressMother::address(),
-                signer: None,
-                rekey_to: None,
-                note: None,
-                lease: None,
-                static_fee: None,
-                extra_fee: None,
-                max_fee: None,
-                validity_window: None,
-                first_valid_round: None,
-                last_valid_round: None,
-            },
-            asset_id: 12345,
-            amount: 1000,
-            receiver: AddressMother::address(),
-            clawback_target: AddressMother::neil(),
-        };
-        assert!(composer.add_asset_clawback(asset_clawback_params).is_ok());
         assert!(composer.build().await.is_ok());
         assert!(composer.built_group().is_some());
     }

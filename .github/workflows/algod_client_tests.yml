@@ -1,0 +1,63 @@
+name: Algod Client Tests
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "crates/algod_client/**"
+      - "crates/algod_client_tests/**"
+      - "crates/algokit_http_client/**"
+      - "crates/algokit_transact/**"
+      - ".github/workflows/algod_client_tests.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "crates/algod_client/**"
+      - "crates/algod_client_tests/**"
+      - "crates/algokit_http_client/**"
+      - "crates/algokit_transact/**"
+      - ".github/workflows/algod_client_tests.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  algod_client_tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.85.0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install algokit CLI
+        run: uv tool install algokit
+
+      - name: Add uv tools to PATH
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Verify algokit installation
+        run: |
+          algokit --version
+          which algokit
+
+      - name: Build algod_client
+        run: cargo build -p algod_client
+
+      - name: Build algod_client_tests
+        run: cargo build -p algod_client_tests
+
+      - name: Run algod_client integration tests
+        run: cargo test -p algod_client_tests --verbose

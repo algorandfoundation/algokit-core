@@ -1,0 +1,10 @@
+[package]
+name = "api_tools"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+clap = { version = "4.5.40", features = ["derive"] }
+color-eyre = "0.6.5"
+duct = "1.0.0"
+shlex = "1.3.0"
