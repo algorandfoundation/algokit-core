@@ -338,15 +338,18 @@ impl TryFrom<Transaction> for algokit_transact::Transaction {
             TransactionType::KeyRegistration => Ok(algokit_transact::Transaction::KeyRegistration(
                 tx.try_into()?,
             )),
+
             TransactionType::AssetConfig => {
                 Ok(algokit_transact::Transaction::AssetConfig(tx.try_into()?))
             }
+
             TransactionType::ApplicationCall => Ok(algokit_transact::Transaction::ApplicationCall(
                 tx.try_into()?,
             )),
             TransactionType::AssetFreeze => {
                 Ok(algokit_transact::Transaction::AssetFreeze(tx.try_into()?))
             }
+
             _ => Err(Self::Error::DecodingError(
                 "Transaction type is not implemented".to_string(),
             )),

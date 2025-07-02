@@ -620,12 +620,17 @@ fn normalise_json(value: serde_json::Value) -> serde_json::Value {
         "num_uints",
     ];
 
+    // Boolean fields that should always be included, even when false
+    const BOOLEAN_FIELDS_TO_KEEP: &[&str] = &["frozen", "default_frozen"];
+
     match value {
         serde_json::Value::Object(map) => serde_json::Value::Object(
             map.into_iter()
                 .filter(|(k, v)| {
                     !(v.is_null()
-                        || v.is_boolean() && v.as_bool() == Some(false)
+                        || v.is_boolean()
+                            && v.as_bool() == Some(false)
+                            && !BOOLEAN_FIELDS_TO_KEEP.contains(&k.to_case(Case::Snake).as_str())
                         || v.is_number()
                             && v.as_u64() == Some(0)
                             && !ZERO_VALUE_EXCLUDED_FIELDS
