@@ -324,7 +324,6 @@ impl TryFrom<Transaction> for algokit_transact::Transaction {
             tx.asset_config.is_some(),
             tx.key_registration.is_some(),
             tx.application_call.is_some(),
-            tx.asset_transfer.is_some(),
             tx.asset_freeze.is_some(),
         ]
         .into_iter()

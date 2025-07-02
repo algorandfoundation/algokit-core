@@ -602,3 +602,116 @@ fn test_asset_freeze_builder_validation() {
         panic!("Expected AssetFreeze transaction");
     }
 }
+
+#[test]
+fn test_asset_freeze_mainnet_encoding() {
+    let tx = TransactionMother::asset_freeze_mainnet().build().unwrap();
+    // Just verify it encodes without checking exact size
+    let encoded = tx.encode().unwrap();
+    let decoded = Transaction::decode(&encoded).unwrap();
+    assert_eq!(decoded, tx);
+}
+
+#[test]
+fn test_asset_freeze_testnet_encoding() {
+    let tx = TransactionMother::asset_freeze_testnet().build().unwrap();
+    // Just verify it encodes without checking exact size
+    let encoded = tx.encode().unwrap();
+    let decoded = Transaction::decode(&encoded).unwrap();
+    assert_eq!(decoded, tx);
+}
+
+#[test]
+fn test_asset_freeze_minimal_encoding() {
+    let tx = TransactionMother::asset_freeze_minimal().build().unwrap();
+    check_transaction_encoding(&tx, 140);
+}
+
+#[test]
+fn test_asset_freeze_with_group_encoding() {
+    let tx = TransactionMother::asset_freeze_with_group().build().unwrap();
+    
+    // Verify group field is set
+    if let Transaction::AssetFreeze(fields) = &tx {
+        assert!(fields.header.group.is_some());
+    }
+    
+    // Just verify it encodes without checking exact size
+    let encoded = tx.encode().unwrap();
+    let decoded = Transaction::decode(&encoded).unwrap();
+    assert_eq!(decoded, tx);
+}
+
+#[test]
+fn test_asset_freeze_real_transaction_ids() {
+    // Test with mainnet freeze
+    let freeze_tx = TransactionMother::asset_freeze_mainnet().build().unwrap();
+    let freeze_id = freeze_tx.id().unwrap();
+    assert_eq!(freeze_id.len(), 52); // Base32 encoded length
+    
+    // Test with mainnet unfreeze  
+    let unfreeze_tx = TransactionMother::asset_unfreeze_mainnet().build().unwrap();
+    let unfreeze_id = unfreeze_tx.id().unwrap();
+    assert_eq!(unfreeze_id.len(), 52);
+    
+    // Verify freeze and unfreeze have different IDs (different first_valid)
+    assert_ne!(freeze_id, unfreeze_id);
+}
+
+#[test]
+fn test_asset_freeze_required_fields() {
+    // Missing asset_id should fail
+    let result = AssetFreezeTransactionBuilder::default()
+        .header(TransactionHeaderMother::simple_testnet().build().unwrap())
+        .freeze_target(AddressMother::neil())
+        .frozen(true)
+        .build();
+    
+    // Builder with derive_builder pattern requires all fields
+    assert!(result.is_err());
+    
+    // Missing freeze_target should fail
+    let result = AssetFreezeTransactionBuilder::default()
+        .header(TransactionHeaderMother::simple_testnet().build().unwrap())
+        .asset_id(12345)
+        .frozen(true)
+        .build();
+    
+    assert!(result.is_err());
+}
+
+#[test]
+fn test_asset_freeze_serialization_fields() {
+    let tx = TransactionMother::asset_freeze().build().unwrap();
+    let encoded = tx.encode_raw().unwrap();
+    
+    // Decode as MessagePack Value first
+    let decoded_value: rmpv::Value = rmp_serde::from_slice(&encoded).unwrap();
+    
+    // Convert to a map to check fields
+    if let rmpv::Value::Map(map) = decoded_value {
+        let mut found_faid = false;
+        let mut found_fadd = false;
+        let mut found_afrz = false;
+        let mut found_type = false;
+        
+        for (key, _value) in map {
+            if let rmpv::Value::String(ref s) = key {
+                match s.as_str() {
+                    Some("faid") => found_faid = true,
+                    Some("fadd") => found_fadd = true,
+                    Some("afrz") => found_afrz = true,
+                    Some("type") => found_type = true,
+                    _ => {}
+                }
+            }
+        }
+        
+        assert!(found_faid, "Missing faid field");
+        assert!(found_fadd, "Missing fadd field");
+        assert!(found_afrz, "Missing afrz field");
+        assert!(found_type, "Missing type field");
+    } else {
+        panic!("Expected MessagePack map");
+    }
+}

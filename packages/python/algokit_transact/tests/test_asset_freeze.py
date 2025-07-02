@@ -1,140 +1,113 @@
 import pytest
 
-from . import TEST_DATA
-from algokit_transact import (
-    FeeParams,
-    assign_fee,
-    encode_transaction,
-    encode_signed_transaction,
-    AssetFreezeTransactionFields,
-    TransactionType,
-    decode_transaction,
-    get_encoded_transaction_type,
-    Transaction,
-    SignedTransaction,
-    address_from_string,
-    address_from_pub_key,
-    get_transaction_id,
-    get_transaction_id_raw,
+from tests.transaction_asserts import (
+    assert_assign_fee,
+    assert_decode_with_prefix,
+    assert_decode_without_prefix,
+    assert_encode,
+    assert_encode_with_auth_address,
+    assert_encode_with_signature,
+    assert_encoded_transaction_type,
+    assert_example,
+    assert_transaction_id,
 )
-from nacl.signing import SigningKey
+from . import TEST_DATA
 
-# We'll need to add test data once the implementation is complete
-# asset_freeze = TEST_DATA.asset_freeze
-# asset_unfreeze = TEST_DATA.asset_unfreeze
+txn_test_data = {
+    "freeze": TEST_DATA.asset_freeze,
+    "unfreeze": TEST_DATA.asset_unfreeze,
+}
 
+# Polytest Suite: Asset Freeze
 
-def test_example():
-    """A human-readable example of forming an asset freeze transaction and signing it"""
-    alice_keypair = SigningKey.generate()  # Keypair generated from PyNaCl
-    alice = address_from_pub_key(alice_keypair.verify_key.__bytes__())
-
-    target_account = address_from_string(
-        "JB3K6HTAXODO4THESLNYTSG6GQUFNEVIQG7A6ZYVDACR6WA3ZF52TKU5NA"
-    )
-
-    # Example 1: Freeze an asset
-    freeze_txn = Transaction(
-        transaction_type=TransactionType.ASSET_FREEZE,
-        first_valid=1337,
-        last_valid=1347,
-        sender=alice,
-        genesis_hash=b"A" * 32,  # pretend this is a valid hash
-        genesis_id="localnet",
-        asset_freeze=AssetFreezeTransactionFields(
-            asset_id=12345,
-            freeze_target=target_account,
-            frozen=True,
-        ),
-    )
-
-    freeze_txn_with_fee = assign_fee(
-        freeze_txn, FeeParams(fee_per_byte=0, min_fee=1000)
-    )
-    assert freeze_txn_with_fee.fee == 1000
-
-    # Example 2: Unfreeze an asset
-    unfreeze_txn = Transaction(
-        transaction_type=TransactionType.ASSET_FREEZE,
-        first_valid=1337,
-        last_valid=1347,
-        sender=alice,
-        genesis_hash=b"A" * 32,
-        genesis_id="localnet",
-        asset_freeze=AssetFreezeTransactionFields(
-            asset_id=12345,
-            freeze_target=target_account,
-            frozen=False,
-        ),
-    )
-
-    unfreeze_txn_with_fee = assign_fee(
-        unfreeze_txn, FeeParams(fee_per_byte=0, min_fee=1000)
-    )
-    assert unfreeze_txn_with_fee.fee == 1000
+# Polytest Group: Transaction Tests
 
 
-def test_asset_freeze_transaction_encoding():
-    """Test basic encoding/decoding of asset freeze transactions"""
-    alice_keypair = SigningKey.generate()
-    alice = address_from_pub_key(alice_keypair.verify_key.__bytes__())
-    target_account = address_from_string(
-        "JB3K6HTAXODO4THESLNYTSG6GQUFNEVIQG7A6ZYVDACR6WA3ZF52TKU5NA"
-    )
-
-    freeze_txn = Transaction(
-        transaction_type=TransactionType.ASSET_FREEZE,
-        first_valid=1337,
-        last_valid=1347,
-        sender=alice,
-        fee=1000,
-        genesis_hash=b"A" * 32,
-        genesis_id="localnet",
-        asset_freeze=AssetFreezeTransactionFields(
-            asset_id=12345,
-            freeze_target=target_account,
-            frozen=True,
-        ),
-    )
-
-    # Test encoding and decoding
-    encoded = encode_transaction(freeze_txn)
-    decoded = decode_transaction(encoded)
-
-    assert decoded.transaction_type == TransactionType.ASSET_FREEZE
-    assert decoded.asset_freeze.asset_id == 12345
-    assert decoded.asset_freeze.frozen == True
-    assert decoded.asset_freeze.freeze_target.address == target_account.address
-
-    # Test transaction type detection
-    assert get_encoded_transaction_type(encoded) == TransactionType.ASSET_FREEZE
+@pytest.mark.group_transaction_tests
+@pytest.mark.parametrize(
+    "test_data",
+    txn_test_data.values(),
+    ids=txn_test_data.keys(),
+)
+def test_example(test_data):
+    assert_example(test_data)
 
 
-def test_asset_freeze_transaction_id():
-    """Test transaction ID generation for asset freeze transactions"""
-    alice_keypair = SigningKey.generate()
-    alice = address_from_pub_key(alice_keypair.verify_key.__bytes__())
-    target_account = address_from_string(
-        "JB3K6HTAXODO4THESLNYTSG6GQUFNEVIQG7A6ZYVDACR6WA3ZF52TKU5NA"
-    )
+@pytest.mark.group_transaction_tests
+@pytest.mark.parametrize(
+    "test_data",
+    txn_test_data.values(),
+    ids=txn_test_data.keys(),
+)
+def test_get_transaction_id(test_data):
+    assert_transaction_id(test_data)
 
-    freeze_txn = Transaction(
-        transaction_type=TransactionType.ASSET_FREEZE,
-        first_valid=1337,
-        last_valid=1347,
-        sender=alice,
-        fee=1000,
-        genesis_hash=b"A" * 32,
-        genesis_id="localnet",
-        asset_freeze=AssetFreezeTransactionFields(
-            asset_id=12345,
-            freeze_target=target_account,
-            frozen=True,
-        ),
-    )
 
-    tx_id = get_transaction_id(freeze_txn)
-    tx_id_raw = get_transaction_id_raw(freeze_txn)
+@pytest.mark.group_transaction_tests
+@pytest.mark.parametrize(
+    "test_data",
+    txn_test_data.values(),
+    ids=txn_test_data.keys(),
+)
+def test_assign_fee(test_data):
+    assert_assign_fee(test_data)
 
-    assert len(tx_id) > 0
-    assert len(tx_id_raw) == 32
+
+@pytest.mark.group_transaction_tests
+@pytest.mark.parametrize(
+    "test_data",
+    txn_test_data.values(),
+    ids=txn_test_data.keys(),
+)
+def test_get_encoded_transaction_type(test_data):
+    assert_encoded_transaction_type(test_data)
+
+
+@pytest.mark.group_transaction_tests
+@pytest.mark.parametrize(
+    "test_data",
+    txn_test_data.values(),
+    ids=txn_test_data.keys(),
+)
+def test_decode_without_prefix(test_data):
+    assert_decode_without_prefix(test_data)
+
+
+@pytest.mark.group_transaction_tests
+@pytest.mark.parametrize(
+    "test_data",
+    txn_test_data.values(),
+    ids=txn_test_data.keys(),
+)
+def test_decode_with_prefix(test_data):
+    assert_decode_with_prefix(test_data)
+
+
+@pytest.mark.group_transaction_tests
+@pytest.mark.parametrize(
+    "test_data",
+    txn_test_data.values(),
+    ids=txn_test_data.keys(),
+)
+def test_encode_with_auth_address(test_data):
+    assert_encode_with_auth_address(test_data)
+
+
+@pytest.mark.group_transaction_tests
+@pytest.mark.parametrize(
+    "test_data",
+    txn_test_data.values(),
+    ids=txn_test_data.keys(),
+)
+def test_encode_with_signature(test_data):
+    assert_encode_with_signature(test_data)
+
+
+@pytest.mark.group_transaction_tests
+@pytest.mark.parametrize(
+    "test_data",
+    txn_test_data.values(),
+    ids=txn_test_data.keys(),
+)
+def test_encode(test_data):
+    assert_encode(test_data)
