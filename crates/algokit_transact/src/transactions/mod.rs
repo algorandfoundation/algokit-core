@@ -129,7 +129,6 @@ impl Transaction {
     }
 }
 
-
 impl AlgorandMsgpack for Transaction {
     const PREFIX: &'static [u8] = b"TX";
 }

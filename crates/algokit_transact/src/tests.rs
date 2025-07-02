@@ -629,13 +629,15 @@ fn test_asset_freeze_minimal_encoding() {
 
 #[test]
 fn test_asset_freeze_with_group_encoding() {
-    let tx = TransactionMother::asset_freeze_with_group().build().unwrap();
-    
+    let tx = TransactionMother::asset_freeze_with_group()
+        .build()
+        .unwrap();
+
     // Verify group field is set
     if let Transaction::AssetFreeze(fields) = &tx {
         assert!(fields.header.group.is_some());
     }
-    
+
     // Just verify it encodes without checking exact size
     let encoded = tx.encode().unwrap();
     let decoded = Transaction::decode(&encoded).unwrap();
@@ -648,12 +650,12 @@ fn test_asset_freeze_real_transaction_ids() {
     let freeze_tx = TransactionMother::asset_freeze_mainnet().build().unwrap();
     let freeze_id = freeze_tx.id().unwrap();
     assert_eq!(freeze_id.len(), 52); // Base32 encoded length
-    
-    // Test with mainnet unfreeze  
+
+    // Test with mainnet unfreeze
     let unfreeze_tx = TransactionMother::asset_unfreeze_mainnet().build().unwrap();
     let unfreeze_id = unfreeze_tx.id().unwrap();
     assert_eq!(unfreeze_id.len(), 52);
-    
+
     // Verify freeze and unfreeze have different IDs (different first_valid)
     assert_ne!(freeze_id, unfreeze_id);
 }
@@ -666,17 +668,17 @@ fn test_asset_freeze_required_fields() {
         .freeze_target(AddressMother::neil())
         .frozen(true)
         .build();
-    
+
     // Builder with derive_builder pattern requires all fields
     assert!(result.is_err());
-    
+
     // Missing freeze_target should fail
     let result = AssetFreezeTransactionBuilder::default()
         .header(TransactionHeaderMother::simple_testnet().build().unwrap())
         .asset_id(12345)
         .frozen(true)
         .build();
-    
+
     assert!(result.is_err());
 }
 
@@ -684,17 +686,17 @@ fn test_asset_freeze_required_fields() {
 fn test_asset_freeze_serialization_fields() {
     let tx = TransactionMother::asset_freeze().build().unwrap();
     let encoded = tx.encode_raw().unwrap();
-    
+
     // Decode as MessagePack Value first
     let decoded_value: rmpv::Value = rmp_serde::from_slice(&encoded).unwrap();
-    
+
     // Convert to a map to check fields
     if let rmpv::Value::Map(map) = decoded_value {
         let mut found_faid = false;
         let mut found_fadd = false;
         let mut found_afrz = false;
         let mut found_type = false;
-        
+
         for (key, _value) in map {
             if let rmpv::Value::String(ref s) = key {
                 match s.as_str() {
@@ -706,7 +708,7 @@ fn test_asset_freeze_serialization_fields() {
                 }
             }
         }
-        
+
         assert!(found_faid, "Missing faid field");
         assert!(found_fadd, "Missing fadd field");
         assert!(found_afrz, "Missing afrz field");
