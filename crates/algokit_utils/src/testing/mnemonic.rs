@@ -6,6 +6,7 @@ const KEY_LEN_BYTES: usize = 32;
 const MNEM_LEN_WORDS: usize = 25; // includes checksum word
 const MNEMONIC_DELIM: &str = " ";
 
+// NOTE: May need to be moved to different location if we are to expose mnemonic to pkey functionality to end user
 static WORDLIST: &[&str] = &[
     "abandon", "ability", "able", "about", "above", "absent", "absorb", "abstract", "absurd",
     "abuse", "access", "accident", "account", "accuse", "achieve", "acid", "acoustic", "acquire",

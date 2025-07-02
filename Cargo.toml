@@ -8,7 +8,6 @@ members = [
   "crates/ffi_macros",
   "crates/ffi_mutex",
   "crates/algod_client",
-  "crates/algod_client_tests",
   "tools/build_pkgs",
   "crates/uniffi-bindgen",
   "docs",

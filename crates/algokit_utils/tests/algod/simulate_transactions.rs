@@ -5,20 +5,22 @@ use algod_client::{
     apis::Format,
     models::{SimulateRequest, SimulateRequestTransactionGroup, SimulateTraceConfig},
 };
-use algod_client_tests::{LocalnetManager, LocalnetTransactionMother, get_algod_client};
-use algokit_transact::SignedTransaction;
+use algokit_transact::{SignedTransaction, test_utils::TransactionMother};
+use algokit_utils::ClientManager;
+
+use crate::common::init_test_logging;
 
 #[tokio::test]
 async fn test_simulate_transactions() {
-    LocalnetManager::ensure_running()
-        .await
-        .expect("Failed to start localnet");
+    init_test_logging();
 
-    // Create multiple transactions for group simulation using LocalnetTransactionMother
-    let transaction1 = LocalnetTransactionMother::simple_payment().build().unwrap();
-    let transaction2 = LocalnetTransactionMother::payment_with_note()
-        .build()
-        .unwrap();
+    // Create algod client using ClientManager
+    let config = ClientManager::get_config_from_environment_or_localnet();
+    let algod_client = ClientManager::get_algod_client(&config.algod_config);
+
+    // Create multiple transactions for group simulation using TransactionMother from algokit_transact
+    let transaction1 = TransactionMother::simple_payment().build().unwrap();
+    let transaction2 = TransactionMother::payment_with_note().build().unwrap();
 
     let signed_transactions = vec![
         SignedTransaction {
@@ -56,7 +58,7 @@ async fn test_simulate_transactions() {
     };
 
     // Call the simulate transaction endpoint
-    let result = get_algod_client()
+    let result = algod_client
         .simulate_transaction(simulate_request, Some(Format::Msgpack))
         .await;
 

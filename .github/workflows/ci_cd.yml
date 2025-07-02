@@ -11,6 +11,14 @@ on:
 jobs:
   check_rust:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    env:
+      # Enable verbose logging for debugging localnet and test issues
+      RUST_LOG: debug
+      # Ensure output is not buffered for immediate feedback
+      RUST_BACKTRACE: 1
     steps:
       - uses: actions/checkout@v4
         with:
@@ -19,6 +27,13 @@ jobs:
         with:
           toolchain: 1.85.0
           components: clippy, rustfmt
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install algokit CLI
+        run: uv tool install algokit
+
       - name: Check formatting
         run: cargo fmt --check
       - name: Clippy
@@ -28,6 +43,15 @@ jobs:
         run: cargo check
       - name: Check WASM
         run: cargo check --no-default-features --features ffi_wasm
+
+      - name: Start localnet
+        run: algokit localnet start
+
+      - name: Build all crates
+        run: cargo build --workspace
+
+      - name: Run all Rust tests with verbose output
+        run: cargo test --workspace --verbose -- --nocapture
 
   # A setup job to define the matricies that will be used across all of the jobs in this workflow
   setup:

@@ -12,15 +12,13 @@ use std::process::Command;
 use std::str::FromStr;
 use tokio::time::{Duration, sleep};
 
-use crate::mnemonic::{from_key, to_key};
+use super::mnemonic::{from_key, to_key};
 
 /// Test account configuration
 #[derive(Debug, Clone)]
 pub struct TestAccountConfig {
     /// Initial funding amount in microALGOs (default: 10 ALGO = 10,000,000 microALGOs)
     pub initial_funds: u64,
-    /// Whether to suppress log messages
-    pub suppress_log: bool,
     /// Network type (LocalNet, TestNet, MainNet)
     pub network_type: NetworkType,
     /// Optional note for funding transaction
@@ -31,7 +29,6 @@ impl Default for TestAccountConfig {
     fn default() -> Self {
         Self {
             initial_funds: 10_000_000, // 10 ALGO
-            suppress_log: false,
             network_type: NetworkType::LocalNet,
             funding_note: None,
         }
@@ -338,14 +335,12 @@ impl TestAccountManager {
     ) -> Result<(TestAccount, TestAccount), Box<dyn std::error::Error + Send + Sync>> {
         let sender_config = TestAccountConfig {
             initial_funds: 10_000_000, // 10 ALGO
-            suppress_log: false,
             network_type: NetworkType::LocalNet,
             funding_note: Some("Test sender account".to_string()),
         };
 
         let receiver_config = TestAccountConfig {
             initial_funds: 1_000_000, // 1 ALGO
-            suppress_log: false,
             network_type: NetworkType::LocalNet,
             funding_note: Some("Test receiver account".to_string()),
         };
@@ -364,16 +359,11 @@ impl TestAccountManager {
     ) -> Result<Vec<TestAccount>, Box<dyn std::error::Error + Send + Sync>> {
         let mut accounts = Vec::with_capacity(count);
 
-        for i in 0..count {
+        for _i in 0..count {
             let account_config = config.clone().unwrap_or_default();
-            if !account_config.suppress_log {
-                println!("Generating test account {} of {}", i + 1, count);
-            }
-
             let account = self.get_test_account(Some(account_config)).await?;
             accounts.push(account);
 
-            // Small delay to avoid overwhelming the network
             sleep(Duration::from_millis(100)).await;
         }
 

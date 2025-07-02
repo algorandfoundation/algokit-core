@@ -2,7 +2,7 @@ name: API OAS Generator CI
 # This workflow tests the OpenAPI Specification (OAS) generator in the api/ folder.
 # It validates the Python-based Jinja2 generator, ensures generated Rust code compiles,
 # and checks for output stability. For testing the generated algod_client crate itself,
-# see the algod_client_tests.yml workflow.
+# see the ci_cd.yml workflow where algod integration tests are run as part of tests in algokit utils crate.
 
 on:
   push:

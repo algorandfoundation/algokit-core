@@ -6,21 +6,38 @@ edition = "2024"
 [features]
 default = ["default_http_client"]
 default_http_client = [
-    "algokit_http_client/default_client",
-    "algod_client/default_client",
+  "algokit_http_client/default_client",
+  "algod_client/default_client",
 ]
 
 [dependencies]
 algod_client = { path = "../algod_client" }
 algokit_http_client = { version = "0.1.0", path = "../algokit_http_client", default-features = false }
 algokit_transact = { version = "0.1.0", path = "../algokit_transact", features = [
-    "test_utils",
+  "test_utils",
 ] }
 async-trait = { version = "0.1.88" }
 base64 = "0.22.1"
 derive_more = { version = "2.0.1", features = ["full"] }
-reqwest = { version = "0.12.19", features = ["blocking"], optional = true }
+dotenvy = "0.15"
+log = "0.4.27"
+reqwest = { version = "0.12.19", features = ["blocking"] }
 thiserror.workspace = true
+tokio = { version = "1.45.1", features = ["time"] }
+
+# Dependencies used in algod client integrations tests
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0.133"
+once_cell = "1.19"
+futures = "0.3"
+regex = "1.10.2"
+ed25519-dalek = { version = "2.1.1", features = ["rand_core"] }
+hex = "0.4.3"
+rand = "0.8"
+sha2 = "0.10.8"
+lazy_static = "1.4"
 
 [dev-dependencies]
-tokio = { version = "1.45.1", features = ["full", "test-util"] }
+env_logger = "0.11"
+tokio = { version = "1.45.1", features = ["full", "test-util", "time"] }
+tokio-test = "^0.4"
