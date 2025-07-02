@@ -6,6 +6,7 @@
 use crate::address::Address;
 use crate::transactions::common::TransactionHeader;
 use crate::utils::{is_zero, is_zero_addr};
+use crate::Transaction;
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, skip_serializing_none};
@@ -46,4 +47,10 @@ pub struct AssetFreezeTransactionFields {
     #[serde(rename = "afrz")]
     #[serde(default)]
     pub frozen: bool,
+}
+
+impl AssetFreezeTransactionBuilder {
+    pub fn build(&self) -> Result<Transaction, AssetFreezeTransactionBuilderError> {
+        self.build_fields().map(Transaction::AssetFreeze)
+    }
 }

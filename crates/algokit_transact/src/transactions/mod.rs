@@ -21,7 +21,6 @@ pub use asset_config::{
     asset_config_deserializer, asset_config_serializer, AssetConfigTransactionBuilder,
     AssetConfigTransactionFields,
 };
-use asset_freeze::AssetFreezeTransactionBuilderError;
 pub use asset_freeze::{AssetFreezeTransactionBuilder, AssetFreezeTransactionFields};
 pub use asset_transfer::{AssetTransferTransactionBuilder, AssetTransferTransactionFields};
 pub use common::{TransactionHeader, TransactionHeaderBuilder};
@@ -130,11 +129,6 @@ impl Transaction {
     }
 }
 
-impl AssetFreezeTransactionBuilder {
-    pub fn build(&self) -> Result<Transaction, AssetFreezeTransactionBuilderError> {
-        self.build_fields().map(|d| Transaction::AssetFreeze(d))
-    }
-}
 
 impl AlgorandMsgpack for Transaction {
     const PREFIX: &'static [u8] = b"TX";
