@@ -621,7 +621,7 @@ fn normalise_json(value: serde_json::Value) -> serde_json::Value {
     ];
 
     // Boolean fields that should always be included, even when false
-    const BOOLEAN_FIELDS_TO_KEEP: &[&str] = &["frozen", "default_frozen"];
+    const BOOLEAN_FIELDS_TO_KEEP: &[&str] = &["frozen"];
 
     match value {
         serde_json::Value::Object(map) => serde_json::Value::Object(
