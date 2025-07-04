@@ -46,6 +46,7 @@ pub struct AssetFreezeTransactionFields {
     /// `false` to unfreeze the asset holdings (allow transfers).
     #[serde(rename = "afrz")]
     #[serde(default)]
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
     pub frozen: bool,
 }
 

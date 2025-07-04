@@ -48,6 +48,7 @@ class TestData:
     online_key_registration: TransactionTestData
     offline_key_registration: TransactionTestData
     non_participation_key_registration: TransactionTestData
+    asset_freeze_real_data: TransactionTestData
 
 
 def convert_values(obj: Any) -> Any:
