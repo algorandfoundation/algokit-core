@@ -4,12 +4,40 @@
 //! which are used to create, update, delete and call Algorand Smart Contracts (Applications).
 
 use crate::address::Address;
+use crate::traits::Validate;
+use crate::transactions::common::{TransactionHeader, TransactionValidationError};
 use crate::utils::{is_empty_vec_opt, is_zero, is_zero_opt};
-use crate::{Transaction, TransactionHeader};
+use crate::Transaction;
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use serde_with::{serde_as, skip_serializing_none, Bytes};
+
+// Application program size constraints (based on Algorand protocol)
+const MAX_EXTRA_PROGRAM_PAGES: u64 = 3; // Maximum extra program pages
+const PROGRAM_PAGE_SIZE: usize = 2048; // Size in bytes of each extra program page
+
+// Application reference limits
+const MAX_APP_ARGS: usize = 16; // Maximum number of args allowed
+const MAX_ARGS_SIZE: usize = 2048; // Maximum size in bytes of all args combined
+const MAX_OVERALL_REFERENCES: usize = 8;
+const MAX_ACCOUNT_REFERENCES: usize = 4;
+const MAX_APP_REFERENCES: usize = 8;
+const MAX_ASSET_REFERENCES: usize = 8;
+const MAX_BOX_REFERENCES: usize = 8;
+
+// Application state schema limits
+const MAX_GLOBAL_STATE_KEYS: u64 = 64;
+const MAX_LOCAL_STATE_KEYS: u64 = 16;
+
+// Field name constants for validation error messages
+const FIELD_APPROVAL_PROGRAM: &str = "Approval program";
+const FIELD_CLEAR_STATE_PROGRAM: &str = "Clear state program";
+const FIELD_GLOBAL_STATE_SCHEMA: &str = "Global state schema";
+const FIELD_LOCAL_STATE_SCHEMA: &str = "Local state schema";
+const FIELD_EXTRA_PROGRAM_PAGES: &str = "Extra program pages";
+const FIELD_APP_ID: &str = "App id";
+const FIELD_ARGS: &str = "Args";
 
 /// On-completion actions for application transactions.
 ///
@@ -218,12 +246,6 @@ pub struct ApplicationCallTransactionFields {
     pub box_references: Option<Vec<BoxReference>>,
 }
 
-impl ApplicationCallTransactionBuilder {
-    pub fn build(&self) -> Result<Transaction, ApplicationCallTransactionBuilderError> {
-        self.build_fields().map(Transaction::ApplicationCall)
-    }
-}
-
 fn is_default_on_complete(on_complete: &OnApplicationComplete) -> bool {
     matches!(on_complete, OnApplicationComplete::NoOp)
 }
@@ -334,10 +356,341 @@ where
     Ok(fields)
 }
 
+impl ApplicationCallTransactionFields {
+    /// Validates that the app ID is not zero.
+    fn validate_app_id_not_zero(&self, errors: &mut Vec<TransactionValidationError>) {
+        if self.app_id == 0 {
+            errors.push(TransactionValidationError::ZeroValueField(
+                FIELD_APP_ID.to_string(),
+            ));
+        }
+    }
+
+    /// Validates that immutable fields are not set (used for update, call, and delete operations).
+    fn validate_immutable_fields_not_set(&self, errors: &mut Vec<TransactionValidationError>) {
+        if self.global_state_schema.is_some() {
+            errors.push(TransactionValidationError::ImmutableField(
+                FIELD_GLOBAL_STATE_SCHEMA.to_string(),
+            ));
+        }
+
+        if self.local_state_schema.is_some() {
+            errors.push(TransactionValidationError::ImmutableField(
+                FIELD_LOCAL_STATE_SCHEMA.to_string(),
+            ));
+        }
+
+        if self.extra_program_pages.is_some() {
+            errors.push(TransactionValidationError::ImmutableField(
+                FIELD_EXTRA_PROGRAM_PAGES.to_string(),
+            ));
+        }
+    }
+
+    /// Validates that both approval and clear state programs are provided and not empty.
+    fn validate_programs_required(&self, errors: &mut Vec<TransactionValidationError>) {
+        // Approval program is required
+        if self.approval_program.is_none() || self.approval_program.as_ref().unwrap().is_empty() {
+            errors.push(TransactionValidationError::RequiredField(
+                FIELD_APPROVAL_PROGRAM.to_string(),
+            ));
+        }
+
+        // Clear state program is required
+        if self.clear_state_program.is_none()
+            || self.clear_state_program.as_ref().unwrap().is_empty()
+        {
+            errors.push(TransactionValidationError::RequiredField(
+                FIELD_CLEAR_STATE_PROGRAM.to_string(),
+            ));
+        }
+    }
+
+    /// Validates fields specific to application creation.
+    pub fn validate_for_create(&self) -> Result<(), Vec<TransactionValidationError>> {
+        let mut errors = Vec::new();
+
+        self.validate_programs_required(&mut errors);
+
+        // Validate extra program pages
+        if let Some(extra_pages) = self.extra_program_pages {
+            if extra_pages > MAX_EXTRA_PROGRAM_PAGES {
+                errors.push(TransactionValidationError::FieldTooLong {
+                    field: FIELD_EXTRA_PROGRAM_PAGES.to_string(),
+                    actual: extra_pages as usize,
+                    max: MAX_EXTRA_PROGRAM_PAGES as usize,
+                    unit: "pages".to_string(),
+                });
+            }
+        }
+
+        let max_program_size = self.calculate_max_program_size();
+
+        // Validate approval program size
+        if let Some(ref approval_program) = self.approval_program {
+            if approval_program.len() > max_program_size {
+                errors.push(TransactionValidationError::FieldTooLong {
+                    field: FIELD_APPROVAL_PROGRAM.to_string(),
+                    actual: approval_program.len(),
+                    max: max_program_size,
+                    unit: "bytes".to_string(),
+                });
+            }
+        }
+
+        // Validate clear state program size
+        if let Some(ref clear_state_program) = self.clear_state_program {
+            if clear_state_program.len() > max_program_size {
+                errors.push(TransactionValidationError::FieldTooLong {
+                    field: FIELD_CLEAR_STATE_PROGRAM.to_string(),
+                    actual: clear_state_program.len(),
+                    max: max_program_size,
+                    unit: "bytes".to_string(),
+                });
+            }
+        }
+
+        // Validate combined program size
+        if let (Some(ref approval_program), Some(ref clear_state_program)) =
+            (&self.approval_program, &self.clear_state_program)
+        {
+            let total_size = approval_program.len() + clear_state_program.len();
+            if total_size > max_program_size {
+                errors.push(TransactionValidationError::FieldTooLong {
+                    field: "Combined approval and clear state programs".to_string(),
+                    actual: total_size,
+                    max: max_program_size,
+                    unit: "bytes".to_string(),
+                });
+            }
+        }
+
+        // Validate state schemas
+        if let Some(ref global_schema) = self.global_state_schema {
+            if global_schema.num_uints + global_schema.num_byte_slices > MAX_GLOBAL_STATE_KEYS {
+                errors.push(TransactionValidationError::FieldTooLong {
+                    field: FIELD_GLOBAL_STATE_SCHEMA.to_string(),
+                    actual: (global_schema.num_uints + global_schema.num_byte_slices) as usize,
+                    max: MAX_GLOBAL_STATE_KEYS as usize,
+                    unit: "keys".to_string(),
+                });
+            }
+        }
+
+        if let Some(ref local_schema) = self.local_state_schema {
+            if local_schema.num_uints + local_schema.num_byte_slices > MAX_LOCAL_STATE_KEYS {
+                errors.push(TransactionValidationError::FieldTooLong {
+                    field: FIELD_LOCAL_STATE_SCHEMA.to_string(),
+                    actual: (local_schema.num_uints + local_schema.num_byte_slices) as usize,
+                    max: MAX_LOCAL_STATE_KEYS as usize,
+                    unit: "keys".to_string(),
+                });
+            }
+        }
+
+        self.validate_common_fields(&mut errors);
+
+        match errors.is_empty() {
+            true => Ok(()),
+            false => Err(errors),
+        }
+    }
+
+    /// Validates fields specific to application update.
+    pub fn validate_for_update(&self) -> Result<(), Vec<TransactionValidationError>> {
+        let mut errors = Vec::new();
+
+        self.validate_app_id_not_zero(&mut errors);
+        self.validate_programs_required(&mut errors);
+        // We can't validate the extra program pages on update, as we don't know what the initial create value was.
+        self.validate_immutable_fields_not_set(&mut errors);
+        self.validate_common_fields(&mut errors);
+
+        match errors.is_empty() {
+            true => Ok(()),
+            false => Err(errors),
+        }
+    }
+
+    /// Validates fields for application call (no-op), opt-in, close-out, clear-state operations.
+    pub fn validate_for_call(&self) -> Result<(), Vec<TransactionValidationError>> {
+        let mut errors = Vec::new();
+
+        self.validate_app_id_not_zero(&mut errors);
+        self.validate_immutable_fields_not_set(&mut errors);
+
+        self.validate_common_fields(&mut errors);
+
+        match errors.is_empty() {
+            true => Ok(()),
+            false => Err(errors),
+        }
+    }
+
+    /// Validates fields for application deletion.
+    pub fn validate_for_delete(&self) -> Result<(), Vec<TransactionValidationError>> {
+        let mut errors = Vec::new();
+
+        self.validate_app_id_not_zero(&mut errors);
+        self.validate_immutable_fields_not_set(&mut errors);
+
+        self.validate_common_fields(&mut errors);
+
+        match errors.is_empty() {
+            true => Ok(()),
+            false => Err(errors),
+        }
+    }
+
+    /// Validates common fields that apply to all application call types.
+    fn validate_common_fields(&self, errors: &mut Vec<TransactionValidationError>) {
+        if let Some(ref args) = self.args {
+            // Validate number of args
+            if args.len() > MAX_APP_ARGS {
+                errors.push(TransactionValidationError::FieldTooLong {
+                    field: FIELD_ARGS.to_string(),
+                    actual: args.len(),
+                    max: MAX_APP_ARGS,
+                    unit: "arguments".to_string(),
+                });
+            }
+
+            // Validate total size of args
+            let total_args_size: usize = args.iter().map(|arg| arg.len()).sum();
+            if total_args_size > MAX_ARGS_SIZE {
+                errors.push(TransactionValidationError::FieldTooLong {
+                    field: "Args total size".to_string(),
+                    actual: total_args_size,
+                    max: MAX_ARGS_SIZE,
+                    unit: "bytes".to_string(),
+                });
+            }
+        }
+
+        // Validate account references
+        if let Some(ref account_refs) = self.account_references {
+            if account_refs.len() > MAX_ACCOUNT_REFERENCES {
+                errors.push(TransactionValidationError::FieldTooLong {
+                    field: "Account references".to_string(),
+                    actual: account_refs.len(),
+                    max: MAX_ACCOUNT_REFERENCES,
+                    unit: "refs".to_string(),
+                });
+            }
+        }
+
+        // Validate application references
+        if let Some(ref app_refs) = self.app_references {
+            if app_refs.len() > MAX_APP_REFERENCES {
+                errors.push(TransactionValidationError::FieldTooLong {
+                    field: "Application references".to_string(),
+                    actual: app_refs.len(),
+                    max: MAX_APP_REFERENCES,
+                    unit: "refs".to_string(),
+                });
+            }
+        }
+
+        // Validate asset references
+        if let Some(ref asset_refs) = self.asset_references {
+            if asset_refs.len() > MAX_ASSET_REFERENCES {
+                errors.push(TransactionValidationError::FieldTooLong {
+                    field: "Asset references".to_string(),
+                    actual: asset_refs.len(),
+                    max: MAX_ASSET_REFERENCES,
+                    unit: "refs".to_string(),
+                });
+            }
+        }
+
+        // Validate box references
+        if let Some(ref box_refs) = self.box_references {
+            if box_refs.len() > MAX_BOX_REFERENCES {
+                errors.push(TransactionValidationError::FieldTooLong {
+                    field: "Box references".to_string(),
+                    actual: box_refs.len(),
+                    max: MAX_BOX_REFERENCES,
+                    unit: "refs".to_string(),
+                });
+            }
+
+            // Validate box reference app IDs are in app_references
+            let app_refs = self.app_references.as_deref().unwrap_or(&[]);
+            for box_ref in box_refs {
+                if box_ref.app_id != 0
+                    && box_ref.app_id != self.app_id
+                    && !app_refs.contains(&box_ref.app_id)
+                {
+                    errors.push(TransactionValidationError::ArbitraryConstraint(format!(
+                        "Box reference for app ID {} must be in app references",
+                        box_ref.app_id
+                    )));
+                }
+            }
+        }
+
+        // Validate overall reference count
+        let total_references = self.account_references.as_ref().map_or(0, |v| v.len())
+            + self.app_references.as_ref().map_or(0, |v| v.len())
+            + self.asset_references.as_ref().map_or(0, |v| v.len())
+            + self.box_references.as_ref().map_or(0, |v| v.len());
+
+        if total_references > MAX_OVERALL_REFERENCES {
+            errors.push(TransactionValidationError::FieldTooLong {
+                field: "Total references".to_string(),
+                actual: total_references,
+                max: MAX_OVERALL_REFERENCES,
+                unit: "refs".to_string(),
+            });
+        }
+    }
+
+    /// Calculates the maximum allowed program size based on extra program pages.
+    fn calculate_max_program_size(&self) -> usize {
+        let extra_pages = self.extra_program_pages.unwrap_or(0) as usize;
+        PROGRAM_PAGE_SIZE + (extra_pages * PROGRAM_PAGE_SIZE)
+    }
+}
+
+impl ApplicationCallTransactionBuilder {
+    pub fn build(&self) -> Result<Transaction, ApplicationCallTransactionBuilderError> {
+        let fields = self.build_fields()?;
+        fields.validate().map_err(|errors| {
+            ApplicationCallTransactionBuilderError::ValidationError(format!(
+                "Application call validation failed: {}",
+                errors.join("\n")
+            ))
+        })?;
+        Ok(Transaction::ApplicationCall(fields))
+    }
+}
+
+impl Validate for ApplicationCallTransactionFields {
+    fn validate(&self) -> Result<(), Vec<String>> {
+        let result = match (self.app_id, &self.on_complete) {
+            // Application creation (app_id = 0)
+            (0, _) => self.validate_for_create(),
+
+            // Application update
+            (_, OnApplicationComplete::UpdateApplication) => self.validate_for_update(),
+
+            // Application deletion
+            (_, OnApplicationComplete::DeleteApplication) => self.validate_for_delete(),
+
+            // Regular application calls (NoOp, OptIn, CloseOut, ClearState)
+            (_, _) => self.validate_for_call(),
+        };
+
+        result.map_err(|errors| errors.iter().map(|e| e.to_string()).collect())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::{ApplicationCallTransactionMother, TransactionHeaderMother};
+    use crate::test_utils::{
+        AddressMother, ApplicationCallTransactionMother, TransactionHeaderMother,
+    };
     use crate::tests::{check_transaction_encoding, check_transaction_id};
     use crate::AlgorandMsgpack;
 
@@ -504,7 +857,7 @@ mod tests {
 
     #[test]
     fn test_box_ref_missing_app_reference_encode() {
-        let application_call_tx: Transaction =
+        let application_call_tx_fields =
             ApplicationCallTransactionMother::application_call_example()
                 .app_references(vec![54321])
                 .box_references(vec![
@@ -517,8 +870,10 @@ mod tests {
                         name: "b2".as_bytes().to_vec(),
                     },
                 ])
-                .build()
+                .build_fields() // Skips the builder validation
                 .unwrap();
+
+        let application_call_tx = Transaction::ApplicationCall(application_call_tx_fields);
 
         let result = application_call_tx.encode();
 
@@ -584,5 +939,354 @@ mod tests {
         // Because id's are a hash of the encoded bytes, we can be sure the encoded bytes are the same
         check_transaction_id(&tx, expected_id);
         check_transaction_id(&tx_with_empties, expected_id);
+    }
+
+    #[test]
+    fn test_validate_application_create_success() {
+        let app_call = ApplicationCallTransactionMother::application_create()
+            .build_fields()
+            .unwrap();
+
+        assert!(app_call.validate().is_ok());
+    }
+
+    #[test]
+    fn test_validate_application_create_invalid() {
+        let app_call = ApplicationCallTransactionMother::application_create()
+            .approval_program(vec![]) // Missing approval program
+            .clear_state_program(vec![]) // Missing clear state program
+            .extra_program_pages(MAX_EXTRA_PROGRAM_PAGES + 1) // Too many extra pages
+            .global_state_schema(StateSchema {
+                num_uints: MAX_GLOBAL_STATE_KEYS, // Too many global state keys
+                num_byte_slices: 1,
+            })
+            .local_state_schema(StateSchema {
+                num_uints: MAX_LOCAL_STATE_KEYS, // Too many local state keys
+                num_byte_slices: 1,
+            })
+            .build_fields()
+            .unwrap();
+
+        let result = app_call.validate();
+        assert!(result.is_err());
+        let errors = result.unwrap_err();
+
+        println!("Validation errors ({}): {:?}", errors.len(), errors);
+
+        assert!(errors
+            .iter()
+            .any(|e| e.contains(FIELD_APPROVAL_PROGRAM) && e.contains("required")));
+        assert!(errors
+            .iter()
+            .any(|e| e.contains(FIELD_CLEAR_STATE_PROGRAM) && e.contains("required")));
+        assert!(errors
+            .iter()
+            .any(|e| e.contains(FIELD_EXTRA_PROGRAM_PAGES) && e.contains("exceed")));
+        assert!(errors
+            .iter()
+            .any(|e| e.contains(FIELD_GLOBAL_STATE_SCHEMA) && e.contains("exceed")));
+        assert!(errors
+            .iter()
+            .any(|e| e.contains(FIELD_LOCAL_STATE_SCHEMA) && e.contains("exceed")));
+        assert!(
+            errors.len() == 5,
+            "Expected 5 validation errors, got {}",
+            errors.len()
+        );
+    }
+
+    #[test]
+    fn test_validate_application_create_programs_too_large() {
+        let large_approval_program = vec![0u8; PROGRAM_PAGE_SIZE + 1];
+        let large_clear_program = vec![1u8; PROGRAM_PAGE_SIZE + 1];
+
+        let app_call_large_programs = ApplicationCallTransactionMother::application_create()
+            .extra_program_pages(0)
+            .approval_program(large_approval_program)
+            .clear_state_program(large_clear_program)
+            .build_fields()
+            .unwrap();
+
+        let result = app_call_large_programs.validate();
+        assert!(result.is_err());
+        let errors = result.unwrap_err();
+
+        println!("Validation errors ({}): {:?}", errors.len(), errors);
+
+        assert!(errors
+            .iter()
+            .any(|e| e.contains(FIELD_APPROVAL_PROGRAM) && e.contains("exceed")));
+        assert!(errors
+            .iter()
+            .any(|e| e.contains(FIELD_CLEAR_STATE_PROGRAM) && e.contains("exceed")));
+        assert!(errors
+            .iter()
+            .any(|e| e.contains("Combined approval and clear state programs")
+                && e.contains("exceed")));
+    }
+
+    #[test]
+    fn test_validate_application_update_success() {
+        let app_call = ApplicationCallTransactionMother::application_update()
+            .build_fields()
+            .unwrap();
+
+        assert!(app_call.validate().is_ok());
+    }
+
+    #[test]
+    fn test_validate_application_update_invalid() {
+        let app_call = ApplicationCallTransactionMother::application_update()
+            .app_id(0) // Invalid app ID (must not be zero for update)
+            .approval_program(vec![]) // Missing approval program
+            .clear_state_program(vec![]) // Missing clear state program
+            .global_state_schema(StateSchema {
+                num_uints: 2,
+                num_byte_slices: 2,
+            }) // Immutable field - not allowed on update
+            .local_state_schema(StateSchema {
+                num_uints: 2,
+                num_byte_slices: 3,
+            }) // Immutable field - not allowed on update
+            .extra_program_pages(1) // Immutable field - not allowed on update
+            .build_fields()
+            .unwrap();
+
+        let result = app_call.validate_for_update(); // Needs to be explicitly called because the app_id is 0
+        assert!(result.is_err());
+        let errors: Vec<String> = result.unwrap_err().iter().map(|e| e.to_string()).collect();
+
+        println!("Validation errors ({}): {:?}", errors.len(), errors);
+
+        assert!(errors
+            .iter()
+            .any(|e| e.contains(FIELD_APP_ID) && e.contains("0")));
+        assert!(errors
+            .iter()
+            .any(|e| e.contains(FIELD_APPROVAL_PROGRAM) && e.contains("required")));
+        assert!(errors
+            .iter()
+            .any(|e| e.contains(FIELD_CLEAR_STATE_PROGRAM) && e.contains("required")));
+        assert!(errors
+            .iter()
+            .any(|e| e.contains(FIELD_GLOBAL_STATE_SCHEMA) && e.contains("immutable")));
+        assert!(errors
+            .iter()
+            .any(|e| e.contains(FIELD_LOCAL_STATE_SCHEMA) && e.contains("immutable")));
+        assert!(errors
+            .iter()
+            .any(|e| e.contains(FIELD_EXTRA_PROGRAM_PAGES) && e.contains("immutable")));
+        assert!(
+            errors.len() == 6,
+            "Expected 6 validation errors, got {}",
+            errors.len()
+        );
+    }
+
+    #[test]
+    fn test_validate_application_delete_success() {
+        let app_call = ApplicationCallTransactionMother::application_delete()
+            .build_fields()
+            .unwrap();
+
+        assert!(app_call.validate().is_ok());
+    }
+
+    #[test]
+    fn test_validate_application_delete_invalid() {
+        let app_call = ApplicationCallTransactionMother::application_delete()
+            .app_id(0) // Invalid app ID (must not be zero for delete)
+            .global_state_schema(StateSchema {
+                num_uints: 2,
+                num_byte_slices: 2,
+            }) // Immutable field - not allowed on delete
+            .local_state_schema(StateSchema {
+                num_uints: 2,
+                num_byte_slices: 3,
+            }) // Immutable field - not allowed on delete
+            .extra_program_pages(1) // Immutable field - not allowed on delete
+            .build_fields()
+            .unwrap();
+
+        let result = app_call.validate_for_delete(); // Needs to be explicitly called because the app_id is 0
+        assert!(result.is_err());
+        let errors: Vec<String> = result.unwrap_err().iter().map(|e| e.to_string()).collect();
+
+        println!("Validation errors ({}): {:?}", errors.len(), errors);
+
+        assert!(errors
+            .iter()
+            .any(|e| e.contains(FIELD_APP_ID) && e.contains("0")));
+
+        assert!(errors
+            .iter()
+            .any(|e| e.contains(FIELD_GLOBAL_STATE_SCHEMA) && e.contains("immutable")));
+        assert!(errors
+            .iter()
+            .any(|e| e.contains(FIELD_LOCAL_STATE_SCHEMA) && e.contains("immutable")));
+        assert!(errors
+            .iter()
+            .any(|e| e.contains(FIELD_EXTRA_PROGRAM_PAGES) && e.contains("immutable")));
+
+        assert!(
+            errors.len() == 4,
+            "Expected 4 validation errors, got {}",
+            errors.len()
+        );
+    }
+
+    #[test]
+    fn test_validate_application_call_success() {
+        let app_call = ApplicationCallTransactionMother::application_call_example()
+            .build_fields()
+            .unwrap();
+
+        assert!(app_call.validate().is_ok());
+    }
+
+    #[test]
+    fn test_validate_application_call_invalid() {
+        let app_call = ApplicationCallTransactionMother::application_call_example()
+            .app_id(0) // Invalid app ID (must not be zero for delete)
+            .global_state_schema(StateSchema {
+                num_uints: 2,
+                num_byte_slices: 2,
+            }) // Immutable field - not allowed on delete
+            .local_state_schema(StateSchema {
+                num_uints: 2,
+                num_byte_slices: 3,
+            }) // Immutable field - not allowed on delete
+            .extra_program_pages(1) // Immutable field - not allowed on delete
+            .build_fields()
+            .unwrap();
+
+        let result = app_call.validate_for_call(); // Needs to be explicitly called because the app_id is 0
+        assert!(result.is_err());
+        let errors: Vec<String> = result.unwrap_err().iter().map(|e| e.to_string()).collect();
+
+        println!("Validation errors ({}): {:?}", errors.len(), errors);
+
+        assert!(errors
+            .iter()
+            .any(|e| e.contains(FIELD_APP_ID) && e.contains("0")));
+        assert!(errors
+            .iter()
+            .any(|e| e.contains(FIELD_GLOBAL_STATE_SCHEMA) && e.contains("immutable")));
+        assert!(errors
+            .iter()
+            .any(|e| e.contains(FIELD_LOCAL_STATE_SCHEMA) && e.contains("immutable")));
+        assert!(errors
+            .iter()
+            .any(|e| e.contains(FIELD_EXTRA_PROGRAM_PAGES) && e.contains("immutable")));
+
+        assert!(
+            errors.len() == 4,
+            "Expected 4 validation errors, got {}",
+            errors.len()
+        );
+    }
+
+    #[test]
+    fn test_validate_args() {
+        // The args are both too many and too large
+        let args = (0..=MAX_APP_ARGS).map(|_i| vec![0u8; 700]).collect();
+        let app_call = ApplicationCallTransactionMother::application_call_example()
+            .args(args)
+            .build_fields()
+            .unwrap();
+
+        let result = app_call.validate();
+        assert!(result.is_err());
+        let errors = result.unwrap_err();
+
+        println!("Validation errors ({}): {:?}", errors.len(), errors);
+
+        assert!(errors
+            .iter()
+            .any(|e| e.contains(FIELD_ARGS) && e.contains("exceed")));
+        assert!(errors
+            .iter()
+            .any(|e| e.contains("Args total size") && e.contains("exceed")));
+
+        assert!(
+            errors.len() == 2,
+            "Expected 2 validation errors, got {}",
+            errors.len()
+        );
+    }
+
+    #[test]
+    fn test_validate_references() {
+        // Create vectors that exceed the maximum limits for all reference types
+        let excessive_account_refs = vec![AddressMother::address(); MAX_ACCOUNT_REFERENCES + 1];
+        let excessive_app_refs = vec![1; MAX_APP_REFERENCES + 1];
+        let excessive_asset_refs = vec![2; MAX_ASSET_REFERENCES + 1];
+        let excessive_box_refs = vec![
+            BoxReference {
+                app_id: 0,
+                name: vec![1],
+            };
+            MAX_BOX_REFERENCES
+        ];
+
+        let app_call = ApplicationCallTransactionMother::application_call_example()
+            .account_references(excessive_account_refs)
+            .app_references(excessive_app_refs)
+            .asset_references(excessive_asset_refs)
+            .box_references({
+                let mut box_refs = excessive_box_refs;
+                // Add a box reference with invalid app_id (not in app_references)
+                box_refs.push(BoxReference {
+                    app_id: 88888,
+                    name: vec![1, 2, 3],
+                });
+                box_refs
+            })
+            .build_fields()
+            .unwrap();
+
+        let result = app_call.validate();
+        assert!(result.is_err());
+        let errors = result.unwrap_err();
+
+        println!("Validation errors ({}): {:?}", errors.len(), errors);
+
+        assert!(errors
+            .iter()
+            .any(|e| e.contains("Account references") && e.contains("exceed")));
+        assert!(errors
+            .iter()
+            .any(|e| e.contains("Application references") && e.contains("exceed")));
+        assert!(errors
+            .iter()
+            .any(|e| e.contains("Asset references") && e.contains("exceed")));
+        assert!(errors
+            .iter()
+            .any(|e| e.contains("Box references") && e.contains("exceed")));
+        assert!(errors
+            .iter()
+            .any(|e| e.contains("Box reference for app ID 88888 must be in app references")));
+        assert!(errors
+            .iter()
+            .any(|e| e.contains("Total references") && e.contains("exceed")));
+
+        assert!(
+            errors.len() == 6,
+            "Expected 6 validation errors, got {}",
+            errors.len()
+        );
+    }
+
+    #[test]
+    fn test_builder_validation_integration() {
+        // invalid
+        let result = ApplicationCallTransactionMother::application_call_example()
+            .app_id(0)
+            .build();
+        assert!(result.is_err());
+
+        // valid
+        let result = ApplicationCallTransactionMother::application_call_example().build();
+        assert!(result.is_ok());
     }
 }

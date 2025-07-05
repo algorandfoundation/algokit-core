@@ -174,3 +174,30 @@ impl TryFrom<Transaction> for algokit_transact::AssetConfigTransactionFields {
         Ok(transaction_fields)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use algokit_transact::test_utils::TestDataMother;
+
+    #[test]
+    fn test_encode_transaction_validation_integration() {
+        // invalid
+        let mut tx: Transaction = TestDataMother::asset_create()
+            .transaction
+            .try_into()
+            .unwrap();
+        tx.asset_config.as_mut().unwrap().asset_id = 123;
+        let result = encode_transaction(tx);
+        assert!(result.is_err());
+
+        // valid
+        let result = encode_transaction(
+            TestDataMother::asset_create()
+                .transaction
+                .try_into()
+                .unwrap(),
+        );
+        assert!(result.is_ok());
+    }
+}

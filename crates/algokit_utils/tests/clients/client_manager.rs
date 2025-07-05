@@ -55,7 +55,7 @@ async fn test_concurrent_network_calls() {
     assert!(!successful.is_empty(), "At least some calls should succeed");
 
     // All successful results should be the same Arc instance
-    let unique_ptrs: HashSet<_> = successful.iter().map(|arc| Arc::as_ptr(arc)).collect();
+    let unique_ptrs: HashSet<_> = successful.iter().map(Arc::as_ptr).collect();
     assert_eq!(
         unique_ptrs.len(),
         1,
