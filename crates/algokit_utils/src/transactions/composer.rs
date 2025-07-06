@@ -4,12 +4,16 @@ use algod_client::{
     models::{PendingTransactionResponse, TransactionParams},
 };
 use algokit_transact::{
-    Address, AlgorandMsgpack, AssetConfigTransactionFields, FeeParams, PaymentTransactionFields,
-    SignedTransaction, Transaction, TransactionHeader, Transactions,
+    Address, AlgorandMsgpack, AssetConfigTransactionFields, FeeParams, OnApplicationComplete,
+    PaymentTransactionFields, SignedTransaction, Transaction, TransactionHeader, Transactions,
 };
 use derive_more::Debug;
 use std::sync::Arc;
 
+use super::application_call::{
+    ApplicationCallParams, ApplicationCreateParams, ApplicationDeleteParams,
+    ApplicationUpdateParams,
+};
 use super::asset_config::{AssetCreateParams, AssetDestroyParams, AssetReconfigureParams};
 use super::common::{CommonParams, DefaultSignerGetter, TxnSigner, TxnSignerGetter};
 use crate::clients::network_client::genesis_id_is_localnet;
@@ -94,6 +98,10 @@ pub enum ComposerTxn {
     AssetCreate(AssetCreateParams),
     AssetReconfigure(AssetReconfigureParams),
     AssetDestroy(AssetDestroyParams),
+    ApplicationCall(ApplicationCallParams),
+    ApplicationCreate(ApplicationCreateParams),
+    ApplicationUpdate(ApplicationUpdateParams),
+    ApplicationDelete(ApplicationDeleteParams),
 }
 
 impl ComposerTxn {
@@ -120,6 +128,16 @@ impl ComposerTxn {
             }
             ComposerTxn::AssetDestroy(asset_destroy_params) => {
                 asset_destroy_params.common_params.clone()
+            }
+            ComposerTxn::ApplicationCall(app_call_params) => app_call_params.common_params.clone(),
+            ComposerTxn::ApplicationCreate(app_create_params) => {
+                app_create_params.common_params.clone()
+            }
+            ComposerTxn::ApplicationUpdate(app_update_params) => {
+                app_update_params.common_params.clone()
+            }
+            ComposerTxn::ApplicationDelete(app_delete_params) => {
+                app_delete_params.common_params.clone()
             }
             _ => CommonParams::default(),
         }
@@ -220,6 +238,34 @@ impl Composer {
         asset_destroy_params: AssetDestroyParams,
     ) -> Result<(), String> {
         self.push(ComposerTxn::AssetDestroy(asset_destroy_params))
+    }
+
+    pub fn add_application_call(
+        &mut self,
+        app_call_params: ApplicationCallParams,
+    ) -> Result<(), String> {
+        self.push(ComposerTxn::ApplicationCall(app_call_params))
+    }
+
+    pub fn add_application_create(
+        &mut self,
+        app_create_params: ApplicationCreateParams,
+    ) -> Result<(), String> {
+        self.push(ComposerTxn::ApplicationCreate(app_create_params))
+    }
+
+    pub fn add_application_update(
+        &mut self,
+        app_update_params: ApplicationUpdateParams,
+    ) -> Result<(), String> {
+        self.push(ComposerTxn::ApplicationUpdate(app_update_params))
+    }
+
+    pub fn add_application_delete(
+        &mut self,
+        app_delete_params: ApplicationDeleteParams,
+    ) -> Result<(), String> {
+        self.push(ComposerTxn::ApplicationDelete(app_delete_params))
     }
 
     pub fn add_transaction(&mut self, transaction: Transaction) -> Result<(), String> {
@@ -394,6 +440,84 @@ impl Composer {
                             freeze: None,
                             clawback: None,
                         })
+                    }
+                    ComposerTxn::ApplicationCall(app_call_params) => Transaction::ApplicationCall(
+                        algokit_transact::ApplicationCallTransactionFields {
+                            header,
+                            app_id: app_call_params.app_id,
+                            on_complete: app_call_params.on_complete,
+                            approval_program: None,
+                            clear_state_program: None,
+                            global_state_schema: None,
+                            local_state_schema: None,
+                            extra_program_pages: None,
+                            args: app_call_params.args.clone(),
+                            account_references: app_call_params.account_references.clone(),
+                            app_references: app_call_params.app_references.clone(),
+                            asset_references: app_call_params.asset_references.clone(),
+                            box_references: app_call_params.box_references.clone(),
+                        },
+                    ),
+                    ComposerTxn::ApplicationCreate(app_create_params) => {
+                        Transaction::ApplicationCall(
+                            algokit_transact::ApplicationCallTransactionFields {
+                                header,
+                                app_id: 0, // 0 indicates application creation
+                                on_complete: app_create_params.on_complete,
+                                approval_program: Some(app_create_params.approval_program.clone()),
+                                clear_state_program: Some(
+                                    app_create_params.clear_state_program.clone(),
+                                ),
+                                global_state_schema: app_create_params.global_state_schema.clone(),
+                                local_state_schema: app_create_params.local_state_schema.clone(),
+                                extra_program_pages: app_create_params.extra_program_pages,
+                                args: app_create_params.args.clone(),
+                                account_references: app_create_params.account_references.clone(),
+                                app_references: app_create_params.app_references.clone(),
+                                asset_references: app_create_params.asset_references.clone(),
+                                box_references: app_create_params.box_references.clone(),
+                            },
+                        )
+                    }
+                    ComposerTxn::ApplicationUpdate(app_update_params) => {
+                        Transaction::ApplicationCall(
+                            algokit_transact::ApplicationCallTransactionFields {
+                                header,
+                                app_id: app_update_params.app_id,
+                                on_complete: OnApplicationComplete::UpdateApplication,
+                                approval_program: Some(app_update_params.approval_program.clone()),
+                                clear_state_program: Some(
+                                    app_update_params.clear_state_program.clone(),
+                                ),
+                                global_state_schema: None,
+                                local_state_schema: None,
+                                extra_program_pages: None,
+                                args: app_update_params.args.clone(),
+                                account_references: app_update_params.account_references.clone(),
+                                app_references: app_update_params.app_references.clone(),
+                                asset_references: app_update_params.asset_references.clone(),
+                                box_references: app_update_params.box_references.clone(),
+                            },
+                        )
+                    }
+                    ComposerTxn::ApplicationDelete(app_delete_params) => {
+                        Transaction::ApplicationCall(
+                            algokit_transact::ApplicationCallTransactionFields {
+                                header,
+                                app_id: app_delete_params.app_id,
+                                on_complete: OnApplicationComplete::DeleteApplication,
+                                approval_program: None,
+                                clear_state_program: None,
+                                global_state_schema: None,
+                                local_state_schema: None,
+                                extra_program_pages: None,
+                                args: app_delete_params.args.clone(),
+                                account_references: app_delete_params.account_references.clone(),
+                                app_references: app_delete_params.app_references.clone(),
+                                asset_references: app_delete_params.asset_references.clone(),
+                                box_references: app_delete_params.box_references.clone(),
+                            },
+                        )
                     }
                 };
 
