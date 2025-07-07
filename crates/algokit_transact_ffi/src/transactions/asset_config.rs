@@ -1,6 +1,6 @@
 use crate::*;
 
-/// Parameters to define an asset confiurationg transaction.
+/// Parameters to define an asset config transaction.
 ///
 /// For asset creation, the asset ID field must be 0.
 /// For asset reconfiguration, the asset ID field must be set. Only fields manager, reserve, freeze, and clawback can be set.
@@ -79,7 +79,7 @@ pub struct AssetConfigTransactionFields {
 
     /// The address of the optional account that can manage the configuration of the asset and destroy it.
     ///
-    /// The configuration fields it can change are `manager`, `reserve`, `clawback`, and `freeze`.
+    /// The fields it can change are `manager`, `reserve`, `clawback`, and `freeze`.
     ///
     /// If not set or set to the Zero address the asset becomes permanently immutable.
     manager: Option<Address>,

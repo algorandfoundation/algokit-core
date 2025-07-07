@@ -4,12 +4,13 @@ use algod_client::{
     models::{PendingTransactionResponse, TransactionParams},
 };
 use algokit_transact::{
-    Address, AlgorandMsgpack, FeeParams, PaymentTransactionFields, SignedTransaction, Transaction,
-    TransactionHeader, Transactions,
+    Address, AlgorandMsgpack, AssetConfigTransactionFields, FeeParams, PaymentTransactionFields,
+    SignedTransaction, Transaction, TransactionHeader, Transactions,
 };
 use derive_more::Debug;
 use std::sync::Arc;
 
+use super::asset_config::{AssetCreateParams, AssetDestroyParams, AssetReconfigureParams};
 use super::common::{CommonParams, DefaultSignerGetter, TxnSigner, TxnSignerGetter};
 use crate::clients::network_client::genesis_id_is_localnet;
 
@@ -90,6 +91,9 @@ pub enum ComposerTxn {
     AssetOptIn(AssetOptInParams),
     AssetOptOut(AssetOptOutParams),
     AssetClawback(AssetClawbackParams),
+    AssetCreate(AssetCreateParams),
+    AssetReconfigure(AssetReconfigureParams),
+    AssetDestroy(AssetDestroyParams),
 }
 
 impl ComposerTxn {
@@ -107,6 +111,15 @@ impl ComposerTxn {
             }
             ComposerTxn::AssetClawback(asset_clawback_params) => {
                 asset_clawback_params.common_params.clone()
+            }
+            ComposerTxn::AssetCreate(asset_create_params) => {
+                asset_create_params.common_params.clone()
+            }
+            ComposerTxn::AssetReconfigure(asset_reconfigure_params) => {
+                asset_reconfigure_params.common_params.clone()
+            }
+            ComposerTxn::AssetDestroy(asset_destroy_params) => {
+                asset_destroy_params.common_params.clone()
             }
             _ => CommonParams::default(),
         }
@@ -186,6 +199,27 @@ impl Composer {
         asset_clawback_params: AssetClawbackParams,
     ) -> Result<(), String> {
         self.push(ComposerTxn::AssetClawback(asset_clawback_params))
+    }
+
+    pub fn add_asset_create(
+        &mut self,
+        asset_create_params: AssetCreateParams,
+    ) -> Result<(), String> {
+        self.push(ComposerTxn::AssetCreate(asset_create_params))
+    }
+
+    pub fn add_asset_reconfigure(
+        &mut self,
+        asset_reconfigure_params: AssetReconfigureParams,
+    ) -> Result<(), String> {
+        self.push(ComposerTxn::AssetReconfigure(asset_reconfigure_params))
+    }
+
+    pub fn add_asset_destroy(
+        &mut self,
+        asset_destroy_params: AssetDestroyParams,
+    ) -> Result<(), String> {
+        self.push(ComposerTxn::AssetDestroy(asset_destroy_params))
     }
 
     pub fn add_transaction(&mut self, transaction: Transaction) -> Result<(), String> {
@@ -309,6 +343,57 @@ impl Composer {
                                 close_remainder_to: None,
                             },
                         )
+                    }
+                    ComposerTxn::AssetCreate(asset_create_params) => {
+                        Transaction::AssetConfig(AssetConfigTransactionFields {
+                            header,
+                            asset_id: 0,
+                            total: Some(asset_create_params.total),
+                            decimals: asset_create_params.decimals,
+                            default_frozen: asset_create_params.default_frozen,
+                            asset_name: asset_create_params.asset_name.clone(),
+                            unit_name: asset_create_params.unit_name.clone(),
+                            url: asset_create_params.url.clone(),
+                            metadata_hash: asset_create_params.metadata_hash,
+                            manager: asset_create_params.manager.clone(),
+                            reserve: asset_create_params.reserve.clone(),
+                            freeze: asset_create_params.freeze.clone(),
+                            clawback: asset_create_params.clawback.clone(),
+                        })
+                    }
+                    ComposerTxn::AssetReconfigure(asset_reconfigure_params) => {
+                        Transaction::AssetConfig(AssetConfigTransactionFields {
+                            header,
+                            asset_id: asset_reconfigure_params.asset_id,
+                            total: None,
+                            decimals: None,
+                            default_frozen: None,
+                            asset_name: None,
+                            unit_name: None,
+                            url: None,
+                            metadata_hash: None,
+                            manager: asset_reconfigure_params.manager.clone(),
+                            reserve: asset_reconfigure_params.reserve.clone(),
+                            freeze: asset_reconfigure_params.freeze.clone(),
+                            clawback: asset_reconfigure_params.clawback.clone(),
+                        })
+                    }
+                    ComposerTxn::AssetDestroy(asset_destroy_params) => {
+                        Transaction::AssetConfig(AssetConfigTransactionFields {
+                            header,
+                            asset_id: asset_destroy_params.asset_id,
+                            total: None,
+                            decimals: None,
+                            default_frozen: None,
+                            asset_name: None,
+                            unit_name: None,
+                            url: None,
+                            metadata_hash: None,
+                            manager: None,
+                            reserve: None,
+                            freeze: None,
+                            clawback: None,
+                        })
                     }
                 };
 
