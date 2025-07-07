@@ -7,10 +7,10 @@ use algokit_transact::{
     Address, AlgorandMsgpack, FeeParams, PaymentTransactionFields, SignedTransaction, Transaction,
     TransactionHeader, Transactions,
 };
-use async_trait::async_trait;
 use derive_more::Debug;
 use std::sync::Arc;
 
+use super::common::{CommonParams, DefaultSignerGetter, TxnSigner, TxnSignerGetter};
 use crate::clients::network_client::genesis_id_is_localnet;
 
 #[derive(Debug, thiserror::Error)]
@@ -27,22 +27,6 @@ pub enum ComposerError {
     StateError(String),
     #[error("Transaction pool error: {0}")]
     PoolError(String),
-}
-
-#[derive(Debug, Default, Clone)]
-pub struct CommonParams {
-    pub sender: Address,
-    #[debug(skip)]
-    pub signer: Option<Arc<dyn TxnSigner>>,
-    pub rekey_to: Option<Address>,
-    pub note: Option<Vec<u8>>,
-    pub lease: Option<[u8; 32]>,
-    pub static_fee: Option<u64>,
-    pub extra_fee: Option<u64>,
-    pub max_fee: Option<u64>,
-    pub validity_window: Option<u64>,
-    pub first_valid_round: Option<u64>,
-    pub last_valid_round: Option<u64>,
 }
 
 #[derive(Debug, Clone)]
@@ -126,58 +110,6 @@ impl ComposerTxn {
             }
             _ => CommonParams::default(),
         }
-    }
-}
-
-#[async_trait]
-pub trait TxnSigner: Send + Sync {
-    async fn sign_txns(&self, txns: &[Transaction], indices: &[usize]) -> Vec<SignedTransaction>;
-
-    async fn sign_txn(&self, txn: &Transaction) -> SignedTransaction {
-        self.sign_txns(&[txn.clone()], &[0]).await[0].clone()
-    }
-}
-
-#[async_trait]
-pub trait TxnSignerGetter: Send + Sync {
-    async fn get_signer(&self, address: Address) -> Option<&dyn TxnSigner>;
-}
-
-struct DefaultSignerGetter;
-
-#[async_trait]
-impl TxnSignerGetter for DefaultSignerGetter {
-    async fn get_signer(&self, _address: Address) -> Option<&dyn TxnSigner> {
-        None
-    }
-}
-
-pub struct EmptySigner {}
-
-#[async_trait]
-impl TxnSigner for EmptySigner {
-    async fn sign_txns(&self, txns: &[Transaction], indices: &[usize]) -> Vec<SignedTransaction> {
-        indices
-            .iter()
-            .map(|&idx| {
-                if idx < txns.len() {
-                    SignedTransaction {
-                        transaction: txns[idx].clone(),
-                        signature: Some([0; 64]),
-                        auth_address: None,
-                    }
-                } else {
-                    panic!("Index out of bounds for transactions");
-                }
-            })
-            .collect()
-    }
-}
-
-#[async_trait]
-impl TxnSignerGetter for EmptySigner {
-    async fn get_signer(&self, _address: Address) -> Option<&dyn TxnSigner> {
-        Some(self)
     }
 }
 
@@ -421,7 +353,10 @@ impl Composer {
                 )),
             )?;
 
-            let signed_txn = signer.sign_txn(txn).await;
+            let signed_txn = signer
+                .sign_txn(txn)
+                .await
+                .map_err(ComposerError::SigningError)?;
             signed_group.push(signed_txn);
         }
 
@@ -541,6 +476,7 @@ impl Composer {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::transactions::common::EmptySigner;
     use algokit_transact::test_utils::{AddressMother, TransactionMother};
     use base64::{Engine, prelude::BASE64_STANDARD};
 
