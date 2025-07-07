@@ -226,7 +226,7 @@ async fn test_application_delete_transaction() {
             assert_eq!(
                 application_call_fields.on_complete,
                 OnApplicationComplete::DeleteApplication,
-                "Clear state program should be DeleteApplication"
+                "On Complete should be DeleteApplication"
             );
         }
         _ => panic!("Transaction should be an application delete transaction"),

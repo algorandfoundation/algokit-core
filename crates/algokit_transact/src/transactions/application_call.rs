@@ -14,11 +14,11 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 use serde_with::{serde_as, skip_serializing_none, Bytes};
 
 // Application program size constraints (based on Algorand protocol)
-const MAX_EXTRA_PROGRAM_PAGES: u64 = 3; // Maximum extra program pages
-const PROGRAM_PAGE_SIZE: usize = 2048; // Size in bytes of each extra program page
+const MAX_EXTRA_PROGRAM_PAGES: u64 = 3;
+const PROGRAM_PAGE_SIZE: usize = 2048; // In bytes
 
 // Application reference limits
-const MAX_APP_ARGS: usize = 16; // Maximum number of args allowed
+const MAX_APP_ARGS: usize = 16;
 const MAX_ARGS_SIZE: usize = 2048; // Maximum size in bytes of all args combined
 const MAX_OVERALL_REFERENCES: usize = 8;
 const MAX_ACCOUNT_REFERENCES: usize = 4;
@@ -220,7 +220,7 @@ pub struct ApplicationCallTransactionFields {
     #[builder(default)]
     pub account_references: Option<Vec<Address>>,
 
-    /// List of applications in addition to the application ID that may be called
+    /// List of applications in addition to the current application that may be called
     /// from the application's approval program and clear state program.
     #[serde(rename = "apfa")]
     #[serde(skip_serializing_if = "is_empty_vec_opt")]

@@ -17,7 +17,7 @@ pub struct ApplicationCallParams {
     /// List of accounts in addition to the sender that may be accessed
     /// from the application's approval program and clear state program.
     pub account_references: Option<Vec<Address>>,
-    /// List of applications in addition to the application ID that may be called
+    /// List of applications in addition to the current application that may be called
     /// from the application's approval program and clear state program.
     pub app_references: Option<Vec<u64>>,
     /// Lists the assets whose parameters may be accessed by this application's
@@ -70,7 +70,7 @@ pub struct ApplicationCreateParams {
     /// List of accounts in addition to the sender that may be accessed
     /// from the application's approval program and clear state program.
     pub account_references: Option<Vec<Address>>,
-    /// List of applications in addition to the application ID that may be called
+    /// List of applications in addition to the current application that may be called
     /// from the application's approval program and clear state program.
     pub app_references: Option<Vec<u64>>,
     /// Lists the assets whose parameters may be accessed by this application's
@@ -94,7 +94,7 @@ pub struct ApplicationDeleteParams {
     /// List of accounts in addition to the sender that may be accessed
     /// from the application's approval program and clear state program.
     pub account_references: Option<Vec<Address>>,
-    /// List of applications in addition to the application ID that may be called
+    /// List of applications in addition to the current application that may be called
     /// from the application's approval program and clear state program.
     pub app_references: Option<Vec<u64>>,
     /// Lists the assets whose parameters may be accessed by this application's
@@ -129,7 +129,7 @@ pub struct ApplicationUpdateParams {
     /// List of accounts in addition to the sender that may be accessed
     /// from the application's approval program and clear state program.
     pub account_references: Option<Vec<Address>>,
-    /// List of applications in addition to the application ID that may be called
+    /// List of applications in addition to the current application that may be called
     /// from the application's approval program and clear state program.
     pub app_references: Option<Vec<u64>>,
     /// Lists the assets whose parameters may be accessed by this application's
