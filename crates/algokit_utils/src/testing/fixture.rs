@@ -9,7 +9,11 @@ use async_trait::async_trait;
 // Implement TxnSigner for TestAccount directly, eliminating the need for TestAccountSigner wrapper
 #[async_trait]
 impl TxnSigner for TestAccount {
-    async fn sign_txns(&self, txns: &[Transaction], indices: &[usize]) -> Vec<SignedTransaction> {
+    async fn sign_txns(
+        &self,
+        txns: &[Transaction],
+        indices: &[usize],
+    ) -> Result<Vec<SignedTransaction>, String> {
         indices
             .iter()
             .map(|&idx| {
@@ -17,13 +21,13 @@ impl TxnSigner for TestAccount {
                     // Use the TestAccount's sign_transaction method to get signed bytes
                     let signed_bytes = self
                         .sign_transaction(&txns[idx])
-                        .expect("Failed to sign transaction");
+                        .map_err(|e| format!("Failed to sign transaction: {}", e))?;
 
                     // Decode the signed bytes back to SignedTransaction
                     SignedTransaction::decode(&signed_bytes)
-                        .expect("Failed to decode signed transaction")
+                        .map_err(|e| format!("Failed to decode signed transaction: {}", e))
                 } else {
-                    panic!("Index out of bounds for transactions");
+                    Err(format!("Index {} out of bounds for transactions", idx))
                 }
             })
             .collect()
