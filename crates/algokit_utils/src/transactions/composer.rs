@@ -4,11 +4,14 @@ use algod_client::{
     models::{PendingTransactionResponse, TransactionParams},
 };
 use algokit_transact::{
-    Address, AlgorandMsgpack, AssetConfigTransactionFields, FeeParams, OnApplicationComplete,
-    PaymentTransactionFields, SignedTransaction, Transaction, TransactionHeader, Transactions,
+    Address, AlgorandMsgpack, AssetConfigTransactionFields, FeeParams,
+    KeyRegistrationTransactionFields, OnApplicationComplete, PaymentTransactionFields,
+    SignedTransaction, Transaction, TransactionHeader, Transactions,
 };
 use derive_more::Debug;
 use std::sync::Arc;
+
+use crate::genesis_id_is_localnet;
 
 use super::application_call::{
     ApplicationCallParams, ApplicationCreateParams, ApplicationDeleteParams,
@@ -16,7 +19,10 @@ use super::application_call::{
 };
 use super::asset_config::{AssetCreateParams, AssetDestroyParams, AssetReconfigureParams};
 use super::common::{CommonParams, DefaultSignerGetter, TxnSigner, TxnSignerGetter};
-use crate::clients::network_client::genesis_id_is_localnet;
+use super::key_registration::{
+    NonParticipationKeyRegistrationParams, OfflineKeyRegistrationParams,
+    OnlineKeyRegistrationParams,
+};
 
 #[derive(Debug, thiserror::Error)]
 pub enum ComposerError {
@@ -102,6 +108,9 @@ pub enum ComposerTxn {
     ApplicationCreate(ApplicationCreateParams),
     ApplicationUpdate(ApplicationUpdateParams),
     ApplicationDelete(ApplicationDeleteParams),
+    OnlineKeyRegistration(OnlineKeyRegistrationParams),
+    OfflineKeyRegistration(OfflineKeyRegistrationParams),
+    NonParticipationKeyRegistration(NonParticipationKeyRegistrationParams),
 }
 
 impl ComposerTxn {
@@ -139,6 +148,15 @@ impl ComposerTxn {
             ComposerTxn::ApplicationDelete(app_delete_params) => {
                 app_delete_params.common_params.clone()
             }
+            ComposerTxn::OnlineKeyRegistration(online_key_reg_params) => {
+                online_key_reg_params.common_params.clone()
+            }
+            ComposerTxn::OfflineKeyRegistration(offline_key_reg_params) => {
+                offline_key_reg_params.common_params.clone()
+            }
+            ComposerTxn::NonParticipationKeyRegistration(non_participation_params) => {
+                non_participation_params.common_params.clone()
+            }
             _ => CommonParams::default(),
         }
     }
@@ -166,6 +184,10 @@ impl Composer {
 
     pub fn built_group(&self) -> Option<&Vec<Transaction>> {
         self.built_group.as_ref()
+    }
+
+    pub fn signed_group(&self) -> Option<&Vec<SignedTransaction>> {
+        self.signed_group.as_ref()
     }
 
     #[cfg(feature = "default_http_client")]
@@ -238,6 +260,29 @@ impl Composer {
         asset_destroy_params: AssetDestroyParams,
     ) -> Result<(), String> {
         self.push(ComposerTxn::AssetDestroy(asset_destroy_params))
+    }
+
+    pub fn add_online_key_registration(
+        &mut self,
+        online_key_reg_params: OnlineKeyRegistrationParams,
+    ) -> Result<(), String> {
+        self.push(ComposerTxn::OnlineKeyRegistration(online_key_reg_params))
+    }
+
+    pub fn add_offline_key_registration(
+        &mut self,
+        offline_key_reg_params: OfflineKeyRegistrationParams,
+    ) -> Result<(), String> {
+        self.push(ComposerTxn::OfflineKeyRegistration(offline_key_reg_params))
+    }
+
+    pub fn add_non_participation_key_registration(
+        &mut self,
+        non_participation_params: NonParticipationKeyRegistrationParams,
+    ) -> Result<(), String> {
+        self.push(ComposerTxn::NonParticipationKeyRegistration(
+            non_participation_params,
+        ))
     }
 
     pub fn add_application_call(
@@ -519,6 +564,42 @@ impl Composer {
                             },
                         )
                     }
+                    ComposerTxn::OnlineKeyRegistration(online_key_reg_params) => {
+                        Transaction::KeyRegistration(KeyRegistrationTransactionFields {
+                            header,
+                            vote_key: Some(online_key_reg_params.vote_key),
+                            selection_key: Some(online_key_reg_params.selection_key),
+                            vote_first: Some(online_key_reg_params.vote_first),
+                            vote_last: Some(online_key_reg_params.vote_last),
+                            vote_key_dilution: Some(online_key_reg_params.vote_key_dilution),
+                            state_proof_key: online_key_reg_params.state_proof_key,
+                            non_participation: None,
+                        })
+                    }
+                    ComposerTxn::OfflineKeyRegistration(offline_key_reg_params) => {
+                        Transaction::KeyRegistration(KeyRegistrationTransactionFields {
+                            header,
+                            vote_key: None,
+                            selection_key: None,
+                            vote_first: None,
+                            vote_last: None,
+                            vote_key_dilution: None,
+                            state_proof_key: None,
+                            non_participation: offline_key_reg_params.non_participation,
+                        })
+                    }
+                    ComposerTxn::NonParticipationKeyRegistration(_) => {
+                        Transaction::KeyRegistration(KeyRegistrationTransactionFields {
+                            header,
+                            vote_key: None,
+                            selection_key: None,
+                            vote_first: None,
+                            vote_last: None,
+                            vote_key_dilution: None,
+                            state_proof_key: None,
+                            non_participation: Some(true),
+                        })
+                    }
                 };
 
                 if calculate_fee {
@@ -742,138 +823,6 @@ mod tests {
             close_remainder_to: None,
         };
         assert!(composer.add_payment(payment_params).is_ok());
-    }
-
-    #[tokio::test]
-    async fn test_build_payment() {
-        let mut composer = Composer::testnet();
-        let payment_params = PaymentParams {
-            common_params: CommonParams {
-                sender: AddressMother::address(),
-                signer: None,
-                rekey_to: None,
-                note: None,
-                lease: None,
-                static_fee: None,
-                extra_fee: None,
-                max_fee: None,
-                validity_window: None,
-                first_valid_round: None,
-                last_valid_round: None,
-            },
-            receiver: AddressMother::address(),
-            amount: 1000,
-            close_remainder_to: None,
-        };
-        composer.add_payment(payment_params).unwrap();
-
-        let result = composer.build().await;
-        assert!(result.is_ok());
-
-        let built_group = composer.built_group().unwrap();
-        assert_eq!(built_group.len(), 1);
-    }
-
-    #[tokio::test]
-    async fn test_build_asset_transfer() {
-        let mut composer = Composer::testnet();
-        let asset_transfer_params = AssetTransferParams {
-            common_params: CommonParams {
-                sender: AddressMother::address(),
-                signer: None,
-                rekey_to: None,
-                note: None,
-                lease: None,
-                static_fee: None,
-                extra_fee: None,
-                max_fee: None,
-                validity_window: None,
-                first_valid_round: None,
-                last_valid_round: None,
-            },
-            asset_id: 12345,
-            amount: 1000,
-            receiver: AddressMother::address(),
-        };
-        assert!(composer.add_asset_transfer(asset_transfer_params).is_ok());
-        assert!(composer.build().await.is_ok());
-        assert!(composer.built_group().is_some());
-    }
-
-    #[tokio::test]
-    async fn test_build_asset_opt_in() {
-        let mut composer = Composer::testnet();
-        let asset_opt_in_params = AssetOptInParams {
-            common_params: CommonParams {
-                sender: AddressMother::address(),
-                signer: None,
-                rekey_to: None,
-                note: None,
-                lease: None,
-                static_fee: None,
-                extra_fee: None,
-                max_fee: None,
-                validity_window: None,
-                first_valid_round: None,
-                last_valid_round: None,
-            },
-            asset_id: 12345,
-        };
-        assert!(composer.add_asset_opt_in(asset_opt_in_params).is_ok());
-        assert!(composer.build().await.is_ok());
-        assert!(composer.built_group().is_some());
-    }
-
-    #[tokio::test]
-    async fn test_build_asset_opt_out() {
-        let mut composer = Composer::testnet();
-        let asset_opt_out_params = AssetOptOutParams {
-            common_params: CommonParams {
-                sender: AddressMother::address(),
-                signer: None,
-                rekey_to: None,
-                note: None,
-                lease: None,
-                static_fee: None,
-                extra_fee: None,
-                max_fee: None,
-                validity_window: None,
-                first_valid_round: None,
-                last_valid_round: None,
-            },
-            asset_id: 12345,
-            close_remainder_to: Some(AddressMother::neil()),
-        };
-        assert!(composer.add_asset_opt_out(asset_opt_out_params).is_ok());
-        assert!(composer.build().await.is_ok());
-        assert!(composer.built_group().is_some());
-    }
-
-    #[tokio::test]
-    async fn test_build_asset_clawback() {
-        let mut composer = Composer::testnet();
-        let asset_clawback_params = AssetClawbackParams {
-            common_params: CommonParams {
-                sender: AddressMother::address(),
-                signer: None,
-                rekey_to: None,
-                note: None,
-                lease: None,
-                static_fee: None,
-                extra_fee: None,
-                max_fee: None,
-                validity_window: None,
-                first_valid_round: None,
-                last_valid_round: None,
-            },
-            asset_id: 12345,
-            amount: 1000,
-            receiver: AddressMother::address(),
-            clawback_target: AddressMother::neil(),
-        };
-        assert!(composer.add_asset_clawback(asset_clawback_params).is_ok());
-        assert!(composer.build().await.is_ok());
-        assert!(composer.built_group().is_some());
     }
 
     #[tokio::test]

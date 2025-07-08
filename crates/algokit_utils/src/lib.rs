@@ -13,6 +13,7 @@ pub use testing::{
 pub use transactions::{
     ApplicationCallParams, ApplicationCreateParams, ApplicationDeleteParams,
     ApplicationUpdateParams, AssetCreateParams, AssetDestroyParams, AssetReconfigureParams,
-    CommonParams, Composer, ComposerError, ComposerTxn, EmptySigner, PaymentParams, TxnSigner,
-    TxnSignerGetter,
+    CommonParams, Composer, ComposerError, ComposerTxn, EmptySigner,
+    NonParticipationKeyRegistrationParams, OfflineKeyRegistrationParams,
+    OnlineKeyRegistrationParams, PaymentParams, TxnSigner, TxnSignerGetter,
 };
