@@ -146,7 +146,10 @@ impl TryFrom<Transaction> for algokit_transact::AssetConfigTransactionFields {
         let data = tx.clone().asset_config.unwrap();
         let header: algokit_transact::TransactionHeader = tx.try_into()?;
 
-        let metadata_hash = data.metadata_hash.map(bytebuf_to_byte32).transpose()?;
+        let metadata_hash = data
+            .metadata_hash
+            .map(|buf| bytebuf_to_bytes::<32>(&buf))
+            .transpose()?;
 
         let transaction_fields = algokit_transact::AssetConfigTransactionFields {
             header,
@@ -166,7 +169,7 @@ impl TryFrom<Transaction> for algokit_transact::AssetConfigTransactionFields {
 
         transaction_fields.validate().map_err(|errors| {
             AlgoKitTransactError::DecodingError(format!(
-                "Asset configuration validation failed: {}",
+                "Asset config validation failed: {}",
                 errors.join("\n")
             ))
         })?;

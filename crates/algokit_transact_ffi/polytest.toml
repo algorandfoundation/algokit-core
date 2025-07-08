@@ -23,6 +23,10 @@ groups = ["Generic Transaction Tests"]
 desc = "Transaction Group tests"
 groups = ["Transaction Group Tests"]
 
+[suite."Key Registration"]
+desc = "Tests for key registration transactions"
+groups = ["Transaction Tests"]
+
 # Test Group: Generic Transaction Tests
 
 [group."Generic Transaction Tests"]

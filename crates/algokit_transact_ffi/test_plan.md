@@ -1,5 +1,4 @@
 # Polytest Test Plan
-
 ## Test Suites
 
 ### Payment
@@ -31,6 +30,12 @@
 | Name | Description |
 | --- | --- |
 | [Transaction Group Tests](#transaction-group-tests) | Tests that apply to collections of transactions |
+
+### Key Registration
+
+| Name | Description |
+| --- | --- |
+| [Transaction Tests](#transaction-tests) | Tests that apply to all transaction types |
 
 ## Test Groups
 

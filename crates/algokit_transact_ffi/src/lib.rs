@@ -10,6 +10,7 @@ use serde_bytes::ByteBuf;
 
 pub use transactions::ApplicationCallTransactionFields;
 pub use transactions::AssetConfigTransactionFields;
+pub use transactions::KeyRegistrationTransactionFields;
 
 // thiserror is used to easily create errors than can be propagated to the language bindings
 // UniFFI will create classes for errors (i.e. `MsgPackError.EncodingError` in Python)
@@ -211,6 +212,8 @@ pub struct Transaction {
     asset_config: Option<AssetConfigTransactionFields>,
 
     application_call: Option<ApplicationCallTransactionFields>,
+
+    key_registration: Option<KeyRegistrationTransactionFields>,
 }
 
 impl TryFrom<Transaction> for algokit_transact::Transaction {
@@ -222,6 +225,7 @@ impl TryFrom<Transaction> for algokit_transact::Transaction {
             tx.payment.is_some(),
             tx.asset_transfer.is_some(),
             tx.asset_config.is_some(),
+            tx.key_registration.is_some(),
             tx.application_call.is_some(),
         ]
         .into_iter()
@@ -239,6 +243,9 @@ impl TryFrom<Transaction> for algokit_transact::Transaction {
             TransactionType::AssetTransfer => {
                 Ok(algokit_transact::Transaction::AssetTransfer(tx.try_into()?))
             }
+            TransactionType::KeyRegistration => Ok(algokit_transact::Transaction::KeyRegistration(
+                tx.try_into()?,
+            )),
             TransactionType::AssetConfig => {
                 Ok(algokit_transact::Transaction::AssetConfig(tx.try_into()?))
             }
@@ -262,11 +269,20 @@ impl TryFrom<Transaction> for algokit_transact::TransactionHeader {
             first_valid: tx.first_valid,
             last_valid: tx.last_valid,
             genesis_id: tx.genesis_id,
-            genesis_hash: tx.genesis_hash.map(bytebuf_to_byte32).transpose()?,
+            genesis_hash: tx
+                .genesis_hash
+                .map(|buf| bytebuf_to_bytes::<32>(&buf))
+                .transpose()?,
             note: tx.note.map(ByteBuf::into_vec),
             rekey_to: tx.rekey_to.map(TryInto::try_into).transpose()?,
-            lease: tx.lease.map(bytebuf_to_byte32).transpose()?,
-            group: tx.group.map(bytebuf_to_byte32).transpose()?,
+            lease: tx
+                .lease
+                .map(|buf| bytebuf_to_bytes::<32>(&buf))
+                .transpose()?,
+            group: tx
+                .group
+                .map(|buf| bytebuf_to_bytes::<32>(&buf))
+                .transpose()?,
         })
     }
 }
@@ -353,6 +369,7 @@ impl TryFrom<algokit_transact::Transaction> for Transaction {
                     None,
                     None,
                     None,
+                    None,
                 )
             }
             algokit_transact::Transaction::AssetTransfer(asset_transfer) => {
@@ -362,6 +379,7 @@ impl TryFrom<algokit_transact::Transaction> for Transaction {
                     TransactionType::AssetTransfer,
                     None,
                     Some(asset_transfer_fields),
+                    None,
                     None,
                     None,
                 )
@@ -375,6 +393,7 @@ impl TryFrom<algokit_transact::Transaction> for Transaction {
                     None,
                     Some(asset_config_fields),
                     None,
+                    None,
                 )
             }
             algokit_transact::Transaction::ApplicationCall(application_call) => {
@@ -386,6 +405,19 @@ impl TryFrom<algokit_transact::Transaction> for Transaction {
                     None,
                     None,
                     Some(application_call_fields),
+                    None,
+                )
+            }
+            algokit_transact::Transaction::KeyRegistration(key_registration) => {
+                let key_registration_fields = key_registration.clone().into();
+                build_transaction(
+                    key_registration.header,
+                    TransactionType::KeyRegistration,
+                    None,
+                    None,
+                    None,
+                    None,
+                    Some(key_registration_fields),
                 )
             }
         }
@@ -438,12 +470,12 @@ impl TryFrom<SignedTransaction> for algokit_transact::SignedTransaction {
     }
 }
 
-fn bytebuf_to_byte32(buf: ByteBuf) -> Result<Byte32, AlgoKitTransactError> {
-    let vec = buf.to_vec();
-    vec.try_into().map_err(|_| {
-        AlgoKitTransactError::DecodingError(
-            "Expected 32 bytes but got a different length".to_string(),
-        )
+fn bytebuf_to_bytes<const N: usize>(buf: &ByteBuf) -> Result<[u8; N], AlgoKitTransactError> {
+    buf.to_vec().try_into().map_err(|_| {
+        AlgoKitTransactError::DecodingError(format!(
+            "Expected {} bytes but got a different length",
+            N
+        ))
     })
 }
 
@@ -458,6 +490,7 @@ fn build_transaction(
     asset_transfer: Option<AssetTransferTransactionFields>,
     asset_config: Option<AssetConfigTransactionFields>,
     application_call: Option<ApplicationCallTransactionFields>,
+    key_registration: Option<KeyRegistrationTransactionFields>,
 ) -> Result<Transaction, AlgoKitTransactError> {
     Ok(Transaction {
         transaction_type,
@@ -475,6 +508,7 @@ fn build_transaction(
         asset_transfer,
         asset_config,
         application_call,
+        key_registration,
     })
 }
 
@@ -492,6 +526,7 @@ pub fn get_encoded_transaction_type(bytes: &[u8]) -> Result<TransactionType, Alg
         algokit_transact::Transaction::AssetTransfer(_) => Ok(TransactionType::AssetTransfer),
         algokit_transact::Transaction::AssetConfig(_) => Ok(TransactionType::AssetConfig),
         algokit_transact::Transaction::ApplicationCall(_) => Ok(TransactionType::ApplicationCall),
+        algokit_transact::Transaction::KeyRegistration(_) => Ok(TransactionType::KeyRegistration),
     }
 }
 

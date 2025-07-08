@@ -10,6 +10,7 @@ from algokit_transact import (
     AssetTransferTransactionFields,
     AssetConfigTransactionFields,
     ApplicationCallTransactionFields,
+    KeyRegistrationTransactionFields,
     OnApplicationComplete,
     StateSchema,
 )
@@ -39,6 +40,9 @@ class TestData:
     application_create: TransactionTestData
     application_update: TransactionTestData
     application_delete: TransactionTestData
+    online_key_registration: TransactionTestData
+    offline_key_registration: TransactionTestData
+    non_participation_key_registration: TransactionTestData
 
 
 def convert_values(obj: Any) -> Any:
@@ -131,6 +135,11 @@ def create_transaction_test_data(test_data: dict[str, Any]) -> TransactionTestDa
             "type": TransactionType.APPLICATION_CALL,
             "field_name": "application_call",
             "field_class": ApplicationCallTransactionFields,
+        },
+        "KeyRegistration": {
+            "type": TransactionType.KEY_REGISTRATION,
+            "field_name": "key_registration",
+            "field_class": KeyRegistrationTransactionFields,
         },
     }
 

@@ -436,7 +436,7 @@ impl AssetConfigTransactionBuilder {
         let d = self.build_fields()?;
         d.validate().map_err(|errors| {
             AssetConfigTransactionBuilderError::ValidationError(format!(
-                "Asset confiurationg validation failed: {}",
+                "Asset config validation failed: {}",
                 errors.join("\n")
             ))
         })?;

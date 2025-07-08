@@ -8,6 +8,7 @@ mod application_call;
 mod asset_config;
 mod asset_transfer;
 mod common;
+mod key_registration;
 mod payment;
 
 use application_call::{application_call_deserializer, application_call_serializer};
@@ -21,6 +22,7 @@ pub use asset_config::{
 };
 pub use asset_transfer::{AssetTransferTransactionBuilder, AssetTransferTransactionFields};
 pub use common::{TransactionHeader, TransactionHeaderBuilder};
+pub use key_registration::{KeyRegistrationTransactionBuilder, KeyRegistrationTransactionFields};
 pub use payment::{PaymentTransactionBuilder, PaymentTransactionFields};
 
 use crate::constants::{
@@ -54,12 +56,9 @@ pub enum Transaction {
     #[serde(deserialize_with = "application_call_deserializer")]
     #[serde(rename = "appl")]
     ApplicationCall(ApplicationCallTransactionFields),
-    // All the below transaction variants will be implemented in the future
-    // #[serde(rename = "afrz")]
-    // AssetFreeze(...),
 
-    // #[serde(rename = "keyreg")]
-    // KeyRegistration(...),
+    #[serde(rename = "keyreg")]
+    KeyRegistration(KeyRegistrationTransactionFields),
 }
 
 pub struct FeeParams {
@@ -76,6 +75,7 @@ impl Transaction {
             Transaction::AssetTransfer(a) => &a.header,
             Transaction::AssetConfig(a) => &a.header,
             Transaction::ApplicationCall(a) => &a.header,
+            Transaction::KeyRegistration(k) => &k.header,
         }
     }
 
@@ -85,6 +85,7 @@ impl Transaction {
             Transaction::AssetTransfer(a) => &mut a.header,
             Transaction::AssetConfig(a) => &mut a.header,
             Transaction::ApplicationCall(a) => &mut a.header,
+            Transaction::KeyRegistration(k) => &mut k.header,
         }
     }
 

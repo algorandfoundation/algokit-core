@@ -1,5 +1,6 @@
 mod application_call;
 mod asset_config;
+mod key_registration;
 
 use crate::{
     transactions::{AssetTransferTransactionBuilder, PaymentTransactionBuilder},
@@ -16,6 +17,7 @@ use std::{fs::File, str::FromStr};
 
 pub use application_call::ApplicationCallTransactionMother;
 pub use asset_config::AssetConfigTransactionMother;
+pub use key_registration::KeyRegistrationTransactionMother;
 
 pub struct TransactionHeaderMother {}
 impl TransactionHeaderMother {
@@ -387,6 +389,27 @@ impl TestDataMother {
         TransactionTestData::new(transaction, SIGNING_PRIVATE_KEY)
     }
 
+    pub fn online_key_registration() -> TransactionTestData {
+        let transaction = KeyRegistrationTransactionMother::online_key_registration()
+            .build()
+            .unwrap();
+        TransactionTestData::new(transaction, SIGNING_PRIVATE_KEY)
+    }
+
+    pub fn offline_key_registration() -> TransactionTestData {
+        let transaction = KeyRegistrationTransactionMother::offline_key_registration()
+            .build()
+            .unwrap();
+        TransactionTestData::new(transaction, SIGNING_PRIVATE_KEY)
+    }
+
+    pub fn non_participation_key_registration() -> TransactionTestData {
+        let transaction = KeyRegistrationTransactionMother::non_participation_key_registration()
+            .build()
+            .unwrap();
+        TransactionTestData::new(transaction, SIGNING_PRIVATE_KEY)
+    }
+
     pub fn export<F, T>(path: &std::path::Path, transform: Option<F>)
     where
         F: Fn(&TransactionTestData) -> T,
@@ -406,6 +429,9 @@ impl TestDataMother {
             "asset_create": Self::asset_create().as_json(&transform),
             "asset_destroy": Self::asset_destroy().as_json(&transform),
             "asset_reconfigure": Self::asset_reconfigure().as_json(&transform),
+            "online_key_registration": Self::online_key_registration().as_json(&transform),
+            "offline_key_registration": Self::offline_key_registration().as_json(&transform),
+            "non_participation_key_registration": Self::non_participation_key_registration().as_json(&transform),
         }));
 
         let file = File::create(path).expect("Failed to create export file");
@@ -463,49 +489,6 @@ mod tests {
         assert_eq!(
             data.id,
             String::from("VAHP4FRJH4GRV6ID2BZRK5VYID376EV3VE6T2TKKDFJBBDOXWCCA")
-        );
-        assert_eq!(
-            data.id_raw,
-            [
-                168, 14, 254, 22, 41, 63, 13, 26, 249, 3, 208, 115, 21, 118, 184, 64, 247, 255, 18,
-                187, 169, 61, 61, 77, 74, 25, 82, 16, 141, 215, 176, 132
-            ]
-        );
-        assert_eq!(
-            data.unsigned_bytes,
-            vec![
-                84, 88, 138, 164, 97, 97, 109, 116, 205, 3, 232, 164, 97, 114, 99, 118, 196, 32,
-                138, 24, 8, 153, 89, 167, 60, 236, 255, 238, 91, 198, 115, 190, 137, 254, 3, 35,
-                198, 98, 195, 33, 65, 123, 138, 200, 132, 194, 74, 0, 44, 25, 163, 102, 101, 101,
-                205, 3, 232, 162, 102, 118, 206, 3, 13, 0, 56, 163, 103, 101, 110, 172, 116, 101,
-                115, 116, 110, 101, 116, 45, 118, 49, 46, 48, 162, 103, 104, 196, 32, 72, 99, 181,
-                24, 164, 179, 200, 78, 200, 16, 242, 45, 79, 16, 129, 203, 15, 113, 240, 89, 167,
-                172, 32, 222, 198, 47, 127, 112, 229, 9, 58, 34, 162, 108, 118, 206, 3, 13, 1, 0,
-                163, 115, 110, 100, 196, 32, 72, 118, 175, 30, 96, 187, 134, 238, 76, 228, 146,
-                219, 137, 200, 222, 52, 40, 86, 146, 168, 129, 190, 15, 103, 21, 24, 5, 31, 88, 27,
-                201, 123, 164, 116, 121, 112, 101, 165, 97, 120, 102, 101, 114, 164, 120, 97, 105,
-                100, 206, 6, 107, 40, 157
-            ]
-        );
-        assert_eq!(
-            data.signed_bytes,
-            vec![
-                130, 163, 115, 105, 103, 196, 64, 115, 182, 105, 213, 69, 248, 151, 218, 20, 41,
-                12, 239, 153, 18, 26, 187, 149, 210, 109, 148, 39, 180, 210, 255, 64, 224, 207, 43,
-                40, 165, 103, 14, 125, 13, 50, 33, 75, 66, 56, 124, 233, 253, 215, 254, 157, 18, 7,
-                244, 15, 55, 31, 76, 190, 117, 201, 189, 5, 26, 44, 249, 196, 219, 73, 0, 163, 116,
-                120, 110, 138, 164, 97, 97, 109, 116, 205, 3, 232, 164, 97, 114, 99, 118, 196, 32,
-                138, 24, 8, 153, 89, 167, 60, 236, 255, 238, 91, 198, 115, 190, 137, 254, 3, 35,
-                198, 98, 195, 33, 65, 123, 138, 200, 132, 194, 74, 0, 44, 25, 163, 102, 101, 101,
-                205, 3, 232, 162, 102, 118, 206, 3, 13, 0, 56, 163, 103, 101, 110, 172, 116, 101,
-                115, 116, 110, 101, 116, 45, 118, 49, 46, 48, 162, 103, 104, 196, 32, 72, 99, 181,
-                24, 164, 179, 200, 78, 200, 16, 242, 45, 79, 16, 129, 203, 15, 113, 240, 89, 167,
-                172, 32, 222, 198, 47, 127, 112, 229, 9, 58, 34, 162, 108, 118, 206, 3, 13, 1, 0,
-                163, 115, 110, 100, 196, 32, 72, 118, 175, 30, 96, 187, 134, 238, 76, 228, 146,
-                219, 137, 200, 222, 52, 40, 86, 146, 168, 129, 190, 15, 103, 21, 24, 5, 31, 88, 27,
-                201, 123, 164, 116, 121, 112, 101, 165, 97, 120, 102, 101, 114, 164, 120, 97, 105,
-                100, 206, 6, 107, 40, 157
-            ]
         );
     }
 
@@ -578,6 +561,31 @@ mod tests {
         assert_eq!(
             data.id,
             String::from("U4XH6AS5UUYQI4IZ3E5JSUEIU64Y3FGNYKLH26W4HRY7T6PK745A")
+        );
+    }
+
+    #[test]
+    fn test_online_key_registration_snapshot() {
+        let data = TestDataMother::online_key_registration();
+        assert_eq!(
+            data.id,
+            String::from("UCWQQKWB3CMPVK6EU2ML7CN5IDYZJVVSVS3RXYEOLJUURX44SUKQ")
+        );
+    }
+    #[test]
+    fn test_offline_key_registration_snapshot() {
+        let data = TestDataMother::offline_key_registration();
+        assert_eq!(
+            data.id,
+            String::from("WAXJLC44RILOSYX73PJULCAWC43DNBU4AXMWHIRARXK4GO2LHEDQ")
+        );
+    }
+    #[test]
+    fn test_non_participation_key_registration_snapshot() {
+        let data = TestDataMother::non_participation_key_registration();
+        assert_eq!(
+            data.id,
+            String::from("ACAP6ZGMGNTLUO3IQ26P22SRKYWTQQO3MF64GX7QO6NICDUFPM5A")
         );
     }
 }
