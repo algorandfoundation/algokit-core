@@ -126,6 +126,8 @@ pub enum TransactionValidationError {
         unit: String,
     },
     ImmutableField(String),
+    ZeroValueField(String),
+    ArbitraryConstraint(String),
 }
 
 impl std::fmt::Display for TransactionValidationError {
@@ -147,7 +149,13 @@ impl std::fmt::Display for TransactionValidationError {
                 )
             }
             TransactionValidationError::ImmutableField(field) => {
-                write!(f, "Field '{}' is immutable and cannot be changed", field)
+                write!(f, "{} is immutable and cannot be changed", field)
+            }
+            TransactionValidationError::ZeroValueField(field) => {
+                write!(f, "{} must not be 0", field)
+            }
+            TransactionValidationError::ArbitraryConstraint(constraint) => {
+                write!(f, "{}", constraint)
             }
         }
     }

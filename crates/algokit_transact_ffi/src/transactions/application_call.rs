@@ -56,7 +56,7 @@ pub struct ApplicationCallTransactionFields {
     /// from the application's approval program and clear state program.
     account_references: Option<Vec<Address>>,
 
-    /// List of applications in addition to the application ID that may be called
+    /// List of applications in addition to the current application that may be called
     /// from the application's approval program and clear state program.
     app_references: Option<Vec<u64>>,
 
@@ -109,7 +109,7 @@ impl TryFrom<Transaction> for algokit_transact::ApplicationCallTransactionFields
         let data = tx.clone().application_call.unwrap();
         let header: algokit_transact::TransactionHeader = tx.try_into()?;
 
-        Ok(Self {
+        let transaction_fields = Self {
             header,
             app_id: data.app_id,
             on_complete: data.on_complete.into(),
@@ -134,7 +134,16 @@ impl TryFrom<Transaction> for algokit_transact::ApplicationCallTransactionFields
             box_references: data
                 .box_references
                 .map(|boxes| boxes.into_iter().map(Into::into).collect()),
-        })
+        };
+
+        transaction_fields.validate().map_err(|errors| {
+            AlgoKitTransactError::DecodingError(format!(
+                "Application call validation failed: {}",
+                errors.join("\n")
+            ))
+        })?;
+
+        Ok(transaction_fields)
     }
 }
 
@@ -271,5 +280,32 @@ impl From<StateSchema> for algokit_transact::StateSchema {
             num_uints: val.num_uints,
             num_byte_slices: val.num_byte_slices,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use algokit_transact::test_utils::TestDataMother;
+
+    #[test]
+    fn test_encode_transaction_validation_integration() {
+        // invalid
+        let mut tx: Transaction = TestDataMother::application_call()
+            .transaction
+            .try_into()
+            .unwrap();
+        tx.application_call.as_mut().unwrap().app_id = 0;
+        let result = encode_transaction(tx);
+        assert!(result.is_err());
+
+        // valid
+        let result = encode_transaction(
+            TestDataMother::application_call()
+                .transaction
+                .try_into()
+                .unwrap(),
+        );
+        assert!(result.is_ok());
     }
 }
