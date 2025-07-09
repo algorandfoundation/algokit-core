@@ -5,7 +5,7 @@
 
 use crate::address::Address;
 use crate::transactions::common::TransactionHeader;
-use crate::utils::{is_zero, is_zero_addr};
+use crate::utils::{is_false_opt, is_zero, is_zero_addr};
 use crate::Transaction;
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
@@ -46,8 +46,8 @@ pub struct AssetFreezeTransactionFields {
     /// `false` to unfreeze the asset holdings (allow transfers).
     #[serde(rename = "afrz")]
     #[serde(default)]
-    #[serde(skip_serializing_if = "std::ops::Not::not")]
-    pub frozen: bool,
+    #[serde(skip_serializing_if = "is_false_opt")]
+    pub frozen: Option<bool>,
 }
 
 impl AssetFreezeTransactionBuilder {
