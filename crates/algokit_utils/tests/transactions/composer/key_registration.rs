@@ -22,7 +22,7 @@ async fn test_offline_key_registration_transaction() {
     let sender_addr = context
         .test_account
         .account()
-        .expect("Failed to get sender address")
+        .expect("Failed to get sender account")
         .address();
 
     let offline_key_reg_params = OfflineKeyRegistrationParams {
@@ -106,7 +106,7 @@ async fn test_non_participation_key_registration_transaction() {
     let sender_addr = context
         .test_account
         .account()
-        .expect("Failed to get sender address")
+        .expect("Failed to get sender account")
         .address();
 
     // Use real participation keys for initial online registration
@@ -309,7 +309,7 @@ async fn test_online_key_registration_transaction() {
     let sender_addr = context
         .test_account
         .account()
-        .expect("Failed to get sender address")
+        .expect("Failed to get sender account")
         .address();
 
     // Use real participation keys from the Python test
