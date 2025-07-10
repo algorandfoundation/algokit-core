@@ -47,6 +47,7 @@ pub struct AssetFreezeTransactionFields {
     #[serde(rename = "afrz")]
     #[serde(default)]
     #[serde(skip_serializing_if = "is_false_opt")]
+    #[builder(default)]
     pub frozen: Option<bool>,
 }
 
