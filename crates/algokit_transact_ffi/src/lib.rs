@@ -612,6 +612,7 @@ fn byte32_to_bytebuf(b32: Byte32) -> ByteBuf {
     ByteBuf::from(b32.to_vec())
 }
 
+#[allow(clippy::too_many_arguments)]
 fn build_transaction(
     header: algokit_transact::TransactionHeader,
     transaction_type: TransactionType,
