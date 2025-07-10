@@ -699,7 +699,7 @@ mod tests {
         let data = TestDataMother::asset_unfreeze();
         assert_eq!(
             data.id,
-            String::from("2XFGVOHMFYLAWBHOSIOI67PBT5LDRHBTD3VLX5EYBDTFNVKMCJIA")
+            String::from("LZ2ODDAT4ATAVJUEQW34DIKMPCMBXCCHOSIYKMWGBPEVNHLSEV2A")
         );
     }
 }
