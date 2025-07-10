@@ -21,7 +21,7 @@ async fn test_application_call_transaction() {
     let sender_addr = context
         .test_account
         .account()
-        .expect("Failed to get sender address")
+        .expect("Failed to get sender account")
         .address();
 
     let app_id = create_test_app(context, sender_addr.clone())
@@ -96,7 +96,7 @@ async fn test_application_create_transaction() {
     let sender_addr = context
         .test_account
         .account()
-        .expect("Failed to get sender address")
+        .expect("Failed to get sender account")
         .address();
 
     let app_create_params = ApplicationCreateParams {
@@ -179,7 +179,7 @@ async fn test_application_delete_transaction() {
     let sender_addr = context
         .test_account
         .account()
-        .expect("Failed to get sender address")
+        .expect("Failed to get sender account")
         .address();
 
     let app_id = create_test_app(context, sender_addr.clone())
@@ -251,7 +251,7 @@ async fn test_application_update_transaction() {
     let sender_addr = context
         .test_account
         .account()
-        .expect("Failed to get sender address")
+        .expect("Failed to get sender account")
         .address();
 
     let app_id = create_test_app(context, sender_addr.clone())

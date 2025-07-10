@@ -115,7 +115,7 @@ async fn test_asset_reconfigure_transaction() {
     let sender_addr = context
         .test_account
         .account()
-        .expect("Failed to get sender address")
+        .expect("Failed to get sender account")
         .address();
 
     // First create an asset to reconfigure
@@ -207,7 +207,7 @@ async fn test_asset_destroy_transaction() {
     let sender_addr = context
         .test_account
         .account()
-        .expect("Failed to get sender address")
+        .expect("Failed to get sender account")
         .address();
 
     // First create an asset to destroy

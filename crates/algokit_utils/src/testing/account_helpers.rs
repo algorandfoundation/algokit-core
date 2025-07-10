@@ -404,17 +404,17 @@ mod tests {
                 .expect("Failed to recover account from mnemonic");
 
             // Both should have the same address
-            let original_addr = original.account().expect("Failed to get original address");
-            let recovered_addr = recovered
+            let original_account = original.account().expect("Failed to get original account");
+            let recovered_account = recovered
                 .account()
-                .expect("Failed to get recovered address");
+                .expect("Failed to get recovered account");
 
-            assert_eq!(original_addr.to_string(), recovered_addr.to_string());
+            assert_eq!(original_account.to_string(), recovered_account.to_string());
             assert_eq!(original.mnemonic(), recovered.mnemonic());
 
             println!("✓ Successfully recovered account from mnemonic");
-            println!("  Original:  {}", original_addr);
-            println!("  Recovered: {}", recovered_addr);
+            println!("  Original:  {}", original_account);
+            println!("  Recovered: {}", recovered_account);
         } else {
             println!("⚠ Skipping mnemonic round-trip test (using hex fallback)");
         }
