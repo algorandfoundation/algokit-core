@@ -23,6 +23,7 @@ use super::key_registration::{
     NonParticipationKeyRegistrationParams, OfflineKeyRegistrationParams,
     OnlineKeyRegistrationParams,
 };
+use super::payment::{AccountCloseParams, PaymentParams};
 
 #[derive(Debug, thiserror::Error)]
 pub enum ComposerError {
@@ -38,14 +39,6 @@ pub enum ComposerError {
     StateError(String),
     #[error("Transaction pool error: {0}")]
     PoolError(String),
-}
-
-#[derive(Debug, Clone)]
-pub struct PaymentParams {
-    pub common_params: CommonParams,
-    pub receiver: Address,
-    pub amount: u64,
-    pub close_remainder_to: Option<Address>,
 }
 
 #[derive(Debug, Clone)]
@@ -97,6 +90,7 @@ pub struct AssetClawbackParams {
 pub enum ComposerTxn {
     Transaction(Transaction),
     Payment(PaymentParams),
+    AccountClose(AccountCloseParams),
     AssetTransfer(AssetTransferParams),
     AssetOptIn(AssetOptInParams),
     AssetOptOut(AssetOptOutParams),
@@ -117,6 +111,9 @@ impl ComposerTxn {
     pub fn common_params(&self) -> CommonParams {
         match self {
             ComposerTxn::Payment(payment_params) => payment_params.common_params.clone(),
+            ComposerTxn::AccountClose(account_close_params) => {
+                account_close_params.common_params.clone()
+            }
             ComposerTxn::AssetTransfer(asset_transfer_params) => {
                 asset_transfer_params.common_params.clone()
             }
@@ -211,6 +208,13 @@ impl Composer {
 
     pub fn add_payment(&mut self, payment_params: PaymentParams) -> Result<(), String> {
         self.push(ComposerTxn::Payment(payment_params))
+    }
+
+    pub fn add_account_close(
+        &mut self,
+        account_close_params: AccountCloseParams,
+    ) -> Result<(), String> {
+        self.push(ComposerTxn::AccountClose(account_close_params))
     }
 
     pub fn add_asset_transfer(
@@ -387,7 +391,18 @@ impl Composer {
                             header,
                             receiver: pay_params.receiver.clone(),
                             amount: pay_params.amount,
-                            close_remainder_to: pay_params.close_remainder_to.clone(),
+                            close_remainder_to: None,
+                        };
+                        Transaction::Payment(pay_params)
+                    }
+                    ComposerTxn::AccountClose(account_close_params) => {
+                        let pay_params = PaymentTransactionFields {
+                            header,
+                            receiver: common_params.sender.clone(),
+                            amount: 0,
+                            close_remainder_to: Some(
+                                account_close_params.close_remainder_to.clone(),
+                            ),
                         };
                         Transaction::Payment(pay_params)
                     }
@@ -820,7 +835,6 @@ mod tests {
             },
             receiver: AccountMother::account().address(),
             amount: 1000,
-            close_remainder_to: None,
         };
         assert!(composer.add_payment(payment_params).is_ok());
     }
@@ -845,7 +859,6 @@ mod tests {
             },
             receiver: AccountMother::account().address(),
             amount: 1000,
-            close_remainder_to: None,
         };
         composer.add_payment(payment_params).unwrap();
         composer.build().await.unwrap();
@@ -873,7 +886,6 @@ mod tests {
             },
             receiver: AccountMother::account().address(),
             amount: 1000,
-            close_remainder_to: None,
         };
         composer.add_payment(payment_params).unwrap();
 
@@ -907,7 +919,6 @@ mod tests {
                 },
                 receiver: AccountMother::account().address(),
                 amount: 1000,
-                close_remainder_to: None,
             };
             composer.add_payment(payment_params).unwrap();
         }
