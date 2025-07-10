@@ -4,8 +4,9 @@ mod key_registration;
 
 use crate::{
     transactions::{AssetTransferTransactionBuilder, PaymentTransactionBuilder},
-    Address, AlgorandMsgpack, Byte32, SignedTransaction, Transaction, TransactionHeaderBuilder,
-    TransactionId, ALGORAND_PUBLIC_KEY_BYTE_LENGTH, HASH_BYTES_LENGTH,
+    Account, Address, AlgorandMsgpack, Byte32, MultisigSignature, MultisigSubsignature,
+    SignedTransaction, Transaction, TransactionHeaderBuilder, TransactionId,
+    ALGORAND_PUBLIC_KEY_BYTE_LENGTH, HASH_BYTES_LENGTH,
 };
 use base64::{prelude::BASE64_STANDARD, Engine};
 use convert_case::{Case, Casing};
@@ -51,7 +52,7 @@ impl TransactionHeaderMother {
 
     pub fn simple_testnet() -> TransactionHeaderBuilder {
         Self::testnet()
-            .sender(AddressMother::address())
+            .sender(AccountMother::account().address())
             .first_valid(50659540)
             .last_valid(50660540)
             .to_owned()
@@ -70,7 +71,7 @@ impl TransactionHeaderMother {
             .first_valid(1)
             .last_valid(999)
             .fee(1000)
-            .sender(AddressMother::example())
+            .sender(AccountMother::example().address())
             .to_owned()
     }
 }
@@ -140,7 +141,7 @@ impl TransactionMother {
         AssetTransferTransactionBuilder::default()
             .header(
                 TransactionHeaderMother::simple_testnet()
-                    .sender(AddressMother::neil())
+                    .sender(AccountMother::neil().address())
                     .first_valid(51183672)
                     .last_valid(51183872)
                     .build()
@@ -148,46 +149,50 @@ impl TransactionMother {
             )
             .asset_id(107686045)
             .amount(1000)
-            .receiver(AddressMother::address())
+            .receiver(AccountMother::account().address())
             .to_owned()
     }
 
     pub fn opt_in_asset_transfer() -> AssetTransferTransactionBuilder {
         Self::simple_asset_transfer()
             .amount(0)
-            .receiver(AddressMother::neil())
+            .receiver(AccountMother::neil().address())
             .to_owned()
     }
 }
 
-pub struct AddressMother {}
-impl AddressMother {
-    pub fn zero_address() -> Address {
-        Address::from_pubkey(&[0; ALGORAND_PUBLIC_KEY_BYTE_LENGTH])
+pub struct AccountMother {}
+impl AccountMother {
+    pub fn zero_address_account() -> Account {
+        Account::from_pubkey(&[0; ALGORAND_PUBLIC_KEY_BYTE_LENGTH])
     }
 
-    pub fn address() -> Address {
+    pub fn account() -> Account {
         "RIMARGKZU46OZ77OLPDHHPUJ7YBSHRTCYMQUC64KZCCMESQAFQMYU6SL2Q"
             .parse()
             .unwrap()
     }
 
-    pub fn neil() -> Address {
+    pub fn neil() -> Account {
         "JB3K6HTAXODO4THESLNYTSG6GQUFNEVIQG7A6ZYVDACR6WA3ZF52TKU5NA"
             .parse()
             .unwrap()
     }
 
-    pub fn nfd_testnet() -> Address {
+    pub fn nfd_testnet() -> Account {
         "3Y62HTJ4WYSIEKC74XE3F2JFCS7774EN3CYNUHQCEFIN7QBYFAWLKE5MFY"
             .parse()
             .unwrap()
     }
 
-    pub fn example() -> Address {
+    pub fn example() -> Account {
         "ALGOC4J2BCZ33TCKSSAMV5GAXQBMV3HDCHDBSPRBZRNSR7BM2FFDZRFGXA"
             .parse()
             .unwrap()
+    }
+
+    pub fn msig() -> MultisigSignature {
+        MultisigSignature::new(1, 2, vec![Self::account().into(), Self::example().into()])
     }
 }
 
@@ -201,7 +206,7 @@ impl TransactionGroupMother {
     pub fn testnet_payment_group() -> Vec<Transaction> {
         // This is a real TestNet transaction group with two payment transactions.
         let header_builder = TransactionHeaderMother::testnet()
-            .sender(AddressMother::neil())
+            .sender(AccountMother::neil().address())
             .first_valid(51532821)
             .last_valid(51533021)
             .to_owned();
@@ -214,7 +219,7 @@ impl TransactionGroupMother {
                     .build()
                     .unwrap(),
             )
-            .receiver(AddressMother::neil())
+            .receiver(AccountMother::neil().address())
             .amount(1000000)
             .build()
             .unwrap();
@@ -227,7 +232,7 @@ impl TransactionGroupMother {
                     .build()
                     .unwrap(),
             )
-            .receiver(AddressMother::neil())
+            .receiver(AccountMother::neil().address())
             .amount(200000)
             .build()
             .unwrap();
@@ -237,7 +242,7 @@ impl TransactionGroupMother {
 
     pub fn group_of(number_of_transactions: usize) -> Vec<Transaction> {
         let header_builder = TransactionHeaderMother::testnet()
-            .sender(AddressMother::neil())
+            .sender(AccountMother::neil().address())
             .first_valid(51532821)
             .last_valid(51533021)
             .to_owned();
@@ -252,7 +257,7 @@ impl TransactionGroupMother {
                         .build()
                         .unwrap(),
                 )
-                .receiver(AddressMother::neil())
+                .receiver(AccountMother::neil().address())
                 .amount(200000)
                 .build()
                 .unwrap();
@@ -272,6 +277,8 @@ pub struct TransactionTestData {
     pub signed_bytes: Vec<u8>,
     pub rekeyed_sender_auth_address: Address,
     pub rekeyed_sender_signed_bytes: Vec<u8>,
+    pub multisig_addresses: (Address, Address),
+    pub multisig_signed_bytes: Vec<u8>,
 }
 
 impl TransactionTestData {
@@ -285,6 +292,7 @@ impl TransactionTestData {
             transaction: transaction.clone(),
             signature: Some(signature.to_bytes()),
             auth_address: None,
+            multisignature: None,
         };
         let signed_bytes = signed_txn.encode().unwrap();
 
@@ -295,8 +303,39 @@ impl TransactionTestData {
             transaction: transaction.clone(),
             signature: Some(signature.to_bytes()),
             auth_address: Some(rekeyed_sender_auth_address.clone()),
+            multisignature: None,
         };
         let rekeyed_sender_signed_bytes = signer_signed_txn.encode().unwrap();
+
+        let multisig_addresses = (
+            "424ZV7KBBUJ52DUKP2KLQ6I5GBOHKBXOW7Q7UQIOOYNDWYRM4EKOSMVVRI"
+                .parse()
+                .unwrap(),
+            "NY6DHEEFW73R2NUWY562U2NNKSKBKVYY5OOQFLD3M2II5RUNKRZDEGUGEA"
+                .parse()
+                .unwrap(),
+        );
+        let multisig_signature = MultisigSignature {
+            version: 1,
+            threshold: 2,
+            subsignatures: vec![
+                MultisigSubsignature {
+                    address: multisig_addresses.clone().0,
+                    signature: Some(signature.to_bytes()),
+                },
+                MultisigSubsignature {
+                    address: multisig_addresses.clone().1,
+                    signature: Some(signature.to_bytes()),
+                },
+            ],
+        };
+        let multisig_signed_txn = SignedTransaction {
+            transaction: transaction.clone(),
+            signature: None,
+            auth_address: None,
+            multisignature: Some(multisig_signature),
+        };
+        let multisig_signed_bytes = multisig_signed_txn.encode().unwrap();
 
         Self {
             transaction,
@@ -307,6 +346,8 @@ impl TransactionTestData {
             signed_bytes,
             rekeyed_sender_auth_address,
             rekeyed_sender_signed_bytes,
+            multisig_addresses,
+            multisig_signed_bytes,
         }
     }
 
@@ -481,6 +522,35 @@ mod tests {
             data.id,
             String::from("TZM3P4ZL4DLIEZ3WOEP67MQ6JITTO4D3NJN3RCA5YDBC3V4LA5LA")
         );
+        print!("{:?}", data.multisig_signed_bytes);
+        assert_eq!(
+            data.multisig_signed_bytes,
+            [
+                130, 164, 109, 115, 105, 103, 131, 166, 115, 117, 98, 115, 105, 103, 146, 130, 162,
+                112, 107, 196, 32, 230, 185, 154, 253, 65, 13, 19, 221, 14, 138, 126, 148, 184,
+                121, 29, 48, 92, 117, 6, 238, 183, 225, 250, 65, 14, 118, 26, 59, 98, 44, 225, 20,
+                161, 115, 196, 64, 198, 56, 196, 15, 176, 92, 85, 96, 205, 178, 248, 28, 27, 215,
+                149, 74, 22, 18, 122, 228, 98, 34, 13, 202, 109, 58, 242, 134, 31, 206, 195, 29,
+                110, 250, 219, 67, 240, 62, 47, 253, 200, 132, 24, 36, 210, 17, 97, 97, 165, 32,
+                154, 49, 102, 252, 16, 157, 51, 135, 216, 86, 41, 198, 47, 15, 130, 162, 112, 107,
+                196, 32, 110, 60, 51, 144, 133, 183, 247, 29, 54, 150, 199, 125, 170, 105, 173, 84,
+                148, 21, 87, 24, 235, 157, 2, 172, 123, 102, 144, 142, 198, 141, 84, 114, 161, 115,
+                196, 64, 198, 56, 196, 15, 176, 92, 85, 96, 205, 178, 248, 28, 27, 215, 149, 74,
+                22, 18, 122, 228, 98, 34, 13, 202, 109, 58, 242, 134, 31, 206, 195, 29, 110, 250,
+                219, 67, 240, 62, 47, 253, 200, 132, 24, 36, 210, 17, 97, 97, 165, 32, 154, 49,
+                102, 252, 16, 157, 51, 135, 216, 86, 41, 198, 47, 15, 163, 116, 104, 114, 2, 161,
+                118, 1, 163, 116, 120, 110, 137, 163, 97, 109, 116, 206, 0, 1, 138, 136, 163, 102,
+                101, 101, 205, 3, 232, 162, 102, 118, 206, 3, 5, 0, 212, 163, 103, 101, 110, 172,
+                116, 101, 115, 116, 110, 101, 116, 45, 118, 49, 46, 48, 162, 103, 104, 196, 32, 72,
+                99, 181, 24, 164, 179, 200, 78, 200, 16, 242, 45, 79, 16, 129, 203, 15, 113, 240,
+                89, 167, 172, 32, 222, 198, 47, 127, 112, 229, 9, 58, 34, 162, 108, 118, 206, 3, 5,
+                4, 188, 163, 114, 99, 118, 196, 32, 173, 207, 218, 63, 201, 93, 52, 35, 35, 15,
+                161, 115, 204, 245, 211, 90, 68, 182, 3, 164, 184, 247, 131, 205, 149, 104, 201,
+                215, 253, 11, 206, 245, 163, 115, 110, 100, 196, 32, 138, 24, 8, 153, 89, 167, 60,
+                236, 255, 238, 91, 198, 115, 190, 137, 254, 3, 35, 198, 98, 195, 33, 65, 123, 138,
+                200, 132, 194, 74, 0, 44, 25, 164, 116, 121, 112, 101, 163, 112, 97, 121
+            ]
+        )
     }
 
     #[test]

@@ -82,7 +82,7 @@ pub struct AssetConfigTransactionFields {
     /// The fields it can change are `manager`, `reserve`, `clawback`, and `freeze`.
     ///
     /// If not set or set to the Zero address the asset becomes permanently immutable.
-    manager: Option<Address>,
+    manager: Option<String>,
 
     /// The address of the optional account that holds the reserve (uncirculated supply) units of the asset.
     ///
@@ -95,14 +95,14 @@ pub struct AssetConfigTransactionFields {
     /// of the asset reside in an account that is different from the default creator account.
     ///
     /// If not set or set to the Zero address is permanently empty.
-    reserve: Option<Address>,
+    reserve: Option<String>,
 
     /// The address of the optional account that can be used to freeze or unfreeze holdings of this asset for any account.
     ///
     /// If empty, freezing is not permitted.
     ///
     /// If not set or set to the Zero address is permanently empty.
-    freeze: Option<Address>,
+    freeze: Option<String>,
 
     /// The address of the optional account that can clawback holdings of this asset from any account.
     ///
@@ -111,7 +111,7 @@ pub struct AssetConfigTransactionFields {
     /// If empty, clawback is not permitted.
     ///
     /// If not set or set to the Zero address is permanently empty.
-    clawback: Option<Address>,
+    clawback: Option<String>,
 }
 
 impl From<algokit_transact::AssetConfigTransactionFields> for AssetConfigTransactionFields {
@@ -125,10 +125,10 @@ impl From<algokit_transact::AssetConfigTransactionFields> for AssetConfigTransac
             unit_name: tx.unit_name,
             url: tx.url,
             metadata_hash: tx.metadata_hash.map(|h| h.to_vec().into()),
-            manager: tx.manager.map(Into::into),
-            reserve: tx.reserve.map(Into::into),
-            freeze: tx.freeze.map(Into::into),
-            clawback: tx.clawback.map(Into::into),
+            manager: tx.manager.map(|addr| addr.as_str()),
+            reserve: tx.reserve.map(|addr| addr.as_str()),
+            freeze: tx.freeze.map(|addr| addr.as_str()),
+            clawback: tx.clawback.map(|addr| addr.as_str()),
         }
     }
 }
@@ -161,10 +161,10 @@ impl TryFrom<Transaction> for algokit_transact::AssetConfigTransactionFields {
             unit_name: data.unit_name,
             url: data.url,
             metadata_hash,
-            manager: data.manager.map(TryInto::try_into).transpose()?,
-            reserve: data.reserve.map(TryInto::try_into).transpose()?,
-            freeze: data.freeze.map(TryInto::try_into).transpose()?,
-            clawback: data.clawback.map(TryInto::try_into).transpose()?,
+            manager: data.manager.map(|addr| addr.parse()).transpose()?,
+            reserve: data.reserve.map(|addr| addr.parse()).transpose()?,
+            freeze: data.freeze.map(|addr| addr.parse()).transpose()?,
+            clawback: data.clawback.map(|addr| addr.parse()).transpose()?,
         };
 
         transaction_fields.validate().map_err(|errors| {

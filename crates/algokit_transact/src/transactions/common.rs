@@ -3,12 +3,12 @@
 //! This module provides the fundamental transaction types and headers used
 //! across different transaction types.
 
-use crate::address::Address;
 use crate::constants::Byte32;
 use crate::utils::{
     is_empty_bytes32_opt, is_empty_string_opt, is_empty_vec_opt, is_zero, is_zero_addr,
     is_zero_addr_opt, is_zero_opt,
 };
+use crate::Address;
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, skip_serializing_none, Bytes};

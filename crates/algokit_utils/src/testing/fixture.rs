@@ -38,8 +38,8 @@ impl TxnSigner for TestAccount {
 #[async_trait]
 impl TxnSignerGetter for TestAccount {
     async fn get_signer(&self, address: Address) -> Option<&dyn TxnSigner> {
-        let test_account_address = self.address().expect("Failed to get test account address");
-        if address == test_account_address {
+        let test_account_address = self.account().expect("Failed to get test account address");
+        if address == test_account_address.address() {
             Some(self)
         } else {
             None

@@ -36,8 +36,9 @@ Below is a collection of examples that'll help you formulate transactions that c
 import base64
 from nacl.signing import SigningKey
 from algokit_transact import (
-    address_from_string,
-    assign_fee
+    account_from_address,
+    account_from_pub_key,
+    assign_fee,
     FeeParams,
     Transaction,
     TransactionType,
@@ -49,18 +50,18 @@ from algokit_transact import (
 
 # Get the sender and reciever addresses
 alice_keypair = SigningKey.generate()
-alice = address_from_pub_key(alice_keypair.verify_key.__bytes__())
-bob = address_from_string("B72WNFFEZ7EOGMQPP7ROHYS3DSLL5JW74QASYNWGZGQXWRPJECJJLJIJ2Y")
+alice = account_from_pub_key(alice_keypair.verify_key.__bytes__())
+bob = account_from_address("B72WNFFEZ7EOGMQPP7ROHYS3DSLL5JW74QASYNWGZGQXWRPJECJJLJIJ2Y")
 
 # Build the base payment transaction
 base_tx = Transaction(
     transaction_type=TransactionType.PAYMENT,
-    sender=alice,
+    sender=alice.address,
     first_valid=1337,
     last_valid=1347,
     genesis_hash=base64.b64decode("SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI="),
     genesis_id="testnet-v1.0",
-    payment=PaymentTransactionFields(amount=1337, receiver=bob),
+    payment=PaymentTransactionFields(amount=1337, receiver=bob.address),
 )
 
 tx = assign_fee(base_tx, FeeParams(fee_per_byte=0, min_fee=1000, max_fee=2000))

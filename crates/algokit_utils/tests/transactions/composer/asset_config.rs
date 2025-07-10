@@ -1,3 +1,4 @@
+use algokit_transact::Address;
 use algokit_utils::testing::*;
 use algokit_utils::{AssetCreateParams, AssetDestroyParams, AssetReconfigureParams, CommonParams};
 
@@ -15,10 +16,11 @@ async fn test_asset_create_transaction() {
         .expect("Failed to create new scope");
 
     let context = fixture.context().expect("Failed to get context");
-    let sender_addr = context
+    let sender_addr: Address = context
         .test_account
-        .address()
-        .expect("Failed to get sender address");
+        .account()
+        .expect("Failed to get sender address")
+        .into();
 
     let asset_create_params = AssetCreateParams {
         common_params: CommonParams {
@@ -104,15 +106,17 @@ async fn test_asset_reconfigure_transaction() {
         .await
         .expect("Failed to create new manager");
 
-    let new_manager_addr = new_manager
-        .address()
-        .expect("Failed to get new manager address");
+    let new_manager_addr: Address = new_manager
+        .account()
+        .expect("Failed to get new manager account")
+        .address();
 
     let context = fixture.context().expect("Failed to get context");
     let sender_addr = context
         .test_account
-        .address()
-        .expect("Failed to get sender address");
+        .account()
+        .expect("Failed to get sender address")
+        .address();
 
     // First create an asset to reconfigure
     let asset_create_params = AssetCreateParams {
@@ -202,8 +206,9 @@ async fn test_asset_destroy_transaction() {
     let context = fixture.context().expect("Failed to get context");
     let sender_addr = context
         .test_account
-        .address()
-        .expect("Failed to get sender address");
+        .account()
+        .expect("Failed to get sender address")
+        .address();
 
     // First create an asset to destroy
     let asset_create_params = AssetCreateParams {

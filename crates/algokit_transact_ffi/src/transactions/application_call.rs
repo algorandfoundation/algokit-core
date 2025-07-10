@@ -54,7 +54,7 @@ pub struct ApplicationCallTransactionFields {
 
     /// List of accounts in addition to the sender that may be accessed
     /// from the application's approval program and clear state program.
-    account_references: Option<Vec<Address>>,
+    account_references: Option<Vec<String>>,
 
     /// List of applications in addition to the current application that may be called
     /// from the application's approval program and clear state program.
@@ -85,7 +85,7 @@ impl From<algokit_transact::ApplicationCallTransactionFields> for ApplicationCal
                 .map(|args| args.into_iter().map(Into::into).collect()),
             account_references: tx
                 .account_references
-                .map(|accs| accs.into_iter().map(Into::into).collect()),
+                .map(|addrs| addrs.into_iter().map(|addr| addr.as_str()).collect()),
             app_references: tx.app_references,
             asset_references: tx.asset_references,
             box_references: tx
@@ -123,9 +123,10 @@ impl TryFrom<Transaction> for algokit_transact::ApplicationCallTransactionFields
                 .map(|args| args.into_iter().map(ByteBuf::into_vec).collect()),
             account_references: data
                 .account_references
-                .map(|accs| {
-                    accs.into_iter()
-                        .map(TryInto::try_into)
+                .map(|addrs| {
+                    addrs
+                        .into_iter()
+                        .map(|addr| addr.parse())
                         .collect::<Result<Vec<_>, _>>()
                 })
                 .transpose()?,

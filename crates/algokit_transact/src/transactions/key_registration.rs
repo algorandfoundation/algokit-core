@@ -380,7 +380,7 @@ mod tests {
         use crate::{
             constants::ALGORAND_SIGNATURE_BYTE_LENGTH,
             test_utils::{
-                AddressMother, KeyRegistrationTransactionMother, TransactionHeaderMother,
+                AccountMother, KeyRegistrationTransactionMother, TransactionHeaderMother,
                 TransactionMother,
             },
             traits::TransactionId,
@@ -403,6 +403,7 @@ mod tests {
                 transaction: key_reg_tx.clone(),
                 signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
                 auth_address: None,
+                multisignature: None,
             };
             let encoded_stx = signed_tx.encode().unwrap();
             let decoded_stx = SignedTransaction::decode(&encoded_stx).unwrap();
@@ -433,6 +434,7 @@ mod tests {
                 transaction: key_reg_tx.clone(),
                 signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
                 auth_address: None,
+                multisignature: None,
             };
             let encoded_stx = signed_tx.encode().unwrap();
             let decoded_stx = SignedTransaction::decode(&encoded_stx).unwrap();
@@ -464,6 +466,7 @@ mod tests {
                 transaction: key_reg_tx.clone(),
                 signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
                 auth_address: None,
+                multisignature: None,
             };
 
             // Test that transaction ID can be generated
@@ -500,7 +503,7 @@ mod tests {
         #[test]
         fn test_key_registration_in_transaction_group() {
             let header_builder = TransactionHeaderMother::testnet()
-                .sender(AddressMother::neil())
+                .sender(AccountMother::neil().address())
                 .first_valid(51532821)
                 .last_valid(51533021)
                 .to_owned();

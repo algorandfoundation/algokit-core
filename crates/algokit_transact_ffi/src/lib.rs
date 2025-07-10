@@ -2,7 +2,7 @@ mod transactions;
 
 use algokit_transact::constants::*;
 use algokit_transact::{
-    AlgorandMsgpack, Byte32, EstimateTransactionSize, TransactionId, Transactions, Validate,
+    AlgorandMsgpack, EstimateTransactionSize, TransactionId, Transactions, Validate,
 };
 use ffi_macros::{ffi_enum, ffi_func, ffi_record};
 use serde::{Deserialize, Serialize};
@@ -113,13 +113,27 @@ pub enum TransactionType {
 }
 
 #[ffi_record]
-pub struct Address {
+pub struct Account {
     address: String,
     pub_key: ByteBuf,
 }
 
-impl From<algokit_transact::Address> for Address {
-    fn from(value: algokit_transact::Address) -> Self {
+#[ffi_record]
+pub struct MultisigSignature {
+    address: String,
+    version: u8,
+    threshold: u8,
+    subsignatures: Vec<MultisigSubsignature>,
+}
+
+#[ffi_record]
+pub struct MultisigSubsignature {
+    address: String,
+    signature: Option<ByteBuf>,
+}
+
+impl From<algokit_transact::Account> for Account {
+    fn from(value: algokit_transact::Account) -> Self {
         Self {
             address: value.to_string(),
             pub_key: value.pub_key.to_vec().into(),
@@ -127,10 +141,10 @@ impl From<algokit_transact::Address> for Address {
     }
 }
 
-impl TryFrom<Address> for algokit_transact::Address {
+impl TryFrom<Account> for algokit_transact::Account {
     type Error = AlgoKitTransactError;
 
-    fn try_from(value: Address) -> Result<Self, Self::Error> {
+    fn try_from(value: Account) -> Result<Self, Self::Error> {
         let pub_key: [u8; ALGORAND_PUBLIC_KEY_BYTE_LENGTH] =
             value.pub_key.to_vec().try_into().map_err(|_| {
                 AlgoKitTransactError::EncodingError(
@@ -142,7 +156,81 @@ impl TryFrom<Address> for algokit_transact::Address {
                 )
             })?;
 
-        Ok(algokit_transact::Address::from_pubkey(&pub_key))
+        Ok(algokit_transact::Account::from_pubkey(&pub_key))
+    }
+}
+
+impl From<algokit_transact::Address> for Account {
+    fn from(value: algokit_transact::Address) -> Self {
+        Self {
+            address: value.to_string(),
+            pub_key: value.as_bytes().to_vec().into(),
+        }
+    }
+}
+
+impl TryFrom<Account> for algokit_transact::Address {
+    type Error = AlgoKitTransactError;
+
+    fn try_from(value: Account) -> Result<Self, Self::Error> {
+        value.address.parse().map_err(Self::Error::from)
+    }
+}
+
+impl From<algokit_transact::MultisigSignature> for MultisigSignature {
+    fn from(value: algokit_transact::MultisigSignature) -> Self {
+        Self {
+            address: value.to_string(),
+            version: value.version,
+            threshold: value.threshold,
+            subsignatures: value.subsignatures.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
+impl TryFrom<MultisigSignature> for algokit_transact::MultisigSignature {
+    type Error = AlgoKitTransactError;
+
+    fn try_from(value: MultisigSignature) -> Result<Self, Self::Error> {
+        Ok(Self {
+            version: value.version,
+            threshold: value.threshold,
+            subsignatures: value
+                .subsignatures
+                .into_iter()
+                .map(TryInto::try_into)
+                .collect::<Result<Vec<_>, _>>()?,
+        })
+    }
+}
+
+impl From<algokit_transact::MultisigSubsignature> for MultisigSubsignature {
+    fn from(value: algokit_transact::MultisigSubsignature) -> Self {
+        Self {
+            address: value.address.as_str(),
+            signature: value.signature.map(|sig| sig.to_vec().into()),
+        }
+    }
+}
+
+impl TryFrom<MultisigSubsignature> for algokit_transact::MultisigSubsignature {
+    type Error = AlgoKitTransactError;
+
+    fn try_from(value: MultisigSubsignature) -> Result<Self, Self::Error> {
+        let address = value.address.parse()?;
+        let signature = value
+            .signature
+            .map(|sig| {
+                sig.to_vec().try_into().map_err(|_| {
+                    AlgoKitTransactError::EncodingError(format!(
+                        "signature should be {} bytes",
+                        ALGORAND_SIGNATURE_BYTE_LENGTH
+                    ))
+                })
+            })
+            .transpose()?;
+
+        Ok(Self { address, signature })
     }
 }
 
@@ -156,11 +244,11 @@ pub struct FeeParams {
 
 #[ffi_record]
 pub struct PaymentTransactionFields {
-    receiver: Address,
+    receiver: String,
 
     amount: u64,
 
-    close_remainder_to: Option<Address>,
+    close_remainder_to: Option<String>,
 }
 
 #[ffi_record]
@@ -169,11 +257,11 @@ pub struct AssetTransferTransactionFields {
 
     amount: u64,
 
-    receiver: Address,
+    receiver: String,
 
-    asset_sender: Option<Address>,
+    asset_sender: Option<String>,
 
-    close_remainder_to: Option<Address>,
+    close_remainder_to: Option<String>,
 }
 
 #[ffi_record]
@@ -182,7 +270,7 @@ pub struct Transaction {
     transaction_type: TransactionType,
 
     /// The sender of the transaction
-    sender: Address,
+    sender: String,
 
     /// Optional transaction fee in microALGO.
     ///
@@ -199,7 +287,7 @@ pub struct Transaction {
 
     note: Option<ByteBuf>,
 
-    rekey_to: Option<Address>,
+    rekey_to: Option<String>,
 
     lease: Option<ByteBuf>,
 
@@ -264,7 +352,7 @@ impl TryFrom<Transaction> for algokit_transact::TransactionHeader {
 
     fn try_from(tx: Transaction) -> Result<Self, AlgoKitTransactError> {
         Ok(Self {
-            sender: tx.sender.try_into()?,
+            sender: tx.sender.parse()?,
             fee: tx.fee,
             first_valid: tx.first_valid,
             last_valid: tx.last_valid,
@@ -274,7 +362,7 @@ impl TryFrom<Transaction> for algokit_transact::TransactionHeader {
                 .map(|buf| bytebuf_to_bytes::<32>(&buf))
                 .transpose()?,
             note: tx.note.map(ByteBuf::into_vec),
-            rekey_to: tx.rekey_to.map(TryInto::try_into).transpose()?,
+            rekey_to: tx.rekey_to.map(|addr| addr.parse()).transpose()?,
             lease: tx
                 .lease
                 .map(|buf| bytebuf_to_bytes::<32>(&buf))
@@ -290,9 +378,9 @@ impl TryFrom<Transaction> for algokit_transact::TransactionHeader {
 impl From<algokit_transact::PaymentTransactionFields> for PaymentTransactionFields {
     fn from(tx: algokit_transact::PaymentTransactionFields) -> Self {
         Self {
-            receiver: tx.receiver.into(),
+            receiver: tx.receiver.as_str(),
             amount: tx.amount,
-            close_remainder_to: tx.close_remainder_to.map(Into::into),
+            close_remainder_to: tx.close_remainder_to.map(|addr| addr.as_str()),
         }
     }
 }
@@ -313,8 +401,11 @@ impl TryFrom<Transaction> for algokit_transact::PaymentTransactionFields {
         Ok(Self {
             header,
             amount: data.amount,
-            receiver: data.receiver.try_into()?,
-            close_remainder_to: data.close_remainder_to.map(TryInto::try_into).transpose()?,
+            receiver: data.receiver.parse()?,
+            close_remainder_to: data
+                .close_remainder_to
+                .map(|addr| addr.parse())
+                .transpose()?,
         })
     }
 }
@@ -324,9 +415,9 @@ impl From<algokit_transact::AssetTransferTransactionFields> for AssetTransferTra
         Self {
             asset_id: tx.asset_id,
             amount: tx.amount,
-            receiver: tx.receiver.into(),
-            asset_sender: tx.asset_sender.map(Into::into),
-            close_remainder_to: tx.close_remainder_to.map(Into::into),
+            receiver: tx.receiver.as_str(),
+            asset_sender: tx.asset_sender.map(|addr| addr.as_str()),
+            close_remainder_to: tx.close_remainder_to.map(|addr| addr.as_str()),
         }
     }
 }
@@ -348,9 +439,12 @@ impl TryFrom<Transaction> for algokit_transact::AssetTransferTransactionFields {
             header,
             asset_id: data.asset_id,
             amount: data.amount,
-            receiver: data.receiver.try_into()?,
-            asset_sender: data.asset_sender.map(TryInto::try_into).transpose()?,
-            close_remainder_to: data.close_remainder_to.map(TryInto::try_into).transpose()?,
+            receiver: data.receiver.parse()?,
+            asset_sender: data.asset_sender.map(|addr| addr.parse()).transpose()?,
+            close_remainder_to: data
+                .close_remainder_to
+                .map(|addr| addr.parse())
+                .transpose()?,
         })
     }
 }
@@ -433,7 +527,10 @@ pub struct SignedTransaction {
     pub signature: Option<ByteBuf>,
 
     /// Optional auth address applicable if the transaction sender is a rekeyed account.
-    pub auth_address: Option<Address>,
+    pub auth_address: Option<String>,
+
+    /// Optional multisig signature if the transaction is a multisig transaction.
+    pub multisignature: Option<MultisigSignature>,
 }
 
 impl From<algokit_transact::SignedTransaction> for SignedTransaction {
@@ -441,7 +538,8 @@ impl From<algokit_transact::SignedTransaction> for SignedTransaction {
         Self {
             transaction: signed_tx.transaction.try_into().unwrap(),
             signature: signed_tx.signature.map(|sig| sig.to_vec().into()),
-            auth_address: signed_tx.auth_address.map(Into::into),
+            auth_address: signed_tx.auth_address.map(|addr| addr.as_str()),
+            multisignature: signed_tx.multisignature.map(Into::into),
         }
     }
 }
@@ -465,7 +563,14 @@ impl TryFrom<SignedTransaction> for algokit_transact::SignedTransaction {
         Ok(Self {
             transaction: signed_tx.transaction.try_into()?,
             signature,
-            auth_address: signed_tx.auth_address.map(TryInto::try_into).transpose()?,
+            auth_address: signed_tx
+                .auth_address
+                .map(|addr| addr.parse())
+                .transpose()?,
+            multisignature: signed_tx
+                .multisignature
+                .map(TryInto::try_into)
+                .transpose()?,
         })
     }
 }
@@ -494,14 +599,14 @@ fn build_transaction(
 ) -> Result<Transaction, AlgoKitTransactError> {
     Ok(Transaction {
         transaction_type,
-        sender: header.sender.into(),
+        sender: header.sender.as_str(),
         fee: header.fee,
         first_valid: header.first_valid,
         last_valid: header.last_valid,
         genesis_id: header.genesis_id,
         genesis_hash: header.genesis_hash.map(byte32_to_bytebuf),
         note: header.note.map(Into::into),
-        rekey_to: header.rekey_to.map(Into::into),
+        rekey_to: header.rekey_to.map(|addr| addr.as_str()),
         lease: header.lease.map(byte32_to_bytebuf),
         group: header.group.map(byte32_to_bytebuf),
         payment,
@@ -643,9 +748,9 @@ pub fn estimate_transaction_size(transaction: Transaction) -> Result<u64, AlgoKi
 }
 
 #[ffi_func]
-pub fn address_from_pub_key(pub_key: &[u8]) -> Result<Address, AlgoKitTransactError> {
+pub fn account_from_pub_key(pub_key: &[u8]) -> Result<Account, AlgoKitTransactError> {
     Ok(
-        algokit_transact::Address::from_pubkey(pub_key.try_into().map_err(|_| {
+        algokit_transact::Account::from_pubkey(pub_key.try_into().map_err(|_| {
             AlgoKitTransactError::EncodingError(
                 format!(
                     "public key should be {} bytes",
@@ -659,9 +764,9 @@ pub fn address_from_pub_key(pub_key: &[u8]) -> Result<Address, AlgoKitTransactEr
 }
 
 #[ffi_func]
-pub fn address_from_string(address: &str) -> Result<Address, AlgoKitTransactError> {
+pub fn account_from_address(address: &str) -> Result<Account, AlgoKitTransactError> {
     address
-        .parse::<algokit_transact::Address>()
+        .parse::<algokit_transact::Account>()
         .map(Into::into)
         .map_err(|e| AlgoKitTransactError::EncodingError(e.to_string()))
 }
@@ -722,7 +827,7 @@ pub enum AlgorandConstant {
     /// Increment in the encoded byte size when a signature is attached to a transaction (75)
     SignatureEncodingIncrLength,
 
-    // The maximum number of transactions in a group (16)
+    /// The maximum number of transactions in a group (16)
     MaxTxGroupSize,
 }
 
