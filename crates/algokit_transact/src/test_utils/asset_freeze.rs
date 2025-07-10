@@ -47,7 +47,7 @@ impl AssetFreezeTransactionMother {
     }
 
     pub fn asset_unfreeze() -> AssetFreezeTransactionBuilder {
-        // testnet - LZ2ODDAT4ATAVJUEQW34DIKMPCMBXCCHOSIYKMWGBPEVNHLSEV2A
+        // testnet-LZ2ODDAT4ATAVJUEQW34DIKMPCMBXCCHOSIYKMWGBPEVNHLSEV2A
         let sender = "WLH5LELVSEVQL45LBRQYCLJAX6KQPGWUY5WHJXVRV2NPYZUBQAFPH22Q7A"
             .parse::<Address>()
             .unwrap();
@@ -69,7 +69,6 @@ impl AssetFreezeTransactionMother {
                     .first_valid(3277583)
                     .last_valid(3278583)
                     .genesis_hash(genesis_hash)
-                    .genesis_id("testnet-v1.0".to_string())
                     .note(note)
                     .build()
                     .unwrap(),
