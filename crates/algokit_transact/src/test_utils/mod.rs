@@ -1,14 +1,21 @@
 mod application_call;
 mod asset_config;
+mod asset_freeze;
 mod key_registration;
 
 use crate::{
+<<<<<<< HEAD
     transactions::{
         AssetFreezeTransactionBuilder, AssetTransferTransactionBuilder, PaymentTransactionBuilder,
     },
     Account, Address, AlgorandMsgpack, Byte32, MultisigSignature, MultisigSubsignature,
     SignedTransaction, Transaction, TransactionHeaderBuilder, TransactionId,
     ALGORAND_PUBLIC_KEY_BYTE_LENGTH, HASH_BYTES_LENGTH,
+=======
+    transactions::{AssetTransferTransactionBuilder, PaymentTransactionBuilder},
+    Address, AlgorandMsgpack, Byte32, SignedTransaction, Transaction, TransactionHeaderBuilder,
+    TransactionId, ALGORAND_PUBLIC_KEY_BYTE_LENGTH, HASH_BYTES_LENGTH,
+>>>>>>> 94cb35b (wip)
 };
 use base64::{prelude::BASE64_STANDARD, Engine};
 use convert_case::{Case, Casing};
@@ -20,6 +27,7 @@ use std::{fs::File, str::FromStr};
 
 pub use application_call::ApplicationCallTransactionMother;
 pub use asset_config::AssetConfigTransactionMother;
+pub use asset_freeze::AssetFreezeTransactionMother;
 pub use key_registration::KeyRegistrationTransactionMother;
 
 pub struct TransactionHeaderMother {}
@@ -161,6 +169,7 @@ impl TransactionMother {
             .receiver(AccountMother::neil().address())
             .to_owned()
     }
+<<<<<<< HEAD
 
     pub fn asset_freeze() -> AssetFreezeTransactionBuilder {
         AssetFreezeTransactionBuilder::default()
@@ -270,6 +279,8 @@ impl TransactionMother {
             .frozen(true)
             .to_owned()
     }
+=======
+>>>>>>> 94cb35b (wip)
 }
 
 pub struct AccountMother {}
@@ -567,7 +578,9 @@ impl TestDataMother {
             2, 205, 103, 33, 67, 14, 82, 196, 115, 196, 206, 254, 50, 110, 63, 182, 149, 229, 184,
             216, 93, 11, 13, 99, 69, 213, 218, 165, 134, 118, 47, 44,
         ];
-        let transaction = TransactionMother::asset_freeze().build().unwrap();
+        let transaction = AssetFreezeTransactionMother::asset_freeze()
+            .build()
+            .unwrap();
         TransactionTestData::new(transaction, signing_private_key)
     }
 
@@ -576,7 +589,9 @@ impl TestDataMother {
             2, 205, 103, 33, 67, 14, 82, 196, 115, 196, 206, 254, 50, 110, 63, 182, 149, 229, 184,
             216, 93, 11, 13, 99, 69, 213, 218, 165, 134, 118, 47, 44,
         ];
-        let transaction = TransactionMother::asset_unfreeze().build().unwrap();
+        let transaction = AssetFreezeTransactionMother::asset_unfreeze()
+            .build()
+            .unwrap();
         TransactionTestData::new(transaction, signing_private_key)
     }
 
@@ -620,17 +635,12 @@ fn normalise_json(value: serde_json::Value) -> serde_json::Value {
         "num_uints",
     ];
 
-    // Boolean fields that should always be included, even when false
-    const BOOLEAN_FIELDS_TO_KEEP: &[&str] = &["frozen"];
-
     match value {
         serde_json::Value::Object(map) => serde_json::Value::Object(
             map.into_iter()
                 .filter(|(k, v)| {
                     !(v.is_null()
-                        || v.is_boolean()
-                            && v.as_bool() == Some(false)
-                            && !BOOLEAN_FIELDS_TO_KEEP.contains(&k.to_case(Case::Snake).as_str())
+                        || v.is_boolean() && v.as_bool() == Some(false)
                         || v.is_number()
                             && v.as_u64() == Some(0)
                             && !ZERO_VALUE_EXCLUDED_FIELDS
@@ -798,6 +808,15 @@ mod tests {
     #[test]
     fn test_asset_freeze_snapshot() {
         let data = TestDataMother::asset_freeze();
+        assert_eq!(
+            data.id,
+            String::from("2XFGVOHMFYLAWBHOSIOI67PBT5LDRHBTD3VLX5EYBDTFNVKMCJIA")
+        );
+    }
+
+    #[test]
+    fn test_asset_unfreeze_snapshot() {
+        let data = TestDataMother::asset_unfreeze();
         assert_eq!(
             data.id,
             String::from("2XFGVOHMFYLAWBHOSIOI67PBT5LDRHBTD3VLX5EYBDTFNVKMCJIA")

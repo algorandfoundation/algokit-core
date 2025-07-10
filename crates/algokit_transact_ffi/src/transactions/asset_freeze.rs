@@ -24,7 +24,7 @@ impl From<algokit_transact::AssetFreezeTransactionFields> for AssetFreezeTransac
         Self {
             asset_id: tx.asset_id,
             freeze_target: tx.freeze_target.into(),
-            frozen: tx.frozen.unwrap_or(false),
+            frozen: tx.frozen,
         }
     }
 }
@@ -46,7 +46,7 @@ impl TryFrom<Transaction> for algokit_transact::AssetFreezeTransactionFields {
             header,
             asset_id: data.asset_id,
             freeze_target: data.freeze_target.try_into()?,
-            frozen: Some(data.frozen),
+            frozen: data.frozen,
         })
     }
 }
