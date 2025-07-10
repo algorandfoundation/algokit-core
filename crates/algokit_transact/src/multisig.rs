@@ -1,12 +1,12 @@
-//! Algorand multisignature account representation and manipulation.
+//! Algorand multisignature signature representation and manipulation.
 //!
 //! This module provides the [`MultisigSignature`] type, which encapsulates an Algorand multisignature
-//! account's version, threshold, and participating addresses. The corresponding [`Address`] is derived
+//! signature's version, threshold, and participating addresses. The corresponding [`Address`] is derived
 //! from the domain separator, version, threshold, and the concatenated addresses, hashed to produce
 //! the 32-byte digest used as the address.
 //!
-//! Contrary to the single signature account, it's not possible to derive a multisignature account
-//! from its address, as the "public information" of a multisig account is derived with
+//! Unlike single-signature addresses, it is not possible to reconstruct the full set of multisignature
+//! parameters from an address alone, as the "public information" of a multisig signature is derived with
 //! a cryptographic hash function.
 
 use crate::address::Address;
@@ -18,22 +18,13 @@ use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, Bytes};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-// TODO: The reference implementation uses `Multisig` kind of both as a signature of a transaction, and
-//  as an account type. In the reference implementation, everytime we need to sign a new msig transaction,
-//  we need a "new" `Multisig` object. We need to evaluate if it's good and convenient to introduce
-//  a separate `MultisigAccount` type, like we have for `Account`.
-//  This new type would not contain the `sig` field, and it would just be a version, threshold, and list of participants.
-//  This new type is not present so we need to be careful introducing new concepts that may not
-//  be compatible with the reference implementation.
-
-/// Represents an Algorand multisignature account.
+/// Represents an Algorand multisignature signature.
 ///
-/// A multisignature account is defined by a version, a threshold, and a list of participating addresses.
+/// A multisignature signature is defined by a version, a threshold, and a list of participating addresses.
 /// The version indicates the multisig protocol version, while the threshold specifies the minimum
 /// number of signatures required to authorize a transaction.
 /// While technically this accepts [`Address`] types, it is expected that these will be
-/// the addresses of [`Account`]s, which are 32-byte Ed25519 public keys.
-// TODO: This name deviates from the reference implementation, which uses `Multisig`.
+/// the addresses of Ed25519 public keys.
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct MultisigSignature {
     /// Multisig version.
@@ -48,7 +39,7 @@ pub struct MultisigSignature {
 }
 
 impl MultisigSignature {
-    /// Creates a new multisignature account with the specified version, threshold, and participants.
+    /// Creates a new multisignature signature with the specified version, threshold, and participants.
     pub fn new(version: u8, threshold: u8, participants: Vec<Address>) -> Self {
         let subsigs = participants
             .into_iter()
@@ -76,7 +67,7 @@ impl MultisigSignature {
 #[serde_as]
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct MultisigSubsignature {
-    /// Address of a single signature account that is sub-signing a multisignature transaction.
+    /// Address of a single signature participant that is sub-signing a multisignature transaction.
     #[serde(rename = "pk")]
     pub address: Address,
     /// The signature bytes.

@@ -154,6 +154,7 @@ pub struct SignedTransaction {
     #[serde(default)]
     pub auth_address: Option<Address>,
 
+    /// Optional multisignature signature for the transaction.
     #[serde(rename = "msig")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub multisignature: Option<MultisigSignature>,
