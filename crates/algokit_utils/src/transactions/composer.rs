@@ -767,7 +767,7 @@ impl Composer {
 mod tests {
     use super::*;
     use crate::transactions::common::EmptySigner;
-    use algokit_transact::test_utils::{AddressMother, TransactionMother};
+    use algokit_transact::test_utils::{AccountMother, TransactionMother};
     use base64::{Engine, prelude::BASE64_STANDARD};
 
     #[test]
@@ -806,7 +806,7 @@ mod tests {
         let mut composer = Composer::testnet();
         let payment_params = PaymentParams {
             common_params: CommonParams {
-                sender: AddressMother::address(),
+                sender: AccountMother::account().address(),
                 signer: None,
                 rekey_to: None,
                 note: None,
@@ -818,7 +818,7 @@ mod tests {
                 first_valid_round: None,
                 last_valid_round: None,
             },
-            receiver: AddressMother::address(),
+            receiver: AccountMother::account().address(),
             amount: 1000,
             close_remainder_to: None,
         };
@@ -831,7 +831,7 @@ mod tests {
 
         let payment_params = PaymentParams {
             common_params: CommonParams {
-                sender: AddressMother::address(),
+                sender: AccountMother::account().address(),
                 signer: None,
                 rekey_to: None,
                 note: None,
@@ -843,7 +843,7 @@ mod tests {
                 first_valid_round: None,
                 last_valid_round: None,
             },
-            receiver: AddressMother::address(),
+            receiver: AccountMother::account().address(),
             amount: 1000,
             close_remainder_to: None,
         };
@@ -859,7 +859,7 @@ mod tests {
         let mut composer = Composer::testnet();
         let payment_params = PaymentParams {
             common_params: CommonParams {
-                sender: AddressMother::address(),
+                sender: AccountMother::account().address(),
                 signer: None,
                 rekey_to: None,
                 note: None,
@@ -871,7 +871,7 @@ mod tests {
                 first_valid_round: None,
                 last_valid_round: None,
             },
-            receiver: AddressMother::address(),
+            receiver: AccountMother::account().address(),
             amount: 1000,
             close_remainder_to: None,
         };
@@ -893,7 +893,7 @@ mod tests {
         for _ in 0..2 {
             let payment_params = PaymentParams {
                 common_params: CommonParams {
-                    sender: AddressMother::address(),
+                    sender: AccountMother::account().address(),
                     signer: None,
                     rekey_to: None,
                     note: None,
@@ -905,7 +905,7 @@ mod tests {
                     first_valid_round: None,
                     last_valid_round: None,
                 },
-                receiver: AddressMother::address(),
+                receiver: AccountMother::account().address(),
                 amount: 1000,
                 close_remainder_to: None,
             };

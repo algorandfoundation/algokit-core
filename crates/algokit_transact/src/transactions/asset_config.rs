@@ -3,11 +3,10 @@
 //! This module provides functionality for creating and managing asset configuration transactions,
 //! which are used to create, reconfige, or destroy Algorand Standard Assets (ASAs).
 
-use crate::address::Address;
 use crate::traits::Validate;
 use crate::transactions::common::{TransactionHeader, TransactionValidationError};
 use crate::utils::{is_false_opt, is_zero, is_zero_addr_opt, is_zero_opt};
-use crate::Transaction;
+use crate::{Address, Transaction};
 use derive_builder::Builder;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_with::{serde_as, skip_serializing_none, Bytes};
@@ -481,7 +480,6 @@ impl Validate for AssetConfigTransactionFields {
 mod tests {
     use super::*;
     use crate::test_utils::TransactionHeaderMother;
-    use crate::Address;
 
     fn create_test_address() -> Address {
         // Use a valid Algorand address for testing

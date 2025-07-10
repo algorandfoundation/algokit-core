@@ -20,8 +20,9 @@ async fn test_application_call_transaction() {
     let context = fixture.context().expect("Failed to get context");
     let sender_addr = context
         .test_account
-        .address()
-        .expect("Failed to get sender address");
+        .account()
+        .expect("Failed to get sender address")
+        .address();
 
     let app_id = create_test_app(context, sender_addr.clone())
         .await
@@ -94,8 +95,9 @@ async fn test_application_create_transaction() {
     let context = fixture.context().expect("Failed to get context");
     let sender_addr = context
         .test_account
-        .address()
-        .expect("Failed to get sender address");
+        .account()
+        .expect("Failed to get sender address")
+        .address();
 
     let app_create_params = ApplicationCreateParams {
         common_params: CommonParams {
@@ -176,8 +178,9 @@ async fn test_application_delete_transaction() {
     let context = fixture.context().expect("Failed to get context");
     let sender_addr = context
         .test_account
-        .address()
-        .expect("Failed to get sender address");
+        .account()
+        .expect("Failed to get sender address")
+        .address();
 
     let app_id = create_test_app(context, sender_addr.clone())
         .await
@@ -247,8 +250,9 @@ async fn test_application_update_transaction() {
     let context = fixture.context().expect("Failed to get context");
     let sender_addr = context
         .test_account
-        .address()
-        .expect("Failed to get sender address");
+        .account()
+        .expect("Failed to get sender address")
+        .address();
 
     let app_id = create_test_app(context, sender_addr.clone())
         .await

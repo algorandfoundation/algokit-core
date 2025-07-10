@@ -19,20 +19,20 @@ async fn test_basic_payment_transaction() {
         .await
         .expect("Failed to create receiver");
 
-    let receiver_addr = receiver.address().expect("Failed to get receiver address");
+    let receiver_addr = receiver.account().expect("Failed to get receiver address");
 
     let context = fixture.context().expect("Failed to get context");
     let sender_addr = context
         .test_account
-        .address()
+        .account()
         .expect("Failed to get sender address");
 
     let payment_params = PaymentParams {
         common_params: CommonParams {
-            sender: sender_addr,
+            sender: sender_addr.address(),
             ..Default::default()
         },
-        receiver: receiver_addr,
+        receiver: receiver_addr.address(),
         amount: 500_000, // 0.5 ALGO
         close_remainder_to: None,
     };

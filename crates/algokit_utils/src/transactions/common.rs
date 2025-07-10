@@ -48,6 +48,7 @@ impl TxnSigner for EmptySigner {
                         transaction: txns[idx].clone(),
                         signature: Some([0; 64]),
                         auth_address: None,
+                        multisignature: None,
                     })
                 } else {
                     Err(format!("Index {} out of bounds for transactions", idx))

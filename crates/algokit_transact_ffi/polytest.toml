@@ -75,6 +75,9 @@ desc = "A transaction id can be obtained from a transaction"
 [group."Transaction Tests".test.example]
 desc = "A human-readable example of forming a transaction and signing it"
 
+[group."Transaction Tests".test."multisig example"]
+desc = "A human-readable example of forming a transaction and signing it with a multisignature sig"
+
 [group."Transaction Tests".test."assign fee"]
 desc = "A fee can be calculated and assigned to a transaction"
 

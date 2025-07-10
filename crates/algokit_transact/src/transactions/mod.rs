@@ -32,7 +32,7 @@ use crate::constants::{
 use crate::error::AlgoKitTransactError;
 use crate::traits::{AlgorandMsgpack, EstimateTransactionSize, TransactionId, Transactions};
 use crate::utils::{compute_group_id, is_zero_addr_opt};
-use crate::Address;
+use crate::{Address, MultisigSignature};
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, Bytes};
 use std::any::Any;
@@ -144,6 +144,7 @@ pub struct SignedTransaction {
 
     /// Optional Ed25519 signature authorizing the transaction.
     #[serde(rename = "sig")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde_as(as = "Option<Bytes>")]
     pub signature: Option<[u8; ALGORAND_SIGNATURE_BYTE_LENGTH]>,
 
@@ -152,6 +153,10 @@ pub struct SignedTransaction {
     #[serde(skip_serializing_if = "is_zero_addr_opt")]
     #[serde(default)]
     pub auth_address: Option<Address>,
+
+    #[serde(rename = "msig")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub multisignature: Option<MultisigSignature>,
 }
 
 impl AlgorandMsgpack for SignedTransaction {

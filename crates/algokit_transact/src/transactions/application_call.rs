@@ -3,11 +3,10 @@
 //! This module provides functionality for creating and managing application transactions,
 //! which are used to create, update, delete and call Algorand Smart Contracts (Applications).
 
-use crate::address::Address;
 use crate::traits::Validate;
 use crate::transactions::common::{TransactionHeader, TransactionValidationError};
 use crate::utils::{is_empty_vec_opt, is_zero, is_zero_opt};
-use crate::Transaction;
+use crate::{Address, Transaction};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
@@ -689,7 +688,7 @@ impl Validate for ApplicationCallTransactionFields {
 mod tests {
     use super::*;
     use crate::test_utils::{
-        AddressMother, ApplicationCallTransactionMother, TransactionHeaderMother,
+        AccountMother, ApplicationCallTransactionMother, TransactionHeaderMother,
     };
     use crate::tests::{check_transaction_encoding, check_transaction_id};
     use crate::AlgorandMsgpack;
@@ -1218,7 +1217,8 @@ mod tests {
     #[test]
     fn test_validate_references() {
         // Create vectors that exceed the maximum limits for all reference types
-        let excessive_account_refs = vec![AddressMother::address(); MAX_ACCOUNT_REFERENCES + 1];
+        let excessive_account_refs =
+            vec![AccountMother::account().address(); MAX_ACCOUNT_REFERENCES + 1];
         let excessive_app_refs = vec![1; MAX_APP_REFERENCES + 1];
         let excessive_asset_refs = vec![2; MAX_ASSET_REFERENCES + 1];
         let excessive_box_refs = vec![

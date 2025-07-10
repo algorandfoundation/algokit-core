@@ -21,8 +21,9 @@ async fn test_offline_key_registration_transaction() {
     let context = fixture.context().expect("Failed to get context");
     let sender_addr = context
         .test_account
-        .address()
-        .expect("Failed to get sender address");
+        .account()
+        .expect("Failed to get sender address")
+        .address();
 
     let offline_key_reg_params = OfflineKeyRegistrationParams {
         common_params: CommonParams {
@@ -104,8 +105,9 @@ async fn test_non_participation_key_registration_transaction() {
     let context = fixture.context().expect("Failed to get context");
     let sender_addr = context
         .test_account
-        .address()
-        .expect("Failed to get sender address");
+        .account()
+        .expect("Failed to get sender address")
+        .address();
 
     // Use real participation keys for initial online registration
     let vote_key = general_purpose::STANDARD
@@ -306,8 +308,9 @@ async fn test_online_key_registration_transaction() {
     let context = fixture.context().expect("Failed to get context");
     let sender_addr = context
         .test_account
-        .address()
-        .expect("Failed to get sender address");
+        .account()
+        .expect("Failed to get sender address")
+        .address();
 
     // Use real participation keys from the Python test
     let vote_key = general_purpose::STANDARD

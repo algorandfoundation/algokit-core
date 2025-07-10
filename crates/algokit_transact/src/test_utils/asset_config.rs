@@ -1,4 +1,4 @@
-use crate::{Address, AssetConfigTransactionBuilder, Byte32, TransactionHeaderBuilder};
+use crate::{Account, AssetConfigTransactionBuilder, Byte32, TransactionHeaderBuilder};
 use base64::{prelude::BASE64_STANDARD, Engine};
 
 pub struct AssetConfigTransactionMother {}
@@ -7,10 +7,10 @@ impl AssetConfigTransactionMother {
     pub fn asset_create() -> AssetConfigTransactionBuilder {
         // mainnet - NXAHS2NA46DJHIULXYPJV2NOJSKKFFNFFXRZP35TA5IDCZNE2MUA
         let sender = "KPVZ66IFE7KHQ6623XHTPVS3IL7BXBE3HXQG35J65CVDA54VLRPP4SVOU4"
-            .parse::<Address>()
+            .parse::<Account>()
             .unwrap();
         let reserve = "YQTVEPKB4O5F26H76L5I7BA6VGCMRC6P2QSWRKG4KVJLJ62MVYTDJPM6KE"
-            .parse::<Address>()
+            .parse::<Account>()
             .unwrap();
         let genesis_hash: Byte32 = BASE64_STANDARD
             .decode("wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=")
@@ -22,7 +22,7 @@ impl AssetConfigTransactionMother {
         AssetConfigTransactionBuilder::default()
             .header(
                 TransactionHeaderBuilder::default()
-                    .sender(sender.clone())
+                    .sender(sender.clone().address())
                     .fee(1000)
                     .first_valid(26594258)
                     .last_valid(26595258)
@@ -39,17 +39,17 @@ impl AssetConfigTransactionMother {
             .asset_name("Fracctal Token".to_string())
             .unit_name("FRACC".to_string())
             .url("template-ipfs://{ipfscid:0:dag-pb:reserve:sha2-256}".to_string())
-            .manager(sender.clone())
-            .reserve(reserve.clone())
-            .freeze(sender.clone())
-            .clawback(sender.clone())
+            .manager(sender.address().clone())
+            .reserve(reserve.address().clone())
+            .freeze(sender.address().clone())
+            .clawback(sender.address().clone())
             .to_owned()
     }
 
     pub fn asset_destroy() -> AssetConfigTransactionBuilder {
         // mainnet - U4XH6AS5UUYQI4IZ3E5JSUEIU64Y3FGNYKLH26W4HRY7T6PK745A
         let sender = "MBX2M6J44LQ22L3FROYRBKUAG4FWENPSLPTI7EBR4ECQ2APDMI6XTENHWQ"
-            .parse::<Address>()
+            .parse::<Account>()
             .unwrap();
         let genesis_hash: Byte32 = BASE64_STANDARD
             .decode("wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=")
@@ -61,7 +61,7 @@ impl AssetConfigTransactionMother {
         AssetConfigTransactionBuilder::default()
             .header(
                 TransactionHeaderBuilder::default()
-                    .sender(sender)
+                    .sender(sender.address())
                     .fee(1000)
                     .first_valid(6354623)
                     .last_valid(6355623)
@@ -77,13 +77,13 @@ impl AssetConfigTransactionMother {
     pub fn asset_reconfigure() -> AssetConfigTransactionBuilder {
         // mainnet - GAMRAG3KCG23U2HOELJF32OQAWAISLIFBB5RLDDDYHUSOZNYN7MQ
         let sender = "EHYQCYHUC6CIWZLBX5TDTLVJ4SSVE4RRTMKFDCG4Z4Q7QSQ2XWIQPMKBPU"
-            .parse::<Address>()
+            .parse::<Account>()
             .unwrap();
         let manager = "EHYQCYHUC6CIWZLBX5TDTLVJ4SSVE4RRTMKFDCG4Z4Q7QSQ2XWIQPMKBPU"
-            .parse::<Address>()
+            .parse::<Account>()
             .unwrap();
         let reserve = "POMY37RQ5PYG2NHKEFVDVDKGWZLZ4NHUWUW57CVGZVIPZCTNAFE2JM7XQU"
-            .parse::<Address>()
+            .parse::<Account>()
             .unwrap();
         let genesis_hash: Byte32 = BASE64_STANDARD
             .decode("wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=")
@@ -95,7 +95,7 @@ impl AssetConfigTransactionMother {
         AssetConfigTransactionBuilder::default()
             .header(
                 TransactionHeaderBuilder::default()
-                    .sender(sender)
+                    .sender(sender.address())
                     // .auth(auth)
                     .fee(1000)
                     .first_valid(37544842)
@@ -107,8 +107,8 @@ impl AssetConfigTransactionMother {
                     .unwrap(),
             )
             .asset_id(1715458296) // Asset ID to reconfigure
-            .manager(manager)
-            .reserve(reserve)
+            .manager(manager.address())
+            .reserve(reserve.address())
             .to_owned()
     }
 }

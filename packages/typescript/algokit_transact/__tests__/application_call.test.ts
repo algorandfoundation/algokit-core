@@ -10,6 +10,7 @@ import {
   assertEncodeWithSignature,
   assertExample,
   assertTransactionId,
+  assertMultisigExample,
 } from "./transaction_asserts";
 
 const txnTestData = Object.entries({
@@ -28,6 +29,10 @@ describe("Application Call", () => {
     for (const [label, testData] of txnTestData) {
       test("example", async () => {
         await assertExample(label, testData);
+      });
+
+      test("multisig example", async () => {
+        await assertMultisigExample(label, testData);
       });
 
       test("get transaction id", () => {

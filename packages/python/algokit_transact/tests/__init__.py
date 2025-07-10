@@ -3,7 +3,7 @@ from pathlib import Path
 import json
 from typing import Any
 from algokit_transact import (
-    Address,
+    Account,
     PaymentTransactionFields,
     TransactionType,
     Transaction,
@@ -25,8 +25,10 @@ class TransactionTestData:
     unsigned_bytes: bytes
     signed_bytes: bytes
     signing_private_key: SigningKey
-    rekeyed_sender_auth_address: Address
+    rekeyed_sender_auth_address: str
     rekeyed_sender_signed_bytes: bytes
+    multisig_addresses: tuple[str, str]
+    multisig_signed_bytes: bytes
 
 
 @dataclass
@@ -48,9 +50,9 @@ class TestData:
 def convert_values(obj: Any) -> Any:
     """Recursively convert values in the data structure to appropriate types"""
     if isinstance(obj, dict):
-        # Convert Address objects
+        # Convert Account objects
         if "address" in obj and "pub_key" in obj:
-            return Address(address=obj["address"], pub_key=bytes(obj["pub_key"]))
+            return Account(address=obj["address"], pub_key=bytes(obj["pub_key"]))
 
         # Convert StateSchema objects
         if "num_uints" in obj and "num_byte_slices" in obj and len(obj) == 2:

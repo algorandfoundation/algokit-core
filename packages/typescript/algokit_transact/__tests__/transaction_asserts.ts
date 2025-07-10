@@ -8,6 +8,8 @@ import {
   getTransactionId,
   getTransactionIdRaw,
   SignedTransaction,
+  MultisigSignature,
+  MultisigSubsignature,
 } from "..";
 import { expect } from "bun:test";
 import * as ed from "@noble/ed25519";
@@ -82,4 +84,33 @@ export const assertAssignFee = (label: string, testData: TransactionTestData) =>
   const txnWithFee3 = assignFee(testData.transaction, { feePerByte, minFee: 1000n });
   const txnSize = estimateTransactionSize(testData.transaction);
   expect(txnWithFee3.fee, label).toEqual(txnSize * feePerByte);
+};
+
+export const assertMultisigExample = async (label: string, testData: TransactionTestData) => {
+  const singleSig = await ed.signAsync(encodeTransaction(testData.transaction), testData.signingPrivateKey);
+
+  // FIXME: Just as in the Python test, when we get a function that creates multisigs, that's what we should use here.
+  const multisigSignature: MultisigSignature = {
+    address: "",
+    version: 1,
+    threshold: 2,
+    subsignatures: [
+      {
+        address: testData.multisigAddresses[0],
+        signature: singleSig,
+      },
+      {
+        address: testData.multisigAddresses[1],
+        signature: singleSig,
+      },
+    ] as MultisigSubsignature[],
+  };
+
+  const signedTxn: SignedTransaction = {
+    transaction: testData.transaction,
+    multisignature: multisigSignature,
+  };
+  const encodedSignedTxn = encodeSignedTransaction(signedTxn);
+
+  expect(encodedSignedTxn, label).toEqual(testData.multisigSignedBytes);
 };

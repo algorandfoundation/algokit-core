@@ -3,11 +3,11 @@ use crate::{
         ALGORAND_SIGNATURE_BYTE_LENGTH, ALGORAND_SIGNATURE_ENCODING_INCR, MAX_TX_GROUP_SIZE,
     },
     test_utils::{
-        AddressMother, TransactionGroupMother, TransactionHeaderMother, TransactionMother,
+        AccountMother, TransactionGroupMother, TransactionHeaderMother, TransactionMother,
     },
     transactions::FeeParams,
-    Address, AlgorandMsgpack, EstimateTransactionSize, SignedTransaction, Transaction,
-    TransactionId, Transactions,
+    Account, AlgorandMsgpack, EstimateTransactionSize, MultisigSignature, MultisigSubsignature,
+    SignedTransaction, Transaction, TransactionId, Transactions,
 };
 use base64::{prelude::BASE64_STANDARD, Engine};
 use pretty_assertions::assert_eq;
@@ -21,6 +21,7 @@ pub fn check_transaction_encoding(tx: &Transaction, expected_encoded_len: usize)
         transaction: tx.clone(),
         signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
         auth_address: None,
+        multisignature: None,
     };
     let encoded_stx = signed_tx.encode().unwrap();
     let decoded_stx = SignedTransaction::decode(&encoded_stx).unwrap();
@@ -38,12 +39,39 @@ pub fn check_transaction_encoding(tx: &Transaction, expected_encoded_len: usize)
 pub fn check_signed_transaction_encoding(
     tx: &Transaction,
     expected_encoded_len: usize,
-    auth_address: Option<Address>,
+    auth_account: Option<Account>,
 ) {
     let signed_tx = SignedTransaction {
         transaction: tx.clone(),
         signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
-        auth_address: auth_address.clone(),
+        auth_address: auth_account.map(|acc| acc.address()),
+        multisignature: None,
+    };
+    let encoded_stx = signed_tx.encode().unwrap();
+    assert_eq!(encoded_stx.len(), expected_encoded_len);
+    let decoded_stx = SignedTransaction::decode(&encoded_stx).unwrap();
+    assert_eq!(decoded_stx, signed_tx);
+}
+
+pub fn check_multisigned_transaction_encoding(tx: &Transaction, expected_encoded_len: usize) {
+    let signed_tx = SignedTransaction {
+        transaction: tx.clone(),
+        signature: None,
+        auth_address: None,
+        multisignature: Some(MultisigSignature {
+            version: 1,
+            threshold: 2,
+            subsignatures: vec![
+                MultisigSubsignature {
+                    address: AccountMother::account().address(),
+                    signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
+                },
+                MultisigSubsignature {
+                    address: AccountMother::neil().address(),
+                    signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
+                },
+            ],
+        }),
     };
     let encoded_stx = signed_tx.encode().unwrap();
     assert_eq!(encoded_stx.len(), expected_encoded_len);
@@ -56,6 +84,7 @@ pub fn check_transaction_id(tx: &Transaction, expected_tx_id: &str) {
         transaction: tx.clone(),
         signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
         auth_address: None,
+        multisignature: None,
     };
 
     assert_eq!(tx.id().unwrap(), expected_tx_id);
@@ -71,6 +100,7 @@ fn test_payment_transaction_encoding() {
         "VTADY3NGJGE4DVZ4CKLX43NTEE3C2J4JJANZ5TPBR4OYJ2D4F2CA",
     );
     check_transaction_encoding(&payment_tx, 212);
+    check_multisigned_transaction_encoding(&payment_tx, 449);
 }
 
 #[test]
@@ -82,6 +112,7 @@ fn test_asset_transfer_transaction_encoding() {
         "VAHP4FRJH4GRV6ID2BZRK5VYID376EV3VE6T2TKKDFJBBDOXWCCA",
     );
     check_transaction_encoding(&asset_transfer_tx, 186);
+    check_multisigned_transaction_encoding(&asset_transfer_tx, 423);
 }
 
 #[test]
@@ -93,13 +124,14 @@ fn test_asset_opt_in_transaction_encoding() {
         "JIDBHDPLBASULQZFI4EY5FJWR6VQRMPPFSGYBKE2XKW65N3UQJXA",
     );
     check_transaction_encoding(&asset_opt_in_tx, 178);
+    check_multisigned_transaction_encoding(&asset_opt_in_tx, 415);
 }
 
 #[test]
 fn test_payment_signed_transaction_encoding() {
     let payment_tx = TransactionMother::simple_payment().build().unwrap();
     check_signed_transaction_encoding(&payment_tx, 247, None);
-    check_signed_transaction_encoding(&payment_tx, 286, Some(AddressMother::address().clone()));
+    check_signed_transaction_encoding(&payment_tx, 286, Some(AccountMother::account().clone()));
 }
 
 #[test]
@@ -109,7 +141,7 @@ fn test_asset_transfer_signed_transaction_encoding() {
     check_signed_transaction_encoding(
         &asset_transfer_tx,
         298,
-        Some(AddressMother::address().clone()),
+        Some(AccountMother::account().clone()),
     );
 }
 
@@ -120,32 +152,41 @@ fn test_asset_opt_in_signed_transaction_encoding() {
     check_signed_transaction_encoding(
         &asset_opt_in_tx,
         290,
-        Some(AddressMother::address().clone()),
+        Some(AccountMother::account().clone()),
     );
 }
 
 #[test]
-fn test_zero_address() {
-    let addr = AddressMother::zero_address();
+fn test_zero_address_account() {
+    let acct = AccountMother::zero_address_account();
     assert_eq!(
-        addr.to_string(),
+        acct.to_string(),
         "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
     );
 
-    let addr_from_str = addr.to_string().parse::<Address>().unwrap();
-    assert_eq!(addr, addr_from_str);
+    let addr_from_str = acct.to_string().parse::<Account>().unwrap();
+    assert_eq!(acct, addr_from_str);
 }
 
 #[test]
-fn test_address() {
-    let addr = AddressMother::address();
+fn test_account() {
+    let acct = AccountMother::account();
     assert_eq!(
-        addr.to_string(),
+        acct.to_string(),
         "RIMARGKZU46OZ77OLPDHHPUJ7YBSHRTCYMQUC64KZCCMESQAFQMYU6SL2Q"
     );
 
-    let addr_from_str = addr.to_string().parse::<Address>().unwrap();
-    assert_eq!(addr, addr_from_str);
+    let addr_from_str = acct.to_string().parse::<Account>().unwrap();
+    assert_eq!(acct, addr_from_str);
+}
+
+#[test]
+fn test_msig_account() {
+    let msig = AccountMother::msig();
+    assert_eq!(
+        msig.to_string(),
+        "TZ6HCOKXK54E2VRU523LBTDQMQNX7DXOWENPFNBXOEU3SMEWXYNCRJUTBU"
+    );
 }
 
 #[test]
@@ -159,6 +200,7 @@ fn test_pay_estimate_transaction_size() {
         transaction: payment_tx.clone(),
         signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
         auth_address: None,
+        multisignature: None,
     };
     let actual_size = signed_tx.encode().unwrap().len();
 
@@ -180,6 +222,7 @@ fn test_axfer_estimate_transaction_size() {
         transaction: asset_transfer_tx.clone(),
         signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
         auth_address: None,
+        multisignature: None,
     };
     let actual_size = signed_tx.encode().unwrap().len();
 
@@ -387,6 +430,7 @@ fn test_signed_transaction_group_encoding() {
             transaction: tx.clone(),
             signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
             auth_address: None,
+            multisignature: None,
         })
         .collect::<Vec<SignedTransaction>>();
 

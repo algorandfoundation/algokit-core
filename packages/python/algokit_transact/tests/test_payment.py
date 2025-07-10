@@ -9,7 +9,7 @@ from tests.transaction_asserts import (
     assert_encode_with_signature,
     assert_encoded_transaction_type,
     assert_example,
-    assert_transaction_id,
+    assert_transaction_id, assert_multisig_example,
 )
 from . import TEST_DATA
 
@@ -31,6 +31,17 @@ txn_test_data = {
 def test_example(test_data):
     """A human-readable example of forming a transaction and signing it"""
     assert_example(test_data)
+
+
+@pytest.mark.group_transaction_tests
+@pytest.mark.parametrize(
+    "test_data",
+    txn_test_data.values(),
+    ids=txn_test_data.keys(),
+)
+def test_multisig_example(test_data):
+    """A human-readable example of forming a multisig transaction and signing it"""
+    assert_multisig_example(test_data)
 
 
 @pytest.mark.group_transaction_tests

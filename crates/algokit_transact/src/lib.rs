@@ -1,14 +1,18 @@
+mod account;
 mod address;
 pub mod constants;
 mod error;
+pub mod multisig;
 mod traits;
 mod transactions;
 mod utils;
 
 // Re-export all the public items
+pub use account::Account;
 pub use address::Address;
 pub use constants::*;
 pub use error::AlgoKitTransactError;
+pub use multisig::*;
 pub use traits::{AlgorandMsgpack, EstimateTransactionSize, TransactionId, Transactions, Validate};
 pub use transactions::{
     ApplicationCallTransactionBuilder, ApplicationCallTransactionFields,

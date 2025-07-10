@@ -7,3 +7,5 @@ pub const ALGORAND_SIGNATURE_BYTE_LENGTH: usize = 64;
 pub const ALGORAND_SIGNATURE_ENCODING_INCR: usize = 75;
 pub type Byte32 = [u8; 32];
 pub const MAX_TX_GROUP_SIZE: usize = 16;
+
+pub const MULTISIG_DOMAIN_SEPARATOR: &str = "MultisigAddr";

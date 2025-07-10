@@ -40,8 +40,8 @@ async fn test_raw_transaction_broadcast() {
         .await
         .expect("Failed to create receiver account");
 
-    let sender_addr = sender.address().expect("Failed to get sender address");
-    let receiver_addr = receiver.address().expect("Failed to get receiver address");
+    let sender_addr = sender.account().expect("Failed to get sender address");
+    let receiver_addr = receiver.account().expect("Failed to get receiver address");
 
     // Get transaction parameters
     let params = algod_client
@@ -57,7 +57,7 @@ async fn test_raw_transaction_broadcast() {
 
     // Build transaction header
     let header = TransactionHeaderBuilder::default()
-        .sender(sender_addr.clone())
+        .sender(sender_addr.address())
         .fee(params.min_fee)
         .first_valid(params.last_round)
         .last_valid(params.last_round + 1000)
@@ -70,7 +70,7 @@ async fn test_raw_transaction_broadcast() {
     // Build payment transaction
     let payment_fields = PaymentTransactionBuilder::default()
         .header(header)
-        .receiver(receiver_addr)
+        .receiver(receiver_addr.address())
         .amount(500_000) // 0.5 ALGO
         .build_fields()
         .expect("Failed to build payment fields");

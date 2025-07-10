@@ -1,5 +1,5 @@
 use crate::{
-    test_utils::{AddressMother, TransactionHeaderMother},
+    test_utils::{AccountMother, TransactionHeaderMother},
     ApplicationCallTransactionBuilder, OnApplicationComplete, StateSchema,
 };
 use base64::{prelude::BASE64_STANDARD, Engine};
@@ -11,7 +11,7 @@ impl ApplicationCallTransactionMother {
         // https://lora.algokit.io/testnet/transaction/L6B56N2BAXE43PUI7IDBXCJN5DEB6NLCH4AAN3ON64CXPSCTJNTA
         ApplicationCallTransactionBuilder::default()
         .header(TransactionHeaderMother::testnet()
-            .sender(AddressMother::nfd_testnet())
+            .sender(AccountMother::nfd_testnet().address())
             .first_valid(21038057)
             .last_valid(21039057)
             .note(
@@ -45,7 +45,7 @@ impl ApplicationCallTransactionMother {
         // https://lora.algokit.io/testnet/transaction/NQVNJ5VWEDX42DMJQIQET4QPNUOW27EYIPKZ4SDWKOOEFJQB7PZA
         ApplicationCallTransactionBuilder::default()
         .header(TransactionHeaderMother::testnet()
-            .sender(AddressMother::nfd_testnet())
+            .sender(AccountMother::nfd_testnet().address())
             .first_valid(43679851)
             .last_valid(43679951)
             .note(

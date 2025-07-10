@@ -2,10 +2,9 @@
 //!
 //! This module provides functionality for creating and managing asset transfer transactions.
 
-use crate::address::Address;
 use crate::transactions::common::TransactionHeader;
 use crate::utils::{is_zero, is_zero_addr, is_zero_addr_opt};
-use crate::Transaction;
+use crate::{Address, Transaction};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, skip_serializing_none};
