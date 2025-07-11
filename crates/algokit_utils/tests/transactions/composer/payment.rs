@@ -41,8 +41,8 @@ async fn test_basic_payment_transaction() {
         .add_payment(payment_params)
         .expect("Failed to add payment");
 
-    let result = composer.send().await.expect("Failed to send payment");
-    let transaction = result.txn.transaction;
+    let result = composer.send(None).await.expect("Failed to send payment");
+    let transaction = &result.confirmations[0].txn.transaction;
 
     match transaction {
         algokit_transact::Transaction::Payment(payment_fields) => {
@@ -96,8 +96,11 @@ async fn test_basic_account_close_transaction() {
         .add_account_close(account_close_params)
         .expect("Failed to add account close");
 
-    let result = composer.send().await.expect("Failed to send account close");
-    let transaction = result.txn.transaction;
+    let result = composer
+        .send(None)
+        .await
+        .expect("Failed to send account close");
+    let transaction = result.confirmations[0].txn.transaction.clone();
 
     match transaction {
         algokit_transact::Transaction::Payment(payment_fields) => {

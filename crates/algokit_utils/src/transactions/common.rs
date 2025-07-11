@@ -4,29 +4,32 @@ use derive_more::Debug;
 use std::sync::Arc;
 
 #[async_trait]
-pub trait TxnSigner: Send + Sync {
-    async fn sign_txns(
+pub trait TransactionSigner: Send + Sync {
+    async fn sign_transactions(
         &self,
-        txns: &[Transaction],
+        transactions: &[Transaction],
         indices: &[usize],
     ) -> Result<Vec<SignedTransaction>, String>;
 
-    async fn sign_txn(&self, txn: &Transaction) -> Result<SignedTransaction, String> {
-        let result = self.sign_txns(&[txn.clone()], &[0]).await?;
+    async fn sign_transaction(
+        &self,
+        transaction: &Transaction,
+    ) -> Result<SignedTransaction, String> {
+        let result = self.sign_transactions(&[transaction.clone()], &[0]).await?;
         Ok(result[0].clone())
     }
 }
 
 #[async_trait]
-pub trait TxnSignerGetter: Send + Sync {
-    async fn get_signer(&self, address: Address) -> Option<&dyn TxnSigner>;
+pub trait TransactionSignerGetter: Send + Sync {
+    async fn get_signer(&self, address: Address) -> Option<&dyn TransactionSigner>;
 }
 
 pub struct DefaultSignerGetter;
 
 #[async_trait]
-impl TxnSignerGetter for DefaultSignerGetter {
-    async fn get_signer(&self, _address: Address) -> Option<&dyn TxnSigner> {
+impl TransactionSignerGetter for DefaultSignerGetter {
+    async fn get_signer(&self, _address: Address) -> Option<&dyn TransactionSigner> {
         None
     }
 }
@@ -34,8 +37,8 @@ impl TxnSignerGetter for DefaultSignerGetter {
 pub struct EmptySigner {}
 
 #[async_trait]
-impl TxnSigner for EmptySigner {
-    async fn sign_txns(
+impl TransactionSigner for EmptySigner {
+    async fn sign_transactions(
         &self,
         txns: &[Transaction],
         indices: &[usize],
@@ -59,8 +62,8 @@ impl TxnSigner for EmptySigner {
 }
 
 #[async_trait]
-impl TxnSignerGetter for EmptySigner {
-    async fn get_signer(&self, _address: Address) -> Option<&dyn TxnSigner> {
+impl TransactionSignerGetter for EmptySigner {
+    async fn get_signer(&self, _address: Address) -> Option<&dyn TransactionSigner> {
         Some(self)
     }
 }
@@ -69,7 +72,7 @@ impl TxnSignerGetter for EmptySigner {
 pub struct CommonParams {
     pub sender: Address,
     #[debug(skip)]
-    pub signer: Option<Arc<dyn TxnSigner>>,
+    pub signer: Option<Arc<dyn TransactionSigner>>,
     pub rekey_to: Option<Address>,
     pub note: Option<Vec<u8>>,
     pub lease: Option<[u8; 32]>,
