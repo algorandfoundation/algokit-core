@@ -45,19 +45,23 @@ async fn test_asset_create_transaction() {
         .add_asset_create(asset_create_params)
         .expect("Failed to add asset create");
 
-    let result = composer.send().await.expect("Failed to send asset create");
+    let result = composer
+        .send(None)
+        .await
+        .expect("Failed to send asset create");
+    let confirmation = &result.confirmations[0];
 
     // Assert transaction was confirmed
     assert!(
-        result.confirmed_round.is_some(),
+        confirmation.confirmed_round.is_some(),
         "Transaction should be confirmed"
     );
     assert!(
-        result.confirmed_round.unwrap() > 0,
+        confirmation.confirmed_round.unwrap() > 0,
         "Confirmed round should be greater than 0"
     );
 
-    let transaction = result.txn.transaction;
+    let transaction = &confirmation.txn.transaction;
 
     match transaction {
         algokit_transact::Transaction::AssetConfig(asset_config_fields) => {
@@ -142,8 +146,13 @@ async fn test_asset_reconfigure_transaction() {
         .add_asset_create(asset_create_params)
         .expect("Failed to add asset create");
 
-    let create_result = composer.send().await.expect("Failed to send asset create");
-    let asset_id = create_result.asset_index.expect("Failed to get asset ID");
+    let create_result = composer
+        .send(None)
+        .await
+        .expect("Failed to send asset create");
+    let asset_id = create_result.confirmations[0]
+        .asset_index
+        .expect("Failed to get asset ID");
 
     // Now reconfigure the asset
     let asset_reconfigure_params = AssetReconfigureParams {
@@ -164,21 +173,23 @@ async fn test_asset_reconfigure_transaction() {
         .expect("Failed to add asset reconfigure");
 
     let result = composer
-        .send()
+        .send(None)
         .await
         .expect("Failed to send asset reconfigure");
 
+    let confirmation = &result.confirmations[0];
+
     // Assert transaction was confirmed
     assert!(
-        result.confirmed_round.is_some(),
+        confirmation.confirmed_round.is_some(),
         "Transaction should be confirmed"
     );
     assert!(
-        result.confirmed_round.unwrap() > 0,
+        confirmation.confirmed_round.unwrap() > 0,
         "Confirmed round should be greater than 0"
     );
 
-    let transaction = result.txn.transaction;
+    let transaction = &confirmation.txn.transaction;
 
     match transaction {
         algokit_transact::Transaction::AssetConfig(asset_config_fields) => {
@@ -234,8 +245,13 @@ async fn test_asset_destroy_transaction() {
         .add_asset_create(asset_create_params)
         .expect("Failed to add asset create");
 
-    let create_result = composer.send().await.expect("Failed to send asset create");
-    let asset_id = create_result.asset_index.expect("Failed to get asset ID");
+    let create_result = composer
+        .send(None)
+        .await
+        .expect("Failed to send asset create");
+    let asset_id = create_result.confirmations[0]
+        .asset_index
+        .expect("Failed to get asset ID");
 
     // Now destroy the asset
     let asset_destroy_params = AssetDestroyParams {
@@ -251,15 +267,19 @@ async fn test_asset_destroy_transaction() {
         .add_asset_destroy(asset_destroy_params)
         .expect("Failed to add asset destroy");
 
-    let result = composer.send().await.expect("Failed to send asset destroy");
+    let result = composer
+        .send(None)
+        .await
+        .expect("Failed to send asset destroy");
+    let confirmation = &result.confirmations[0];
 
     // Assert transaction was confirmed
     assert!(
-        result.confirmed_round.is_some(),
+        confirmation.confirmed_round.is_some(),
         "Transaction should be confirmed"
     );
     assert!(
-        result.confirmed_round.unwrap() > 0,
+        confirmation.confirmed_round.unwrap() > 0,
         "Confirmed round should be greater than 0"
     );
 }

@@ -1,15 +1,15 @@
 use std::sync::Arc;
 
 use super::account_helpers::{NetworkType, TestAccount, TestAccountConfig, TestAccountManager};
-use crate::{AlgoConfig, ClientManager, Composer, TxnSigner, TxnSignerGetter};
+use crate::{AlgoConfig, ClientManager, Composer, TransactionSigner, TransactionSignerGetter};
 use algod_client::AlgodClient;
 use algokit_transact::{Address, AlgorandMsgpack, SignedTransaction, Transaction};
 use async_trait::async_trait;
 
-// Implement TxnSigner for TestAccount directly, eliminating the need for TestAccountSigner wrapper
+// Implement TransactionSigner for TestAccount directly, eliminating the need for TestAccountSigner wrapper
 #[async_trait]
-impl TxnSigner for TestAccount {
-    async fn sign_txns(
+impl TransactionSigner for TestAccount {
+    async fn sign_transactions(
         &self,
         txns: &[Transaction],
         indices: &[usize],
@@ -34,10 +34,10 @@ impl TxnSigner for TestAccount {
     }
 }
 
-// Implement TxnSignerGetter for TestAccount as well
+// Implement TransactionSignerGetter for TestAccount as well
 #[async_trait]
-impl TxnSignerGetter for TestAccount {
-    async fn get_signer(&self, address: Address) -> Option<&dyn TxnSigner> {
+impl TransactionSignerGetter for TestAccount {
+    async fn get_signer(&self, address: Address) -> Option<&dyn TransactionSigner> {
         let test_account_address = self.account().expect("Failed to get test account address");
         if address == test_account_address.address() {
             Some(self)
@@ -101,7 +101,7 @@ impl AlgorandFixture {
             .await
             .map_err(|e| format!("Failed to create test account: {}", e))?;
 
-        // Now TestAccount implements TxnSignerGetter directly, so we can use it without a wrapper
+        // Now TestAccount implements TransactionSignerGetter directly, so we can use it without a wrapper
         let composer = Composer::new(algod.clone(), Some(Arc::new(test_account.clone())));
 
         self.context = Some(AlgorandTestContext {

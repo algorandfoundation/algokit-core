@@ -39,21 +39,21 @@ async fn test_offline_key_registration_transaction() {
         .expect("Failed to add offline key registration");
 
     let result = composer
-        .send()
+        .send(None)
         .await
         .expect("Failed to send offline key registration");
-
+    let confirmation = &result.confirmations[0];
     // Assert transaction was confirmed
     assert!(
-        result.confirmed_round.is_some(),
+        confirmation.confirmed_round.is_some(),
         "Transaction should be confirmed"
     );
     assert!(
-        result.confirmed_round.unwrap() > 0,
+        confirmation.confirmed_round.unwrap() > 0,
         "Confirmed round should be greater than 0"
     );
 
-    let transaction = result.txn.transaction;
+    let transaction = &confirmation.txn.transaction;
 
     match transaction {
         algokit_transact::Transaction::KeyRegistration(key_reg_fields) => {
@@ -158,12 +158,12 @@ async fn test_non_participation_key_registration_transaction() {
         .expect("Failed to add online key registration");
 
     let online_result = composer
-        .send()
+        .send(None)
         .await
         .expect("Failed to send online key registration");
 
     assert!(
-        online_result.confirmed_round.is_some(),
+        online_result.confirmations[0].confirmed_round.is_some(),
         "Online transaction should be confirmed"
     );
 
@@ -193,21 +193,22 @@ async fn test_non_participation_key_registration_transaction() {
         .expect("Failed to add non participation key registration");
 
     let result = composer2
-        .send()
+        .send(None)
         .await
         .expect("Failed to send non participation key registration");
+    let confirmation = &result.confirmations[0];
 
     // Assert transaction was confirmed
     assert!(
-        result.confirmed_round.is_some(),
+        confirmation.confirmed_round.is_some(),
         "Transaction should be confirmed"
     );
     assert!(
-        result.confirmed_round.unwrap() > 0,
+        confirmation.confirmed_round.unwrap() > 0,
         "Confirmed round should be greater than 0"
     );
 
-    let transaction = result.txn.transaction;
+    let transaction = &confirmation.txn.transaction;
 
     match transaction {
         algokit_transact::Transaction::KeyRegistration(key_reg_fields) => {
@@ -274,7 +275,7 @@ async fn test_non_participation_key_registration_transaction() {
         .expect("Failed to add second online key registration");
 
     // This should fail because the account is permanently marked as non-participating
-    let online_again_result = composer3.send().await;
+    let online_again_result = composer3.send(None).await;
 
     assert!(
         online_again_result.is_err(),
@@ -363,21 +364,22 @@ async fn test_online_key_registration_transaction() {
 
     // Submit the transaction - should succeed with proper keys and voting rounds
     let result = composer
-        .send()
+        .send(None)
         .await
         .expect("Failed to send online key registration");
+    let confirmation = &result.confirmations[0];
 
     // Assert transaction was confirmed
     assert!(
-        result.confirmed_round.is_some(),
+        confirmation.confirmed_round.is_some(),
         "Transaction should be confirmed"
     );
     assert!(
-        result.confirmed_round.unwrap() > 0,
+        confirmation.confirmed_round.unwrap() > 0,
         "Confirmed round should be greater than 0"
     );
 
-    let transaction = result.txn.transaction;
+    let transaction = &confirmation.txn.transaction;
 
     match transaction {
         algokit_transact::Transaction::KeyRegistration(key_reg_fields) => {

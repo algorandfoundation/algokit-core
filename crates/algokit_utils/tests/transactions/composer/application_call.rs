@@ -50,20 +50,21 @@ async fn test_application_call_transaction() {
         .expect("Failed to add application call");
 
     let result = composer
-        .send()
+        .send(None)
         .await
         .expect("Failed to send application call");
+    let confirmation = &result.confirmations[0];
 
     assert!(
-        result.confirmed_round.is_some(),
+        confirmation.confirmed_round.is_some(),
         "Transaction should be confirmed"
     );
     assert!(
-        result.confirmed_round.unwrap() > 0,
+        confirmation.confirmed_round.unwrap() > 0,
         "Confirmed round should be greater than 0"
     );
 
-    let transaction = result.txn.transaction;
+    let transaction = &confirmation.txn.transaction;
 
     match transaction {
         algokit_transact::Transaction::ApplicationCall(application_call_fields) => {
@@ -123,20 +124,21 @@ async fn test_application_create_transaction() {
         .expect("Failed to add application create");
 
     let result = composer
-        .send()
+        .send(None)
         .await
         .expect("Failed to send application create");
+    let confirmation = &result.confirmations[0];
 
     assert!(
-        result.confirmed_round.is_some(),
+        confirmation.confirmed_round.is_some(),
         "Transaction should be confirmed"
     );
     assert!(
-        result.confirmed_round.unwrap() > 0,
+        confirmation.confirmed_round.unwrap() > 0,
         "Confirmed round should be greater than 0"
     );
 
-    let transaction = result.txn.transaction;
+    let transaction = &confirmation.txn.transaction;
 
     match transaction {
         algokit_transact::Transaction::ApplicationCall(application_call_fields) => {
@@ -205,20 +207,21 @@ async fn test_application_delete_transaction() {
         .expect("Failed to add application delete");
 
     let result = composer
-        .send()
+        .send(None)
         .await
         .expect("Failed to send application delete");
+    let confirmation = &result.confirmations[0];
 
     assert!(
-        result.confirmed_round.is_some(),
+        confirmation.confirmed_round.is_some(),
         "Transaction should be confirmed"
     );
     assert!(
-        result.confirmed_round.unwrap() > 0,
+        confirmation.confirmed_round.unwrap() > 0,
         "Confirmed round should be greater than 0"
     );
 
-    let transaction = result.txn.transaction;
+    let transaction = &confirmation.txn.transaction;
 
     match transaction {
         algokit_transact::Transaction::ApplicationCall(application_call_fields) => {
@@ -279,20 +282,21 @@ async fn test_application_update_transaction() {
         .expect("Failed to add application update");
 
     let result = composer
-        .send()
+        .send(None)
         .await
         .expect("Failed to send application update");
 
+    let confirmation = &result.confirmations[0];
+
     assert!(
-        result.confirmed_round.is_some(),
+        confirmation.confirmed_round.is_some(),
         "Transaction should be confirmed"
     );
     assert!(
-        result.confirmed_round.unwrap() > 0,
+        confirmation.confirmed_round.unwrap() > 0,
         "Confirmed round should be greater than 0"
     );
-
-    let transaction = result.txn.transaction;
+    let transaction = &confirmation.txn.transaction;
 
     match transaction {
         algokit_transact::Transaction::ApplicationCall(application_call_fields) => {
@@ -359,9 +363,9 @@ async fn create_test_app(context: &AlgorandTestContext, sender: Address) -> Opti
         .expect("Failed to add application create");
 
     let result = composer
-        .send()
+        .send(None)
         .await
         .expect("Failed to send application create");
 
-    result.application_index
+    result.confirmations[0].application_index
 }
