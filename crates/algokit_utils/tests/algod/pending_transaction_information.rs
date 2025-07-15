@@ -1,7 +1,9 @@
 use algod_client::apis::Format;
-use algokit_transact::{PaymentTransactionBuilder, Transaction, TransactionHeaderBuilder};
+use algokit_transact::{
+    AlgorandMsgpack, PaymentTransactionBuilder, Transaction, TransactionHeaderBuilder,
+};
 use algokit_utils::{
-    ClientManager,
+    ClientManager, TransactionSigner,
     testing::{NetworkType, TestAccountConfig, TestAccountManager},
 };
 use std::convert::TryInto;
@@ -77,9 +79,11 @@ async fn test_pending_transaction_broadcast() {
         .expect("Failed to build payment fields");
 
     let transaction = Transaction::Payment(payment_fields);
-    let signed_bytes = sender
+    let signed_transaction = sender
         .sign_transaction(&transaction)
+        .await
         .expect("Failed to sign transaction");
+    let signed_bytes = signed_transaction.encode().unwrap();
 
     let response = algod_client
         .raw_transaction(signed_bytes)

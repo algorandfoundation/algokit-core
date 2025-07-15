@@ -1,51 +1,9 @@
 use std::sync::Arc;
 
 use super::account_helpers::{NetworkType, TestAccount, TestAccountConfig, TestAccountManager};
-use crate::{AlgoConfig, ClientManager, Composer, TransactionSigner, TransactionSignerGetter};
+use crate::{AlgoConfig, ClientManager, Composer};
 use algod_client::AlgodClient;
-use algokit_transact::{Address, AlgorandMsgpack, SignedTransaction, Transaction};
-use async_trait::async_trait;
-
-// Implement TransactionSigner for TestAccount directly, eliminating the need for TestAccountSigner wrapper
-#[async_trait]
-impl TransactionSigner for TestAccount {
-    async fn sign_transactions(
-        &self,
-        txns: &[Transaction],
-        indices: &[usize],
-    ) -> Result<Vec<SignedTransaction>, String> {
-        indices
-            .iter()
-            .map(|&idx| {
-                if idx < txns.len() {
-                    // Use the TestAccount's sign_transaction method to get signed bytes
-                    let signed_bytes = self
-                        .sign_transaction(&txns[idx])
-                        .map_err(|e| format!("Failed to sign transaction: {}", e))?;
-
-                    // Decode the signed bytes back to SignedTransaction
-                    SignedTransaction::decode(&signed_bytes)
-                        .map_err(|e| format!("Failed to decode signed transaction: {}", e))
-                } else {
-                    Err(format!("Index {} out of bounds for transactions", idx))
-                }
-            })
-            .collect()
-    }
-}
-
-// Implement TransactionSignerGetter for TestAccount as well
-#[async_trait]
-impl TransactionSignerGetter for TestAccount {
-    async fn get_signer(&self, address: Address) -> Option<&dyn TransactionSigner> {
-        let test_account_address = self.account().expect("Failed to get test account address");
-        if address == test_account_address.address() {
-            Some(self)
-        } else {
-            None
-        }
-    }
-}
+use algokit_transact::Transaction;
 
 pub struct AlgorandFixture {
     config: AlgoConfig,
@@ -102,7 +60,7 @@ impl AlgorandFixture {
             .map_err(|e| format!("Failed to create test account: {}", e))?;
 
         // Now TestAccount implements TransactionSignerGetter directly, so we can use it without a wrapper
-        let composer = Composer::new(algod.clone(), Some(Arc::new(test_account.clone())));
+        let composer = Composer::new(algod.clone(), Arc::new(test_account.clone()));
 
         self.context = Some(AlgorandTestContext {
             algod,
