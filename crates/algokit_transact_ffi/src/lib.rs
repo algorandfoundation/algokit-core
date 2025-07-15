@@ -10,6 +10,7 @@ use serde_bytes::ByteBuf;
 
 pub use transactions::ApplicationCallTransactionFields;
 pub use transactions::AssetConfigTransactionFields;
+pub use transactions::AssetFreezeTransactionFields;
 pub use transactions::KeyRegistrationTransactionFields;
 
 // thiserror is used to easily create errors than can be propagated to the language bindings
@@ -302,6 +303,8 @@ pub struct Transaction {
     application_call: Option<ApplicationCallTransactionFields>,
 
     key_registration: Option<KeyRegistrationTransactionFields>,
+
+    asset_freeze: Option<AssetFreezeTransactionFields>,
 }
 
 impl TryFrom<Transaction> for algokit_transact::Transaction {
@@ -315,6 +318,7 @@ impl TryFrom<Transaction> for algokit_transact::Transaction {
             tx.asset_config.is_some(),
             tx.key_registration.is_some(),
             tx.application_call.is_some(),
+            tx.asset_freeze.is_some(),
         ]
         .into_iter()
         .filter(|&x| x)
@@ -334,15 +338,17 @@ impl TryFrom<Transaction> for algokit_transact::Transaction {
             TransactionType::KeyRegistration => Ok(algokit_transact::Transaction::KeyRegistration(
                 tx.try_into()?,
             )),
+
             TransactionType::AssetConfig => {
                 Ok(algokit_transact::Transaction::AssetConfig(tx.try_into()?))
             }
+
             TransactionType::ApplicationCall => Ok(algokit_transact::Transaction::ApplicationCall(
                 tx.try_into()?,
             )),
-            _ => Err(Self::Error::DecodingError(
-                "Transaction type is not implemented".to_string(),
-            )),
+            TransactionType::AssetFreeze => {
+                Ok(algokit_transact::Transaction::AssetFreeze(tx.try_into()?))
+            }
         }
     }
 }
@@ -464,6 +470,7 @@ impl TryFrom<algokit_transact::Transaction> for Transaction {
                     None,
                     None,
                     None,
+                    None,
                 )
             }
             algokit_transact::Transaction::AssetTransfer(asset_transfer) => {
@@ -473,6 +480,7 @@ impl TryFrom<algokit_transact::Transaction> for Transaction {
                     TransactionType::AssetTransfer,
                     None,
                     Some(asset_transfer_fields),
+                    None,
                     None,
                     None,
                     None,
@@ -488,6 +496,7 @@ impl TryFrom<algokit_transact::Transaction> for Transaction {
                     Some(asset_config_fields),
                     None,
                     None,
+                    None,
                 )
             }
             algokit_transact::Transaction::ApplicationCall(application_call) => {
@@ -499,6 +508,7 @@ impl TryFrom<algokit_transact::Transaction> for Transaction {
                     None,
                     None,
                     Some(application_call_fields),
+                    None,
                     None,
                 )
             }
@@ -512,6 +522,20 @@ impl TryFrom<algokit_transact::Transaction> for Transaction {
                     None,
                     None,
                     Some(key_registration_fields),
+                    None,
+                )
+            }
+            algokit_transact::Transaction::AssetFreeze(asset_freeze) => {
+                let asset_freeze_fields = asset_freeze.clone().into();
+                build_transaction(
+                    asset_freeze.header,
+                    TransactionType::AssetFreeze,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    Some(asset_freeze_fields),
                 )
             }
         }
@@ -588,6 +612,7 @@ fn byte32_to_bytebuf(b32: Byte32) -> ByteBuf {
     ByteBuf::from(b32.to_vec())
 }
 
+#[allow(clippy::too_many_arguments)]
 fn build_transaction(
     header: algokit_transact::TransactionHeader,
     transaction_type: TransactionType,
@@ -596,6 +621,7 @@ fn build_transaction(
     asset_config: Option<AssetConfigTransactionFields>,
     application_call: Option<ApplicationCallTransactionFields>,
     key_registration: Option<KeyRegistrationTransactionFields>,
+    asset_freeze: Option<AssetFreezeTransactionFields>,
 ) -> Result<Transaction, AlgoKitTransactError> {
     Ok(Transaction {
         transaction_type,
@@ -614,6 +640,7 @@ fn build_transaction(
         asset_config,
         application_call,
         key_registration,
+        asset_freeze,
     })
 }
 
@@ -632,6 +659,7 @@ pub fn get_encoded_transaction_type(bytes: &[u8]) -> Result<TransactionType, Alg
         algokit_transact::Transaction::AssetConfig(_) => Ok(TransactionType::AssetConfig),
         algokit_transact::Transaction::ApplicationCall(_) => Ok(TransactionType::ApplicationCall),
         algokit_transact::Transaction::KeyRegistration(_) => Ok(TransactionType::KeyRegistration),
+        algokit_transact::Transaction::AssetFreeze(_) => Ok(TransactionType::AssetFreeze),
     }
 }
 

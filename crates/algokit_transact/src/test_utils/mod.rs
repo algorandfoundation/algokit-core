@@ -1,5 +1,6 @@
 mod application_call;
 mod asset_config;
+mod asset_freeze;
 mod key_registration;
 
 use crate::{
@@ -18,6 +19,7 @@ use std::{fs::File, str::FromStr};
 
 pub use application_call::ApplicationCallTransactionMother;
 pub use asset_config::AssetConfigTransactionMother;
+pub use asset_freeze::AssetFreezeTransactionMother;
 pub use key_registration::KeyRegistrationTransactionMother;
 
 pub struct TransactionHeaderMother {}
@@ -451,6 +453,28 @@ impl TestDataMother {
         TransactionTestData::new(transaction, SIGNING_PRIVATE_KEY)
     }
 
+    pub fn asset_freeze() -> TransactionTestData {
+        let signing_private_key: Byte32 = [
+            2, 205, 103, 33, 67, 14, 82, 196, 115, 196, 206, 254, 50, 110, 63, 182, 149, 229, 184,
+            216, 93, 11, 13, 99, 69, 213, 218, 165, 134, 118, 47, 44,
+        ];
+        let transaction = AssetFreezeTransactionMother::asset_freeze()
+            .build()
+            .unwrap();
+        TransactionTestData::new(transaction, signing_private_key)
+    }
+
+    pub fn asset_unfreeze() -> TransactionTestData {
+        let signing_private_key: Byte32 = [
+            2, 205, 103, 33, 67, 14, 82, 196, 115, 196, 206, 254, 50, 110, 63, 182, 149, 229, 184,
+            216, 93, 11, 13, 99, 69, 213, 218, 165, 134, 118, 47, 44,
+        ];
+        let transaction = AssetFreezeTransactionMother::asset_unfreeze()
+            .build()
+            .unwrap();
+        TransactionTestData::new(transaction, signing_private_key)
+    }
+
     pub fn export<F, T>(path: &std::path::Path, transform: Option<F>)
     where
         F: Fn(&TransactionTestData) -> T,
@@ -473,6 +497,8 @@ impl TestDataMother {
             "online_key_registration": Self::online_key_registration().as_json(&transform),
             "offline_key_registration": Self::offline_key_registration().as_json(&transform),
             "non_participation_key_registration": Self::non_participation_key_registration().as_json(&transform),
+            "asset_freeze": Self::asset_freeze().as_json(&transform),
+            "asset_unfreeze": Self::asset_unfreeze().as_json(&transform),
         }));
 
         let file = File::create(path).expect("Failed to create export file");
@@ -656,6 +682,24 @@ mod tests {
         assert_eq!(
             data.id,
             String::from("ACAP6ZGMGNTLUO3IQ26P22SRKYWTQQO3MF64GX7QO6NICDUFPM5A")
+        );
+    }
+
+    #[test]
+    fn test_asset_freeze_snapshot() {
+        let data = TestDataMother::asset_freeze();
+        assert_eq!(
+            data.id,
+            String::from("2XFGVOHMFYLAWBHOSIOI67PBT5LDRHBTD3VLX5EYBDTFNVKMCJIA")
+        );
+    }
+
+    #[test]
+    fn test_asset_unfreeze_snapshot() {
+        let data = TestDataMother::asset_unfreeze();
+        assert_eq!(
+            data.id,
+            String::from("LZ2ODDAT4ATAVJUEQW34DIKMPCMBXCCHOSIYKMWGBPEVNHLSEV2A")
         );
     }
 }

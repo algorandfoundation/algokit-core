@@ -14,11 +14,36 @@ const defaultReviver = (key: string, value: unknown) => {
 
   if (
     typeof value === "number" &&
-    ["fee", "amount", "firstValid", "lastValid", "assetId", "total", "appId", "extraProgramPages", "numUints", "numByteSlices", "voteFirst", "voteLast", "voteKeyDilution"].includes(
-      key,
-    )
+    [
+      "fee",
+      "amount",
+      "firstValid",
+      "lastValid",
+      "assetId",
+      "total",
+      "appId",
+      "extraProgramPages",
+      "numUints",
+      "numByteSlices",
+      "voteFirst",
+      "voteLast",
+      "voteKeyDilution",
+    ].includes(key)
   ) {
     return BigInt(value);
+  }
+
+  // Handle assetFreeze objects - ensure frozen field defaults to false if missing
+  // The Rust side uses #[serde(default)] on the frozen field, which means:
+  // 1. When serializing, false values may be omitted from JSON
+  // 2. When deserializing, missing values default to false
+  // The TypeScript WASM bindings expect the field to always be present as a boolean
+  if (key === "assetFreeze" && typeof value === "object" && value !== null) {
+    const assetFreeze = value as any;
+    if (assetFreeze.frozen === undefined) {
+      assetFreeze.frozen = false; // Match WASM bindings' expectations
+    }
+    return assetFreeze;
   }
 
   return value;
@@ -41,20 +66,23 @@ export type TransactionTestData = {
   multisigSignedBytes: Uint8Array;
 };
 
-export const testData = parseJson<
-  Record<
-    | "simplePayment"
-    | "optInAssetTransfer"
-    | "assetCreate"
-    | "assetDestroy"
-    | "assetReconfigure"
-    | "applicationCall"
-    | "applicationCreate"
-    | "applicationUpdate"
-    | "applicationDelete"
-    | "onlineKeyRegistration"
-    | "offlineKeyRegistration"
-    | "nonParticipationKeyRegistration",
-    TransactionTestData
-  >
->(jsonString);
+export const testData =
+  parseJson<
+    Record<
+      | "simplePayment"
+      | "optInAssetTransfer"
+      | "assetCreate"
+      | "assetDestroy"
+      | "assetReconfigure"
+      | "applicationCall"
+      | "applicationCreate"
+      | "applicationUpdate"
+      | "applicationDelete"
+      | "onlineKeyRegistration"
+      | "offlineKeyRegistration"
+      | "nonParticipationKeyRegistration"
+      | "assetFreeze"
+      | "assetUnfreeze",
+      TransactionTestData
+    >
+  >(jsonString);
