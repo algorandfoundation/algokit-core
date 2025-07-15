@@ -1,15 +1,20 @@
 use algod_client::AlgodClient;
 use algokit_transact::{
-    Account, AlgorandMsgpack, PaymentTransactionBuilder, SignedTransaction, Transaction,
+    ALGORAND_SECRET_KEY_BYTE_LENGTH, ALGORAND_SIGNATURE_BYTE_LENGTH, Account, Address,
+    AlgorandMsgpack, PaymentTransactionBuilder, SignedTransaction, Transaction,
     TransactionHeaderBuilder,
 };
-use ed25519_dalek::{Signer, SigningKey};
+use async_trait::async_trait;
+use ed25519_dalek::{Signer, SigningKey, VerifyingKey};
 use hex;
 use rand::rngs::OsRng;
 use regex::Regex;
 use std::convert::TryInto;
 use std::process::Command;
+use std::sync::Arc;
 use tokio::time::{Duration, sleep};
+
+use crate::{TransactionSigner, TransactionSignerGetter};
 
 use super::mnemonic::{from_key, to_key};
 
@@ -45,21 +50,73 @@ pub enum NetworkType {
 /// A test account using algokit_transact and ed25519_dalek with proper Algorand mnemonics
 #[derive(Debug, Clone)]
 pub struct TestAccount {
-    /// The ed25519 signing key
-    signing_key: SigningKey,
-    /// Cached balance in microALGOs
-    pub balance: Option<u64>,
+    /// The ed25519 secret key used for signing transactions
+    secret_key: [u8; ALGORAND_SECRET_KEY_BYTE_LENGTH],
+}
+
+// Implement TransactionSignerGetter for TestAccount as well
+impl TransactionSignerGetter for TestAccount {
+    fn get_signer(&self, address: Address) -> Option<Arc<dyn TransactionSigner>> {
+        let test_account_address = self.account().expect("Failed to get test account address");
+        if address == test_account_address.address() {
+            Some(Arc::new(self.clone()))
+        } else {
+            None
+        }
+    }
+}
+
+#[async_trait]
+impl TransactionSigner for TestAccount {
+    async fn sign_transactions(
+        &self,
+        txns: &[Transaction],
+        indices: &[usize],
+    ) -> Result<Vec<SignedTransaction>, String> {
+        let signing_key = SigningKey::from_bytes(&self.secret_key);
+        let verifying_key: VerifyingKey = (&signing_key).into();
+        let signer_account = Account::from_pubkey(&verifying_key.to_bytes());
+        let signer_address = signer_account.address();
+
+        indices
+            .iter()
+            .map(|&idx| {
+                if idx < txns.len() {
+                    let tx = txns[idx].clone();
+                    let encoded_tx = tx
+                        .encode()
+                        .map_err(|e| format!("Failed to encode transaction: {:?}", e))?;
+                    let sig: [u8; ALGORAND_SIGNATURE_BYTE_LENGTH] =
+                        signing_key.sign(&encoded_tx).to_bytes();
+
+                    let auth_address = if tx.header().sender != signer_address {
+                        Some(signer_address.clone())
+                    } else {
+                        None
+                    };
+
+                    Ok(SignedTransaction {
+                        transaction: tx,
+                        signature: Some(sig),
+                        auth_address,
+                        multisignature: None,
+                    })
+                } else {
+                    Err(format!("Index {} out of bounds for transactions", idx))
+                }
+            })
+            .collect()
+    }
 }
 
 impl TestAccount {
     /// Generate a new random test account using ed25519_dalek
     pub fn generate() -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
-        // Generate a random signing key directly (like algonaut does)
+        // Generate a random signing key
         let signing_key = SigningKey::generate(&mut OsRng);
 
         Ok(Self {
-            signing_key,
-            balance: None,
+            secret_key: signing_key.to_bytes(),
         })
     }
 
@@ -68,57 +125,26 @@ impl TestAccount {
         mnemonic_str: &str,
     ) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
         // Convert 25-word mnemonic to 32-byte key using our mnemonic module
-        let key_bytes =
+        let secret_key =
             to_key(mnemonic_str).map_err(|e| format!("Failed to parse mnemonic: {}", e))?;
 
-        let signing_key = SigningKey::from_bytes(&key_bytes);
-
-        Ok(Self {
-            signing_key,
-            balance: None,
-        })
+        Ok(Self { secret_key })
     }
 
     /// Get the account's address using algokit_transact
     pub fn account(&self) -> Result<Account, Box<dyn std::error::Error + Send + Sync>> {
-        let verifying_key = self.signing_key.verifying_key();
-        let public_key_bytes = verifying_key.to_bytes();
-        let account = Account::from_pubkey(&public_key_bytes);
+        let signing_key = SigningKey::from_bytes(&self.secret_key);
+        let public_key: VerifyingKey = (&signing_key).into();
+        let account = Account::from_pubkey(&public_key.to_bytes());
         Ok(account)
     }
 
     /// Get the account's mnemonic (proper Algorand 25-word mnemonic)
     pub fn mnemonic(&self) -> String {
-        let key_bytes = self.signing_key.to_bytes();
-        from_key(&key_bytes).unwrap_or_else(|_| {
+        from_key(&self.secret_key).unwrap_or_else(|_| {
             // Fallback to hex for debugging if mnemonic generation fails
-            hex::encode(key_bytes)
+            hex::encode(self.secret_key)
         })
-    }
-
-    /// Sign a transaction using ed25519_dalek and algokit_transact
-    pub fn sign_transaction(
-        &self,
-        transaction: &Transaction,
-    ) -> Result<Vec<u8>, Box<dyn std::error::Error + Send + Sync>> {
-        // Encode the transaction to get the bytes to sign
-        let transaction_bytes = transaction.encode()?;
-
-        // Sign the transaction bytes using ed25519_dalek
-        let signature = self.signing_key.sign(&transaction_bytes);
-
-        // Create a SignedTransaction with the signature
-        let signed_transaction = SignedTransaction {
-            transaction: transaction.clone(),
-            signature: Some(signature.to_bytes()),
-            auth_address: None,
-            multisignature: None,
-        };
-
-        // Encode the signed transaction to msgpack bytes
-        let signed_bytes = signed_transaction.encode()?;
-
-        Ok(signed_bytes)
     }
 }
 
@@ -216,10 +242,7 @@ impl LocalNetDispenser {
             .ok_or("Could not extract mnemonic from algokit output")?;
 
         // Create account from mnemonic using proper Algorand mnemonic parsing
-        let mut test_account = TestAccount::from_mnemonic(mnemonic)?;
-        test_account.balance = Some(highest_balance);
-
-        Ok(test_account)
+        TestAccount::from_mnemonic(mnemonic)
     }
 
     /// Fund an account with ALGOs using the dispenser
@@ -264,7 +287,10 @@ impl LocalNetDispenser {
             .build_fields()?;
 
         let transaction = Transaction::Payment(payment_fields);
-        let signed_bytes = dispenser.sign_transaction(&transaction)?;
+        let signed_transaction = dispenser.sign_transaction(&transaction).await?;
+        let signed_bytes = signed_transaction
+            .encode()
+            .map_err(|e| format!("Failed to encode signed transaction: {:?}", e))?;
 
         // Submit transaction
         let response = self

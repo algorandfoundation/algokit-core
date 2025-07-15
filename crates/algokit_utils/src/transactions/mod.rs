@@ -11,9 +11,7 @@ pub use application_call::{
     ApplicationUpdateParams,
 };
 pub use asset_config::{AssetCreateParams, AssetDestroyParams, AssetReconfigureParams};
-pub use common::{
-    CommonParams, DefaultSignerGetter, EmptySigner, TransactionSigner, TransactionSignerGetter,
-};
+pub use common::{CommonParams, EmptySigner, TransactionSigner, TransactionSignerGetter};
 pub use composer::{Composer, ComposerError, ComposerTransaction};
 pub use key_registration::{
     NonParticipationKeyRegistrationParams, OfflineKeyRegistrationParams,
