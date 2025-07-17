@@ -13,8 +13,8 @@ import {
 } from "./transaction_asserts";
 
 const freezeTestData = Object.entries({
-  ["freeze"]: testData.assetFreeze,
-  ["unfreeze"]: testData.assetUnfreeze,
+  freeze: testData.assetFreeze,
+  unfreeze: testData.assetUnfreeze,
 });
 
 describe("Asset Freeze", () => {

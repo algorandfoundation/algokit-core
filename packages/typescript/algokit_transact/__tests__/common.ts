@@ -3,6 +3,22 @@ import { Transaction } from "..";
 
 const jsonString = await Bun.file(path.join(__dirname, "../../../../crates/algokit_transact_ffi/test_data.json")).text();
 
+const NUMERIC_FIELDS = [
+  "fee",
+  "amount",
+  "firstValid",
+  "lastValid",
+  "assetId",
+  "total",
+  "appId",
+  "extraProgramPages",
+  "numUints",
+  "numByteSlices",
+  "voteFirst",
+  "voteLast",
+  "voteKeyDilution",
+];
+
 const defaultReviver = (key: string, value: unknown) => {
   if (Array.isArray(value) && value.every((n) => typeof n === "number")) {
     // assetReferences and appReferences should be arrays of BigInts
@@ -12,24 +28,7 @@ const defaultReviver = (key: string, value: unknown) => {
     return new Uint8Array(value);
   }
 
-  if (
-    typeof value === "number" &&
-    [
-      "fee",
-      "amount",
-      "firstValid",
-      "lastValid",
-      "assetId",
-      "total",
-      "appId",
-      "extraProgramPages",
-      "numUints",
-      "numByteSlices",
-      "voteFirst",
-      "voteLast",
-      "voteKeyDilution",
-    ].includes(key)
-  ) {
+  if (typeof value === "number" && NUMERIC_FIELDS.includes(key)) {
     return BigInt(value);
   }
 
