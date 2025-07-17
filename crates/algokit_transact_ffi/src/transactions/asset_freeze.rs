@@ -10,7 +10,7 @@ pub struct AssetFreezeTransactionFields {
     asset_id: u64,
 
     /// The target account whose asset holdings will be affected.
-    freeze_target: Account,
+    freeze_target: KeyPairAccount,
 
     /// The new freeze status.
     ///

@@ -1,6 +1,6 @@
-//! Algorand single signature account representation and manipulation.
+//! Algorand ed25519 keypair account representation and manipulation.
 //!
-//! This module provides the [`Account`] type, which encapsulates an Algorand single signature
+//! This module provides the [`KeyPairAccount`] type, which encapsulates an Algorand ed25519 keypair
 //! account's public key and offers methods for creation, conversion, and display. An account's
 //! [`Address`] is derived from its public key and encoded as a 58-character base32 string.
 
@@ -12,28 +12,28 @@ use serde_with::{serde_as, Bytes};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::str::FromStr;
 
-/// Represents a single signature Algorand account.
+/// Represents an ed25519 keypair Algorand account.
 ///
-/// An Algorand account is defined by a 32-byte Ed25519 public key.
+/// An Algorand keypair account is defined by a 32-byte Ed25519 public key.
 #[serde_as]
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Default)]
 #[serde(transparent)]
-pub struct Account {
+pub struct KeyPairAccount {
     /// The 32-byte Ed25519 public key associated with this account.
     #[serde_as(as = "Bytes")]
     pub pub_key: Byte32,
 }
 
-impl Account {
-    /// Creates a new [`Account`] from a 32-byte public key.
+impl KeyPairAccount {
+    /// Creates a new [`KeyPairAccount`] from a 32-byte public key.
     ///
     /// # Arguments
     /// * `pub_key` - The 32-byte Ed25519 public key.
     ///
     /// # Returns
-    /// A new [`Account`] instance containing the provided public key.
+    /// A new [`KeyPairAccount`] instance containing the provided public key.
     pub fn from_pubkey(pub_key: &Byte32) -> Self {
-        Account { pub_key: *pub_key }
+        KeyPairAccount { pub_key: *pub_key }
     }
 
     /// Returns the [`Address`] corresponding to this account's public key.
@@ -45,37 +45,37 @@ impl Account {
     }
 }
 
-impl From<Address> for Account {
-    /// Converts an [`Address`] into an [`Account`] by extracting the underlying public key bytes.
+impl From<Address> for KeyPairAccount {
+    /// Converts an [`Address`] into an [`KeyPairAccount`] by extracting the underlying public key bytes.
     fn from(addr: Address) -> Self {
-        Account::from_pubkey(addr.as_bytes())
+        KeyPairAccount::from_pubkey(addr.as_bytes())
     }
 }
 
-impl From<Account> for Address {
-    /// Converts an [`Account`] into an [`Address`] by wrapping its public key.
-    fn from(account: Account) -> Address {
+impl From<KeyPairAccount> for Address {
+    /// Converts an [`KeyPairAccount`] into an [`Address`] by wrapping its public key.
+    fn from(account: KeyPairAccount) -> Address {
         Address(account.pub_key)
     }
 }
 
-impl FromStr for Account {
+impl FromStr for KeyPairAccount {
     type Err = AlgoKitTransactError;
 
-    /// Parses an [`Account`] from a string by first parsing it as an [`Address`].
+    /// Parses an [`KeyPairAccount`] from a string by first parsing it as an [`Address`].
     ///
     /// # Arguments
     /// * `s` - A string slice representing an Algorand address.
     ///
     /// # Returns
-    /// An [`Account`] if the string is a valid address, or an error otherwise.
+    /// An [`KeyPairAccount`] if the string is a valid address, or an error otherwise.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         s.parse::<Address>().map(Into::into)
     }
 }
 
-impl Display for Account {
-    /// Formats the [`Account`] as a base32-encoded Algorand address string.
+impl Display for KeyPairAccount {
+    /// Formats the [`KeyPairAccount`] as a base32-encoded Algorand address string.
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "{}", Address::from(self.clone()).as_str())
     }

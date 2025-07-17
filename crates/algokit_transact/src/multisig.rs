@@ -67,7 +67,7 @@ impl MultisigSignature {
 #[serde_as]
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct MultisigSubsignature {
-    /// Address of a single signature participant that is sub-signing a multisignature transaction.
+    /// Address of a keypair account participant that is sub-signing a multisignature transaction.
     #[serde(rename = "pk")]
     pub address: Address,
     /// The signature bytes.

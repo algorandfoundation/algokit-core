@@ -5,7 +5,7 @@ mod key_registration;
 
 use crate::{
     transactions::{AssetTransferTransactionBuilder, PaymentTransactionBuilder},
-    Account, Address, AlgorandMsgpack, Byte32, MultisigSignature, MultisigSubsignature,
+    Address, AlgorandMsgpack, Byte32, KeyPairAccount, MultisigSignature, MultisigSubsignature,
     SignedTransaction, Transaction, TransactionHeaderBuilder, TransactionId,
     ALGORAND_PUBLIC_KEY_BYTE_LENGTH, HASH_BYTES_LENGTH,
 };
@@ -165,29 +165,29 @@ impl TransactionMother {
 
 pub struct AccountMother {}
 impl AccountMother {
-    pub fn zero_address_account() -> Account {
-        Account::from_pubkey(&[0; ALGORAND_PUBLIC_KEY_BYTE_LENGTH])
+    pub fn zero_address_account() -> KeyPairAccount {
+        KeyPairAccount::from_pubkey(&[0; ALGORAND_PUBLIC_KEY_BYTE_LENGTH])
     }
 
-    pub fn account() -> Account {
+    pub fn account() -> KeyPairAccount {
         "RIMARGKZU46OZ77OLPDHHPUJ7YBSHRTCYMQUC64KZCCMESQAFQMYU6SL2Q"
             .parse()
             .unwrap()
     }
 
-    pub fn neil() -> Account {
+    pub fn neil() -> KeyPairAccount {
         "JB3K6HTAXODO4THESLNYTSG6GQUFNEVIQG7A6ZYVDACR6WA3ZF52TKU5NA"
             .parse()
             .unwrap()
     }
 
-    pub fn nfd_testnet() -> Account {
+    pub fn nfd_testnet() -> KeyPairAccount {
         "3Y62HTJ4WYSIEKC74XE3F2JFCS7774EN3CYNUHQCEFIN7QBYFAWLKE5MFY"
             .parse()
             .unwrap()
     }
 
-    pub fn example() -> Account {
+    pub fn example() -> KeyPairAccount {
         "ALGOC4J2BCZ33TCKSSAMV5GAXQBMV3HDCHDBSPRBZRNSR7BM2FFDZRFGXA"
             .parse()
             .unwrap()

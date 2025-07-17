@@ -6,8 +6,8 @@ use crate::{
         AccountMother, TransactionGroupMother, TransactionHeaderMother, TransactionMother,
     },
     transactions::FeeParams,
-    Account, AlgorandMsgpack, EstimateTransactionSize, MultisigSignature, MultisigSubsignature,
-    SignedTransaction, Transaction, TransactionId, Transactions,
+    AlgorandMsgpack, EstimateTransactionSize, KeyPairAccount, MultisigSignature,
+    MultisigSubsignature, SignedTransaction, Transaction, TransactionId, Transactions,
 };
 use base64::{prelude::BASE64_STANDARD, Engine};
 use pretty_assertions::assert_eq;
@@ -39,7 +39,7 @@ pub fn check_transaction_encoding(tx: &Transaction, expected_encoded_len: usize)
 pub fn check_signed_transaction_encoding(
     tx: &Transaction,
     expected_encoded_len: usize,
-    auth_account: Option<Account>,
+    auth_account: Option<KeyPairAccount>,
 ) {
     let signed_tx = SignedTransaction {
         transaction: tx.clone(),
@@ -164,7 +164,7 @@ fn test_zero_address_account() {
         "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
     );
 
-    let addr_from_str = acct.to_string().parse::<Account>().unwrap();
+    let addr_from_str = acct.to_string().parse::<KeyPairAccount>().unwrap();
     assert_eq!(acct, addr_from_str);
 }
 
@@ -176,7 +176,7 @@ fn test_account() {
         "RIMARGKZU46OZ77OLPDHHPUJ7YBSHRTCYMQUC64KZCCMESQAFQMYU6SL2Q"
     );
 
-    let addr_from_str = acct.to_string().parse::<Account>().unwrap();
+    let addr_from_str = acct.to_string().parse::<KeyPairAccount>().unwrap();
     assert_eq!(acct, addr_from_str);
 }
 

@@ -114,7 +114,7 @@ pub enum TransactionType {
 }
 
 #[ffi_record]
-pub struct Account {
+pub struct KeyPairAccount {
     address: String,
     pub_key: ByteBuf,
 }
@@ -133,8 +133,8 @@ pub struct MultisigSubsignature {
     signature: Option<ByteBuf>,
 }
 
-impl From<algokit_transact::Account> for Account {
-    fn from(value: algokit_transact::Account) -> Self {
+impl From<algokit_transact::KeyPairAccount> for KeyPairAccount {
+    fn from(value: algokit_transact::KeyPairAccount) -> Self {
         Self {
             address: value.to_string(),
             pub_key: value.pub_key.to_vec().into(),
@@ -142,10 +142,10 @@ impl From<algokit_transact::Account> for Account {
     }
 }
 
-impl TryFrom<Account> for algokit_transact::Account {
+impl TryFrom<KeyPairAccount> for algokit_transact::KeyPairAccount {
     type Error = AlgoKitTransactError;
 
-    fn try_from(value: Account) -> Result<Self, Self::Error> {
+    fn try_from(value: KeyPairAccount) -> Result<Self, Self::Error> {
         let pub_key: [u8; ALGORAND_PUBLIC_KEY_BYTE_LENGTH] =
             value.pub_key.to_vec().try_into().map_err(|_| {
                 AlgoKitTransactError::EncodingError(
@@ -157,11 +157,11 @@ impl TryFrom<Account> for algokit_transact::Account {
                 )
             })?;
 
-        Ok(algokit_transact::Account::from_pubkey(&pub_key))
+        Ok(algokit_transact::KeyPairAccount::from_pubkey(&pub_key))
     }
 }
 
-impl From<algokit_transact::Address> for Account {
+impl From<algokit_transact::Address> for KeyPairAccount {
     fn from(value: algokit_transact::Address) -> Self {
         Self {
             address: value.to_string(),
@@ -170,10 +170,10 @@ impl From<algokit_transact::Address> for Account {
     }
 }
 
-impl TryFrom<Account> for algokit_transact::Address {
+impl TryFrom<KeyPairAccount> for algokit_transact::Address {
     type Error = AlgoKitTransactError;
 
-    fn try_from(value: Account) -> Result<Self, Self::Error> {
+    fn try_from(value: KeyPairAccount) -> Result<Self, Self::Error> {
         value.address.parse().map_err(Self::Error::from)
     }
 }
@@ -776,9 +776,11 @@ pub fn estimate_transaction_size(transaction: Transaction) -> Result<u64, AlgoKi
 }
 
 #[ffi_func]
-pub fn account_from_pub_key(pub_key: &[u8]) -> Result<Account, AlgoKitTransactError> {
+pub fn keypair_account_from_pub_key(
+    pub_key: &[u8],
+) -> Result<KeyPairAccount, AlgoKitTransactError> {
     Ok(
-        algokit_transact::Account::from_pubkey(pub_key.try_into().map_err(|_| {
+        algokit_transact::KeyPairAccount::from_pubkey(pub_key.try_into().map_err(|_| {
             AlgoKitTransactError::EncodingError(
                 format!(
                     "public key should be {} bytes",
@@ -792,9 +794,9 @@ pub fn account_from_pub_key(pub_key: &[u8]) -> Result<Account, AlgoKitTransactEr
 }
 
 #[ffi_func]
-pub fn account_from_address(address: &str) -> Result<Account, AlgoKitTransactError> {
+pub fn keypair_account_from_address(address: &str) -> Result<KeyPairAccount, AlgoKitTransactError> {
     address
-        .parse::<algokit_transact::Account>()
+        .parse::<algokit_transact::KeyPairAccount>()
         .map(Into::into)
         .map_err(|e| AlgoKitTransactError::EncodingError(e.to_string()))
 }
