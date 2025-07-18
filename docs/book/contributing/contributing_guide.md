@@ -8,6 +8,130 @@ See the core principles in the repository's [README](../../README.md)
 
 The implementation of the rust crate should be completely seperate from the foreign interfaces. For example, [algokit_transact](../crates/algokit_transact/) does not depend on UniFFI or wasm-bindgen. Instead, there's a seperate crate [algokit_transact_ffi](../crates/algokit_transact_ffi/) that provides the foreign interfaces.
 
+## Development Tools and Commands
+
+This repository provides several cargo binary commands to help with development and building packages for different languages.
+
+### Available Binary Commands
+
+#### 1. Package Building (`build_pkgs`)
+```bash
+cargo pkg <package> [language]
+```
+
+**Examples:**
+- `cargo pkg algokit_transact typescript` - Build TypeScript/WASM bindings
+- `cargo pkg algokit_transact python` - Build Python bindings  
+- `cargo pkg algokit_transact swift` - Build Swift bindings
+- `cargo pkg algokit_transact` - Build all languages
+
+#### 2. API Tools (`api_tools`)
+```bash
+cargo api <subcommand>
+```
+
+**Available subcommands:**
+- `test-oas` - Test the OAS generator
+- `format-oas` - Format the OAS generator code
+- `lint-oas` - Lint and type-check the OAS generator
+- `format-algod` - Format generated Rust code
+- `generate-algod` - Generate algod API client
+- `convert-openapi` - Convert OpenAPI specification
+
+#### 3. Documentation Building
+```bash
+cargo run --bin build-docs --manifest-path docs/Cargo.toml
+```
+
+#### 4. Cargo Binary Management
+```bash
+cargo bin <args>
+```
+
+#### 5. UniFFI Bindings Generator
+```bash
+cargo run --bin uniffi-bindgen -- <args>
+```
+
+## Development Workflow
+
+### When Developing Core Rust Functionality
+
+1. **Make changes to the core crates** (e.g., `algokit_transact`)
+2. **Run tests** to ensure functionality works:
+   ```bash
+   cargo test -p algokit_transact
+   ```
+3. **Test FFI layer** if your changes affect the interface:
+   ```bash
+   cargo test -p algokit_transact_ffi
+   ```
+
+### When Developing Language Bindings
+
+#### TypeScript/WASM Development
+1. **Build the TypeScript bindings** after making Rust changes:
+   ```bash
+   cargo pkg algokit_transact typescript
+   ```
+2. **Run TypeScript tests**:
+   ```bash
+   cd packages/typescript/algokit_transact
+   bun test
+   ```
+
+#### Python Development
+1. **Build the Python bindings**:
+   ```bash
+   cargo pkg algokit_transact python
+   ```
+2. **Test Python bindings**:
+   ```bash
+   cd packages/python/algokit_transact
+   poetry run pytest
+   ```
+
+#### Swift Development
+1. **Build the Swift bindings**:
+   ```bash
+   cargo pkg algokit_transact swift
+   ```
+
+### Testing Your Changes
+
+1. **Run Rust tests**:
+   ```bash
+   cargo test
+   ```
+
+2. **Run specific crate tests**:
+   ```bash
+   cargo test -p algokit_transact
+   cargo test -p algokit_transact_ffi
+   ```
+
+3. **Run language-specific tests**:
+   ```bash
+   # TypeScript
+   cd packages/typescript/algokit_transact && bun test
+   
+   # Python
+   cd packages/python/algokit_transact && poetry run pytest
+   ```
+4. **Run all tests** (as done in CI):
+```bash
+   ./scripts/test-all.sh                         # Comprehensive test script
+   ```
+   
+   Or manually:
+   ```bash
+   cargo test                                    # Rust tests
+   cargo pkg algokit_transact typescript        # Build TS
+   cd packages/typescript/algokit_transact && bun test  # Test TS
+   cargo pkg algokit_transact python            # Build Python
+   cd packages/python/algokit_transact && poetry run pytest  # Test Python
+   ```
+
 ## Debugging Rust Code is VS Code
 
 ### Prerequisites
