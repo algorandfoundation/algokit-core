@@ -9,7 +9,8 @@ from algokit_transact import (
     SignedTransaction,
     get_transaction_id,
     get_transaction_id_raw,
-    estimate_transaction_size, MultisigSignature, MultisigSubsignature,
+    estimate_transaction_size, MultisigSignature, MultisigSubsignature, new_multisig_signature, apply_multisig_subsignature,
+    merge_multisignatures,
 )
 
 
@@ -32,23 +33,10 @@ def assert_multisig_example(test_data: TransactionTestData):
         encode_transaction(test_data.transaction)
     ).signature
 
-    # FIXME: Since we don't yet expose a way to create a MultisigSignature, we create it manually
-    #  with an empty address which shouldn't impact the encoding.
-    multisig_signature = MultisigSignature(
-        address="",
-        version=1,
-        threshold=2,
-        subsignatures=[
-            MultisigSubsignature(
-                address=test_data.multisig_addresses[0],
-                signature=single_sig,
-            ),
-            MultisigSubsignature(
-                address=test_data.multisig_addresses[1],
-                signature=single_sig,
-            ),
-        ]
-    )
+    unsigned_multisig_signature = new_multisig_signature(1, 2, list(test_data.multisig_addresses))
+    multisig_signature_0 = apply_multisig_subsignature(unsigned_multisig_signature, test_data.multisig_addresses[0], single_sig)
+    multisig_signature_1 = apply_multisig_subsignature(unsigned_multisig_signature, test_data.multisig_addresses[1], single_sig)
+    multisig_signature = merge_multisignatures(multisig_signature_0, multisig_signature_1)
 
     signed_txn = SignedTransaction(
         transaction=test_data.transaction,

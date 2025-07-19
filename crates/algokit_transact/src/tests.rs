@@ -6,8 +6,8 @@ use crate::{
         AccountMother, TransactionGroupMother, TransactionHeaderMother, TransactionMother,
     },
     transactions::FeeParams,
-    AlgorandMsgpack, EstimateTransactionSize, KeyPairAccount, MultisigSignature,
-    MultisigSubsignature, SignedTransaction, Transaction, TransactionId, Transactions,
+    AlgorandMsgpack, EstimateTransactionSize, KeyPairAccount, MultisigSignature, SignedTransaction,
+    Transaction, TransactionId, Transactions,
 };
 use base64::{prelude::BASE64_STANDARD, Engine};
 use pretty_assertions::assert_eq;
@@ -54,24 +54,33 @@ pub fn check_signed_transaction_encoding(
 }
 
 pub fn check_multisigned_transaction_encoding(tx: &Transaction, expected_encoded_len: usize) {
+    let unsigned_multisignature = MultisigSignature::from_participants(
+        1,
+        2,
+        vec![
+            AccountMother::account().address(),
+            AccountMother::neil().address(),
+        ],
+    )
+    .unwrap();
+    let multisignature_0 = unsigned_multisignature
+        .apply_subsignature(
+            AccountMother::account().address(),
+            [0; ALGORAND_SIGNATURE_BYTE_LENGTH],
+        )
+        .unwrap();
+    let multisignature_1 = unsigned_multisignature
+        .apply_subsignature(
+            AccountMother::neil().address(),
+            [0; ALGORAND_SIGNATURE_BYTE_LENGTH],
+        )
+        .unwrap();
+    let multisignature = Some(multisignature_0.merge(&multisignature_1).unwrap());
     let signed_tx = SignedTransaction {
         transaction: tx.clone(),
         signature: None,
         auth_address: None,
-        multisignature: Some(MultisigSignature {
-            version: 1,
-            threshold: 2,
-            subsignatures: vec![
-                MultisigSubsignature {
-                    address: AccountMother::account().address(),
-                    signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
-                },
-                MultisigSubsignature {
-                    address: AccountMother::neil().address(),
-                    signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
-                },
-            ],
-        }),
+        multisignature,
     };
     let encoded_stx = signed_tx.encode().unwrap();
     assert_eq!(encoded_stx.len(), expected_encoded_len);

@@ -8,8 +8,9 @@ import {
   getTransactionId,
   getTransactionIdRaw,
   SignedTransaction,
-  MultisigSignature,
-  MultisigSubsignature,
+  newMultisigSignature,
+  applyMultisigSubsignature,
+  mergeMultisignatures
 } from "..";
 import { expect } from "bun:test";
 import * as ed from "@noble/ed25519";
@@ -89,22 +90,12 @@ export const assertAssignFee = (label: string, testData: TransactionTestData) =>
 export const assertMultisigExample = async (label: string, testData: TransactionTestData) => {
   const singleSig = await ed.signAsync(encodeTransaction(testData.transaction), testData.signingPrivateKey);
 
-  // FIXME: Just as in the Python test, when we get a function that creates multisigs, that's what we should use here.
-  const multisigSignature: MultisigSignature = {
-    address: "",
-    version: 1,
-    threshold: 2,
-    subsignatures: [
-      {
-        address: testData.multisigAddresses[0],
-        signature: singleSig,
-      },
-      {
-        address: testData.multisigAddresses[1],
-        signature: singleSig,
-      },
-    ] as MultisigSubsignature[],
-  };
+  const unsignedMultisigSignature = newMultisigSignature(
+    1, 2, testData.multisigAddresses
+  );
+  const multisigSignature0 = applyMultisigSubsignature(unsignedMultisigSignature, testData.multisigAddresses[0], singleSig);
+  const multisigSignature1 = applyMultisigSubsignature(unsignedMultisigSignature, testData.multisigAddresses[1], singleSig);
+  const multisigSignature = mergeMultisignatures(multisigSignature0, multisigSignature1);
 
   const signedTxn: SignedTransaction = {
     transaction: testData.transaction,

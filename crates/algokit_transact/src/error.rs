@@ -32,4 +32,7 @@ pub enum AlgoKitTransactError {
 
     #[error("{0}")]
     InvalidAddress(String),
+
+    #[error("Invalid multisig signature: {0}")]
+    InvalidMultisigSignature(String),
 }

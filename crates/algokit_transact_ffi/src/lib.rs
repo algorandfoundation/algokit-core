@@ -1,3 +1,4 @@
+mod multisig;
 mod transactions;
 
 use algokit_transact::constants::*;
@@ -8,6 +9,7 @@ use ffi_macros::{ffi_enum, ffi_func, ffi_record};
 use serde::{Deserialize, Serialize};
 use serde_bytes::ByteBuf;
 
+pub use multisig::{MultisigSignature, MultisigSubsignature};
 pub use transactions::ApplicationCallTransactionFields;
 pub use transactions::AssetConfigTransactionFields;
 pub use transactions::AssetFreezeTransactionFields;
@@ -63,6 +65,9 @@ impl From<algokit_transact::AlgoKitTransactError> for AlgoKitTransactError {
             algokit_transact::AlgoKitTransactError::InvalidAddress(_) => {
                 AlgoKitTransactError::DecodingError(e.to_string())
             }
+            algokit_transact::AlgoKitTransactError::InvalidMultisigSignature(_) => {
+                AlgoKitTransactError::DecodingError(e.to_string())
+            }
         }
     }
 }
@@ -115,28 +120,12 @@ pub enum TransactionType {
 
 #[ffi_record]
 pub struct KeyPairAccount {
-    address: String,
     pub_key: ByteBuf,
-}
-
-#[ffi_record]
-pub struct MultisigSignature {
-    address: String,
-    version: u8,
-    threshold: u8,
-    subsignatures: Vec<MultisigSubsignature>,
-}
-
-#[ffi_record]
-pub struct MultisigSubsignature {
-    address: String,
-    signature: Option<ByteBuf>,
 }
 
 impl From<algokit_transact::KeyPairAccount> for KeyPairAccount {
     fn from(value: algokit_transact::KeyPairAccount) -> Self {
         Self {
-            address: value.to_string(),
             pub_key: value.pub_key.to_vec().into(),
         }
     }
@@ -146,15 +135,12 @@ impl TryFrom<KeyPairAccount> for algokit_transact::KeyPairAccount {
     type Error = AlgoKitTransactError;
 
     fn try_from(value: KeyPairAccount) -> Result<Self, Self::Error> {
-        let pub_key: [u8; ALGORAND_PUBLIC_KEY_BYTE_LENGTH] =
-            value.pub_key.to_vec().try_into().map_err(|_| {
-                AlgoKitTransactError::EncodingError(
-                    format!(
-                        "public key should be {} bytes",
-                        ALGORAND_PUBLIC_KEY_BYTE_LENGTH
-                    )
-                    .to_string(),
-                )
+        let pub_key: [u8; ALGORAND_PUBLIC_KEY_BYTE_LENGTH] = bytebuf_to_bytes(&value.pub_key)
+            .map_err(|e| {
+                AlgoKitTransactError::DecodingError(format!(
+                    "Error while decoding a public key: {}",
+                    e
+                ))
             })?;
 
         Ok(algokit_transact::KeyPairAccount::from_pubkey(&pub_key))
@@ -164,7 +150,6 @@ impl TryFrom<KeyPairAccount> for algokit_transact::KeyPairAccount {
 impl From<algokit_transact::Address> for KeyPairAccount {
     fn from(value: algokit_transact::Address) -> Self {
         Self {
-            address: value.to_string(),
             pub_key: value.as_bytes().to_vec().into(),
         }
     }
@@ -174,64 +159,8 @@ impl TryFrom<KeyPairAccount> for algokit_transact::Address {
     type Error = AlgoKitTransactError;
 
     fn try_from(value: KeyPairAccount) -> Result<Self, Self::Error> {
-        value.address.parse().map_err(Self::Error::from)
-    }
-}
-
-impl From<algokit_transact::MultisigSignature> for MultisigSignature {
-    fn from(value: algokit_transact::MultisigSignature) -> Self {
-        Self {
-            address: value.to_string(),
-            version: value.version,
-            threshold: value.threshold,
-            subsignatures: value.subsignatures.into_iter().map(Into::into).collect(),
-        }
-    }
-}
-
-impl TryFrom<MultisigSignature> for algokit_transact::MultisigSignature {
-    type Error = AlgoKitTransactError;
-
-    fn try_from(value: MultisigSignature) -> Result<Self, Self::Error> {
-        Ok(Self {
-            version: value.version,
-            threshold: value.threshold,
-            subsignatures: value
-                .subsignatures
-                .into_iter()
-                .map(TryInto::try_into)
-                .collect::<Result<Vec<_>, _>>()?,
-        })
-    }
-}
-
-impl From<algokit_transact::MultisigSubsignature> for MultisigSubsignature {
-    fn from(value: algokit_transact::MultisigSubsignature) -> Self {
-        Self {
-            address: value.address.as_str(),
-            signature: value.signature.map(|sig| sig.to_vec().into()),
-        }
-    }
-}
-
-impl TryFrom<MultisigSubsignature> for algokit_transact::MultisigSubsignature {
-    type Error = AlgoKitTransactError;
-
-    fn try_from(value: MultisigSubsignature) -> Result<Self, Self::Error> {
-        let address = value.address.parse()?;
-        let signature = value
-            .signature
-            .map(|sig| {
-                sig.to_vec().try_into().map_err(|_| {
-                    AlgoKitTransactError::EncodingError(format!(
-                        "signature should be {} bytes",
-                        ALGORAND_SIGNATURE_BYTE_LENGTH
-                    ))
-                })
-            })
-            .transpose()?;
-
-        Ok(Self { address, signature })
+        let impl_keypair_account: algokit_transact::KeyPairAccount = value.try_into()?;
+        Ok(impl_keypair_account.address())
     }
 }
 
@@ -572,21 +501,18 @@ impl TryFrom<SignedTransaction> for algokit_transact::SignedTransaction {
     type Error = AlgoKitTransactError;
 
     fn try_from(signed_tx: SignedTransaction) -> Result<Self, Self::Error> {
-        let signature = signed_tx
-            .signature
-            .map(|sig| {
-                sig.to_vec().try_into().map_err(|_| {
-                    AlgoKitTransactError::EncodingError(format!(
-                        "signature should be {} bytes",
-                        ALGORAND_SIGNATURE_BYTE_LENGTH
-                    ))
-                })
-            })
-            .transpose()?;
-
         Ok(Self {
             transaction: signed_tx.transaction.try_into()?,
-            signature,
+            signature: signed_tx
+                .signature
+                .map(|sig| bytebuf_to_bytes(&sig))
+                .transpose()
+                .map_err(|e| {
+                    AlgoKitTransactError::DecodingError(format!(
+                        "Error while decoding the signature in a signed transaction: {}",
+                        e
+                    ))
+                })?,
             auth_address: signed_tx
                 .auth_address
                 .map(|addr| addr.parse())
@@ -761,18 +687,9 @@ pub fn decode_transactions(
 #[ffi_func]
 pub fn estimate_transaction_size(transaction: Transaction) -> Result<u64, AlgoKitTransactError> {
     let core_tx: algokit_transact::Transaction = transaction.try_into()?;
-    core_tx
-        .estimate_size()
-        .map_err(|e| {
-            AlgoKitTransactError::EncodingError(format!(
-                "Failed to estimate transaction size: {}",
-                e
-            ))
-        })?
-        .try_into()
-        .map_err(|_| {
-            AlgoKitTransactError::EncodingError("Failed to convert size to u64".to_string())
-        })
+    core_tx.estimate_size()?.try_into().map_err(|_| {
+        AlgoKitTransactError::EncodingError("Failed to convert size to u64".to_string())
+    })
 }
 
 #[ffi_func]
@@ -795,10 +712,17 @@ pub fn keypair_account_from_pub_key(
 
 #[ffi_func]
 pub fn keypair_account_from_address(address: &str) -> Result<KeyPairAccount, AlgoKitTransactError> {
-    address
+    Ok(address
         .parse::<algokit_transact::KeyPairAccount>()
-        .map(Into::into)
-        .map_err(|e| AlgoKitTransactError::EncodingError(e.to_string()))
+        .map(Into::into)?)
+}
+
+#[ffi_func]
+pub fn address_from_keypair_account(
+    account: KeyPairAccount,
+) -> Result<String, AlgoKitTransactError> {
+    let impl_keypair_account: algokit_transact::KeyPairAccount = account.try_into()?;
+    Ok(impl_keypair_account.address().as_str())
 }
 
 /// Get the raw 32-byte transaction ID for a transaction.

@@ -10,7 +10,7 @@ pub struct AssetFreezeTransactionFields {
     asset_id: u64,
 
     /// The target account whose asset holdings will be affected.
-    freeze_target: KeyPairAccount,
+    freeze_target: String,
 
     /// The new freeze status.
     ///
@@ -23,7 +23,7 @@ impl From<algokit_transact::AssetFreezeTransactionFields> for AssetFreezeTransac
     fn from(tx: algokit_transact::AssetFreezeTransactionFields) -> Self {
         Self {
             asset_id: tx.asset_id,
-            freeze_target: tx.freeze_target.into(),
+            freeze_target: tx.freeze_target.to_string(),
             frozen: tx.frozen,
         }
     }
@@ -45,7 +45,7 @@ impl TryFrom<Transaction> for algokit_transact::AssetFreezeTransactionFields {
         Ok(Self {
             header,
             asset_id: data.asset_id,
-            freeze_target: data.freeze_target.try_into()?,
+            freeze_target: data.freeze_target.parse()?,
             frozen: data.frozen,
         })
     }

@@ -161,6 +161,31 @@ impl TransactionMother {
             .receiver(AccountMother::neil().address())
             .to_owned()
     }
+
+    pub fn observed_multisig_asset_transfer() -> AssetTransferTransactionBuilder {
+        // https://lora.algokit.io/mainnet/transaction/R2FD3AV2NMUIAFAIQKK7YLXMXEF546NTDCUXPBGXQ7MR2DWP2KYQ
+        AssetTransferTransactionBuilder::default()
+            .header(
+                TransactionHeaderMother::mainnet()
+                    .sender(
+                        "P5VB5V7PE7455UHXZBQ67LR37URRJYPGWNM5GU773FCLJY4EM55YO47QTY"
+                            .parse()
+                            .unwrap(),
+                    )
+                    .first_valid(51875497)
+                    .last_valid(51876497)
+                    .build()
+                    .unwrap(),
+            )
+            .asset_id(849191641)
+            .receiver(
+                "TR6G2PSAEIWBA7MDQGLKJX3HJBEY3KIH3AD7FXQLKX6FPHFP56ZAVOMUXQ"
+                    .parse()
+                    .unwrap(),
+            )
+            .amount(8295000)
+            .to_owned()
+    }
 }
 
 pub struct AccountMother {}
@@ -194,7 +219,12 @@ impl AccountMother {
     }
 
     pub fn msig() -> MultisigSignature {
-        MultisigSignature::new(1, 2, vec![Self::account().into(), Self::example().into()])
+        MultisigSignature::from_participants(
+            1,
+            2,
+            vec![Self::account().into(), Self::example().into()],
+        )
+        .unwrap()
     }
 }
 
