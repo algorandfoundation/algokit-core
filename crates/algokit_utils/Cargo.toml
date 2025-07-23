@@ -34,7 +34,7 @@ regex = "1.10.2"
 ed25519-dalek = { version = "2.1.1", features = ["rand_core"] }
 hex = "0.4.3"
 rand = "0.8"
-sha2 = "0.10.8"
+sha2 = { workspace = true }
 lazy_static = "1.4"
 
 [dev-dependencies]
