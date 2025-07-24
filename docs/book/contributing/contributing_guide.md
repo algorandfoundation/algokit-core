@@ -53,6 +53,19 @@ cargo bin <args>
 cargo run --bin uniffi-bindgen -- <args>
 ```
 
+### 6. Pre-commit Hooks (Optional)
+
+This repository includes [pre-commit](https://pre-commit.com/) hooks that run the same checks as `scripts/sanity.sh`.
+
+**Run hooks manually on all files:**
+```bash
+pre-commit run --all-files
+# or 
+pre-commit install # to auto run on each commit
+```
+
+The hooks will automatically run `cargo fmt --check`, `cargo clippy`, `cargo check`, `cargo test`, and `cargo check --no-default-features --features ffi_wasm` on every commit.
+
 ## Development Workflow
 
 ### When Developing Core Rust Functionality

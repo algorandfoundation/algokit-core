@@ -1,0 +1,46 @@
+repos:
+  - repo: local
+    hooks:
+      - id: cargo-fmt
+        name: cargo-fmt
+        description: "Run 'cargo fmt --check' to check Rust formatting"
+        entry: cargo fmt
+        language: system
+        types: [rust]
+        args: [--check]
+        require_serial: true
+        pass_filenames: false
+      - id: cargo-clippy
+        name: cargo-clippy
+        description: "Run 'cargo clippy' for Rust linting with warnings as errors"
+        entry: cargo clippy
+        language: system
+        types: [rust]
+        args: [--, -D, warnings]
+        require_serial: true
+        pass_filenames: false
+      - id: cargo-check
+        name: cargo-check
+        description: "Run 'cargo check' to verify compilation"
+        entry: cargo check
+        language: system
+        types: [rust]
+        require_serial: true
+        pass_filenames: false
+      - id: cargo-check-wasm
+        name: cargo-check-wasm
+        description: "Run 'cargo check' for WASM features"
+        entry: cargo check
+        language: system
+        types: [rust]
+        args: [--no-default-features, --features, ffi_wasm]
+        require_serial: true
+        pass_filenames: false
+      - id: cargo-test
+        name: cargo-test
+        description: "Run 'cargo test' to execute all tests"
+        entry: cargo test
+        language: system
+        types: [rust]
+        require_serial: true
+        pass_filenames: false
