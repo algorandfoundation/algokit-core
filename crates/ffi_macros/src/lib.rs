@@ -2,8 +2,8 @@
 
 use convert_case::{Case, Casing};
 use proc_macro::TokenStream;
-use quote::{quote, ToTokens};
-use syn::{parse_macro_input, Field, Fields, ItemEnum, ItemFn, ItemStruct, Type, TypePath};
+use quote::{ToTokens, quote};
+use syn::{Field, Fields, ItemEnum, ItemFn, ItemStruct, Type, TypePath, parse_macro_input};
 
 #[proc_macro_attribute]
 pub fn ffi_func(_attr: TokenStream, item: TokenStream) -> TokenStream {

@@ -9,7 +9,7 @@ use crate::utils::{is_false_opt, is_zero, is_zero_addr_opt, is_zero_opt};
 use crate::{Address, Transaction};
 use derive_builder::Builder;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use serde_with::{serde_as, skip_serializing_none, Bytes};
+use serde_with::{Bytes, serde_as, skip_serializing_none};
 
 // Only used for serialise/deserialise
 #[serde_as]

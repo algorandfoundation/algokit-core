@@ -1,8 +1,8 @@
 use crate::{
-    test_utils::{AccountMother, TransactionHeaderMother},
     ApplicationCallTransactionBuilder, OnApplicationComplete, StateSchema,
+    test_utils::{AccountMother, TransactionHeaderMother},
 };
-use base64::{prelude::BASE64_STANDARD, Engine};
+use base64::{Engine, prelude::BASE64_STANDARD};
 
 pub struct ApplicationCallTransactionMother {}
 

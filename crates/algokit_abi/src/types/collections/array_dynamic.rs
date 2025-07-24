@@ -1,7 +1,7 @@
 use crate::{
+    ABIError, ABIType, ABIValue,
     constants::LENGTH_ENCODE_BYTE_SIZE,
     types::collections::tuple::{decode_abi_types, encode_abi_types},
-    ABIError, ABIType, ABIValue,
 };
 
 impl ABIType {
@@ -20,7 +20,7 @@ impl ABIType {
             _ => {
                 return Err(ABIError::EncodingError(
                     "ABI type mismatch, expected dynamic array".to_string(),
-                ))
+                ));
             }
         };
 
@@ -50,7 +50,7 @@ impl ABIType {
             _ => {
                 return Err(ABIError::EncodingError(
                     "ABI type mismatch, expected dynamic array".to_string(),
-                ))
+                ));
             }
         };
 

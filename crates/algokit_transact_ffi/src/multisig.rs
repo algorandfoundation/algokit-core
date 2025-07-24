@@ -171,10 +171,10 @@ pub fn merge_multisignatures(
 
 #[cfg(test)]
 mod tests {
-    use algokit_transact::test_utils::TransactionMother;
     use algokit_transact::AlgorandMsgpack;
-    use base64::prelude::BASE64_STANDARD;
+    use algokit_transact::test_utils::TransactionMother;
     use base64::Engine;
+    use base64::prelude::BASE64_STANDARD;
 
     #[test]
     fn test_multisig_transaction_matches_observed_transaction() {

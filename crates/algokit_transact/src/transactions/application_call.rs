@@ -10,7 +10,7 @@ use crate::{Address, Transaction};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use serde_with::{serde_as, skip_serializing_none, Bytes};
+use serde_with::{Bytes, serde_as, skip_serializing_none};
 
 // Application program size constraints (based on Algorand protocol)
 const MAX_EXTRA_PROGRAM_PAGES: u64 = 3;
@@ -450,7 +450,7 @@ impl ApplicationCallTransactionFields {
         }
 
         // Validate combined program size
-        if let (Some(ref approval_program), Some(ref clear_state_program)) =
+        if let (Some(approval_program), Some(clear_state_program)) =
             (&self.approval_program, &self.clear_state_program)
         {
             let total_size = approval_program.len() + clear_state_program.len();
@@ -687,11 +687,11 @@ impl Validate for ApplicationCallTransactionFields {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::AlgorandMsgpack;
     use crate::test_utils::{
         AccountMother, ApplicationCallTransactionMother, TransactionHeaderMother,
     };
     use crate::tests::{check_transaction_encoding, check_transaction_id};
-    use crate::AlgorandMsgpack;
 
     #[test]
     fn test_application_create_transaction_encoding() {
@@ -972,21 +972,31 @@ mod tests {
 
         println!("Validation errors ({}): {:?}", errors.len(), errors);
 
-        assert!(errors
-            .iter()
-            .any(|e| e.contains(FIELD_APPROVAL_PROGRAM) && e.contains("required")));
-        assert!(errors
-            .iter()
-            .any(|e| e.contains(FIELD_CLEAR_STATE_PROGRAM) && e.contains("required")));
-        assert!(errors
-            .iter()
-            .any(|e| e.contains(FIELD_EXTRA_PROGRAM_PAGES) && e.contains("exceed")));
-        assert!(errors
-            .iter()
-            .any(|e| e.contains(FIELD_GLOBAL_STATE_SCHEMA) && e.contains("exceed")));
-        assert!(errors
-            .iter()
-            .any(|e| e.contains(FIELD_LOCAL_STATE_SCHEMA) && e.contains("exceed")));
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains(FIELD_APPROVAL_PROGRAM) && e.contains("required"))
+        );
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains(FIELD_CLEAR_STATE_PROGRAM) && e.contains("required"))
+        );
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains(FIELD_EXTRA_PROGRAM_PAGES) && e.contains("exceed"))
+        );
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains(FIELD_GLOBAL_STATE_SCHEMA) && e.contains("exceed"))
+        );
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains(FIELD_LOCAL_STATE_SCHEMA) && e.contains("exceed"))
+        );
         assert!(
             errors.len() == 5,
             "Expected 5 validation errors, got {}",
@@ -1012,16 +1022,22 @@ mod tests {
 
         println!("Validation errors ({}): {:?}", errors.len(), errors);
 
-        assert!(errors
-            .iter()
-            .any(|e| e.contains(FIELD_APPROVAL_PROGRAM) && e.contains("exceed")));
-        assert!(errors
-            .iter()
-            .any(|e| e.contains(FIELD_CLEAR_STATE_PROGRAM) && e.contains("exceed")));
-        assert!(errors
-            .iter()
-            .any(|e| e.contains("Combined approval and clear state programs")
-                && e.contains("exceed")));
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains(FIELD_APPROVAL_PROGRAM) && e.contains("exceed"))
+        );
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains(FIELD_CLEAR_STATE_PROGRAM) && e.contains("exceed"))
+        );
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("Combined approval and clear state programs")
+                    && e.contains("exceed"))
+        );
     }
 
     #[test]
@@ -1057,24 +1073,36 @@ mod tests {
 
         println!("Validation errors ({}): {:?}", errors.len(), errors);
 
-        assert!(errors
-            .iter()
-            .any(|e| e.contains(FIELD_APP_ID) && e.contains("0")));
-        assert!(errors
-            .iter()
-            .any(|e| e.contains(FIELD_APPROVAL_PROGRAM) && e.contains("required")));
-        assert!(errors
-            .iter()
-            .any(|e| e.contains(FIELD_CLEAR_STATE_PROGRAM) && e.contains("required")));
-        assert!(errors
-            .iter()
-            .any(|e| e.contains(FIELD_GLOBAL_STATE_SCHEMA) && e.contains("immutable")));
-        assert!(errors
-            .iter()
-            .any(|e| e.contains(FIELD_LOCAL_STATE_SCHEMA) && e.contains("immutable")));
-        assert!(errors
-            .iter()
-            .any(|e| e.contains(FIELD_EXTRA_PROGRAM_PAGES) && e.contains("immutable")));
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains(FIELD_APP_ID) && e.contains("0"))
+        );
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains(FIELD_APPROVAL_PROGRAM) && e.contains("required"))
+        );
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains(FIELD_CLEAR_STATE_PROGRAM) && e.contains("required"))
+        );
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains(FIELD_GLOBAL_STATE_SCHEMA) && e.contains("immutable"))
+        );
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains(FIELD_LOCAL_STATE_SCHEMA) && e.contains("immutable"))
+        );
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains(FIELD_EXTRA_PROGRAM_PAGES) && e.contains("immutable"))
+        );
         assert!(
             errors.len() == 6,
             "Expected 6 validation errors, got {}",
@@ -1113,19 +1141,27 @@ mod tests {
 
         println!("Validation errors ({}): {:?}", errors.len(), errors);
 
-        assert!(errors
-            .iter()
-            .any(|e| e.contains(FIELD_APP_ID) && e.contains("0")));
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains(FIELD_APP_ID) && e.contains("0"))
+        );
 
-        assert!(errors
-            .iter()
-            .any(|e| e.contains(FIELD_GLOBAL_STATE_SCHEMA) && e.contains("immutable")));
-        assert!(errors
-            .iter()
-            .any(|e| e.contains(FIELD_LOCAL_STATE_SCHEMA) && e.contains("immutable")));
-        assert!(errors
-            .iter()
-            .any(|e| e.contains(FIELD_EXTRA_PROGRAM_PAGES) && e.contains("immutable")));
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains(FIELD_GLOBAL_STATE_SCHEMA) && e.contains("immutable"))
+        );
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains(FIELD_LOCAL_STATE_SCHEMA) && e.contains("immutable"))
+        );
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains(FIELD_EXTRA_PROGRAM_PAGES) && e.contains("immutable"))
+        );
 
         assert!(
             errors.len() == 4,
@@ -1165,18 +1201,26 @@ mod tests {
 
         println!("Validation errors ({}): {:?}", errors.len(), errors);
 
-        assert!(errors
-            .iter()
-            .any(|e| e.contains(FIELD_APP_ID) && e.contains("0")));
-        assert!(errors
-            .iter()
-            .any(|e| e.contains(FIELD_GLOBAL_STATE_SCHEMA) && e.contains("immutable")));
-        assert!(errors
-            .iter()
-            .any(|e| e.contains(FIELD_LOCAL_STATE_SCHEMA) && e.contains("immutable")));
-        assert!(errors
-            .iter()
-            .any(|e| e.contains(FIELD_EXTRA_PROGRAM_PAGES) && e.contains("immutable")));
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains(FIELD_APP_ID) && e.contains("0"))
+        );
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains(FIELD_GLOBAL_STATE_SCHEMA) && e.contains("immutable"))
+        );
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains(FIELD_LOCAL_STATE_SCHEMA) && e.contains("immutable"))
+        );
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains(FIELD_EXTRA_PROGRAM_PAGES) && e.contains("immutable"))
+        );
 
         assert!(
             errors.len() == 4,
@@ -1200,12 +1244,16 @@ mod tests {
 
         println!("Validation errors ({}): {:?}", errors.len(), errors);
 
-        assert!(errors
-            .iter()
-            .any(|e| e.contains(FIELD_ARGS) && e.contains("exceed")));
-        assert!(errors
-            .iter()
-            .any(|e| e.contains("Args total size") && e.contains("exceed")));
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains(FIELD_ARGS) && e.contains("exceed"))
+        );
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("Args total size") && e.contains("exceed"))
+        );
 
         assert!(
             errors.len() == 2,
@@ -1251,24 +1299,36 @@ mod tests {
 
         println!("Validation errors ({}): {:?}", errors.len(), errors);
 
-        assert!(errors
-            .iter()
-            .any(|e| e.contains("Account references") && e.contains("exceed")));
-        assert!(errors
-            .iter()
-            .any(|e| e.contains("Application references") && e.contains("exceed")));
-        assert!(errors
-            .iter()
-            .any(|e| e.contains("Asset references") && e.contains("exceed")));
-        assert!(errors
-            .iter()
-            .any(|e| e.contains("Box references") && e.contains("exceed")));
-        assert!(errors
-            .iter()
-            .any(|e| e.contains("Box reference for app ID 88888 must be in app references")));
-        assert!(errors
-            .iter()
-            .any(|e| e.contains("Total references") && e.contains("exceed")));
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("Account references") && e.contains("exceed"))
+        );
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("Application references") && e.contains("exceed"))
+        );
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("Asset references") && e.contains("exceed"))
+        );
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("Box references") && e.contains("exceed"))
+        );
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("Box reference for app ID 88888 must be in app references"))
+        );
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("Total references") && e.contains("exceed"))
+        );
 
         assert!(
             errors.len() == 6,

@@ -3,9 +3,9 @@
 //! This module provides traits for standardized MessagePack encoding/decoding of
 //! Algorand data structures and for calculating transaction identifiers.
 
+use crate::Transaction;
 use crate::error::AlgoKitTransactError;
 use crate::utils::sort_msgpack_value;
-use crate::Transaction;
 use crate::{constants::HASH_BYTES_LENGTH, utils::hash};
 use serde::{Deserialize, Serialize};
 

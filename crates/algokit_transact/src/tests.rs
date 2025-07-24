@@ -1,4 +1,6 @@
 use crate::{
+    AlgorandMsgpack, EstimateTransactionSize, KeyPairAccount, MultisigSignature, SignedTransaction,
+    Transaction, TransactionId, Transactions,
     constants::{
         ALGORAND_SIGNATURE_BYTE_LENGTH, ALGORAND_SIGNATURE_ENCODING_INCR, MAX_TX_GROUP_SIZE,
     },
@@ -6,10 +8,8 @@ use crate::{
         AccountMother, TransactionGroupMother, TransactionHeaderMother, TransactionMother,
     },
     transactions::FeeParams,
-    AlgorandMsgpack, EstimateTransactionSize, KeyPairAccount, MultisigSignature, SignedTransaction,
-    Transaction, TransactionId, Transactions,
 };
-use base64::{prelude::BASE64_STANDARD, Engine};
+use base64::{Engine, prelude::BASE64_STANDARD};
 use pretty_assertions::assert_eq;
 
 pub fn check_transaction_encoding(tx: &Transaction, expected_encoded_len: usize) {
@@ -358,9 +358,11 @@ fn test_transaction_group_too_big() {
     let result = txs.assign_group();
 
     let error = result.unwrap_err();
-    assert!(error
-        .to_string()
-        .starts_with("Transaction group size exceeds the max limit"));
+    assert!(
+        error
+            .to_string()
+            .starts_with("Transaction group size exceeds the max limit")
+    );
 }
 
 #[test]
@@ -370,9 +372,11 @@ fn test_transaction_group_too_small() {
     let result = txs.assign_group();
 
     let error = result.unwrap_err();
-    assert!(error
-        .to_string()
-        .starts_with("Transaction group size cannot be 0"));
+    assert!(
+        error
+            .to_string()
+            .starts_with("Transaction group size cannot be 0")
+    );
 }
 
 #[test]
@@ -397,9 +401,11 @@ fn test_transaction_group_already_set() {
     let result = vec![tx].assign_group();
 
     let error = result.unwrap_err();
-    assert!(error
-        .to_string()
-        .starts_with("Transactions must not already be grouped"));
+    assert!(
+        error
+            .to_string()
+            .starts_with("Transactions must not already be grouped")
+    );
 }
 
 #[test]

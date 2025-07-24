@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use crate::{
-    constants::{BOOL_FALSE_BYTE, BOOL_TRUE_BYTE, LENGTH_ENCODE_BYTE_SIZE},
     ABIError, ABIType, ABIValue,
+    constants::{BOOL_FALSE_BYTE, BOOL_TRUE_BYTE, LENGTH_ENCODE_BYTE_SIZE},
 };
 
 struct Segment {
@@ -17,7 +17,7 @@ impl ABIType {
             _ => {
                 return Err(ABIError::EncodingError(
                     "ABI type mismatch, expected tuple".to_string(),
-                ))
+                ));
             }
         };
 
@@ -39,7 +39,7 @@ impl ABIType {
             _ => {
                 return Err(ABIError::DecodingError(
                     "ABI type mismatch, expected tuple".to_string(),
-                ))
+                ));
             }
         };
 
@@ -303,7 +303,7 @@ where
 mod tests {
     use num_bigint::BigUint;
 
-    use crate::{abi_type::BitSize, ABIType, ABIValue};
+    use crate::{ABIType, ABIValue, abi_type::BitSize};
 
     #[test]
     fn test_wrong_value_length() {
@@ -331,7 +331,10 @@ mod tests {
         let result = tuple_type.decode(&bytes);
 
         assert!(result.is_err());
-        assert_eq!(result.unwrap_err().to_string(), "ABI decoding failed: Index out of bounds: trying to access bytes[0..4] but slice has length 3");
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "ABI decoding failed: Index out of bounds: trying to access bytes[0..4] but slice has length 3"
+        );
     }
 
     #[test]
@@ -342,9 +345,11 @@ mod tests {
         let result = tuple_type.decode(&bytes);
 
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .to_string()
-            .contains("Input bytes not fully consumed"));
+        assert!(
+            result
+                .unwrap_err()
+                .to_string()
+                .contains("Input bytes not fully consumed")
+        );
     }
 }

@@ -1,6 +1,6 @@
 use crate::{
-    types::collections::tuple::{decode_abi_types, encode_abi_types},
     ABIError, ABIType, ABIValue,
+    types::collections::tuple::{decode_abi_types, encode_abi_types},
 };
 
 impl ABIType {
@@ -10,7 +10,7 @@ impl ABIType {
             _ => {
                 return Err(ABIError::EncodingError(
                     "ABI type mismatch, expected static array".to_string(),
-                ))
+                ));
             }
         };
 
@@ -32,7 +32,7 @@ impl ABIType {
             _ => {
                 return Err(ABIError::EncodingError(
                     "ABI type mismatch, expected static array".to_string(),
-                ))
+                ));
             }
         };
 

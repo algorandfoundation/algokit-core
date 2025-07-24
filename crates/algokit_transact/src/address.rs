@@ -11,7 +11,7 @@ use crate::{
     ALGORAND_ADDRESS_LENGTH, ALGORAND_CHECKSUM_BYTE_LENGTH, ALGORAND_PUBLIC_KEY_BYTE_LENGTH,
 };
 use serde::{Deserialize, Serialize};
-use serde_with::{serde_as, Bytes};
+use serde_with::{Bytes, serde_as};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::str::FromStr;
 

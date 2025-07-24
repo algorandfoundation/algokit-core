@@ -3,13 +3,13 @@
 //! This module provides functionality for creating and managing key registration transactions,
 //! which are used to register accounts online or offline for participation in Algorand consensus.
 
+use crate::Transaction;
 use crate::traits::Validate;
 use crate::transactions::common::{TransactionHeader, TransactionValidationError};
 use crate::utils::{is_false_opt, is_zero_opt};
-use crate::Transaction;
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
-use serde_with::{serde_as, skip_serializing_none, Bytes};
+use serde_with::{Bytes, serde_as, skip_serializing_none};
 
 /// Represents a key registration transaction that registers an account online or offline
 /// for participation in Algorand consensus.
@@ -256,9 +256,11 @@ mod tests {
         let result = key_reg.validate();
         assert!(result.is_err());
         let errors: Vec<String> = result.unwrap_err();
-        assert!(errors
-            .iter()
-            .any(|e| e.contains("Vote first must be less than vote last")));
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("Vote first must be less than vote last"))
+        );
     }
 
     #[test]
@@ -272,9 +274,11 @@ mod tests {
         let result = key_reg.validate();
         assert!(result.is_err());
         let errors = result.unwrap_err();
-        assert!(errors
-            .iter()
-            .any(|e| e.contains("Vote first must be less than vote last")));
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("Vote first must be less than vote last"))
+        );
     }
 
     #[test]
@@ -288,9 +292,12 @@ mod tests {
         let result = key_reg.validate();
         assert!(result.is_err());
         let errors = result.unwrap_err();
-        assert!(errors
-            .iter()
-            .any(|e| e.contains("Online key registration cannot have non participation flag set")));
+        assert!(
+            errors
+                .iter()
+                .any(|e| e
+                    .contains("Online key registration cannot have non participation flag set"))
+        );
     }
 
     #[test]
@@ -305,17 +312,23 @@ mod tests {
         assert!(result.is_err());
         let errors = result.unwrap_err();
         // Since vote_key is set, it should be treated as online registration with missing required fields
-        assert!(errors
-            .iter()
-            .any(|e| e.contains("Selection key is required")));
-        assert!(errors
-            .iter()
-            .any(|e| e.contains("State proof key is required")));
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("Selection key is required"))
+        );
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("State proof key is required"))
+        );
         assert!(errors.iter().any(|e| e.contains("Vote first is required")));
         assert!(errors.iter().any(|e| e.contains("Vote last is required")));
-        assert!(errors
-            .iter()
-            .any(|e| e.contains("Vote key dilution is required")));
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("Vote key dilution is required"))
+        );
     }
 
     #[test]
@@ -378,6 +391,7 @@ mod tests {
     // Integration tests for encoding and transaction functionality
     mod integration_tests {
         use crate::{
+            AlgorandMsgpack, SignedTransaction, Transaction, Transactions,
             constants::ALGORAND_SIGNATURE_BYTE_LENGTH,
             test_utils::{
                 AccountMother, KeyRegistrationTransactionMother, TransactionHeaderMother,
@@ -385,7 +399,6 @@ mod tests {
             },
             traits::TransactionId,
             transactions::FeeParams,
-            AlgorandMsgpack, SignedTransaction, Transaction, Transactions,
         };
 
         #[test]

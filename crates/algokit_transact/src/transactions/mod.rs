@@ -12,14 +12,14 @@ mod common;
 mod key_registration;
 mod payment;
 
-use application_call::{application_call_deserializer, application_call_serializer};
 pub use application_call::{
     ApplicationCallTransactionBuilder, ApplicationCallTransactionFields, BoxReference,
     OnApplicationComplete, StateSchema,
 };
+use application_call::{application_call_deserializer, application_call_serializer};
 pub use asset_config::{
-    asset_config_deserializer, asset_config_serializer, AssetConfigTransactionBuilder,
-    AssetConfigTransactionFields,
+    AssetConfigTransactionBuilder, AssetConfigTransactionFields, asset_config_deserializer,
+    asset_config_serializer,
 };
 pub use asset_freeze::{AssetFreezeTransactionBuilder, AssetFreezeTransactionFields};
 pub use asset_transfer::{AssetTransferTransactionBuilder, AssetTransferTransactionFields};
@@ -36,7 +36,7 @@ use crate::traits::{AlgorandMsgpack, EstimateTransactionSize, TransactionId, Tra
 use crate::utils::{compute_group_id, is_zero_addr_opt};
 use crate::{Address, MultisigSignature};
 use serde::{Deserialize, Serialize};
-use serde_with::{serde_as, Bytes};
+use serde_with::{Bytes, serde_as};
 use std::any::Any;
 
 /// Enumeration of all transaction types.

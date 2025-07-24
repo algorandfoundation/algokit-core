@@ -12,11 +12,11 @@
 use crate::address::Address;
 use crate::utils::hash;
 use crate::{
-    AlgoKitTransactError, ALGORAND_PUBLIC_KEY_BYTE_LENGTH, ALGORAND_SIGNATURE_BYTE_LENGTH,
+    ALGORAND_PUBLIC_KEY_BYTE_LENGTH, ALGORAND_SIGNATURE_BYTE_LENGTH, AlgoKitTransactError,
     MULTISIG_DOMAIN_SEPARATOR,
 };
 use serde::{Deserialize, Serialize};
-use serde_with::{serde_as, Bytes};
+use serde_with::{Bytes, serde_as};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
 /// Represents an Algorand multisignature signature.
