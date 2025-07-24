@@ -1,0 +1,65 @@
+name: API OpenAPI Sync
+# This workflow runs weekly to check if the OpenAPI specification needs to be converted
+# and ensures the generated code is up to date. It fails if any changes are detected,
+# indicating that manual intervention is needed to update the specification.
+
+on:
+  schedule:
+    # Runs every Monday at 9:00 AM UTC
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  API_DIR: api
+
+jobs:
+  openapi_sync_check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.85.0
+          components: rustfmt
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install bun dependencies
+        working-directory: ${{ env.API_DIR }}
+        run: bun install
+
+      - name: Store initial state
+        run: |
+          git status --porcelain > /tmp/initial_status.txt
+
+      - name: Convert OpenAPI specification
+        run: cargo api convert-openapi
+
+      - name: Check for changes
+        run: |
+          git status --porcelain > /tmp/post_conversion_status.txt
+
+          if [ -s /tmp/post_conversion_status.txt ]; then
+            echo "❌ OpenAPI synchronization needed! The following files were modified or created:"
+            cat /tmp/post_conversion_status.txt
+            echo ""
+            echo "🔍 Detailed diff:"
+            git diff --no-pager
+            echo ""
+            echo "💡 This indicates that the OpenAPI specification has been updated and needs to be committed."
+            echo "   Please run 'cargo api convert-openapi' locally and commit the changes."
+            exit 1
+          else
+            echo "✅ OpenAPI synchronization check passed - no changes detected"
+          fi
