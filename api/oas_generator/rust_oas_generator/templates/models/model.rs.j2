@@ -108,6 +108,7 @@ impl Default for {{ schema.rust_struct_name }} {
                 }),
                 signature: None,
                 auth_address: None,
+                multisignature: None,
             }{% endif %}{% else %}None{% endif %},
             {% elif property.required %}
             {{ property.rust_field_name }}: {% if property.rust_type == "String" %}"".to_string(){% elif property.rust_type.startswith('Vec<') %}Vec::new(){% elif property.rust_type.startswith('i') or property.rust_type.startswith('u') %}0{% elif property.rust_type == "bool" %}false{% elif property.rust_type == "serde_json::Value" %}serde_json::Value::Null{% else %}Default::default(){% endif %},

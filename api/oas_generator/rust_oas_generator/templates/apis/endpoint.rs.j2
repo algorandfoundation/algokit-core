@@ -102,7 +102,13 @@ pub async fn {{ operation.rust_function_name }}(
     {% endif %}
     {% endfor %}
 
-    {% if not operation.supports_msgpack %}
+    {% if operation.request_body_supports_text_plain %}
+    let mut headers: HashMap<String, String> = HashMap::new();
+    headers.insert("Content-Type".to_string(), "text/plain".to_string());
+    headers.insert("Accept".to_string(), "application/json".to_string());
+
+    let body = {% if has_request_body(operation) %}Some(p_{{ get_request_body_name(operation) }}){% else %}None{% endif %};
+    {% elif not operation.supports_msgpack %}
     let mut headers: HashMap<String, String> = HashMap::new();
     headers.insert("Content-Type".to_string(), "application/json".to_string());
     headers.insert("Accept".to_string(), "application/json".to_string());

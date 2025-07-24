@@ -49,10 +49,10 @@ pub async fn teal_compile(
     }
 
     let mut headers: HashMap<String, String> = HashMap::new();
-    headers.insert("Content-Type".to_string(), "application/json".to_string());
+    headers.insert("Content-Type".to_string(), "text/plain".to_string());
     headers.insert("Accept".to_string(), "application/json".to_string());
 
-    let body = Some(serde_json::to_vec(&p_request).map_err(|e| Error::Serde(e.to_string()))?);
+    let body = Some(p_request);
 
     let response = http_client
         .request(
