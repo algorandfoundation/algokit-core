@@ -345,6 +345,7 @@ class Operation:
     rust_error_enum: str = field(init=False)
     supports_msgpack: bool = False
     request_body_supports_msgpack: bool = False
+    request_body_supports_text_plain: bool = False
 
     def __post_init__(self) -> None:
         self.rust_function_name = rust_snake_case(self.operation_id)
@@ -648,6 +649,9 @@ class OASParser:
         request_body_supports_msgpack = self._check_request_body_msgpack_support(
             operation_data,
         )
+        request_body_supports_text_plain = self._check_request_body_text_plain_support(
+            operation_data,
+        )
 
         parameters = []
         for param_data in operation_data.get("parameters", []):
@@ -672,6 +676,7 @@ class OASParser:
             tags=operation_data.get("tags", []),
             supports_msgpack=supports_msgpack,
             request_body_supports_msgpack=request_body_supports_msgpack,
+            request_body_supports_text_plain=request_body_supports_text_plain,
         )
 
     def _check_request_body_msgpack_support(
@@ -692,6 +697,16 @@ class OASParser:
             return format_value == "binary"
 
         return False
+
+    def _check_request_body_text_plain_support(
+        self,
+        operation_data: dict[str, Any],
+    ) -> bool:
+        """Check if request body uses text/plain content type."""
+        request_body = operation_data.get("requestBody", {})
+        content = request_body.get("content", {})
+
+        return "text/plain" in content
 
     def _parse_parameter(self, param_data: dict[str, Any]) -> Parameter | None:
         """Parse a parameter."""
