@@ -1,8 +1,13 @@
+use std::str::FromStr;
+
 use crate::common::init_test_logging;
+use algokit_abi::{ABIMethod, ABIType, ABIValue};
 use algokit_transact::{Address, OnApplicationComplete};
 use algokit_utils::CommonParams;
+use algokit_utils::transactions::composer::SendParams;
 use algokit_utils::{ApplicationCallParams, ApplicationCreateParams, PaymentParams, testing::*};
 use base64::{Engine, prelude::BASE64_STANDARD};
+use num_bigint::BigUint;
 use serde::Deserialize;
 
 // Placeholder smart contract programs - these will be replaced with the actual inner fee contract
@@ -28,6 +33,13 @@ struct TealSource {
 struct ARC56AppSpec {
     source: Option<TealSource>,
 }
+
+// TODO: NC - Add assert to check that it's the minimum fee to successfully cover the app call
+
+const SEND_PARAMS: Option<SendParams> = Some(SendParams {
+    cover_app_call_inner_transaction_fees: Some(true),
+    max_rounds_to_wait_for_confirmation: None,
+});
 
 fn get_inner_fee_teal_programs() -> (Vec<u8>, Vec<u8>) {
     let app_spec: ARC56AppSpec =
@@ -88,13 +100,13 @@ async fn test_cover_app_call_inner_transaction_fees() {
     );
 
     // Fund the app accounts
-    fund_app_account(context, app_id_1, 1_000_000)
+    fund_app_account(context, app_id_1, 500_000)
         .await
         .expect("Failed to fund app 1");
-    fund_app_account(context, app_id_2, 1_000_000)
+    fund_app_account(context, app_id_2, 500_000)
         .await
         .expect("Failed to fund app 2");
-    fund_app_account(context, app_id_3, 1_000_000)
+    fund_app_account(context, app_id_3, 500_000)
         .await
         .expect("Failed to fund app 3");
 
@@ -102,7 +114,7 @@ async fn test_cover_app_call_inner_transaction_fees() {
     test_throws_when_no_max_fee_supplied(context, app_id_1, sender_addr.clone()).await;
 
     // Test 2: throws when inner transaction fees are not covered and coverAppCallInnerTransactionFees is disabled
-    test_throws_when_inner_fees_not_covered(
+    test_throws_when_inner_fees_not_covered_and_fee_coverage_disabled(
         context,
         app_id_1,
         app_id_2,
@@ -272,7 +284,8 @@ async fn test_cover_app_call_inner_transaction_fees() {
     .await;
 
     // Test 21: readonly methods tests
-    test_readonly_methods(context, app_id_1, sender_addr.clone()).await;
+    // TODO: NC - Add readonly support
+    // test_readonly_methods(context, app_id_1, sender_addr.clone()).await;
 
     // Test 22: alters fee, handling nested abi method calls
     test_alters_fee_nested_abi_method_calls(
@@ -312,6 +325,9 @@ async fn test_throws_when_no_max_fee_supplied(
 ) {
     println!("Test: throws when no max fee is supplied");
 
+    let method = ABIMethod::from_str("no_op()void").unwrap();
+    let method_selector = method.selector().expect("Failed to get method selector");
+
     let app_call_params = ApplicationCallParams {
         common_params: CommonParams {
             sender: sender.clone(),
@@ -320,7 +336,7 @@ async fn test_throws_when_no_max_fee_supplied(
         },
         app_id,
         on_complete: OnApplicationComplete::NoOp,
-        args: Some(vec![encode_method_selector("no_op")]),
+        args: Some(vec![method_selector]),
         account_references: None,
         app_references: None,
         asset_references: None,
@@ -333,37 +349,63 @@ async fn test_throws_when_no_max_fee_supplied(
         .expect("Failed to add application call");
 
     // This should fail with coverAppCallInnerTransactionFees enabled due to missing maxFee
-    let result = composer.send(None).await;
+    let result = composer.send(SEND_PARAMS).await;
 
-    // Expected error: "Please provide a maxFee for each app call transaction when coverAppCallInnerTransactionFees is enabled"
-    // For now, the test will pass because coverAppCallInnerTransactionFees is not implemented
-    // Once implemented, this should panic with the expected error message
-    match result {
-        Ok(_) => panic!(
-            "Test should FAIL: Expected error 'Please provide a maxFee for each app call transaction when coverAppCallInnerTransactionFees is enabled. Required for transaction 0' but transaction succeeded. This indicates coverAppCallInnerTransactionFees is not implemented yet."
-        ),
-        Err(e) => {
-            let error_msg = e.to_string();
-            if error_msg.contains("Please provide a maxFee") {
-                println!("✓ Test passed: Got expected maxFee error");
-            } else {
-                panic!("Test failed with unexpected error: {}", error_msg);
-            }
-        }
-    }
+    assert!(
+        result.is_err()
+            && result
+                .as_ref()
+                .unwrap_err()
+                .to_string()
+                .contains("Please provide a maxFee"),
+        "Expected error when no max fee is supplied, got: {:?}",
+        result
+    );
 }
 
-async fn test_throws_when_inner_fees_not_covered(
+async fn test_throws_when_inner_fees_not_covered_and_fee_coverage_disabled(
     context: &AlgorandTestContext,
     app_id_1: u64,
     app_id_2: u64,
     app_id_3: u64,
     sender: Address,
 ) {
-    println!("Test: throws when inner transaction fees are not covered");
+    println!(
+        "Test: throws when inner transaction fees are not covered and coverAppCallInnerTransactionFees is disabled"
+    );
 
-    // Create tuple for fees: (uint64,uint64,uint64,uint64,uint64[])
-    let fees_tuple = encode_fees_tuple(0, 0, 0, 0, vec![0, 0]);
+    // Create ABI method
+    let method = ABIMethod::from_str(
+        "send_inners_with_fees(uint64,uint64,(uint64,uint64,uint64,uint64,uint64[]))void",
+    )
+    .unwrap();
+    let method_selector = method.selector().expect("Failed to get method selector");
+
+    // This tuple represents the fees for the inner transactions
+    let fees_tuple_type = ABIType::from_str("(uint64,uint64,uint64,uint64,uint64[])").unwrap();
+
+    let fees_tuple_value = ABIValue::Array(vec![
+        ABIValue::Uint(BigUint::from(0u64)), // fee1
+        ABIValue::Uint(BigUint::from(0u64)), // fee2
+        ABIValue::Uint(BigUint::from(0u64)), // fee3
+        ABIValue::Uint(BigUint::from(0u64)), // fee4
+        // Nested inner transaction fees
+        ABIValue::Array(vec![
+            ABIValue::Uint(BigUint::from(0u64)), // fee5
+            ABIValue::Uint(BigUint::from(0u64)), // fee6
+        ]),
+    ]);
+
+    let uint64 = ABIType::from_str("uint64").unwrap();
+    let app_id_2_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_2)))
+        .expect("Failed to encode app_id_2");
+    let app_id_3_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_3)))
+        .expect("Failed to encode app_id_3");
+    let fees_tuple_encoded = fees_tuple_type
+        .encode(&fees_tuple_value)
+        .expect("Failed to encode fees tuple");
 
     let app_call_params = ApplicationCallParams {
         common_params: CommonParams {
@@ -374,10 +416,10 @@ async fn test_throws_when_inner_fees_not_covered(
         app_id: app_id_1,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
-            encode_method_selector("send_inners_with_fees"),
-            encode_uint64(app_id_2),
-            encode_uint64(app_id_3),
-            fees_tuple,
+            method_selector,
+            app_id_2_encoded,
+            app_id_3_encoded,
+            fees_tuple_encoded,
         ]),
         account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
@@ -393,23 +435,16 @@ async fn test_throws_when_inner_fees_not_covered(
     // With coverAppCallInnerTransactionFees disabled, this should fail due to insufficient fees
     let result = composer.send(None).await;
 
-    // Expected error: fee too small
-    match result {
-        Ok(_) => panic!(
-            "Test should FAIL: Expected 'fee too small' error when coverAppCallInnerTransactionFees is disabled and fees are insufficient, but transaction succeeded. This indicates the inner fee coverage logic is not implemented yet."
-        ),
-        Err(e) => {
-            let error_msg = e.to_string();
-            if error_msg.contains("fee too small") {
-                println!("✓ Test passed: Got expected 'fee too small' error");
-            } else {
-                println!(
-                    "✓ Test passed: Got error (may indicate insufficient fees): {}",
-                    error_msg
-                );
-            }
-        }
-    }
+    assert!(
+        result.is_err()
+            && result
+                .as_ref()
+                .unwrap_err()
+                .to_string()
+                .contains("fee too small"),
+        "Expected error when max fee supplied is too small, got: {:?}",
+        result
+    );
 }
 
 async fn test_does_not_alter_fee_when_no_inners(
@@ -418,6 +453,9 @@ async fn test_does_not_alter_fee_when_no_inners(
     sender: Address,
 ) {
     println!("Test: does not alter fee when app call has no inners");
+
+    let method = ABIMethod::from_str("no_op()void").unwrap();
+    let method_selector = method.selector().expect("Failed to get method selector");
 
     let expected_fee = 1000u64;
 
@@ -429,7 +467,7 @@ async fn test_does_not_alter_fee_when_no_inners(
         },
         app_id,
         on_complete: OnApplicationComplete::NoOp,
-        args: Some(vec![encode_method_selector("no_op")]),
+        args: Some(vec![method_selector]),
         account_references: None,
         app_references: None,
         asset_references: None,
@@ -442,7 +480,7 @@ async fn test_does_not_alter_fee_when_no_inners(
         .expect("Failed to add application call");
 
     let result = composer
-        .send(None)
+        .send(SEND_PARAMS)
         .await
         .expect("Failed to send application call");
 
@@ -468,8 +506,38 @@ async fn test_alters_fee_no_inner_fees_covered(
 ) {
     println!("Test: alters fee, handling when no inner fees have been covered");
 
+    let method = ABIMethod::from_str(
+        "send_inners_with_fees(uint64,uint64,(uint64,uint64,uint64,uint64,uint64[]))void",
+    )
+    .unwrap();
+    let method_selector = method.selector().expect("Failed to get method selector");
+
     let expected_fee = 7000u64;
-    let fees_tuple = encode_fees_tuple(0, 0, 0, 0, vec![0, 0]);
+
+    // This tuple represents the fees for the inner transactions
+    let fees_tuple_type = ABIType::from_str("(uint64,uint64,uint64,uint64,uint64[])").unwrap();
+    let fees_tuple_value = ABIValue::Array(vec![
+        ABIValue::Uint(BigUint::from(0u64)), // fee1
+        ABIValue::Uint(BigUint::from(0u64)), // fee2
+        ABIValue::Uint(BigUint::from(0u64)), // fee3
+        ABIValue::Uint(BigUint::from(0u64)), // fee4
+        // Nested inner transaction fees
+        ABIValue::Array(vec![
+            ABIValue::Uint(BigUint::from(0u64)), // fee5
+            ABIValue::Uint(BigUint::from(0u64)), // fee6
+        ]),
+    ]);
+
+    let uint64 = ABIType::from_str("uint64").unwrap();
+    let app_id_2_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_2)))
+        .expect("Failed to encode app_id_2");
+    let app_id_3_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_3)))
+        .expect("Failed to encode app_id_3");
+    let fees_tuple_encoded = fees_tuple_type
+        .encode(&fees_tuple_value)
+        .expect("Failed to encode fees tuple");
 
     let app_call_params = ApplicationCallParams {
         common_params: CommonParams {
@@ -480,10 +548,10 @@ async fn test_alters_fee_no_inner_fees_covered(
         app_id: app_id_1,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
-            encode_method_selector("send_inners_with_fees"),
-            encode_uint64(app_id_2),
-            encode_uint64(app_id_3),
-            fees_tuple,
+            method_selector,
+            app_id_2_encoded,
+            app_id_3_encoded,
+            fees_tuple_encoded,
         ]),
         account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
@@ -497,17 +565,15 @@ async fn test_alters_fee_no_inner_fees_covered(
         .expect("Failed to add application call");
 
     let result = composer
-        .send(None)
+        .send(SEND_PARAMS)
         .await
         .expect("Failed to send application call");
 
-    // Verify the transaction was successful
     assert!(
         !result.confirmations.is_empty(),
         "Should have confirmations"
     );
 
-    // Verify the actual fee matches expected fee - this is the key test
     let transaction_fee = result.confirmations[0]
         .txn
         .transaction
@@ -515,19 +581,10 @@ async fn test_alters_fee_no_inner_fees_covered(
         .fee
         .unwrap_or(0);
 
-    // This test should FAIL until coverAppCallInnerTransactionFees is implemented
-    // The expected behavior is that the fee is adjusted to 7000 to cover inner transaction fees
-    if transaction_fee == expected_fee {
-        println!(
-            "✓ Test passed: fee correctly calculated as {} µALGO",
-            transaction_fee
-        );
-    } else {
-        panic!(
-            "Test should FAIL: Expected fee to be adjusted to {} µALGO to cover inner transaction fees, but got {} µALGO. This indicates coverAppCallInnerTransactionFees is not implemented yet.",
-            expected_fee, transaction_fee
-        );
-    }
+    assert_eq!(
+        transaction_fee, expected_fee,
+        "Fee should be altered to cover inner fees"
+    );
 }
 
 async fn test_alters_fee_all_inner_fees_covered(
@@ -539,8 +596,38 @@ async fn test_alters_fee_all_inner_fees_covered(
 ) {
     println!("Test: alters fee, handling when all inner fees have been covered");
 
+    let method = ABIMethod::from_str(
+        "send_inners_with_fees(uint64,uint64,(uint64,uint64,uint64,uint64,uint64[]))void",
+    )
+    .unwrap();
+    let method_selector = method.selector().expect("Failed to get method selector");
+
     let expected_fee = 1000u64;
-    let fees_tuple = encode_fees_tuple(1000, 1000, 1000, 1000, vec![1000, 1000]);
+
+    // This tuple represents all inner fees being pre-covered
+    let fees_tuple_type = ABIType::from_str("(uint64,uint64,uint64,uint64,uint64[])").unwrap();
+    let fees_tuple_value = ABIValue::Array(vec![
+        ABIValue::Uint(BigUint::from(1000u64)), // fee1 - covered
+        ABIValue::Uint(BigUint::from(1000u64)), // fee2 - covered
+        ABIValue::Uint(BigUint::from(1000u64)), // fee3 - covered
+        ABIValue::Uint(BigUint::from(1000u64)), // fee4 - covered
+        // All nested inner transaction fees are also covered
+        ABIValue::Array(vec![
+            ABIValue::Uint(BigUint::from(1000u64)), // fee5 - covered
+            ABIValue::Uint(BigUint::from(1000u64)), // fee6 - covered
+        ]),
+    ]);
+
+    let uint64 = ABIType::from_str("uint64").unwrap();
+    let app_id_2_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_2)))
+        .expect("Failed to encode app_id_2");
+    let app_id_3_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_3)))
+        .expect("Failed to encode app_id_3");
+    let fees_tuple_encoded = fees_tuple_type
+        .encode(&fees_tuple_value)
+        .expect("Failed to encode fees tuple");
 
     let app_call_params = ApplicationCallParams {
         common_params: CommonParams {
@@ -551,10 +638,10 @@ async fn test_alters_fee_all_inner_fees_covered(
         app_id: app_id_1,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
-            encode_method_selector("send_inners_with_fees"),
-            encode_uint64(app_id_2),
-            encode_uint64(app_id_3),
-            fees_tuple,
+            method_selector,
+            app_id_2_encoded,
+            app_id_3_encoded,
+            fees_tuple_encoded,
         ]),
         account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
@@ -568,7 +655,7 @@ async fn test_alters_fee_all_inner_fees_covered(
         .expect("Failed to add application call");
 
     let result = composer
-        .send(None)
+        .send(SEND_PARAMS)
         .await
         .expect("Failed to send application call");
 
@@ -612,8 +699,38 @@ async fn test_alters_fee_some_inner_fees_covered(
         "Test: alters fee, handling when some inner fees have been covered or partially covered"
     );
 
+    let method = ABIMethod::from_str(
+        "send_inners_with_fees(uint64,uint64,(uint64,uint64,uint64,uint64,uint64[]))void",
+    )
+    .unwrap();
+    let method_selector = method.selector().expect("Failed to get method selector");
+
     let expected_fee = 5300u64;
-    let fees_tuple = encode_fees_tuple(1000, 0, 200, 0, vec![500, 0]);
+
+    // This tuple represents some inner fees being partially covered
+    let fees_tuple_type = ABIType::from_str("(uint64,uint64,uint64,uint64,uint64[])").unwrap();
+    let fees_tuple_value = ABIValue::Array(vec![
+        ABIValue::Uint(BigUint::from(1000u64)), // fee1 - covered
+        ABIValue::Uint(BigUint::from(0u64)),    // fee2 - not covered
+        ABIValue::Uint(BigUint::from(200u64)),  // fee3 - partially covered
+        ABIValue::Uint(BigUint::from(0u64)),    // fee4 - not covered
+        // Mixed coverage in nested inner transaction fees
+        ABIValue::Array(vec![
+            ABIValue::Uint(BigUint::from(500u64)), // fee5 - partially covered
+            ABIValue::Uint(BigUint::from(0u64)),   // fee6 - not covered
+        ]),
+    ]);
+
+    let uint64 = ABIType::from_str("uint64").unwrap();
+    let app_id_2_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_2)))
+        .expect("Failed to encode app_id_2");
+    let app_id_3_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_3)))
+        .expect("Failed to encode app_id_3");
+    let fees_tuple_encoded = fees_tuple_type
+        .encode(&fees_tuple_value)
+        .expect("Failed to encode fees tuple");
 
     let app_call_params = ApplicationCallParams {
         common_params: CommonParams {
@@ -624,10 +741,10 @@ async fn test_alters_fee_some_inner_fees_covered(
         app_id: app_id_1,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
-            encode_method_selector("send_inners_with_fees"),
-            encode_uint64(app_id_2),
-            encode_uint64(app_id_3),
-            fees_tuple,
+            method_selector,
+            app_id_2_encoded,
+            app_id_3_encoded,
+            fees_tuple_encoded,
         ]),
         account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
@@ -641,7 +758,7 @@ async fn test_alters_fee_some_inner_fees_covered(
         .expect("Failed to add application call");
 
     let result = composer
-        .send(None)
+        .send(SEND_PARAMS)
         .await
         .expect("Failed to send application call");
 
@@ -683,8 +800,38 @@ async fn test_alters_fee_some_inner_fees_surplus(
 ) {
     println!("Test: alters fee, handling when some inner fees have a surplus");
 
+    let method = ABIMethod::from_str(
+        "send_inners_with_fees(uint64,uint64,(uint64,uint64,uint64,uint64,uint64[]))void",
+    )
+    .unwrap();
+    let method_selector = method.selector().expect("Failed to get method selector");
+
     let expected_fee = 2000u64;
-    let fees_tuple = encode_fees_tuple(0, 1000, 5000, 0, vec![0, 50]);
+
+    // This tuple represents some inner fees having surplus amounts
+    let fees_tuple_type = ABIType::from_str("(uint64,uint64,uint64,uint64,uint64[])").unwrap();
+    let fees_tuple_value = ABIValue::Array(vec![
+        ABIValue::Uint(BigUint::from(0u64)),    // fee1 - not covered
+        ABIValue::Uint(BigUint::from(1000u64)), // fee2 - surplus (over required)
+        ABIValue::Uint(BigUint::from(5000u64)), // fee3 - large surplus (over required)
+        ABIValue::Uint(BigUint::from(0u64)),    // fee4 - not covered
+        // Mixed surplus amounts in nested inner transaction fees
+        ABIValue::Array(vec![
+            ABIValue::Uint(BigUint::from(0u64)),  // fee5 - not covered
+            ABIValue::Uint(BigUint::from(50u64)), // fee6 - small surplus
+        ]),
+    ]);
+
+    let uint64 = ABIType::from_str("uint64").unwrap();
+    let app_id_2_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_2)))
+        .expect("Failed to encode app_id_2");
+    let app_id_3_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_3)))
+        .expect("Failed to encode app_id_3");
+    let fees_tuple_encoded = fees_tuple_type
+        .encode(&fees_tuple_value)
+        .expect("Failed to encode fees tuple");
 
     let app_call_params = ApplicationCallParams {
         common_params: CommonParams {
@@ -695,10 +842,10 @@ async fn test_alters_fee_some_inner_fees_surplus(
         app_id: app_id_1,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
-            encode_method_selector("send_inners_with_fees"),
-            encode_uint64(app_id_2),
-            encode_uint64(app_id_3),
-            fees_tuple,
+            method_selector,
+            app_id_2_encoded,
+            app_id_3_encoded,
+            fees_tuple_encoded,
         ]),
         account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
@@ -712,7 +859,7 @@ async fn test_alters_fee_some_inner_fees_surplus(
         .expect("Failed to add application call");
 
     let result = composer
-        .send(None)
+        .send(SEND_PARAMS)
         .await
         .expect("Failed to send application call");
 
@@ -754,7 +901,15 @@ async fn test_alters_fee_expensive_abi_method_calls(
         "Test: alters fee, handling expensive abi method calls that use ensure_budget to op-up"
     );
 
+    let method = ABIMethod::from_str("burn_ops(uint64)void").unwrap();
+    let method_selector = method.selector().expect("Failed to get method selector");
+
     let expected_fee = 10_000u64;
+
+    let uint64 = ABIType::from_str("uint64").unwrap();
+    let op_budget_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(6200u64)))
+        .expect("Failed to encode op_budget");
 
     let app_call_params = ApplicationCallParams {
         common_params: CommonParams {
@@ -764,10 +919,7 @@ async fn test_alters_fee_expensive_abi_method_calls(
         },
         app_id,
         on_complete: OnApplicationComplete::NoOp,
-        args: Some(vec![
-            encode_method_selector("burn_ops"),
-            encode_uint64(6200), // op_budget parameter
-        ]),
+        args: Some(vec![method_selector, op_budget_encoded]),
         account_references: None,
         app_references: None,
         asset_references: None,
@@ -780,7 +932,7 @@ async fn test_alters_fee_expensive_abi_method_calls(
         .expect("Failed to add application call");
 
     let result = composer
-        .send(None)
+        .send(SEND_PARAMS)
         .await
         .expect("Failed to send application call");
 
@@ -822,8 +974,38 @@ async fn test_alters_fee_nested_abi_method_calls(
 ) {
     println!("Test: alters fee, handling nested abi method calls");
 
+    let method = ABIMethod::from_str(
+        "send_inners_with_fees(uint64,uint64,(uint64,uint64,uint64,uint64,uint64[]))void",
+    )
+    .unwrap();
+    let method_selector = method.selector().expect("Failed to get method selector");
+
     let expected_fee = 2000u64;
-    let fees_tuple = encode_fees_tuple(0, 0, 2000, 0, vec![0, 0]);
+
+    // This tuple represents fees for nested transaction scenario
+    let fees_tuple_type = ABIType::from_str("(uint64,uint64,uint64,uint64,uint64[])").unwrap();
+    let fees_tuple_value = ABIValue::Array(vec![
+        ABIValue::Uint(BigUint::from(0u64)),    // fee1 - not covered
+        ABIValue::Uint(BigUint::from(0u64)),    // fee2 - not covered
+        ABIValue::Uint(BigUint::from(2000u64)), // fee3 - covered fee for nested scenario
+        ABIValue::Uint(BigUint::from(0u64)),    // fee4 - not covered
+        // Nested inner transaction fees
+        ABIValue::Array(vec![
+            ABIValue::Uint(BigUint::from(0u64)), // fee5 - not covered
+            ABIValue::Uint(BigUint::from(0u64)), // fee6 - not covered
+        ]),
+    ]);
+
+    let uint64 = ABIType::from_str("uint64").unwrap();
+    let app_id_2_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_2)))
+        .expect("Failed to encode app_id_2");
+    let app_id_3_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_3)))
+        .expect("Failed to encode app_id_3");
+    let fees_tuple_encoded = fees_tuple_type
+        .encode(&fees_tuple_value)
+        .expect("Failed to encode fees tuple");
 
     // Create a payment transaction that will be used as a nested argument
     let payment_params = PaymentParams {
@@ -846,10 +1028,10 @@ async fn test_alters_fee_nested_abi_method_calls(
         app_id: app_id_1,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
-            encode_method_selector("send_inners_with_fees"),
-            encode_uint64(app_id_2),
-            encode_uint64(app_id_3),
-            fees_tuple,
+            method_selector,
+            app_id_2_encoded,
+            app_id_3_encoded,
+            fees_tuple_encoded,
         ]),
         account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
@@ -868,6 +1050,9 @@ async fn test_alters_fee_nested_abi_method_calls(
         .expect("Failed to add nested application call");
 
     // Main app call that would take the above transactions as arguments
+    let method_2 = ABIMethod::from_str("no_op()void").unwrap();
+    let method_2_selector = method_2.selector().expect("Failed to get method selector");
+
     let main_app_call_params = ApplicationCallParams {
         common_params: CommonParams {
             sender: sender.clone(),
@@ -876,7 +1061,7 @@ async fn test_alters_fee_nested_abi_method_calls(
         },
         app_id: app_id_1,
         on_complete: OnApplicationComplete::NoOp,
-        args: Some(vec![encode_method_selector("no_op")]), // Simplified for testing
+        args: Some(vec![method_2_selector]), // Simplified for testing
         account_references: None,
         app_references: None,
         asset_references: None,
@@ -888,7 +1073,7 @@ async fn test_alters_fee_nested_abi_method_calls(
         .expect("Failed to add main application call");
 
     let result = composer
-        .send(None)
+        .send(SEND_PARAMS)
         .await
         .expect("Failed to send nested transaction group");
 
@@ -906,7 +1091,37 @@ async fn test_throws_when_nested_max_fee_below_calculated(
 ) {
     println!("Test: throws when nested maxFee is below the calculated fee");
 
-    let fees_tuple = encode_fees_tuple(0, 0, 2000, 0, vec![0, 0]);
+    // Create ABI method
+    let method = ABIMethod::from_str(
+        "send_inners_with_fees(uint64,uint64,(uint64,uint64,uint64,uint64,uint64[]))void",
+    )
+    .unwrap();
+    let method_selector = method.selector().expect("Failed to get method selector");
+
+    // This tuple represents the fees for the inner transactions
+    let fees_tuple_type = ABIType::from_str("(uint64,uint64,uint64,uint64,uint64[])").unwrap();
+    let fees_tuple_value = ABIValue::Array(vec![
+        ABIValue::Uint(BigUint::from(0u64)),    // fee1
+        ABIValue::Uint(BigUint::from(0u64)),    // fee2
+        ABIValue::Uint(BigUint::from(2000u64)), // fee3
+        ABIValue::Uint(BigUint::from(0u64)),    // fee4
+        // Nested inner transaction fees
+        ABIValue::Array(vec![
+            ABIValue::Uint(BigUint::from(0u64)), // fee5
+            ABIValue::Uint(BigUint::from(0u64)), // fee6
+        ]),
+    ]);
+
+    let uint64 = ABIType::from_str("uint64").unwrap();
+    let app_id_2_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_2)))
+        .expect("Failed to encode app_id_2");
+    let app_id_3_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_3)))
+        .expect("Failed to encode app_id_3");
+    let fees_tuple_encoded = fees_tuple_type
+        .encode(&fees_tuple_value)
+        .expect("Failed to encode fees tuple");
 
     // Create a payment transaction
     let payment_params = PaymentParams {
@@ -928,10 +1143,10 @@ async fn test_throws_when_nested_max_fee_below_calculated(
         app_id: app_id_1,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
-            encode_method_selector("send_inners_with_fees"),
-            encode_uint64(app_id_2),
-            encode_uint64(app_id_3),
-            fees_tuple,
+            method_selector,
+            app_id_2_encoded,
+            app_id_3_encoded,
+            fees_tuple_encoded,
         ]),
         account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
@@ -940,6 +1155,9 @@ async fn test_throws_when_nested_max_fee_below_calculated(
     };
 
     // Main app call that would normally take the above as nested arguments
+    let method_2 = ABIMethod::from_str("no_op()void").unwrap();
+    let method_2_selector = method_2.selector().expect("Failed to get method selector");
+
     let main_app_call_params = ApplicationCallParams {
         common_params: CommonParams {
             sender: sender.clone(),
@@ -948,7 +1166,7 @@ async fn test_throws_when_nested_max_fee_below_calculated(
         },
         app_id: app_id_1,
         on_complete: OnApplicationComplete::NoOp,
-        args: Some(vec![encode_method_selector("no_op")]),
+        args: Some(vec![method_2_selector]),
         account_references: None,
         app_references: None,
         asset_references: None,
@@ -967,7 +1185,7 @@ async fn test_throws_when_nested_max_fee_below_calculated(
         .expect("Failed to add main application call");
 
     // This should fail due to nested transaction having insufficient max fee
-    let result = composer.send(None).await;
+    let result = composer.send(SEND_PARAMS).await;
 
     // Expected error: "Calculated transaction fee 5000 µALGO is greater than max of 2000 for transaction 1"
     match result {
@@ -1000,7 +1218,37 @@ async fn test_throws_when_static_fee_too_low_for_non_app_call(
 ) {
     println!("Test: throws when staticFee for non app call transaction is too low");
 
-    let fees_tuple = encode_fees_tuple(0, 0, 0, 0, vec![0, 0]);
+    // Create ABI method
+    let method = ABIMethod::from_str(
+        "send_inners_with_fees(uint64,uint64,(uint64,uint64,uint64,uint64,uint64[]))void",
+    )
+    .unwrap();
+    let method_selector = method.selector().expect("Failed to get method selector");
+
+    // This tuple represents the fees for the inner transactions
+    let fees_tuple_type = ABIType::from_str("(uint64,uint64,uint64,uint64,uint64[])").unwrap();
+    let fees_tuple_value = ABIValue::Array(vec![
+        ABIValue::Uint(BigUint::from(0u64)), // fee1
+        ABIValue::Uint(BigUint::from(0u64)), // fee2
+        ABIValue::Uint(BigUint::from(0u64)), // fee3
+        ABIValue::Uint(BigUint::from(0u64)), // fee4
+        // Nested inner transaction fees
+        ABIValue::Array(vec![
+            ABIValue::Uint(BigUint::from(0u64)), // fee5
+            ABIValue::Uint(BigUint::from(0u64)), // fee6
+        ]),
+    ]);
+
+    let uint64 = ABIType::from_str("uint64").unwrap();
+    let app_id_2_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_2)))
+        .expect("Failed to encode app_id_2");
+    let app_id_3_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_3)))
+        .expect("Failed to encode app_id_3");
+    let fees_tuple_encoded = fees_tuple_type
+        .encode(&fees_tuple_value)
+        .expect("Failed to encode fees tuple");
 
     // First app call with high static fee and max fee
     let app_call_params_1 = ApplicationCallParams {
@@ -1013,10 +1261,10 @@ async fn test_throws_when_static_fee_too_low_for_non_app_call(
         app_id: app_id_1,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
-            encode_method_selector("send_inners_with_fees"),
-            encode_uint64(app_id_2),
-            encode_uint64(app_id_3),
-            fees_tuple.clone(),
+            method_selector.clone(),
+            app_id_2_encoded.clone(),
+            app_id_3_encoded.clone(),
+            fees_tuple_encoded.clone(),
         ]),
         account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
@@ -1034,10 +1282,10 @@ async fn test_throws_when_static_fee_too_low_for_non_app_call(
         app_id: app_id_1,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
-            encode_method_selector("send_inners_with_fees"),
-            encode_uint64(app_id_2),
-            encode_uint64(app_id_3),
-            fees_tuple,
+            method_selector,
+            app_id_2_encoded,
+            app_id_3_encoded,
+            fees_tuple_encoded,
         ]),
         account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
@@ -1068,7 +1316,7 @@ async fn test_throws_when_static_fee_too_low_for_non_app_call(
         .expect("Failed to add payment");
 
     // This should fail due to payment transaction having insufficient static fee
-    let result = composer.send(None).await;
+    let result = composer.send(SEND_PARAMS).await;
 
     // Expected error: "An additional fee of 500 µALGO is required for non app call transaction 2"
     match result {
@@ -1156,7 +1404,10 @@ async fn fund_app_account(
         .add_payment(payment_params)
         .expect("Failed to add payment");
 
-    composer.send(None).await.expect("Failed to send payment");
+    composer
+        .send(SEND_PARAMS)
+        .await
+        .expect("Failed to send payment");
 
     Ok(())
 }
@@ -1176,55 +1427,6 @@ fn get_application_address(app_id: u64) -> Address {
     Address(address_bytes)
 }
 
-// Helper functions for encoding ABI method calls
-fn encode_method_selector(method_name: &str) -> Vec<u8> {
-    use sha2::{Digest, Sha512_256};
-
-    let method_signatures = match method_name {
-        "no_op" => "no_op()void",
-        "send_inners_with_fees" => {
-            "send_inners_with_fees(uint64,uint64,(uint64,uint64,uint64,uint64,uint64[]))void"
-        }
-        "burn_ops" => "burn_ops(uint64)void",
-        "burn_ops_readonly" => "burn_ops_readonly(uint64)void",
-        "send_x_inners_with_fees" => "send_x_inners_with_fees(uint64,uint64[])void",
-        "send_inners_with_fees_2" => {
-            "send_inners_with_fees_2(uint64,uint64,(uint64,uint64,uint64[],uint64,uint64,uint64[]))void"
-        }
-        _ => panic!("Unknown method: {}", method_name),
-    };
-
-    let mut hasher = Sha512_256::new();
-    hasher.update(method_signatures.as_bytes());
-    let hash = hasher.finalize();
-    hash[0..4].to_vec()
-}
-
-fn encode_uint64(value: u64) -> Vec<u8> {
-    value.to_be_bytes().to_vec()
-}
-
-fn encode_fees_tuple(fee1: u64, fee2: u64, fee3: u64, fee4: u64, fee_array: Vec<u64>) -> Vec<u8> {
-    let mut result = Vec::new();
-
-    // Encode each uint64 in the tuple
-    result.extend_from_slice(&fee1.to_be_bytes());
-    result.extend_from_slice(&fee2.to_be_bytes());
-    result.extend_from_slice(&fee3.to_be_bytes());
-    result.extend_from_slice(&fee4.to_be_bytes());
-
-    // Encode the dynamic array
-    // First encode the length as uint16
-    result.extend_from_slice(&(fee_array.len() as u16).to_be_bytes());
-
-    // Then encode each element
-    for fee in fee_array {
-        result.extend_from_slice(&fee.to_be_bytes());
-    }
-
-    result
-}
-
 async fn test_throws_when_max_fee_too_small(
     context: &AlgorandTestContext,
     app_id_1: u64,
@@ -1234,8 +1436,38 @@ async fn test_throws_when_max_fee_too_small(
 ) {
     println!("Test: throws when max fee is too small to cover inner transaction fees");
 
+    let method = ABIMethod::from_str(
+        "send_inners_with_fees(uint64,uint64,(uint64,uint64,uint64,uint64,uint64[]))void",
+    )
+    .unwrap();
+    let method_selector = method.selector().expect("Failed to get method selector");
+
     let expected_fee = 7000u64;
-    let fees_tuple = encode_fees_tuple(0, 0, 0, 0, vec![0, 0]);
+
+    // This tuple represents all fees as zero (requiring full fee coverage)
+    let fees_tuple_type = ABIType::from_str("(uint64,uint64,uint64,uint64,uint64[])").unwrap();
+    let fees_tuple_value = ABIValue::Array(vec![
+        ABIValue::Uint(BigUint::from(0u64)), // fee1 - not covered
+        ABIValue::Uint(BigUint::from(0u64)), // fee2 - not covered
+        ABIValue::Uint(BigUint::from(0u64)), // fee3 - not covered
+        ABIValue::Uint(BigUint::from(0u64)), // fee4 - not covered
+        // All nested inner transaction fees are also not covered
+        ABIValue::Array(vec![
+            ABIValue::Uint(BigUint::from(0u64)), // fee5 - not covered
+            ABIValue::Uint(BigUint::from(0u64)), // fee6 - not covered
+        ]),
+    ]);
+
+    let uint64 = ABIType::from_str("uint64").unwrap();
+    let app_id_2_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_2)))
+        .expect("Failed to encode app_id_2");
+    let app_id_3_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_3)))
+        .expect("Failed to encode app_id_3");
+    let fees_tuple_encoded = fees_tuple_type
+        .encode(&fees_tuple_value)
+        .expect("Failed to encode fees tuple");
 
     let app_call_params = ApplicationCallParams {
         common_params: CommonParams {
@@ -1246,10 +1478,10 @@ async fn test_throws_when_max_fee_too_small(
         app_id: app_id_1,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
-            encode_method_selector("send_inners_with_fees"),
-            encode_uint64(app_id_2),
-            encode_uint64(app_id_3),
-            fees_tuple,
+            method_selector,
+            app_id_2_encoded,
+            app_id_3_encoded,
+            fees_tuple_encoded,
         ]),
         account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
@@ -1263,7 +1495,7 @@ async fn test_throws_when_max_fee_too_small(
         .expect("Failed to add application call");
 
     // This should fail due to insufficient max fee when coverAppCallInnerTransactionFees is enabled
-    let result = composer.send(None).await;
+    let result = composer.send(SEND_PARAMS).await;
 
     // Expected error: "Fees were too small to resolve execution info via simulate. You may need to increase an app call transaction maxFee."
     match result {
@@ -1295,8 +1527,38 @@ async fn test_throws_when_static_fee_too_small(
 ) {
     println!("Test: throws when static fee is too small to cover inner transaction fees");
 
+    let method = ABIMethod::from_str(
+        "send_inners_with_fees(uint64,uint64,(uint64,uint64,uint64,uint64,uint64[]))void",
+    )
+    .unwrap();
+    let method_selector = method.selector().expect("Failed to get method selector");
+
     let expected_fee = 7000u64;
-    let fees_tuple = encode_fees_tuple(0, 0, 0, 0, vec![0, 0]);
+
+    // This tuple represents all fees as zero (requiring full fee coverage)
+    let fees_tuple_type = ABIType::from_str("(uint64,uint64,uint64,uint64,uint64[])").unwrap();
+    let fees_tuple_value = ABIValue::Array(vec![
+        ABIValue::Uint(BigUint::from(0u64)), // fee1 - not covered
+        ABIValue::Uint(BigUint::from(0u64)), // fee2 - not covered
+        ABIValue::Uint(BigUint::from(0u64)), // fee3 - not covered
+        ABIValue::Uint(BigUint::from(0u64)), // fee4 - not covered
+        // All nested inner transaction fees are also not covered
+        ABIValue::Array(vec![
+            ABIValue::Uint(BigUint::from(0u64)), // fee5 - not covered
+            ABIValue::Uint(BigUint::from(0u64)), // fee6 - not covered
+        ]),
+    ]);
+
+    let uint64 = ABIType::from_str("uint64").unwrap();
+    let app_id_2_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_2)))
+        .expect("Failed to encode app_id_2");
+    let app_id_3_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_3)))
+        .expect("Failed to encode app_id_3");
+    let fees_tuple_encoded = fees_tuple_type
+        .encode(&fees_tuple_value)
+        .expect("Failed to encode fees tuple");
 
     let app_call_params = ApplicationCallParams {
         common_params: CommonParams {
@@ -1307,10 +1569,10 @@ async fn test_throws_when_static_fee_too_small(
         app_id: app_id_1,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
-            encode_method_selector("send_inners_with_fees"),
-            encode_uint64(app_id_2),
-            encode_uint64(app_id_3),
-            fees_tuple,
+            method_selector,
+            app_id_2_encoded,
+            app_id_3_encoded,
+            fees_tuple_encoded,
         ]),
         account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
@@ -1324,7 +1586,7 @@ async fn test_throws_when_static_fee_too_small(
         .expect("Failed to add application call");
 
     // This should fail due to insufficient static fee when coverAppCallInnerTransactionFees is enabled
-    let result = composer.send(None).await;
+    let result = composer.send(SEND_PARAMS).await;
 
     // Expected error: "Fees were too small to resolve execution info via simulate. You may need to increase an app call transaction maxFee."
     match result {
@@ -1356,8 +1618,38 @@ async fn test_does_not_alter_static_fee_with_surplus(
 ) {
     println!("Test: does not alter a static fee with surplus");
 
+    let method = ABIMethod::from_str(
+        "send_inners_with_fees(uint64,uint64,(uint64,uint64,uint64,uint64,uint64[]))void",
+    )
+    .unwrap();
+    let method_selector = method.selector().expect("Failed to get method selector");
+
     let expected_fee = 6000u64;
-    let fees_tuple = encode_fees_tuple(1000, 0, 200, 0, vec![500, 0]);
+
+    // This tuple represents partial inner fee coverage
+    let fees_tuple_type = ABIType::from_str("(uint64,uint64,uint64,uint64,uint64[])").unwrap();
+    let fees_tuple_value = ABIValue::Array(vec![
+        ABIValue::Uint(BigUint::from(1000u64)), // fee1 - covered
+        ABIValue::Uint(BigUint::from(0u64)),    // fee2 - not covered
+        ABIValue::Uint(BigUint::from(200u64)),  // fee3 - partially covered
+        ABIValue::Uint(BigUint::from(0u64)),    // fee4 - not covered
+        // Nested inner transaction fees - partial coverage
+        ABIValue::Array(vec![
+            ABIValue::Uint(BigUint::from(500u64)), // fee5 - partially covered
+            ABIValue::Uint(BigUint::from(0u64)),   // fee6 - not covered
+        ]),
+    ]);
+
+    let uint64 = ABIType::from_str("uint64").unwrap();
+    let app_id_2_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_2)))
+        .expect("Failed to encode app_id_2");
+    let app_id_3_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_3)))
+        .expect("Failed to encode app_id_3");
+    let fees_tuple_encoded = fees_tuple_type
+        .encode(&fees_tuple_value)
+        .expect("Failed to encode fees tuple");
 
     let app_call_params = ApplicationCallParams {
         common_params: CommonParams {
@@ -1368,10 +1660,10 @@ async fn test_does_not_alter_static_fee_with_surplus(
         app_id: app_id_1,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
-            encode_method_selector("send_inners_with_fees"),
-            encode_uint64(app_id_2),
-            encode_uint64(app_id_3),
-            fees_tuple,
+            method_selector,
+            app_id_2_encoded,
+            app_id_3_encoded,
+            fees_tuple_encoded,
         ]),
         account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
@@ -1385,7 +1677,7 @@ async fn test_does_not_alter_static_fee_with_surplus(
         .expect("Failed to add application call");
 
     let result = composer
-        .send(None)
+        .send(SEND_PARAMS)
         .await
         .expect("Failed to send application call");
 
@@ -1428,11 +1720,55 @@ async fn test_alters_fee_multiple_app_calls_in_group(
         "Test: alters fee, handling multiple app calls in a group that send inners with varying fees"
     );
 
+    let method = ABIMethod::from_str(
+        "send_inners_with_fees(uint64,uint64,(uint64,uint64,uint64,uint64,uint64[]))void",
+    )
+    .unwrap();
+    let method_selector = method.selector().expect("Failed to get method selector");
+
     let txn1_expected_fee = 5800u64;
     let txn2_expected_fee = 6000u64;
 
-    let fees_tuple_1 = encode_fees_tuple(0, 1000, 0, 0, vec![200, 0]);
-    let fees_tuple_2 = encode_fees_tuple(1000, 0, 0, 0, vec![0, 0]);
+    // First transaction's fee tuple with varying coverage
+    let fees_tuple_type = ABIType::from_str("(uint64,uint64,uint64,uint64,uint64[])").unwrap();
+    let fees_tuple_value_1 = ABIValue::Array(vec![
+        ABIValue::Uint(BigUint::from(0u64)),    // fee1 - not covered
+        ABIValue::Uint(BigUint::from(1000u64)), // fee2 - covered
+        ABIValue::Uint(BigUint::from(0u64)),    // fee3 - not covered
+        ABIValue::Uint(BigUint::from(0u64)),    // fee4 - not covered
+        // Nested inner transaction fees
+        ABIValue::Array(vec![
+            ABIValue::Uint(BigUint::from(200u64)), // fee5 - partially covered
+            ABIValue::Uint(BigUint::from(0u64)),   // fee6 - not covered
+        ]),
+    ]);
+
+    // Second transaction's fee tuple with different coverage
+    let fees_tuple_value_2 = ABIValue::Array(vec![
+        ABIValue::Uint(BigUint::from(1000u64)), // fee1 - covered
+        ABIValue::Uint(BigUint::from(0u64)),    // fee2 - not covered
+        ABIValue::Uint(BigUint::from(0u64)),    // fee3 - not covered
+        ABIValue::Uint(BigUint::from(0u64)),    // fee4 - not covered
+        // Nested inner transaction fees
+        ABIValue::Array(vec![
+            ABIValue::Uint(BigUint::from(0u64)), // fee5 - not covered
+            ABIValue::Uint(BigUint::from(0u64)), // fee6 - not covered
+        ]),
+    ]);
+
+    let uint64 = ABIType::from_str("uint64").unwrap();
+    let app_id_2_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_2)))
+        .expect("Failed to encode app_id_2");
+    let app_id_3_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_3)))
+        .expect("Failed to encode app_id_3");
+    let fees_tuple_1_encoded = fees_tuple_type
+        .encode(&fees_tuple_value_1)
+        .expect("Failed to encode fees tuple 1");
+    let fees_tuple_2_encoded = fees_tuple_type
+        .encode(&fees_tuple_value_2)
+        .expect("Failed to encode fees tuple 2");
 
     let app_call_params_1 = ApplicationCallParams {
         common_params: CommonParams {
@@ -1444,10 +1780,10 @@ async fn test_alters_fee_multiple_app_calls_in_group(
         app_id: app_id_1,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
-            encode_method_selector("send_inners_with_fees"),
-            encode_uint64(app_id_2),
-            encode_uint64(app_id_3),
-            fees_tuple_1,
+            method_selector.clone(),
+            app_id_2_encoded.clone(),
+            app_id_3_encoded.clone(),
+            fees_tuple_1_encoded,
         ]),
         account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
@@ -1465,10 +1801,10 @@ async fn test_alters_fee_multiple_app_calls_in_group(
         app_id: app_id_1,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
-            encode_method_selector("send_inners_with_fees"),
-            encode_uint64(app_id_2),
-            encode_uint64(app_id_3),
-            fees_tuple_2,
+            method_selector,
+            app_id_2_encoded,
+            app_id_3_encoded,
+            fees_tuple_2_encoded,
         ]),
         account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
@@ -1485,7 +1821,7 @@ async fn test_alters_fee_multiple_app_calls_in_group(
         .expect("Failed to add second application call");
 
     let result = composer
-        .send(None)
+        .send(SEND_PARAMS)
         .await
         .expect("Failed to send group transaction");
 
@@ -1532,8 +1868,38 @@ async fn test_does_not_alter_fee_when_group_covers_inner_fees(
         "Test: does not alter fee when another transaction in the group covers the inner fees"
     );
 
+    let method = ABIMethod::from_str(
+        "send_inners_with_fees(uint64,uint64,(uint64,uint64,uint64,uint64,uint64[]))void",
+    )
+    .unwrap();
+    let method_selector = method.selector().expect("Failed to get method selector");
+
     let expected_fee = 8000u64;
-    let fees_tuple = encode_fees_tuple(0, 0, 0, 0, vec![0, 0]);
+
+    // This tuple represents all fees as zero (requiring full fee coverage)
+    let fees_tuple_type = ABIType::from_str("(uint64,uint64,uint64,uint64,uint64[])").unwrap();
+    let fees_tuple_value = ABIValue::Array(vec![
+        ABIValue::Uint(BigUint::from(0u64)), // fee1 - not covered
+        ABIValue::Uint(BigUint::from(0u64)), // fee2 - not covered
+        ABIValue::Uint(BigUint::from(0u64)), // fee3 - not covered
+        ABIValue::Uint(BigUint::from(0u64)), // fee4 - not covered
+        // All nested inner transaction fees are also not covered
+        ABIValue::Array(vec![
+            ABIValue::Uint(BigUint::from(0u64)), // fee5 - not covered
+            ABIValue::Uint(BigUint::from(0u64)), // fee6 - not covered
+        ]),
+    ]);
+
+    let uint64 = ABIType::from_str("uint64").unwrap();
+    let app_id_2_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_2)))
+        .expect("Failed to encode app_id_2");
+    let app_id_3_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_3)))
+        .expect("Failed to encode app_id_3");
+    let fees_tuple_encoded = fees_tuple_type
+        .encode(&fees_tuple_value)
+        .expect("Failed to encode fees tuple");
 
     // First transaction: payment with high fee to cover inner fees
     let payment_params = PaymentParams {
@@ -1556,10 +1922,10 @@ async fn test_does_not_alter_fee_when_group_covers_inner_fees(
         app_id: app_id_1,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
-            encode_method_selector("send_inners_with_fees"),
-            encode_uint64(app_id_2),
-            encode_uint64(app_id_3),
-            fees_tuple,
+            method_selector,
+            app_id_2_encoded,
+            app_id_3_encoded,
+            fees_tuple_encoded,
         ]),
         account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
@@ -1576,7 +1942,7 @@ async fn test_does_not_alter_fee_when_group_covers_inner_fees(
         .expect("Failed to add application call");
 
     let result = composer
-        .send(None)
+        .send(SEND_PARAMS)
         .await
         .expect("Failed to send group transaction");
 
@@ -1596,7 +1962,36 @@ async fn test_alters_fee_allocating_surplus_to_constrained(
         "Test: alters fee, allocating surplus fees to the most fee constrained transaction first"
     );
 
-    let fees_tuple = encode_fees_tuple(0, 0, 0, 0, vec![0, 0]);
+    let method = ABIMethod::from_str(
+        "send_inners_with_fees(uint64,uint64,(uint64,uint64,uint64,uint64,uint64[]))void",
+    )
+    .unwrap();
+    let method_selector = method.selector().expect("Failed to get method selector");
+
+    // This tuple represents all fees as zero (requiring full fee coverage)
+    let fees_tuple_type = ABIType::from_str("(uint64,uint64,uint64,uint64,uint64[])").unwrap();
+    let fees_tuple_value = ABIValue::Array(vec![
+        ABIValue::Uint(BigUint::from(0u64)), // fee1 - not covered
+        ABIValue::Uint(BigUint::from(0u64)), // fee2 - not covered
+        ABIValue::Uint(BigUint::from(0u64)), // fee3 - not covered
+        ABIValue::Uint(BigUint::from(0u64)), // fee4 - not covered
+        // All nested inner transaction fees are also not covered
+        ABIValue::Array(vec![
+            ABIValue::Uint(BigUint::from(0u64)), // fee5 - not covered
+            ABIValue::Uint(BigUint::from(0u64)), // fee6 - not covered
+        ]),
+    ]);
+
+    let uint64 = ABIType::from_str("uint64").unwrap();
+    let app_id_2_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_2)))
+        .expect("Failed to encode app_id_2");
+    let app_id_3_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_3)))
+        .expect("Failed to encode app_id_3");
+    let fees_tuple_encoded = fees_tuple_type
+        .encode(&fees_tuple_value)
+        .expect("Failed to encode fees tuple");
 
     // Transaction 1: app call with low max fee (needs more)
     let app_call_params = ApplicationCallParams {
@@ -1608,10 +2003,10 @@ async fn test_alters_fee_allocating_surplus_to_constrained(
         app_id: app_id_1,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
-            encode_method_selector("send_inners_with_fees"),
-            encode_uint64(app_id_2),
-            encode_uint64(app_id_3),
-            fees_tuple,
+            method_selector,
+            app_id_2_encoded,
+            app_id_3_encoded,
+            fees_tuple_encoded,
         ]),
         account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
@@ -1653,7 +2048,7 @@ async fn test_alters_fee_allocating_surplus_to_constrained(
         .expect("Failed to add second payment");
 
     let result = composer
-        .send(None)
+        .send(SEND_PARAMS)
         .await
         .expect("Failed to send group transaction");
 
@@ -1671,9 +2066,42 @@ async fn test_alters_fee_large_surplus_pooling(
 ) {
     println!("Test: alters fee, handling a large inner fee surplus pooling to lower siblings");
 
+    let method = ABIMethod::from_str(
+        "send_inners_with_fees(uint64,uint64,(uint64,uint64,uint64,uint64,uint64[]))void",
+    )
+    .unwrap();
+    let method_selector = method.selector().expect("Failed to get method selector");
+
     let expected_fee = 7000u64;
-    // Inner fees with large surplus that should pool to lower siblings
-    let fees_tuple = encode_fees_tuple(0, 0, 0, 0, vec![0, 0, 20_000, 0, 0, 0]);
+
+    // This tuple represents the fees for the inner transactions with large surplus
+    let fees_tuple_type = ABIType::from_str("(uint64,uint64,uint64,uint64,uint64[])").unwrap();
+    let fees_tuple_value = ABIValue::Array(vec![
+        ABIValue::Uint(BigUint::from(0u64)), // fee1
+        ABIValue::Uint(BigUint::from(0u64)), // fee2
+        ABIValue::Uint(BigUint::from(0u64)), // fee3
+        ABIValue::Uint(BigUint::from(0u64)), // fee4
+        // Nested inner transaction fees with large surplus
+        ABIValue::Array(vec![
+            ABIValue::Uint(BigUint::from(0u64)),      // fee5
+            ABIValue::Uint(BigUint::from(0u64)),      // fee6
+            ABIValue::Uint(BigUint::from(20_000u64)), // fee7 - large surplus fee
+            ABIValue::Uint(BigUint::from(0u64)),      // fee8
+            ABIValue::Uint(BigUint::from(0u64)),      // fee9
+            ABIValue::Uint(BigUint::from(0u64)),      // fee10
+        ]),
+    ]);
+
+    let uint64 = ABIType::from_str("uint64").unwrap();
+    let app_id_2_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_2)))
+        .expect("Failed to encode app_id_2");
+    let app_id_3_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_3)))
+        .expect("Failed to encode app_id_3");
+    let fees_tuple_encoded = fees_tuple_type
+        .encode(&fees_tuple_value)
+        .expect("Failed to encode fees tuple");
 
     let app_call_params = ApplicationCallParams {
         common_params: CommonParams {
@@ -1684,10 +2112,10 @@ async fn test_alters_fee_large_surplus_pooling(
         app_id: app_id_1,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
-            encode_method_selector("send_inners_with_fees"),
-            encode_uint64(app_id_2),
-            encode_uint64(app_id_3),
-            fees_tuple,
+            method_selector,
+            app_id_2_encoded,
+            app_id_3_encoded,
+            fees_tuple_encoded,
         ]),
         account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
@@ -1701,17 +2129,15 @@ async fn test_alters_fee_large_surplus_pooling(
         .expect("Failed to add application call");
 
     let result = composer
-        .send(None)
+        .send(SEND_PARAMS)
         .await
         .expect("Failed to send application call");
 
-    // Verify the transaction was successful
     assert!(
         !result.confirmations.is_empty(),
         "Should have confirmations"
     );
 
-    // Verify the actual fee
     let transaction_fee = result.confirmations[0]
         .txn
         .transaction
@@ -1719,11 +2145,9 @@ async fn test_alters_fee_large_surplus_pooling(
         .fee
         .unwrap_or(0);
 
-    // In real implementation, this would verify fee pooling behavior
-    assert!(transaction_fee > 0, "Should have a positive fee");
-    println!(
-        "✓ Test passed: fee = {} µALGO (placeholder - would verify fee {} µALGO with large surplus pooling to lower siblings)",
-        transaction_fee, expected_fee
+    assert_eq!(
+        transaction_fee, expected_fee,
+        "Fee should be altered to cover inner fees"
     );
 }
 
@@ -1736,9 +2160,42 @@ async fn test_alters_fee_surplus_pooling_to_some_siblings(
 ) {
     println!("Test: alters fee, handling inner fee surplus pooling to some lower siblings");
 
+    let method = ABIMethod::from_str(
+        "send_inners_with_fees(uint64,uint64,(uint64,uint64,uint64,uint64,uint64[]))void",
+    )
+    .unwrap();
+    let method_selector = method.selector().expect("Failed to get method selector");
+
     let expected_fee = 6300u64;
-    // Surplus that pools to some but not all lower siblings
-    let fees_tuple = encode_fees_tuple(0, 0, 2200, 0, vec![0, 0, 2500, 0, 0, 0]);
+
+    // This tuple represents the fees for surplus that pools to some but not all lower siblings
+    let fees_tuple_type = ABIType::from_str("(uint64,uint64,uint64,uint64,uint64[])").unwrap();
+    let fees_tuple_value = ABIValue::Array(vec![
+        ABIValue::Uint(BigUint::from(0u64)),    // fee1
+        ABIValue::Uint(BigUint::from(0u64)),    // fee2
+        ABIValue::Uint(BigUint::from(2200u64)), // fee3 - surplus fee
+        ABIValue::Uint(BigUint::from(0u64)),    // fee4
+        // Nested inner transaction fees with partial surplus pooling
+        ABIValue::Array(vec![
+            ABIValue::Uint(BigUint::from(0u64)),    // fee5
+            ABIValue::Uint(BigUint::from(0u64)),    // fee6
+            ABIValue::Uint(BigUint::from(2500u64)), // fee7 - surplus fee that pools to some siblings
+            ABIValue::Uint(BigUint::from(0u64)),    // fee8
+            ABIValue::Uint(BigUint::from(0u64)),    // fee9
+            ABIValue::Uint(BigUint::from(0u64)),    // fee10
+        ]),
+    ]);
+
+    let uint64 = ABIType::from_str("uint64").unwrap();
+    let app_id_2_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_2)))
+        .expect("Failed to encode app_id_2");
+    let app_id_3_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_3)))
+        .expect("Failed to encode app_id_3");
+    let fees_tuple_encoded = fees_tuple_type
+        .encode(&fees_tuple_value)
+        .expect("Failed to encode fees tuple");
 
     let app_call_params = ApplicationCallParams {
         common_params: CommonParams {
@@ -1749,10 +2206,10 @@ async fn test_alters_fee_surplus_pooling_to_some_siblings(
         app_id: app_id_1,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
-            encode_method_selector("send_inners_with_fees"),
-            encode_uint64(app_id_2),
-            encode_uint64(app_id_3),
-            fees_tuple,
+            method_selector,
+            app_id_2_encoded,
+            app_id_3_encoded,
+            fees_tuple_encoded,
         ]),
         account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
@@ -1766,16 +2223,26 @@ async fn test_alters_fee_surplus_pooling_to_some_siblings(
         .expect("Failed to add application call");
 
     let result = composer
-        .send(None)
+        .send(SEND_PARAMS)
         .await
         .expect("Failed to send application call");
 
-    // In real implementation, this would verify partial surplus pooling
     assert!(
         !result.confirmations.is_empty(),
         "Should have confirmations"
     );
-    println!("✓ Test passed (placeholder - would verify partial surplus pooling)");
+
+    let transaction_fee = result.confirmations[0]
+        .txn
+        .transaction
+        .header()
+        .fee
+        .unwrap_or(0);
+
+    assert_eq!(
+        transaction_fee, expected_fee,
+        "Fee should be altered to cover inner fees"
+    );
 }
 
 async fn test_alters_fee_large_surplus_no_pooling(
@@ -1787,9 +2254,42 @@ async fn test_alters_fee_large_surplus_no_pooling(
 ) {
     println!("Test: alters fee, handling a large inner fee surplus with no pooling");
 
+    let method = ABIMethod::from_str(
+        "send_inners_with_fees(uint64,uint64,(uint64,uint64,uint64,uint64,uint64[]))void",
+    )
+    .unwrap();
+    let method_selector = method.selector().expect("Failed to get method selector");
+
     let expected_fee = 10_000u64;
-    // Large surplus at the end with no lower siblings to pool to
-    let fees_tuple = encode_fees_tuple(0, 0, 0, 0, vec![0, 0, 0, 0, 0, 20_000]);
+
+    // This tuple represents large surplus at the end with no lower siblings to pool to
+    let fees_tuple_type = ABIType::from_str("(uint64,uint64,uint64,uint64,uint64[])").unwrap();
+    let fees_tuple_value = ABIValue::Array(vec![
+        ABIValue::Uint(BigUint::from(0u64)), // fee1
+        ABIValue::Uint(BigUint::from(0u64)), // fee2
+        ABIValue::Uint(BigUint::from(0u64)), // fee3
+        ABIValue::Uint(BigUint::from(0u64)), // fee4
+        // Nested inner transaction fees with large surplus at the end
+        ABIValue::Array(vec![
+            ABIValue::Uint(BigUint::from(0u64)),      // fee5
+            ABIValue::Uint(BigUint::from(0u64)),      // fee6
+            ABIValue::Uint(BigUint::from(0u64)),      // fee7
+            ABIValue::Uint(BigUint::from(0u64)),      // fee8
+            ABIValue::Uint(BigUint::from(0u64)),      // fee9
+            ABIValue::Uint(BigUint::from(20_000u64)), // fee10 - large surplus at end
+        ]),
+    ]);
+
+    let uint64 = ABIType::from_str("uint64").unwrap();
+    let app_id_2_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_2)))
+        .expect("Failed to encode app_id_2");
+    let app_id_3_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_3)))
+        .expect("Failed to encode app_id_3");
+    let fees_tuple_encoded = fees_tuple_type
+        .encode(&fees_tuple_value)
+        .expect("Failed to encode fees tuple");
 
     let app_call_params = ApplicationCallParams {
         common_params: CommonParams {
@@ -1800,10 +2300,10 @@ async fn test_alters_fee_large_surplus_no_pooling(
         app_id: app_id_1,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
-            encode_method_selector("send_inners_with_fees"),
-            encode_uint64(app_id_2),
-            encode_uint64(app_id_3),
-            fees_tuple,
+            method_selector,
+            app_id_2_encoded,
+            app_id_3_encoded,
+            fees_tuple_encoded,
         ]),
         account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
@@ -1817,16 +2317,26 @@ async fn test_alters_fee_large_surplus_no_pooling(
         .expect("Failed to add application call");
 
     let result = composer
-        .send(None)
+        .send(SEND_PARAMS)
         .await
         .expect("Failed to send application call");
 
-    // In real implementation, this would verify no pooling occurred
     assert!(
         !result.confirmations.is_empty(),
         "Should have confirmations"
     );
-    println!("✓ Test passed (placeholder - would verify no pooling with terminal surplus)");
+
+    let transaction_fee = result.confirmations[0]
+        .txn
+        .transaction
+        .header()
+        .fee
+        .unwrap_or(0);
+
+    assert_eq!(
+        transaction_fee, expected_fee,
+        "Fee should be altered to cover inner fees"
+    );
 }
 
 async fn test_alters_fee_multiple_surplus_poolings(
@@ -1838,16 +2348,52 @@ async fn test_alters_fee_multiple_surplus_poolings(
 ) {
     println!("Test: alters fee, handling multiple inner fee surplus poolings to lower siblings");
 
+    let method = ABIMethod::from_str(
+        "send_inners_with_fees_2(uint64,uint64,(uint64,uint64,uint64[],uint64,uint64,uint64[]))void",
+    )
+    .unwrap();
+    let method_selector = method.selector().expect("Failed to get method selector");
+
     let expected_fee = 7100u64;
-    // Uses send_inners_with_fees_2 method with more complex fee structure
-    let fees_tuple_2 = encode_fees_tuple_2(
-        0,
-        1200,
-        vec![0, 0, 4900, 0, 0, 0],
-        200,
-        1100,
-        vec![0, 0, 2500, 0, 0, 0],
-    );
+
+    // This tuple represents the more complex fee structure with multiple surplus poolings
+    let fees_tuple_type =
+        ABIType::from_str("(uint64,uint64,uint64[],uint64,uint64,uint64[])").unwrap();
+    let fees_tuple_value = ABIValue::Array(vec![
+        ABIValue::Uint(BigUint::from(0u64)),    // fee1
+        ABIValue::Uint(BigUint::from(1200u64)), // fee2 - surplus fee
+        // First fee array with surplus that pools to lower siblings
+        ABIValue::Array(vec![
+            ABIValue::Uint(BigUint::from(0u64)),    // fee_array_1[0]
+            ABIValue::Uint(BigUint::from(0u64)),    // fee_array_1[1]
+            ABIValue::Uint(BigUint::from(4900u64)), // fee_array_1[2] - surplus fee
+            ABIValue::Uint(BigUint::from(0u64)),    // fee_array_1[3]
+            ABIValue::Uint(BigUint::from(0u64)),    // fee_array_1[4]
+            ABIValue::Uint(BigUint::from(0u64)),    // fee_array_1[5]
+        ]),
+        ABIValue::Uint(BigUint::from(200u64)),  // fee3
+        ABIValue::Uint(BigUint::from(1100u64)), // fee4 - surplus fee
+        // Second fee array with surplus that pools to lower siblings
+        ABIValue::Array(vec![
+            ABIValue::Uint(BigUint::from(0u64)),    // fee_array_2[0]
+            ABIValue::Uint(BigUint::from(0u64)),    // fee_array_2[1]
+            ABIValue::Uint(BigUint::from(2500u64)), // fee_array_2[2] - surplus fee
+            ABIValue::Uint(BigUint::from(0u64)),    // fee_array_2[3]
+            ABIValue::Uint(BigUint::from(0u64)),    // fee_array_2[4]
+            ABIValue::Uint(BigUint::from(0u64)),    // fee_array_2[5]
+        ]),
+    ]);
+
+    let uint64 = ABIType::from_str("uint64").unwrap();
+    let app_id_2_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_2)))
+        .expect("Failed to encode app_id_2");
+    let app_id_3_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_3)))
+        .expect("Failed to encode app_id_3");
+    let fees_tuple_encoded = fees_tuple_type
+        .encode(&fees_tuple_value)
+        .expect("Failed to encode fees tuple");
 
     let app_call_params = ApplicationCallParams {
         common_params: CommonParams {
@@ -1858,10 +2404,10 @@ async fn test_alters_fee_multiple_surplus_poolings(
         app_id: app_id_1,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
-            encode_method_selector("send_inners_with_fees_2"),
-            encode_uint64(app_id_2),
-            encode_uint64(app_id_3),
-            fees_tuple_2,
+            method_selector,
+            app_id_2_encoded,
+            app_id_3_encoded,
+            fees_tuple_encoded,
         ]),
         account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
@@ -1875,16 +2421,26 @@ async fn test_alters_fee_multiple_surplus_poolings(
         .expect("Failed to add application call");
 
     let result = composer
-        .send(None)
+        .send(SEND_PARAMS)
         .await
         .expect("Failed to send application call");
 
-    // In real implementation, this would verify multiple surplus poolings
     assert!(
         !result.confirmations.is_empty(),
         "Should have confirmations"
     );
-    println!("✓ Test passed (placeholder - would verify multiple surplus poolings)");
+
+    let transaction_fee = result.confirmations[0]
+        .txn
+        .transaction
+        .header()
+        .fee
+        .unwrap_or(0);
+
+    assert_eq!(
+        transaction_fee, expected_fee,
+        "Fee should be altered to cover inner fees"
+    );
 }
 
 async fn test_throws_when_max_fee_below_calculated(
@@ -1896,7 +2452,36 @@ async fn test_throws_when_max_fee_below_calculated(
 ) {
     println!("Test: throws when maxFee is below the calculated fee");
 
-    let fees_tuple = encode_fees_tuple(0, 0, 0, 0, vec![0, 0]);
+    let method = ABIMethod::from_str(
+        "send_inners_with_fees(uint64,uint64,(uint64,uint64,uint64,uint64,uint64[]))void",
+    )
+    .unwrap();
+    let method_selector = method.selector().expect("Failed to get method selector");
+
+    // This tuple represents all fees as zero (requiring full fee coverage)
+    let fees_tuple_type = ABIType::from_str("(uint64,uint64,uint64,uint64,uint64[])").unwrap();
+    let fees_tuple_value = ABIValue::Array(vec![
+        ABIValue::Uint(BigUint::from(0u64)), // fee1 - not covered
+        ABIValue::Uint(BigUint::from(0u64)), // fee2 - not covered
+        ABIValue::Uint(BigUint::from(0u64)), // fee3 - not covered
+        ABIValue::Uint(BigUint::from(0u64)), // fee4 - not covered
+        // All nested inner transaction fees are also not covered
+        ABIValue::Array(vec![
+            ABIValue::Uint(BigUint::from(0u64)), // fee5 - not covered
+            ABIValue::Uint(BigUint::from(0u64)), // fee6 - not covered
+        ]),
+    ]);
+
+    let uint64 = ABIType::from_str("uint64").unwrap();
+    let app_id_2_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_2)))
+        .expect("Failed to encode app_id_2");
+    let app_id_3_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_3)))
+        .expect("Failed to encode app_id_3");
+    let fees_tuple_encoded = fees_tuple_type
+        .encode(&fees_tuple_value)
+        .expect("Failed to encode fees tuple");
 
     // First transaction with insufficient max fee
     let app_call_params_1 = ApplicationCallParams {
@@ -1908,10 +2493,10 @@ async fn test_throws_when_max_fee_below_calculated(
         app_id: app_id_1,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
-            encode_method_selector("send_inners_with_fees"),
-            encode_uint64(app_id_2),
-            encode_uint64(app_id_3),
-            fees_tuple.clone(),
+            method_selector.clone(),
+            app_id_2_encoded.clone(),
+            app_id_3_encoded.clone(),
+            fees_tuple_encoded.clone(),
         ]),
         account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
@@ -1920,6 +2505,9 @@ async fn test_throws_when_max_fee_below_calculated(
     };
 
     // Second transaction with sufficient fee to allow simulate to succeed
+    let method_2 = ABIMethod::from_str("no_op()void").unwrap();
+    let method_2_selector = method_2.selector().expect("Failed to get method selector");
+
     let app_call_params_2 = ApplicationCallParams {
         common_params: CommonParams {
             sender: sender.clone(),
@@ -1928,7 +2516,7 @@ async fn test_throws_when_max_fee_below_calculated(
         },
         app_id: app_id_1,
         on_complete: OnApplicationComplete::NoOp,
-        args: Some(vec![encode_method_selector("no_op")]),
+        args: Some(vec![method_2_selector]),
         account_references: None,
         app_references: None,
         asset_references: None,
@@ -1944,7 +2532,7 @@ async fn test_throws_when_max_fee_below_calculated(
         .expect("Failed to add second application call");
 
     // This should fail due to calculated fee being higher than maxFee
-    let result = composer.send(None).await;
+    let result = composer.send(SEND_PARAMS).await;
 
     // Expected error: "Calculated transaction fee 7000 µALGO is greater than max of 1200 for transaction 0"
     match result {
@@ -1977,7 +2565,36 @@ async fn test_throws_when_static_fee_below_calculated(
 ) {
     println!("Test: throws when staticFee is below the calculated fee");
 
-    let fees_tuple = encode_fees_tuple(0, 0, 0, 0, vec![0, 0]);
+    let method = ABIMethod::from_str(
+        "send_inners_with_fees(uint64,uint64,(uint64,uint64,uint64,uint64,uint64[]))void",
+    )
+    .unwrap();
+    let method_selector = method.selector().expect("Failed to get method selector");
+
+    // This tuple represents all fees as zero (requiring full fee coverage)
+    let fees_tuple_type = ABIType::from_str("(uint64,uint64,uint64,uint64,uint64[])").unwrap();
+    let fees_tuple_value = ABIValue::Array(vec![
+        ABIValue::Uint(BigUint::from(0u64)), // fee1 - not covered
+        ABIValue::Uint(BigUint::from(0u64)), // fee2 - not covered
+        ABIValue::Uint(BigUint::from(0u64)), // fee3 - not covered
+        ABIValue::Uint(BigUint::from(0u64)), // fee4 - not covered
+        // All nested inner transaction fees are also not covered
+        ABIValue::Array(vec![
+            ABIValue::Uint(BigUint::from(0u64)), // fee5 - not covered
+            ABIValue::Uint(BigUint::from(0u64)), // fee6 - not covered
+        ]),
+    ]);
+
+    let uint64 = ABIType::from_str("uint64").unwrap();
+    let app_id_2_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_2)))
+        .expect("Failed to encode app_id_2");
+    let app_id_3_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id_3)))
+        .expect("Failed to encode app_id_3");
+    let fees_tuple_encoded = fees_tuple_type
+        .encode(&fees_tuple_value)
+        .expect("Failed to encode fees tuple");
 
     // First transaction with insufficient static fee
     let app_call_params_1 = ApplicationCallParams {
@@ -1989,10 +2606,10 @@ async fn test_throws_when_static_fee_below_calculated(
         app_id: app_id_1,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
-            encode_method_selector("send_inners_with_fees"),
-            encode_uint64(app_id_2),
-            encode_uint64(app_id_3),
-            fees_tuple,
+            method_selector,
+            app_id_2_encoded,
+            app_id_3_encoded,
+            fees_tuple_encoded,
         ]),
         account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
@@ -2001,6 +2618,9 @@ async fn test_throws_when_static_fee_below_calculated(
     };
 
     // Second transaction with sufficient fee to allow simulate to succeed
+    let method_2 = ABIMethod::from_str("no_op()void").unwrap();
+    let method_2_selector = method_2.selector().expect("Failed to get method selector");
+
     let app_call_params_2 = ApplicationCallParams {
         common_params: CommonParams {
             sender: sender.clone(),
@@ -2009,7 +2629,7 @@ async fn test_throws_when_static_fee_below_calculated(
         },
         app_id: app_id_1,
         on_complete: OnApplicationComplete::NoOp,
-        args: Some(vec![encode_method_selector("no_op")]),
+        args: Some(vec![method_2_selector]),
         account_references: None,
         app_references: None,
         asset_references: None,
@@ -2025,7 +2645,7 @@ async fn test_throws_when_static_fee_below_calculated(
         .expect("Failed to add second application call");
 
     // This should fail due to calculated fee being higher than staticFee
-    let result = composer.send(None).await;
+    let result = composer.send(SEND_PARAMS).await;
 
     // Expected error: "Calculated transaction fee 7000 µALGO is greater than max of 5000 for transaction 0"
     match result {
@@ -2089,10 +2709,15 @@ async fn test_readonly_fixed_opcode_budget(
         },
         app_id,
         on_complete: OnApplicationComplete::NoOp,
-        args: Some(vec![
-            encode_method_selector("burn_ops_readonly"),
-            encode_uint64(6200), // This would normally require op-ups via inner transactions
-        ]),
+        args: Some({
+            let method = ABIMethod::from_str("burn_ops_readonly(uint64)void").unwrap();
+            let method_selector = method.selector().expect("Failed to get method selector");
+            let uint64 = ABIType::from_str("uint64").unwrap();
+            let op_budget_encoded = uint64
+                .encode(&ABIValue::Uint(BigUint::from(6200u64)))
+                .expect("Failed to encode op_budget");
+            vec![method_selector, op_budget_encoded]
+        }),
         account_references: None,
         app_references: None,
         asset_references: None,
@@ -2105,7 +2730,10 @@ async fn test_readonly_fixed_opcode_budget(
         .expect("Failed to add application call");
 
     let result = composer
-        .send(None)
+        .send(Some(SendParams {
+            cover_app_call_inner_transaction_fees: Some(cover_inner_fees),
+            ..Default::default()
+        }))
         .await
         .expect("Failed to send readonly application call");
 
@@ -2132,8 +2760,35 @@ async fn test_readonly_alters_fee_handling_inners(
 ) {
     println!("Test: readonly alters fee, handling inner transactions");
 
+    let method = ABIMethod::from_str(
+        "send_inners_with_fees(uint64,uint64,(uint64,uint64,uint64,uint64,uint64[]))void",
+    )
+    .unwrap();
+    let method_selector = method.selector().expect("Failed to get method selector");
+
     let expected_fee = 12_000u64;
-    let fees_tuple = encode_fees_tuple(1000, 0, 200, 0, vec![500, 0]);
+
+    // This tuple represents partial inner fee coverage for readonly context
+    let fees_tuple_type = ABIType::from_str("(uint64,uint64,uint64,uint64,uint64[])").unwrap();
+    let fees_tuple_value = ABIValue::Array(vec![
+        ABIValue::Uint(BigUint::from(1000u64)), // fee1 - covered
+        ABIValue::Uint(BigUint::from(0u64)),    // fee2 - not covered
+        ABIValue::Uint(BigUint::from(200u64)),  // fee3 - partially covered
+        ABIValue::Uint(BigUint::from(0u64)),    // fee4 - not covered
+        // Nested inner transaction fees - partial coverage
+        ABIValue::Array(vec![
+            ABIValue::Uint(BigUint::from(500u64)), // fee5 - partially covered
+            ABIValue::Uint(BigUint::from(0u64)),   // fee6 - not covered
+        ]),
+    ]);
+
+    let uint64 = ABIType::from_str("uint64").unwrap();
+    let app_id_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id)))
+        .expect("Failed to encode app_id");
+    let fees_tuple_encoded = fees_tuple_type
+        .encode(&fees_tuple_value)
+        .expect("Failed to encode fees tuple");
 
     let app_call_params = ApplicationCallParams {
         common_params: CommonParams {
@@ -2144,10 +2799,10 @@ async fn test_readonly_alters_fee_handling_inners(
         app_id,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
-            encode_method_selector("send_inners_with_fees"), // Would be marked as readonly in real impl
-            encode_uint64(app_id),                           // Use same app for simplicity
-            encode_uint64(app_id),
-            fees_tuple,
+            method_selector,        // Would be marked as readonly in real impl
+            app_id_encoded.clone(), // Use same app for simplicity
+            app_id_encoded,
+            fees_tuple_encoded,
         ]),
         account_references: None,
         app_references: Some(vec![app_id]),
@@ -2161,7 +2816,7 @@ async fn test_readonly_alters_fee_handling_inners(
         .expect("Failed to add application call");
 
     let result = composer
-        .send(None)
+        .send(SEND_PARAMS)
         .await
         .expect("Failed to send readonly application call with inners");
 
@@ -2187,7 +2842,33 @@ async fn test_readonly_throws_when_max_fee_too_small(
 ) {
     println!("Test: readonly throws when max fee is too small to cover inner transaction fees");
 
-    let fees_tuple = encode_fees_tuple(1000, 0, 200, 0, vec![500, 0]);
+    let method = ABIMethod::from_str(
+        "send_inners_with_fees(uint64,uint64,(uint64,uint64,uint64,uint64,uint64[]))void",
+    )
+    .unwrap();
+    let method_selector = method.selector().expect("Failed to get method selector");
+
+    // This tuple represents partial inner fee coverage for readonly context
+    let fees_tuple_type = ABIType::from_str("(uint64,uint64,uint64,uint64,uint64[])").unwrap();
+    let fees_tuple_value = ABIValue::Array(vec![
+        ABIValue::Uint(BigUint::from(1000u64)), // fee1 - covered
+        ABIValue::Uint(BigUint::from(0u64)),    // fee2 - not covered
+        ABIValue::Uint(BigUint::from(200u64)),  // fee3 - partially covered
+        ABIValue::Uint(BigUint::from(0u64)),    // fee4 - not covered
+        // Nested inner transaction fees - partial coverage
+        ABIValue::Array(vec![
+            ABIValue::Uint(BigUint::from(500u64)), // fee5 - partially covered
+            ABIValue::Uint(BigUint::from(0u64)),   // fee6 - not covered
+        ]),
+    ]);
+
+    let uint64 = ABIType::from_str("uint64").unwrap();
+    let app_id_encoded = uint64
+        .encode(&ABIValue::Uint(BigUint::from(app_id)))
+        .expect("Failed to encode app_id");
+    let fees_tuple_encoded = fees_tuple_type
+        .encode(&fees_tuple_value)
+        .expect("Failed to encode fees tuple");
 
     let app_call_params = ApplicationCallParams {
         common_params: CommonParams {
@@ -2198,10 +2879,10 @@ async fn test_readonly_throws_when_max_fee_too_small(
         app_id,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
-            encode_method_selector("send_inners_with_fees"), // Would be marked as readonly in real impl
-            encode_uint64(app_id),
-            encode_uint64(app_id),
-            fees_tuple,
+            method_selector, // Would be marked as readonly in real impl
+            app_id_encoded.clone(),
+            app_id_encoded,
+            fees_tuple_encoded,
         ]),
         account_references: None,
         app_references: Some(vec![app_id]),
@@ -2215,7 +2896,7 @@ async fn test_readonly_throws_when_max_fee_too_small(
         .expect("Failed to add application call");
 
     // This should fail due to insufficient max fee for readonly method
-    let result = composer.send(None).await;
+    let result = composer.send(SEND_PARAMS).await;
 
     match result {
         Ok(_) => println!(
@@ -2223,37 +2904,4 @@ async fn test_readonly_throws_when_max_fee_too_small(
         ),
         Err(e) => println!("Readonly transaction failed as expected: {}", e),
     }
-}
-
-// Helper function for encoding the more complex fees tuple used by send_inners_with_fees_2
-fn encode_fees_tuple_2(
-    fee1: u64,
-    fee2: u64,
-    fee_array_1: Vec<u64>,
-    fee3: u64,
-    fee4: u64,
-    fee_array_2: Vec<u64>,
-) -> Vec<u8> {
-    let mut result = Vec::new();
-
-    // Encode the structure: (uint64,uint64,uint64[],uint64,uint64,uint64[])
-    result.extend_from_slice(&fee1.to_be_bytes());
-    result.extend_from_slice(&fee2.to_be_bytes());
-
-    // Encode first dynamic array
-    result.extend_from_slice(&(fee_array_1.len() as u16).to_be_bytes());
-    for fee in fee_array_1 {
-        result.extend_from_slice(&fee.to_be_bytes());
-    }
-
-    result.extend_from_slice(&fee3.to_be_bytes());
-    result.extend_from_slice(&fee4.to_be_bytes());
-
-    // Encode second dynamic array
-    result.extend_from_slice(&(fee_array_2.len() as u16).to_be_bytes());
-    for fee in fee_array_2 {
-        result.extend_from_slice(&fee.to_be_bytes());
-    }
-
-    result
 }
