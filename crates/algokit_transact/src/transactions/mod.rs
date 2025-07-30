@@ -66,6 +66,7 @@ pub enum Transaction {
     KeyRegistration(KeyRegistrationTransactionFields),
 }
 
+#[derive(Default)]
 pub struct FeeParams {
     pub fee_per_byte: u64,
     pub min_fee: u64,
@@ -96,12 +97,11 @@ impl Transaction {
         }
     }
 
-    pub fn assign_fee(&self, request: FeeParams) -> Result<Transaction, AlgoKitTransactError> {
-        let mut tx = self.clone();
+    pub fn calculate_fee(&self, request: FeeParams) -> Result<u64, AlgoKitTransactError> {
         let mut calculated_fee: u64 = 0;
 
         if request.fee_per_byte > 0 {
-            let estimated_size = tx.estimate_size()?;
+            let estimated_size = self.estimate_size()?;
             calculated_fee = request.fee_per_byte * estimated_size as u64;
         }
 
@@ -122,8 +122,13 @@ impl Transaction {
             }
         }
 
+        Ok(calculated_fee)
+    }
+
+    pub fn assign_fee(&self, request: FeeParams) -> Result<Transaction, AlgoKitTransactError> {
+        let mut tx = self.clone();
         let header = tx.header_mut();
-        header.fee = Some(calculated_fee);
+        header.fee = Some(self.calculate_fee(request)?);
 
         Ok(tx)
     }

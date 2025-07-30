@@ -43,6 +43,18 @@ impl AlgorandFixture {
             .ok_or_else(|| "Context not initialized; make sure to call fixture.new_scope() before accessing context.".into())
     }
 
+    pub fn new_composer(&mut self) -> Result<Composer, Box<dyn std::error::Error + Send + Sync>> {
+        let context = self
+            .context
+            .as_mut()
+            .ok_or("Context not initialized; call new_scope() first")?;
+
+        return Ok(Composer::new(
+            context.algod.clone(),
+            Arc::new(context.test_account.clone()),
+        ));
+    }
+
     pub async fn new_scope(&mut self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let algod = ClientManager::get_algod_client(&self.config.algod_config);
 

@@ -1,9 +1,7 @@
 use crate::{
-    AlgorandMsgpack, EstimateTransactionSize, KeyPairAccount, MultisigSignature, SignedTransaction,
-    Transaction, TransactionId, Transactions,
-    constants::{
-        ALGORAND_SIGNATURE_BYTE_LENGTH, ALGORAND_SIGNATURE_ENCODING_INCR, MAX_TX_GROUP_SIZE,
-    },
+    AlgorandMsgpack, EMPTY_SIGNATURE, EstimateTransactionSize, KeyPairAccount, MultisigSignature,
+    SignedTransaction, Transaction, TransactionId, Transactions,
+    constants::{ALGORAND_SIGNATURE_ENCODING_INCR, MAX_TX_GROUP_SIZE},
     test_utils::{
         AccountMother, TransactionGroupMother, TransactionHeaderMother, TransactionMother,
     },
@@ -19,7 +17,7 @@ pub fn check_transaction_encoding(tx: &Transaction, expected_encoded_len: usize)
 
     let signed_tx = SignedTransaction {
         transaction: tx.clone(),
-        signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
+        signature: Some(EMPTY_SIGNATURE),
         auth_address: None,
         multisignature: None,
     };
@@ -43,7 +41,7 @@ pub fn check_signed_transaction_encoding(
 ) {
     let signed_tx = SignedTransaction {
         transaction: tx.clone(),
-        signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
+        signature: Some(EMPTY_SIGNATURE),
         auth_address: auth_account.map(|acc| acc.address()),
         multisignature: None,
     };
@@ -64,16 +62,10 @@ pub fn check_multisigned_transaction_encoding(tx: &Transaction, expected_encoded
     )
     .unwrap();
     let multisignature_0 = unsigned_multisignature
-        .apply_subsignature(
-            AccountMother::account().address(),
-            [0; ALGORAND_SIGNATURE_BYTE_LENGTH],
-        )
+        .apply_subsignature(AccountMother::account().address(), EMPTY_SIGNATURE)
         .unwrap();
     let multisignature_1 = unsigned_multisignature
-        .apply_subsignature(
-            AccountMother::neil().address(),
-            [0; ALGORAND_SIGNATURE_BYTE_LENGTH],
-        )
+        .apply_subsignature(AccountMother::neil().address(), EMPTY_SIGNATURE)
         .unwrap();
     let multisignature = Some(multisignature_0.merge(&multisignature_1).unwrap());
     let signed_tx = SignedTransaction {
@@ -91,7 +83,7 @@ pub fn check_multisigned_transaction_encoding(tx: &Transaction, expected_encoded
 pub fn check_transaction_id(tx: &Transaction, expected_tx_id: &str) {
     let signed_tx = SignedTransaction {
         transaction: tx.clone(),
-        signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
+        signature: Some(EMPTY_SIGNATURE),
         auth_address: None,
         multisignature: None,
     };
@@ -207,7 +199,7 @@ fn test_pay_estimate_transaction_size() {
 
     let signed_tx = SignedTransaction {
         transaction: payment_tx.clone(),
-        signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
+        signature: Some(EMPTY_SIGNATURE),
         auth_address: None,
         multisignature: None,
     };
@@ -229,7 +221,7 @@ fn test_axfer_estimate_transaction_size() {
 
     let signed_tx = SignedTransaction {
         transaction: asset_transfer_tx.clone(),
-        signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
+        signature: Some(EMPTY_SIGNATURE),
         auth_address: None,
         multisignature: None,
     };
@@ -443,7 +435,7 @@ fn test_signed_transaction_group_encoding() {
         .iter()
         .map(|tx| SignedTransaction {
             transaction: tx.clone(),
-            signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
+            signature: Some(EMPTY_SIGNATURE),
             auth_address: None,
             multisignature: None,
         })

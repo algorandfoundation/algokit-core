@@ -152,6 +152,7 @@ dependencies = [
  "rand",
  "regex",
  "reqwest",
+ "rstest",
  "serde",
  "serde_json",
  "sha2",

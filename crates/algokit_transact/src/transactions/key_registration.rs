@@ -392,7 +392,7 @@ mod tests {
     mod integration_tests {
         use crate::{
             AlgorandMsgpack, SignedTransaction, Transaction, Transactions,
-            constants::ALGORAND_SIGNATURE_BYTE_LENGTH,
+            constants::EMPTY_SIGNATURE,
             test_utils::{
                 AccountMother, KeyRegistrationTransactionMother, TransactionHeaderMother,
                 TransactionMother,
@@ -414,7 +414,7 @@ mod tests {
 
             let signed_tx = SignedTransaction {
                 transaction: key_reg_tx.clone(),
-                signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
+                signature: Some(EMPTY_SIGNATURE),
                 auth_address: None,
                 multisignature: None,
             };
@@ -445,7 +445,7 @@ mod tests {
 
             let signed_tx = SignedTransaction {
                 transaction: key_reg_tx.clone(),
-                signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
+                signature: Some(EMPTY_SIGNATURE),
                 auth_address: None,
                 multisignature: None,
             };
@@ -477,7 +477,7 @@ mod tests {
 
             let signed_tx = SignedTransaction {
                 transaction: key_reg_tx.clone(),
-                signature: Some([0; ALGORAND_SIGNATURE_BYTE_LENGTH]),
+                signature: Some(EMPTY_SIGNATURE),
                 auth_address: None,
                 multisignature: None,
             };
