@@ -11,11 +11,13 @@
 use crate::models;
 use algokit_transact::{AlgorandMsgpack, SignedTransaction as AlgokitSignedTransaction};
 use serde::{Deserialize, Serialize};
+use serde_with::{Bytes, serde_as};
 
 use crate::models::AccountStateDelta;
 use crate::models::StateDelta;
 
 /// Details about a pending transaction. If the transaction was recently confirmed, includes confirmation details like the round and reward details.
+#[serde_as]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PendingTransactionResponse {
     /// The asset index if the transaction was found and it created an asset.
@@ -54,8 +56,9 @@ pub struct PendingTransactionResponse {
     #[serde(rename = "global-state-delta", skip_serializing_if = "Option::is_none")]
     pub global_state_delta: Option<StateDelta>,
     /// Logs for the application being executed by this transaction.
+    #[serde_as(as = "Option<Vec<Bytes>>")]
     #[serde(rename = "logs", skip_serializing_if = "Option::is_none")]
-    pub logs: Option<Vec<String>>,
+    pub logs: Option<Vec<Vec<u8>>>,
     /// Inner transactions produced by application execution.
     #[serde(rename = "inner-txns", skip_serializing_if = "Option::is_none")]
     pub inner_txns: Option<Vec<PendingTransactionResponse>>,

@@ -281,7 +281,6 @@ struct ABITypes {
 struct TestData {
     sender_address: Address,
     app_ids: Vec<u64>,
-    // composer: Composer,
     fixture: AlgorandFixture,
     method_selectors: MethodSelectors,
     abi_types: ABITypes,

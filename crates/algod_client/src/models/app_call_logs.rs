@@ -10,13 +10,16 @@
 
 use crate::models;
 use serde::{Deserialize, Serialize};
+use serde_with::{Bytes, serde_as};
 
 /// The logged messages from an app call along with the app ID and outer transaction ID. Logs appear in the same order that they were emitted.
+#[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct AppCallLogs {
     /// An array of logs
+    #[serde_as(as = "Vec<Bytes>")]
     #[serde(rename = "logs")]
-    pub logs: Vec<String>,
+    pub logs: Vec<Vec<u8>>,
     /// The application from which the logs were generated
     #[serde(rename = "application-index")]
     pub application_index: u64,
@@ -27,7 +30,7 @@ pub struct AppCallLogs {
 
 impl AppCallLogs {
     /// Constructor for AppCallLogs
-    pub fn new(logs: Vec<String>, application_index: u64, tx_id: String) -> AppCallLogs {
+    pub fn new(logs: Vec<Vec<u8>>, application_index: u64, tx_id: String) -> AppCallLogs {
         AppCallLogs {
             logs,
             application_index,

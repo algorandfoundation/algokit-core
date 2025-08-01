@@ -10,12 +10,14 @@
 
 use crate::models;
 use serde::{Deserialize, Serialize};
+use serde_with::{Bytes, serde_as};
 
 use crate::models::AccountStateDelta;
 use crate::models::DryrunState;
 use crate::models::StateDelta;
 
 /// DryrunTxnResult contains any LogicSig or ApplicationCall program debug information and state updates from a dryrun.
+#[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct DryrunTxnResult {
     /// Disassembled program line by line.
@@ -39,8 +41,9 @@ pub struct DryrunTxnResult {
     pub global_delta: Option<StateDelta>,
     #[serde(rename = "local-deltas", skip_serializing_if = "Option::is_none")]
     pub local_deltas: Option<Vec<AccountStateDelta>>,
+    #[serde_as(as = "Option<Vec<Bytes>>")]
     #[serde(rename = "logs", skip_serializing_if = "Option::is_none")]
-    pub logs: Option<Vec<String>>,
+    pub logs: Option<Vec<Vec<u8>>>,
     /// Budget added during execution of app call transaction.
     #[serde(rename = "budget-added", skip_serializing_if = "Option::is_none")]
     pub budget_added: Option<u32>,

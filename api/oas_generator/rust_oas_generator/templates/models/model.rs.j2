@@ -11,7 +11,7 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 {% if schema.has_msgpack_fields %}
-use serde_with::serde_as;
+use serde_with::{Bytes, serde_as};
 {% endif %}
 {% if schema.has_signed_transaction_fields or schema.implements_algokit_msgpack %}
 use algokit_transact::{SignedTransaction as AlgokitSignedTransaction, AlgorandMsgpack};
@@ -31,7 +31,8 @@ use algokit_transact::{SignedTransaction as AlgokitSignedTransaction, AlgorandMs
     {% endif %}
 
     {# Check if it's a custom type (starts with uppercase and doesn't contain :: or primitives) and it's not the current schema's own type #}
-    {% if inner_type and inner_type[0].isupper() and '::' not in inner_type and inner_type not in ['String', 'Vec', 'Option'] and not inner_type.startswith('i') and not inner_type.startswith('u') and inner_type != 'bool' and inner_type != schema.rust_struct_name %}
+    {# Also exclude Vec<u8> and Vec<Vec<u8>> which are standard Rust types #}
+    {% if inner_type and inner_type[0].isupper() and '::' not in inner_type and inner_type not in ['String', 'Vec', 'Option'] and not inner_type.startswith('i') and not inner_type.startswith('u') and inner_type != 'bool' and inner_type != schema.rust_struct_name and inner_type != 'Vec<u8>' %}
         {% if inner_type not in custom_types %}
             {% set _ = custom_types.append(inner_type) %}
         {% endif %}
@@ -71,6 +72,12 @@ pub struct {{ schema.rust_struct_name }} {
     #[serde_as(as = "serde_with::base64::Base64")]
     {% else %}
     #[serde_as(as = "Option<serde_with::base64::Base64>")]
+    {% endif %}
+    {% elif property.items and property.items.is_base64_encoded %}
+    {% if property.required %}
+    #[serde_as(as = "Vec<Bytes>")]
+    {% else %}
+    #[serde_as(as = "Option<Vec<Bytes>>")]
     {% endif %}
     {% endif %}
     #[serde(rename = "{{ property.name }}"{% if not property.required %}, skip_serializing_if = "Option::is_none"{% endif %})]
