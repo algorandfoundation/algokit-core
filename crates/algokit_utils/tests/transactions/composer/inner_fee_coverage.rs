@@ -1,7 +1,9 @@
 use crate::common::init_test_logging;
 use algokit_abi::abi_type::BitSize;
 use algokit_abi::{ABIMethod, ABIType, ABIValue};
-use algokit_transact::{Address, OnApplicationComplete, TransactionId};
+use algokit_transact::{
+    ALGORAND_PUBLIC_KEY_BYTE_LENGTH, Address, OnApplicationComplete, TransactionId,
+};
 use algokit_utils::transactions::composer::SendParams;
 use algokit_utils::{ApplicationCallParams, ApplicationCreateParams, PaymentParams, testing::*};
 use algokit_utils::{CommonParams, Composer};
@@ -10,284 +12,6 @@ use num_bigint::BigUint;
 use rstest::*;
 use serde::Deserialize;
 use std::str::FromStr;
-
-#[derive(Deserialize)]
-struct TealSource {
-    approval: String,
-    clear: String,
-}
-
-#[derive(Deserialize)]
-struct ARC56AppSpec {
-    source: Option<TealSource>,
-}
-
-#[derive(Deserialize)]
-struct ARC32AppSpec {
-    source: Option<TealSource>,
-}
-
-const COVER_FEES_SEND_PARAMS: Option<SendParams> = Some(SendParams {
-    cover_app_call_inner_transaction_fees: Some(true),
-    max_rounds_to_wait_for_confirmation: None,
-});
-
-fn get_inner_fee_teal_programs() -> (Vec<u8>, Vec<u8>) {
-    let app_spec: ARC56AppSpec =
-        serde_json::from_str(include_str!("../../contracts/inner_fee/application.json"))
-            .expect("Failed to parse inner fee application spec");
-
-    let teal_source = app_spec
-        .source
-        .expect("No source found in application spec");
-
-    let approval_bytes = BASE64_STANDARD
-        .decode(teal_source.approval)
-        .expect("Failed to decode approval program from base64");
-
-    let clear_state_bytes = BASE64_STANDARD
-        .decode(teal_source.clear)
-        .expect("Failed to decode clear state program from base64");
-
-    (approval_bytes, clear_state_bytes)
-}
-
-fn get_nested_app_teal_programs() -> (Vec<u8>, Vec<u8>) {
-    let app_spec: ARC32AppSpec =
-        serde_json::from_str(include_str!("../../contracts/nested/application.json"))
-            .expect("Failed to parse inner fee application spec");
-
-    let teal_source = app_spec
-        .source
-        .expect("No source found in application spec");
-
-    let approval_bytes = BASE64_STANDARD
-        .decode(teal_source.approval)
-        .expect("Failed to decode approval program from base64");
-
-    let clear_state_bytes = BASE64_STANDARD
-        .decode(teal_source.clear)
-        .expect("Failed to decode clear state program from base64");
-
-    (approval_bytes, clear_state_bytes)
-}
-
-async fn deploy_inner_fee_app(
-    context: &AlgorandTestContext,
-    sender: &Address,
-    note: &str,
-) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
-    let (approval_teal, clear_state_teal) = get_inner_fee_teal_programs();
-    let approval_compile_result = context.algod.teal_compile(approval_teal, None).await?;
-    let clear_state_compile_result = context.algod.teal_compile(clear_state_teal, None).await?;
-
-    deploy_app(
-        context,
-        sender,
-        approval_compile_result.result,
-        clear_state_compile_result.result,
-        None,
-        note,
-    )
-    .await
-}
-
-async fn deploy_nested_app(
-    context: &AlgorandTestContext,
-    sender: &Address,
-    note: &str,
-) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
-    let (approval_teal, clear_state_teal) = get_nested_app_teal_programs();
-    let approval_compile_result = context.algod.teal_compile(approval_teal, None).await?;
-    let clear_state_compile_result = context.algod.teal_compile(clear_state_teal, None).await?;
-
-    let create_method = ABIMethod::from_str("createApplication()void")?;
-    let create_method_selector = create_method
-        .selector()
-        .expect("Failed to resolve method selector");
-
-    deploy_app(
-        context,
-        sender,
-        approval_compile_result.result,
-        clear_state_compile_result.result,
-        Some(vec![create_method_selector]),
-        note,
-    )
-    .await
-}
-
-async fn deploy_app(
-    context: &AlgorandTestContext,
-    sender: &Address,
-    approval_program: Vec<u8>,
-    clear_state_program: Vec<u8>,
-    args: Option<Vec<Vec<u8>>>,
-    note: &str,
-) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
-    let app_create_params = ApplicationCreateParams {
-        common_params: CommonParams {
-            sender: sender.clone(),
-            note: Some(note.as_bytes().to_vec()),
-            ..Default::default()
-        },
-        on_complete: OnApplicationComplete::NoOp,
-        approval_program,
-        clear_state_program,
-        args,
-        ..Default::default()
-    };
-
-    let mut composer = context.composer.clone();
-    composer
-        .add_application_create(app_create_params)
-        .expect("Failed to add application create");
-
-    let result = composer
-        .send(None)
-        .await
-        .expect("Failed to send application create");
-
-    result.confirmations[0]
-        .application_index
-        .ok_or_else(|| "No application index returned".into())
-}
-
-// Helper function to fund app accounts
-async fn fund_app_accounts(
-    context: &AlgorandTestContext,
-    app_ids: &Vec<u64>,
-    amount: u64,
-) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    for app_id in app_ids {
-        let app_address = get_application_address(app_id);
-
-        let sender_addr = context
-            .test_account
-            .account()
-            .expect("Failed to get sender account")
-            .address();
-
-        let payment_params = PaymentParams {
-            common_params: CommonParams {
-                sender: sender_addr,
-                ..Default::default()
-            },
-            receiver: app_address,
-            amount,
-        };
-
-        let mut composer = context.composer.clone();
-        composer
-            .add_payment(payment_params)
-            .expect("Failed to add payment");
-
-        composer
-            .send(COVER_FEES_SEND_PARAMS)
-            .await
-            .expect("Failed to send payment");
-    }
-
-    Ok(())
-}
-
-// Helper function to compute application address from app ID
-fn get_application_address(app_id: &u64) -> Address {
-    use sha2::{Digest, Sha512_256};
-
-    let mut hasher = Sha512_256::new();
-    hasher.update(b"appID");
-    hasher.update(&app_id.to_be_bytes());
-
-    let hash = hasher.finalize();
-    let mut address_bytes = [0u8; 32];
-    address_bytes.copy_from_slice(&hash[..32]);
-
-    Address(address_bytes)
-}
-
-async fn assert_min_fee(mut composer: Composer, params: &ApplicationCallParams, fee: u64) {
-    if fee == 1000 {
-        return;
-    }
-
-    let params = ApplicationCallParams {
-        common_params: CommonParams {
-            static_fee: Some(fee - 1),
-            ..params.common_params.clone()
-        },
-        ..params.clone()
-    };
-
-    composer
-        .add_application_call(params)
-        .expect("Failed to add application call");
-
-    let result = composer
-        .send(Some(SendParams {
-            cover_app_call_inner_transaction_fees: Some(false),
-            ..Default::default()
-        }))
-        .await;
-
-    assert!(
-        result.is_err()
-            && result
-                .as_ref()
-                .unwrap_err()
-                .to_string()
-                .contains("fee too small"),
-        "Unexpected result, got: {:?}",
-        result
-    );
-}
-
-fn create_fees_tuple(
-    fee1: u64,
-    fee2: u64,
-    fee3: u64,
-    fee4: u64,
-    nested_fees: Vec<u64>,
-) -> ABIValue {
-    ABIValue::Array(vec![
-        ABIValue::Uint(BigUint::from(fee1)),
-        ABIValue::Uint(BigUint::from(fee2)),
-        ABIValue::Uint(BigUint::from(fee3)),
-        ABIValue::Uint(BigUint::from(fee4)),
-        ABIValue::Array(
-            nested_fees
-                .into_iter()
-                .map(|f| ABIValue::Uint(BigUint::from(f)))
-                .collect(),
-        ),
-    ])
-}
-
-struct MethodSelectors {
-    no_op: Vec<u8>,
-    send_inners_with_fees: Vec<u8>,
-    send_inners_with_fees_2: Vec<u8>,
-    nested_txn_arg: Vec<u8>,
-    burn_ops: Vec<u8>,
-    burn_ops_readonly: Vec<u8>,
-}
-
-struct ABITypes {
-    uint64: ABIType,
-    fees_tuple: ABIType,
-    fees_2_tuple: ABIType,
-}
-
-struct TestData {
-    sender_address: Address,
-    app_ids: Vec<u64>,
-    fixture: AlgorandFixture,
-    method_selectors: MethodSelectors,
-    abi_types: ABITypes,
-}
-
-type SetupResult = Result<TestData, Box<dyn std::error::Error + Send + Sync>>;
-type TestResult = Result<(), Box<dyn std::error::Error + Send + Sync>>;
 
 #[fixture]
 async fn setup(
@@ -318,7 +42,7 @@ async fn setup(
     fund_app_accounts(context, &app_ids, 500_000).await?;
 
     Ok(TestData {
-        sender_address: sender_address,
+        sender_address,
         app_ids,
         fixture,
         method_selectors: MethodSelectors {
@@ -382,7 +106,7 @@ async fn test_throws_when_no_max_fee_supplied(
                 .as_ref()
                 .unwrap_err()
                 .to_string()
-                .contains("Please provide a maxFee"),
+                .contains("Please provide a max fee"),
         "Unexpected result, got: {:?}",
         result
     );
@@ -2141,4 +1865,235 @@ async fn test_readonly_throws_when_max_fee_too_small(
     );
 
     Ok(())
+}
+
+struct TestData {
+    sender_address: Address,
+    app_ids: Vec<u64>,
+    fixture: AlgorandFixture,
+    method_selectors: MethodSelectors,
+    abi_types: ABITypes,
+}
+
+type SetupResult = Result<TestData, Box<dyn std::error::Error + Send + Sync>>;
+type TestResult = Result<(), Box<dyn std::error::Error + Send + Sync>>;
+
+struct MethodSelectors {
+    no_op: Vec<u8>,
+    send_inners_with_fees: Vec<u8>,
+    send_inners_with_fees_2: Vec<u8>,
+    nested_txn_arg: Vec<u8>,
+    burn_ops: Vec<u8>,
+    burn_ops_readonly: Vec<u8>,
+}
+
+struct ABITypes {
+    uint64: ABIType,
+    fees_tuple: ABIType,
+    fees_2_tuple: ABIType,
+}
+
+#[derive(Deserialize)]
+struct TealSource {
+    approval: String,
+    clear: String,
+}
+
+#[derive(Deserialize)]
+struct ARC56AppSpec {
+    source: Option<TealSource>,
+}
+
+#[derive(Deserialize)]
+struct ARC32AppSpec {
+    source: Option<TealSource>,
+}
+
+const COVER_FEES_SEND_PARAMS: Option<SendParams> = Some(SendParams {
+    cover_app_call_inner_transaction_fees: Some(true),
+    max_rounds_to_wait_for_confirmation: None,
+});
+
+fn get_inner_fee_teal_programs()
+-> Result<(Vec<u8>, Vec<u8>), Box<dyn std::error::Error + Send + Sync>> {
+    let app_spec: ARC56AppSpec =
+        serde_json::from_str(include_str!("../../contracts/inner_fee/application.json"))?;
+    let teal_source = app_spec.source.unwrap();
+    let approval_bytes = BASE64_STANDARD.decode(teal_source.approval)?;
+    let clear_state_bytes = BASE64_STANDARD.decode(teal_source.clear)?;
+    Ok((approval_bytes, clear_state_bytes))
+}
+
+fn get_nested_app_teal_programs()
+-> Result<(Vec<u8>, Vec<u8>), Box<dyn std::error::Error + Send + Sync>> {
+    let app_spec: ARC32AppSpec =
+        serde_json::from_str(include_str!("../../contracts/nested/application.json"))?;
+    let teal_source = app_spec.source.unwrap();
+    let approval_bytes = BASE64_STANDARD.decode(teal_source.approval)?;
+    let clear_state_bytes = BASE64_STANDARD.decode(teal_source.clear)?;
+    Ok((approval_bytes, clear_state_bytes))
+}
+
+async fn deploy_inner_fee_app(
+    context: &AlgorandTestContext,
+    sender: &Address,
+    note: &str,
+) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
+    let (approval_teal, clear_state_teal) = get_inner_fee_teal_programs()?;
+    let approval_compile_result = context.algod.teal_compile(approval_teal, None).await?;
+    let clear_state_compile_result = context.algod.teal_compile(clear_state_teal, None).await?;
+
+    deploy_app(
+        context,
+        sender,
+        approval_compile_result.result,
+        clear_state_compile_result.result,
+        None,
+        note,
+    )
+    .await
+}
+
+async fn deploy_nested_app(
+    context: &AlgorandTestContext,
+    sender: &Address,
+    note: &str,
+) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
+    let (approval_teal, clear_state_teal) = get_nested_app_teal_programs()?;
+    let approval_compile_result = context.algod.teal_compile(approval_teal, None).await?;
+    let clear_state_compile_result = context.algod.teal_compile(clear_state_teal, None).await?;
+
+    let create_method = ABIMethod::from_str("createApplication()void")?;
+    let create_method_selector = create_method.selector()?;
+
+    deploy_app(
+        context,
+        sender,
+        approval_compile_result.result,
+        clear_state_compile_result.result,
+        Some(vec![create_method_selector]),
+        note,
+    )
+    .await
+}
+
+async fn deploy_app(
+    context: &AlgorandTestContext,
+    sender: &Address,
+    approval_program: Vec<u8>,
+    clear_state_program: Vec<u8>,
+    args: Option<Vec<Vec<u8>>>,
+    note: &str,
+) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
+    let app_create_params = ApplicationCreateParams {
+        common_params: CommonParams {
+            sender: sender.clone(),
+            note: Some(note.as_bytes().to_vec()),
+            ..Default::default()
+        },
+        on_complete: OnApplicationComplete::NoOp,
+        approval_program,
+        clear_state_program,
+        args,
+        ..Default::default()
+    };
+
+    let mut composer = context.composer.clone();
+    composer.add_application_create(app_create_params)?;
+
+    let result = composer.send(None).await?;
+
+    result.confirmations[0]
+        .application_index
+        .ok_or_else(|| "No application index returned".into())
+}
+
+// Helper function to fund app accounts
+async fn fund_app_accounts(
+    context: &AlgorandTestContext,
+    app_ids: &Vec<u64>,
+    amount: u64,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    let mut dispenser = LocalNetDispenser::new(context.algod.clone());
+
+    for app_id in app_ids {
+        let app_address = get_application_address(app_id);
+        dispenser
+            .fund_account(&app_address.to_string(), amount)
+            .await?;
+    }
+
+    Ok(())
+}
+
+// Helper function to compute application address from app ID
+fn get_application_address(app_id: &u64) -> Address {
+    use sha2::{Digest, Sha512_256};
+
+    let mut hasher = Sha512_256::new();
+    hasher.update(b"appID");
+    hasher.update(app_id.to_be_bytes());
+
+    let hash = hasher.finalize();
+    let mut address_bytes = [0u8; ALGORAND_PUBLIC_KEY_BYTE_LENGTH];
+    address_bytes.copy_from_slice(&hash[..ALGORAND_PUBLIC_KEY_BYTE_LENGTH]);
+
+    Address(address_bytes)
+}
+
+async fn assert_min_fee(mut composer: Composer, params: &ApplicationCallParams, fee: u64) {
+    if fee == 1000 {
+        return;
+    }
+
+    let params = ApplicationCallParams {
+        common_params: CommonParams {
+            static_fee: Some(fee - 1),
+            ..params.common_params.clone()
+        },
+        ..params.clone()
+    };
+
+    composer
+        .add_application_call(params)
+        .expect("Failed to add application call");
+
+    let result = composer
+        .send(Some(SendParams {
+            cover_app_call_inner_transaction_fees: Some(false),
+            ..Default::default()
+        }))
+        .await;
+
+    assert!(
+        result.is_err()
+            && result
+                .as_ref()
+                .unwrap_err()
+                .to_string()
+                .contains("fee too small"),
+        "Unexpected result, got: {:?}",
+        result
+    );
+}
+
+fn create_fees_tuple(
+    fee1: u64,
+    fee2: u64,
+    fee3: u64,
+    fee4: u64,
+    nested_fees: Vec<u64>,
+) -> ABIValue {
+    ABIValue::Array(vec![
+        ABIValue::Uint(BigUint::from(fee1)),
+        ABIValue::Uint(BigUint::from(fee2)),
+        ABIValue::Uint(BigUint::from(fee3)),
+        ABIValue::Uint(BigUint::from(fee4)),
+        ABIValue::Array(
+            nested_fees
+                .into_iter()
+                .map(|f| ABIValue::Uint(BigUint::from(f)))
+                .collect(),
+        ),
+    ])
 }

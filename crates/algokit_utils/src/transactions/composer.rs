@@ -48,8 +48,6 @@ pub enum ComposerError {
     GroupSizeError(),
 }
 
-// TODO: NC - Run a final review pass
-
 #[derive(Clone)]
 pub struct TransactionWithSigner {
     pub transaction: Transaction,
@@ -146,19 +144,17 @@ pub enum FeeDelta {
     None,
     /// Transaction has an insufficient fee (needs more)
     Deficit(u64),
-    /// Transaction has an excess fee (can cover other transactions)
+    /// Transaction has an excess fee (can cover other transactions in the group)
     Surplus(u64),
 }
 
 impl FeeDelta {
     /// Create a FeeDelta from an i64 value (positive = deficit, negative = surplus, zero = none)
     pub fn from_i64(value: i64) -> Self {
-        if value > 0 {
-            FeeDelta::Deficit(value as u64)
-        } else if value < 0 {
-            FeeDelta::Surplus((-value) as u64)
-        } else {
-            FeeDelta::None
+        match value.cmp(&0) {
+            std::cmp::Ordering::Greater => FeeDelta::Deficit(value as u64),
+            std::cmp::Ordering::Less => FeeDelta::Surplus((-value) as u64),
+            std::cmp::Ordering::Equal => FeeDelta::None,
         }
     }
 
@@ -208,10 +204,10 @@ impl std::ops::Add for FeeDelta {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum FeePriority {
     /// Non-deficit transactions (lowest priority)
-    NoDeficit,
-    /// App call transactions with deficits that can be modified
+    None,
+    /// Application call transactions with deficits that can be modified
     ModifiableDeficit(u64),
-    /// Non-app-call or immutable fee transactions with deficits (highest priority)
+    /// Non application call or immutable fee transactions with deficits (highest priority)
     ImmutableDeficit(u64),
 }
 
@@ -298,17 +294,14 @@ impl ComposerTransaction {
     }
 
     /// Get the logical maximum fee based on static_fee and max_fee
-    /// Returns the higher of static_fee or max_fee, or static_fee if max_fee is None
     pub fn logical_max_fee(&self) -> Option<u64> {
         let common_params = self.common_params();
         let max_fee = common_params.max_fee;
         let static_fee = common_params.static_fee;
-
-        let mut logical_max_fee = static_fee;
         if max_fee.is_some() && max_fee.unwrap() > static_fee.unwrap_or(0) {
-            logical_max_fee = max_fee;
+            return max_fee;
         }
-        logical_max_fee
+        static_fee
     }
 }
 
@@ -544,16 +537,17 @@ impl Composer {
             })
             .collect::<Vec<_>>();
 
+        // Regroup the transactions, as the transactions have likely been adjusted
         if transactions.len() > 1 {
             transactions = transactions.assign_group().map_err(|e| {
                 ComposerError::TransactionError(format!("Failed to assign group: {}", e))
             })?;
         }
 
-        let stxns_to_simulate = transactions
+        let signed_transactions = transactions
             .into_iter()
-            .map(|t| SignedTransaction {
-                transaction: t,
+            .map(|txn| SignedTransaction {
+                transaction: txn,
                 signature: Some(EMPTY_SIGNATURE),
                 auth_address: None,
                 multisignature: None,
@@ -562,7 +556,7 @@ impl Composer {
 
         if cover_inner_fees && !app_call_indexes_without_max_fees.is_empty() {
             return Err(ComposerError::StateError(format!(
-                "Please provide a maxFee for each app call transaction when coverAppCallInnerTransactionFees is enabled. Required for transaction {}",
+                "Please provide a max fee for each application call transaction when inner transaction fee coverage is enabled. Required for transaction {}",
                 app_call_indexes_without_max_fees
                     .iter()
                     .map(|i| i.to_string())
@@ -572,7 +566,7 @@ impl Composer {
         }
 
         let txn_group = SimulateRequestTransactionGroup {
-            txns: stxns_to_simulate,
+            txns: signed_transactions,
         };
         let simulate_request = SimulateRequest {
             txn_groups: vec![txn_group],
@@ -590,19 +584,19 @@ impl Composer {
 
         let group_response = &response.txn_groups[0];
 
-        // Check for simulation failure
+        // Handle any simulation failures
         if let Some(failure_message) = &group_response.failure_message {
             if cover_inner_fees && failure_message.contains("fee too small") {
                 return Err(ComposerError::StateError(
-                    "Fees were too small to analyze group requirements via simulate. You may need to increase an app call transaction max fee.".to_string()
+                    "Fees were too small to analyze group requirements via simulate. You may need to increase an application call transaction max fee.".to_string()
                 ));
             }
 
             let failed_at = group_response
                 .failed_at
                 .as_ref()
-                .map(|indices| {
-                    indices
+                .map(|group_index| {
+                    group_index
                         .iter()
                         .map(|i| i.to_string())
                         .collect::<Vec<_>>()
@@ -621,10 +615,10 @@ impl Composer {
             .iter()
             .enumerate()
             .map(|(group_index, simulate_txn_result)| {
-                let built_txn = &built_transactions[group_index];
+                let btxn = &built_transactions[group_index];
 
                 let required_fee_delta = if cover_inner_fees {
-                    let min_txn_fee: u64 = built_txn
+                    let min_txn_fee: u64 = btxn
                         .calculate_fee(FeeParams {
                             fee_per_byte: suggested_params.fee,
                             min_fee: suggested_params.min_fee,
@@ -637,20 +631,20 @@ impl Composer {
                             ))
                         })?;
 
-                    let txn_fee = built_txn.header().fee.unwrap_or(0);
-                    let parent_fee_delta = FeeDelta::from_i64(min_txn_fee as i64 - txn_fee as i64);
+                    let txn_fee = btxn.header().fee.unwrap_or(0);
+                    let txn_fee_delta = FeeDelta::from_i64(min_txn_fee as i64 - txn_fee as i64);
 
-                    match built_txn {
+                    match btxn {
                         Transaction::ApplicationCall(_) => {
                             // Calculate inner transaction fee delta
-                            let inner_fee_delta = Self::calculate_inner_fee_delta(
+                            let inner_txns_fee_delta = Self::calculate_inner_fee_delta(
                                 &simulate_txn_result.txn_result.inner_txns,
                                 suggested_params.min_fee,
                                 FeeDelta::None,
                             );
-                            inner_fee_delta + parent_fee_delta
+                            inner_txns_fee_delta + txn_fee_delta
                         }
-                        _ => parent_fee_delta,
+                        _ => txn_fee_delta,
                     }
                 } else {
                     FeeDelta::None
@@ -668,19 +662,22 @@ impl Composer {
     }
 
     fn calculate_inner_fee_delta(
-        inner_txns: &Option<Vec<PendingTransactionResponse>>,
-        min_txn_fee: u64,
+        inner_transactions: &Option<Vec<PendingTransactionResponse>>,
+        min_transaction_fee: u64,
         acc: FeeDelta,
     ) -> FeeDelta {
-        match inner_txns {
+        match inner_transactions {
             Some(txns) => {
                 // Surplus inner transaction fees do not pool up to the parent transaction.
                 // Additionally surplus inner transaction fees only pool from sibling transactions that are sent prior to a given inner transaction, hence why we iterate in reverse order.
                 txns.iter().rev().fold(acc, |acc, inner_txn| {
-                    let recursive_delta =
-                        Self::calculate_inner_fee_delta(&inner_txn.inner_txns, min_txn_fee, acc);
+                    let recursive_delta = Self::calculate_inner_fee_delta(
+                        &inner_txn.inner_txns,
+                        min_transaction_fee,
+                        acc,
+                    );
                     let txn_fee_delta = FeeDelta::from_i64(
-                        min_txn_fee as i64 // Inner transactions don't require per byte fees
+                        min_transaction_fee as i64 // Inner transactions don't require per byte fees
                         - inner_txn.txn.transaction.header().fee.unwrap_or(0) as i64,
                     );
 
@@ -1015,7 +1012,6 @@ impl Composer {
             .collect::<Result<Vec<Transaction>, ComposerError>>()?;
 
         if let Some(group_analysis) = group_analysis {
-            // Single iteration to calculate surplus fees and create priority-sorted transaction info
             let (mut surplus_group_fees, mut transaction_analysis): (u64, Vec<_>) =
                 group_analysis.transactions.iter().enumerate().fold(
                     (0, Vec::new()),
@@ -1044,11 +1040,11 @@ impl Composer {
                                     // High priority: transactions that can't be modified
                                     FeePriority::ImmutableDeficit(*amount)
                                 } else {
-                                    // Normal priority: app call transactions that can be modified
+                                    // Normal priority: application call transactions that can be modified
                                     FeePriority::ModifiableDeficit(*amount)
                                 }
                             }
-                            _ => FeePriority::NoDeficit,
+                            _ => FeePriority::None,
                         };
 
                         txn_analysis_acc.push((
@@ -1061,16 +1057,20 @@ impl Composer {
                     },
                 );
 
-            // Sort transactions by priority (highest priority first)
+            // Sort transactions by priority (highest first)
             transaction_analysis.sort_by_key(|&(_, _, priority)| std::cmp::Reverse(priority));
 
-            // Resolve any additional fees required for the transactions
+            // Cover any additional fees required for the transactions
             for (group_index, required_fee_delta, _) in transaction_analysis {
                 if let FeeDelta::Deficit(deficit_amount) = *required_fee_delta {
+                    // First allocate surplus group fees to cover deficits
                     let mut additional_fee_delta: FeeDelta = FeeDelta::None;
-                    if surplus_group_fees >= deficit_amount {
+                    if surplus_group_fees == 0 {
+                        // No surplus groups fees, the transaction must cover its own deficit
+                        additional_fee_delta = FeeDelta::Deficit(deficit_amount);
+                    } else if surplus_group_fees >= deficit_amount {
                         // Surplus fully covers the deficit
-                        surplus_group_fees = surplus_group_fees - deficit_amount;
+                        surplus_group_fees -= deficit_amount;
                     } else {
                         // Surplus partially covers the deficit
                         additional_fee_delta =
@@ -1078,8 +1078,8 @@ impl Composer {
                         surplus_group_fees = 0;
                     }
 
+                    // If there is any additional fee deficit, the transaction must cover it by modifying the fee
                     if let FeeDelta::Deficit(deficit_amount) = additional_fee_delta {
-                        // Handle the deficit by modifying the transaction fee
                         match transactions[group_index] {
                             Transaction::ApplicationCall(_) => {
                                 let txn_header = transactions[group_index].header_mut();
@@ -1125,7 +1125,7 @@ impl Composer {
 
     pub async fn build(
         &mut self,
-        params: &Option<BuildParams>,
+        params: Option<BuildParams>,
     ) -> Result<&Vec<TransactionWithSigner>, ComposerError> {
         if let Some(ref group) = self.built_group {
             return Ok(group);
@@ -1140,7 +1140,6 @@ impl Composer {
         };
 
         let mut group_analysis: Option<GroupAnalysis> = None;
-
         if let Some(params) = params {
             if params
                 .cover_app_call_inner_transaction_fees
@@ -1150,7 +1149,7 @@ impl Composer {
                     self.analyze_group_requirements(
                         &suggested_params,
                         &default_validity_window,
-                        params,
+                        &params,
                     )
                     .await?,
                 );
@@ -1174,13 +1173,13 @@ impl Composer {
         transactions
             .into_iter()
             .enumerate()
-            .map(|(group_index, transaction)| {
+            .map(|(group_index, txn)| {
                 let ctxn = &self.transactions[group_index];
                 let common_params = ctxn.common_params();
                 let signer = if let Some(transaction_signer) = common_params.signer {
                     transaction_signer
                 } else {
-                    let sender_address = transaction.header().sender.clone();
+                    let sender_address = txn.header().sender.clone();
                     self.get_signer(sender_address.clone())
                         .ok_or(ComposerError::SigningError(format!(
                             "No signer found for address: {}",
@@ -1188,7 +1187,7 @@ impl Composer {
                         )))?
                 };
                 Ok(TransactionWithSigner {
-                    transaction,
+                    transaction: txn,
                     signer,
                 })
             })
@@ -1319,7 +1318,7 @@ impl Composer {
     ) -> Result<SendTransactionResults, Box<dyn std::error::Error + Send + Sync>> {
         let build_params = params.as_ref().map(Into::into);
 
-        self.build(&build_params)
+        self.build(build_params)
             .await
             .map_err(|e| format!("Failed to build transaction: {}", e))?;
 
@@ -1478,7 +1477,7 @@ mod tests {
             amount: 1000,
         };
         composer.add_payment(payment_params).unwrap();
-        composer.build(&None).await.unwrap();
+        composer.build(None).await.unwrap();
 
         let result = composer.gather_signatures().await;
         assert!(result.is_ok());
@@ -1506,7 +1505,7 @@ mod tests {
         };
         composer.add_payment(payment_params).unwrap();
 
-        composer.build(&None).await.unwrap();
+        composer.build(None).await.unwrap();
 
         let built_group = composer.built_group.as_ref().unwrap();
         assert_eq!(built_group.len(), 1);
@@ -1540,7 +1539,7 @@ mod tests {
             composer.add_payment(payment_params).unwrap();
         }
 
-        composer.build(&None).await.unwrap();
+        composer.build(None).await.unwrap();
 
         let built_group = composer.built_group.as_ref().unwrap();
         assert_eq!(built_group.len(), 2);
@@ -1615,7 +1614,7 @@ mod tests {
 
     #[test]
     fn test_fee_priority_ordering() {
-        let no_deficit = FeePriority::NoDeficit;
+        let no_deficit = FeePriority::None;
         let modifiable_small = FeePriority::ModifiableDeficit(100);
         let modifiable_large = FeePriority::ModifiableDeficit(1000);
         let immutable_small = FeePriority::ImmutableDeficit(100);
@@ -1631,7 +1630,7 @@ mod tests {
         assert!(modifiable_large > modifiable_small);
 
         // Create a sorted vector to verify the ordering behavior
-        let mut priorities = vec![
+        let mut priorities = [
             no_deficit,
             modifiable_small,
             immutable_small,
@@ -1646,6 +1645,6 @@ mod tests {
         assert_eq!(priorities[1], FeePriority::ImmutableDeficit(100));
         assert_eq!(priorities[2], FeePriority::ModifiableDeficit(1000));
         assert_eq!(priorities[3], FeePriority::ModifiableDeficit(100));
-        assert_eq!(priorities[4], FeePriority::NoDeficit);
+        assert_eq!(priorities[4], FeePriority::None);
     }
 }

@@ -3,7 +3,7 @@ use algokit_transact::Address;
 use super::common::CommonParams;
 
 /// Parameters for creating a payment transaction
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct PaymentParams {
     /// Common transaction parameters.
     pub common_params: CommonParams,
@@ -18,7 +18,7 @@ pub struct PaymentParams {
 }
 
 /// Parameters for creating an account close transaction.
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct AccountCloseParams {
     /// Common transaction parameters.
     pub common_params: CommonParams,

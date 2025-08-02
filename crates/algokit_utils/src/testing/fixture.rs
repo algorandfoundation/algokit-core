@@ -49,10 +49,10 @@ impl AlgorandFixture {
             .as_mut()
             .ok_or("Context not initialized; call new_scope() first")?;
 
-        return Ok(Composer::new(
+        Ok(Composer::new(
             context.algod.clone(),
             Arc::new(context.test_account.clone()),
-        ));
+        ))
     }
 
     pub async fn new_scope(&mut self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {

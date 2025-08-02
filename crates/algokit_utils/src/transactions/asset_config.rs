@@ -3,7 +3,7 @@ use algokit_transact::Address;
 use super::common::CommonParams;
 
 /// Parameters to define an asset creation transaction.
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct AssetCreateParams {
     /// Common transaction parameters.
     pub common_params: CommonParams,
@@ -96,7 +96,7 @@ pub struct AssetCreateParams {
 /// **Note:** The manager, reserve, freeze, and clawback addresses
 /// are immutably empty if they are not set. If manager is not set then
 /// all fields are immutable from that point forward.
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct AssetReconfigureParams {
     /// Common transaction parameters.
     pub common_params: CommonParams,
@@ -144,7 +144,7 @@ pub struct AssetReconfigureParams {
 /// Parameters to define an asset destroy transaction.
 ///
 /// For asset destroy, the asset ID field must be set, all other fields must not be set.
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct AssetDestroyParams {
     /// Common transaction parameters.
     pub common_params: CommonParams,
