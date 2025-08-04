@@ -1,6 +1,6 @@
 use super::common::CommonParams;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct OnlineKeyRegistrationParams {
     pub common_params: CommonParams,
     pub vote_key: [u8; 32],
@@ -11,13 +11,13 @@ pub struct OnlineKeyRegistrationParams {
     pub state_proof_key: Option<[u8; 64]>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct OfflineKeyRegistrationParams {
     pub common_params: CommonParams,
     pub non_participation: Option<bool>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct NonParticipationKeyRegistrationParams {
     pub common_params: CommonParams,
 }

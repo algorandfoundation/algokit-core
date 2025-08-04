@@ -134,6 +134,7 @@ name = "algokit_utils"
 version = "0.1.0"
 dependencies = [
  "algod_client",
+ "algokit_abi",
  "algokit_http_client",
  "algokit_transact",
  "async-trait",
@@ -146,10 +147,12 @@ dependencies = [
  "hex",
  "lazy_static",
  "log",
+ "num-bigint",
  "once_cell",
  "rand",
  "regex",
  "reqwest",
+ "rstest",
  "serde",
  "serde_json",
  "sha2",

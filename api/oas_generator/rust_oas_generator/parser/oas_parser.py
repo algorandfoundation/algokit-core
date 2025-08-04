@@ -373,7 +373,12 @@ class Property:
     def __post_init__(self) -> None:
         self.rust_name = rust_snake_case(self.name)
         self.rust_field_name = escape_rust_keyword(self.rust_name)
-        self.rust_type_with_msgpack = "Vec<u8>" if self.is_base64_encoded else self.rust_type
+        if self.is_base64_encoded:
+            self.rust_type_with_msgpack = "Vec<u8>"
+        elif self.items and self.items.is_base64_encoded and self.rust_type.startswith("Vec<"):
+            self.rust_type_with_msgpack = "Vec<Vec<u8>>"
+        else:
+            self.rust_type_with_msgpack = self.rust_type
         self.is_msgpack_field = self.is_base64_encoded
 
         self.is_signed_transaction = any(
@@ -408,7 +413,9 @@ class Schema:
         self.rust_struct_name = rust_pascal_case(self.name)
         # Use _model suffix for file name only when there's a conflict (like Box)
         self.rust_file_name = f"{self.name.lower()}_model" if self.name == "Box" else rust_snake_case(self.name)
-        self.has_msgpack_fields = any(prop.is_base64_encoded for prop in self.properties)
+        self.has_msgpack_fields = any(
+            prop.is_base64_encoded or (prop.items and prop.items.is_base64_encoded) for prop in self.properties
+        )
         self.has_required_fields = len(self.required_fields) > 0
         self.has_signed_transaction_fields = any(prop.is_signed_transaction for prop in self.properties)
 

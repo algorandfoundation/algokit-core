@@ -2,7 +2,7 @@ use super::common::CommonParams;
 use algokit_transact::{Address, BoxReference, OnApplicationComplete, StateSchema};
 
 /// Parameters for application call transactions.
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct ApplicationCallParams {
     pub common_params: CommonParams,
     /// ID of the application being called.
@@ -30,7 +30,7 @@ pub struct ApplicationCallParams {
 }
 
 /// Parameters for application create transactions.
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct ApplicationCreateParams {
     pub common_params: CommonParams,
     /// Defines what additional actions occur with the transaction.
@@ -83,7 +83,7 @@ pub struct ApplicationCreateParams {
 }
 
 /// Parameters for application delete transactions.
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct ApplicationDeleteParams {
     pub common_params: CommonParams,
     /// ID of the application being deleted.
@@ -107,7 +107,7 @@ pub struct ApplicationDeleteParams {
 }
 
 /// Parameters for application update transactions.
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct ApplicationUpdateParams {
     pub common_params: CommonParams,
     /// ID of the application being updated.

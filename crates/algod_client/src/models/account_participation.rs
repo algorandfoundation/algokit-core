@@ -11,7 +11,7 @@
 use crate::models;
 use algokit_transact::{AlgorandMsgpack, SignedTransaction as AlgokitSignedTransaction};
 use serde::{Deserialize, Serialize};
-use serde_with::serde_as;
+use serde_with::{Bytes, serde_as};
 
 /// AccountParticipation describes the parameters used by this account in consensus protocol.
 #[serde_as]

@@ -10,7 +10,7 @@
 
 use crate::models;
 use serde::{Deserialize, Serialize};
-use serde_with::serde_as;
+use serde_with::{Bytes, serde_as};
 
 use crate::models::BuildVersion;
 

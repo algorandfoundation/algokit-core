@@ -20,6 +20,20 @@
       },
       "args": [],
       "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in algokit_utils",
+      "cargo": {
+        "args": ["test", "--no-run", "--package", "algokit_utils"],
+        "filter": {
+          "name": "transactions_tests",
+          "kind": "test"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
     }
   ]
 }

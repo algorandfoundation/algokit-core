@@ -10,7 +10,7 @@
 
 use crate::models;
 use serde::{Deserialize, Serialize};
-use serde_with::serde_as;
+use serde_with::{Bytes, serde_as};
 
 /// Proof of membership and position of a light block header.
 #[serde_as]

@@ -3,7 +3,7 @@ use algokit_transact::Address;
 use super::common::CommonParams;
 
 /// Parameters to freeze an asset for a target account.
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct AssetFreezeParams {
     /// Common transaction parameters.
     pub common_params: CommonParams,
@@ -16,7 +16,7 @@ pub struct AssetFreezeParams {
 }
 
 /// Parameters to unfreeze an asset for a target account.
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct AssetUnfreezeParams {
     /// Common transaction parameters.
     pub common_params: CommonParams,

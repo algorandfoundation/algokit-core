@@ -1,4 +1,4 @@
-use algokit_transact::{Address, SignedTransaction, Transaction};
+use algokit_transact::{Address, EMPTY_SIGNATURE, SignedTransaction, Transaction};
 use async_trait::async_trait;
 use derive_more::Debug;
 use std::sync::Arc;
@@ -40,7 +40,7 @@ impl TransactionSigner for EmptySigner {
                 if idx < txns.len() {
                     Ok(SignedTransaction {
                         transaction: txns[idx].clone(),
-                        signature: Some([0; 64]),
+                        signature: Some(EMPTY_SIGNATURE),
                         auth_address: None,
                         multisignature: None,
                     })

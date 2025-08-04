@@ -12,6 +12,7 @@ default_http_client = [
 
 [dependencies]
 algod_client = { path = "../algod_client" }
+algokit_abi = { path = "../algokit_abi" }
 algokit_http_client = { version = "0.1.0", path = "../algokit_http_client", default-features = false }
 algokit_transact = { version = "0.1.0", path = "../algokit_transact", features = [
   "test_utils",
@@ -36,8 +37,10 @@ hex = "0.4.3"
 rand = "0.8"
 sha2 = { workspace = true }
 lazy_static = "1.4"
+num-bigint = "0.4"
 
 [dev-dependencies]
 env_logger = "0.11"
 tokio = { version = "1.45.1", features = ["full", "test-util", "time"] }
 tokio-test = "^0.4"
+rstest = "0.25.0"
