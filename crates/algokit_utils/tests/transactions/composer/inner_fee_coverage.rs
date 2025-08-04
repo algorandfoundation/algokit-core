@@ -847,7 +847,7 @@ async fn test_does_not_alter_fee_when_group_covers_inner_fees(
     };
     composer.add_payment(txn_1_params)?;
 
-    // Create an application call transaction that has inner fees covered by a payment
+    // Create an application call transaction that has inner fees covered by the above payment
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0]);
     let txn_2_params = ApplicationCallParams {
         common_params: CommonParams {

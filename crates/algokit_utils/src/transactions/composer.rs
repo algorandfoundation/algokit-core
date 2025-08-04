@@ -298,10 +298,10 @@ impl ComposerTransaction {
         let common_params = self.common_params();
         let max_fee = common_params.max_fee;
         let static_fee = common_params.static_fee;
-        if max_fee.is_some() && max_fee.unwrap() > static_fee.unwrap_or(0) {
-            return max_fee;
+        match (max_fee, static_fee) {
+            (Some(max_fee_value), static_fee) if max_fee_value > static_fee.unwrap_or(0) => max_fee,
+            _ => static_fee,
         }
-        static_fee
     }
 }
 
