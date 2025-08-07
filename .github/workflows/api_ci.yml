@@ -11,6 +11,7 @@ on:
     paths:
       - "api/**"
       - "tools/api_tools/**"
+      - "crates/algod_client/**"
       - ".github/workflows/api_ci.yml"
   pull_request:
     branches:
@@ -18,6 +19,7 @@ on:
     paths:
       - "api/**"
       - "tools/api_tools/**"
+      - "crates/algod_client/**"
       - ".github/workflows/api_ci.yml"
   workflow_dispatch:
 
@@ -65,30 +67,24 @@ jobs:
       - name: Run OAS generator tests
         run: cargo api test-oas
 
-      - name: Store original state for stability check
-        run: |
-          git diff --name-only HEAD~1..HEAD -- ${{ env.OUTPUT_DIR }} > /tmp/initial_changes.txt || true
-          git status --porcelain ${{ env.OUTPUT_DIR }} > /tmp/initial_status.txt || true
-
       - name: Generate algod API client
         run: cargo api generate-algod
 
       - name: Check for output stability
         run: |
-          git status --porcelain ${{ env.OUTPUT_DIR }} > /tmp/post_generation_status.txt
-
-          if [ -s /tmp/post_generation_status.txt ]; then
-            echo "❌ Output instability detected! The following files were modified or created:"
-            cat /tmp/post_generation_status.txt
+          # Add untracked files as empty so they show up in diff
+          git add -N ${{ env.OUTPUT_DIR }}
+          # Check if generated client differs from committed version
+          if ! git diff --exit-code --minimal ${{ env.OUTPUT_DIR }}; then
             echo ""
-            echo "🔍 Detailed diff:"
-            git diff --no-pager ${{ env.OUTPUT_DIR }}
+            echo "❌ Generated client differs from committed version!"
+            echo "💡 This indicates:"
+            echo "   • The API specification has changed"
+            echo "   • The algod_client crate was manually modified"
+            echo "   • The generator logic has been updated"
             echo ""
-            echo "💡 This indicates that the generated code is not in sync with the current specification."
-            echo "   Please run 'cargo api generate-algod' and commit the changes."
+            echo "🔧 To fix: Run 'cargo api generate-algod' locally and commit the changes"
             exit 1
-          else
-            echo "✅ Output stability check passed - no unexpected changes detected"
           fi
 
       - name: Verify generated code compiles
