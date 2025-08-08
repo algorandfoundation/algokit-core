@@ -197,7 +197,7 @@ async fn test_asset_freeze_unfreeze() {
     // Step 6: Verify account holding shows asset is frozen via algod API
     let account_info = context
         .algod
-        .account_information(None, &target_addr.to_string(), None)
+        .account_information(&target_addr.to_string(), None, None)
         .await
         .expect("Failed to get account information");
 
@@ -294,7 +294,7 @@ async fn test_asset_freeze_unfreeze() {
     // Step 10: Verify account holding shows asset is no longer frozen via algod API
     let account_info_after = context
         .algod
-        .account_information(None, &target_addr.to_string(), None)
+        .account_information(&target_addr.to_string(), None, None)
         .await
         .expect("Failed to get account information after unfreeze");
 

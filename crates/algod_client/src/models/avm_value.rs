@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 pub struct AvmValue {
     /// value type. Value `1` refers to **bytes**, value `2` refers to **uint64**
     #[serde(rename = "type")]
-    pub r#type: u32,
+    pub r#type: u64,
     /// bytes value.
     #[serde(rename = "bytes", skip_serializing_if = "Option::is_none")]
     pub bytes: Option<String>,
@@ -32,7 +32,7 @@ impl AlgorandMsgpack for AvmValue {
 
 impl AvmValue {
     /// Constructor for AvmValue
-    pub fn new(r#type: u32) -> AvmValue {
+    pub fn new(r#type: u64) -> AvmValue {
         AvmValue {
             r#type,
             bytes: None,

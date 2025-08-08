@@ -55,7 +55,7 @@ jobs:
             cat /tmp/post_conversion_status.txt
             echo ""
             echo "🔍 Detailed diff:"
-            git diff --no-pager
+            git diff
             echo ""
             echo "💡 This indicates that the OpenAPI specification has been updated and needs to be committed."
             echo "   Please run 'cargo api convert-openapi' locally and commit the changes."

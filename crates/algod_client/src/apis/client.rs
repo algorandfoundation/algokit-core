@@ -16,10 +16,10 @@ use crate::models::{
     DryrunRequest, ErrorResponse, Genesis, GetApplicationBoxes, GetBlock, GetBlockHash,
     GetBlockLogs, GetBlockTimeStampOffset, GetBlockTxids, GetPendingTransactions,
     GetPendingTransactionsByAddress, GetStatus, GetSupply, GetSyncRound,
-    GetTransactionGroupLedgerStateDeltasForRound, GetTransactionProof, LedgerStateDelta,
-    LightBlockHeaderProof, ParticipationKey, PendingTransactionResponse, RawTransaction,
-    SimulateRequest, SimulateTransaction, StartCatchup, StateProof, TealCompile, TealDisassemble,
-    TealDryrun, TransactionParams, Version, WaitForBlock,
+    GetTransactionGroupLedgerStateDeltasForRound, LedgerStateDelta, LightBlockHeaderProof,
+    ParticipationKey, PendingTransactionResponse, RawTransaction, SimulateRequest,
+    SimulateTransaction, StartCatchup, StateProof, TealCompile, TealDisassemble, TealDryrun,
+    TransactionParams, TransactionProof, Version, WaitForBlock,
 };
 use algokit_http_client::{DefaultHttpClient, HttpClient};
 use std::sync::Arc;
@@ -120,15 +120,15 @@ impl AlgodClient {
     /// Get account information.
     pub async fn account_information(
         &self,
-        format: Option<Format>,
         address: &str,
         exclude: Option<Exclude>,
+        format: Option<Format>,
     ) -> Result<Account, Error> {
         super::account_information::account_information(
             self.http_client.as_ref(),
-            format,
             address,
             exclude,
+            format,
         )
         .await
     }
@@ -136,15 +136,15 @@ impl AlgodClient {
     /// Get account information about a given asset.
     pub async fn account_asset_information(
         &self,
-        format: Option<Format>,
         address: &str,
         asset_id: u64,
+        format: Option<Format>,
     ) -> Result<AccountAssetInformation, Error> {
         super::account_asset_information::account_asset_information(
             self.http_client.as_ref(),
-            format,
             address,
             asset_id,
+            format,
         )
         .await
     }
@@ -168,15 +168,15 @@ impl AlgodClient {
     /// Get account information about a given app.
     pub async fn account_application_information(
         &self,
-        format: Option<Format>,
         address: &str,
         application_id: u64,
+        format: Option<Format>,
     ) -> Result<AccountApplicationInformation, Error> {
         super::account_application_information::account_application_information(
             self.http_client.as_ref(),
-            format,
             address,
             application_id,
+            format,
         )
         .await
     }
@@ -200,11 +200,11 @@ impl AlgodClient {
     /// Get the block for the given round.
     pub async fn get_block(
         &self,
-        format: Option<Format>,
         round: u64,
         header_only: Option<bool>,
+        format: Option<Format>,
     ) -> Result<GetBlock, Error> {
-        super::get_block::get_block(self.http_client.as_ref(), format, round, header_only).await
+        super::get_block::get_block(self.http_client.as_ref(), round, header_only, format).await
     }
 
     /// Get the top level transaction IDs for the block on the given round.
@@ -224,7 +224,7 @@ impl AlgodClient {
         txid: &str,
         hashtype: Option<Hashtype>,
         format: Option<Format>,
-    ) -> Result<GetTransactionProof, Error> {
+    ) -> Result<TransactionProof, Error> {
         super::get_transaction_proof::get_transaction_proof(
             self.http_client.as_ref(),
             round,

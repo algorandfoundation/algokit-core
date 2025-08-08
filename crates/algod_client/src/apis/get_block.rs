@@ -37,22 +37,22 @@ pub enum GetBlockError {
 /// Get the block for the given round.
 pub async fn get_block(
     http_client: &dyn HttpClient,
-    format: Option<Format>,
     round: u64,
     header_only: Option<bool>,
+    format: Option<Format>,
 ) -> Result<GetBlock, Error> {
-    let p_format = format;
     let p_round = round;
     let p_header_only = header_only;
+    let p_format = format;
 
     let path = format!("/v2/blocks/{round}", round = p_round);
 
     let mut query_params: HashMap<String, String> = HashMap::new();
-    if let Some(value) = p_format {
-        query_params.insert("format".to_string(), value.to_string());
-    }
     if let Some(value) = p_header_only {
         query_params.insert("header-only".to_string(), value.to_string());
+    }
+    if let Some(value) = p_format {
+        query_params.insert("format".to_string(), value.to_string());
     }
 
     let use_msgpack = p_format.map(|f| f != Format::Json).unwrap_or(true);

@@ -36,13 +36,13 @@ pub enum AccountApplicationInformationError {
 /// Given a specific account public key and application ID, this call returns the account's application local state and global state (AppLocalState and AppParams, if either exists). Global state will only be returned if the provided address is the application's creator.
 pub async fn account_application_information(
     http_client: &dyn HttpClient,
-    format: Option<Format>,
     address: &str,
     application_id: u64,
+    format: Option<Format>,
 ) -> Result<AccountApplicationInformation, Error> {
-    let p_format = format;
     let p_address = address;
     let p_application_id = application_id;
+    let p_format = format;
 
     let path = format!(
         "/v2/accounts/{address}/applications/{application_id}",

@@ -76,7 +76,7 @@ async fn test_offline_key_registration_transaction() {
     // Verify account participation status
     let account_info = context
         .algod
-        .account_information(None, &sender_addr.to_string(), None)
+        .account_information(&sender_addr.to_string(), None, None)
         .await
         .expect("Failed to get account information");
 
@@ -170,7 +170,7 @@ async fn test_non_participation_key_registration_transaction() {
     // Verify account is now online
     let account_info = context
         .algod
-        .account_information(None, &sender_addr.to_string(), None)
+        .account_information(&sender_addr.to_string(), None, None)
         .await
         .expect("Failed to get account information");
 
@@ -232,7 +232,7 @@ async fn test_non_participation_key_registration_transaction() {
     // Verify account participation status
     let account_info = context
         .algod
-        .account_information(None, &sender_addr.to_string(), None)
+        .account_information(&sender_addr.to_string(), None, None)
         .await
         .expect("Failed to get account information");
 
@@ -424,7 +424,7 @@ async fn test_online_key_registration_transaction() {
     // Verify account participation status
     let account_info = context
         .algod
-        .account_information(None, &sender_addr.to_string(), None)
+        .account_information(&sender_addr.to_string(), None, None)
         .await
         .expect("Failed to get account information");
 

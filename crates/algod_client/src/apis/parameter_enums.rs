@@ -10,38 +10,6 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::str::FromStr;
 
-/// Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum Format {
-    /// json
-    Json,
-    /// msgpack
-    Msgpack,
-}
-
-impl fmt::Display for Format {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let value = match self {
-            Format::Json => "json",
-            Format::Msgpack => "msgpack",
-        };
-        write!(f, "{}", value)
-    }
-}
-
-impl FromStr for Format {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "json" => Ok(Format::Json),
-            "msgpack" => Ok(Format::Msgpack),
-            _ => Err(format!("Invalid Format: {}", s)),
-        }
-    }
-}
-
 /// When set to `all` will exclude asset holdings, application local state, created asset parameters, any created application parameters. Defaults to `none`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -70,6 +38,38 @@ impl FromStr for Exclude {
             "all" => Ok(Exclude::All),
             "none" => Ok(Exclude::None),
             _ => Err(format!("Invalid Exclude: {}", s)),
+        }
+    }
+}
+
+/// Configures whether the response object is JSON or MessagePack encoded. If not provided, defaults to JSON.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Format {
+    /// json
+    Json,
+    /// msgpack
+    Msgpack,
+}
+
+impl fmt::Display for Format {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let value = match self {
+            Format::Json => "json",
+            Format::Msgpack => "msgpack",
+        };
+        write!(f, "{}", value)
+    }
+}
+
+impl FromStr for Format {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "json" => Ok(Format::Json),
+            "msgpack" => Ok(Format::Msgpack),
+            _ => Err(format!("Invalid Format: {}", s)),
         }
     }
 }

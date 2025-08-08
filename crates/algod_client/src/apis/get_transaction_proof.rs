@@ -16,7 +16,7 @@ use super::parameter_enums::*;
 use super::{AlgodApiError, ContentType, Error};
 
 // Import all custom types used by this endpoint
-use crate::models::{ErrorResponse, GetTransactionProof};
+use crate::models::{ErrorResponse, TransactionProof};
 
 // Import request body type if needed
 
@@ -40,7 +40,7 @@ pub async fn get_transaction_proof(
     txid: &str,
     hashtype: Option<Hashtype>,
     format: Option<Format>,
-) -> Result<GetTransactionProof, Error> {
+) -> Result<TransactionProof, Error> {
     let p_round = round;
     let p_txid = txid;
     let p_hashtype = hashtype;

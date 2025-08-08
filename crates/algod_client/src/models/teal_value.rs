@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 pub struct TealValue {
     /// \[tt\] value type. Value `1` refers to **bytes**, value `2` refers to **uint**
     #[serde(rename = "type")]
-    pub r#type: u32,
+    pub r#type: u64,
     /// \[tb\] bytes value.
     #[serde(rename = "bytes")]
     pub bytes: String,
@@ -32,7 +32,7 @@ impl AlgorandMsgpack for TealValue {
 
 impl TealValue {
     /// Constructor for TealValue
-    pub fn new(r#type: u32, bytes: String, uint: u64) -> TealValue {
+    pub fn new(r#type: u64, bytes: String, uint: u64) -> TealValue {
         TealValue {
             r#type,
             bytes,

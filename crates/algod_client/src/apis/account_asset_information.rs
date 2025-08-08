@@ -36,13 +36,13 @@ pub enum AccountAssetInformationError {
 /// Given a specific account public key and asset ID, this call returns the account's asset holding and asset parameters (if either exist). Asset parameters will only be returned if the provided address is the asset's creator.
 pub async fn account_asset_information(
     http_client: &dyn HttpClient,
-    format: Option<Format>,
     address: &str,
     asset_id: u64,
+    format: Option<Format>,
 ) -> Result<AccountAssetInformation, Error> {
-    let p_format = format;
     let p_address = address;
     let p_asset_id = asset_id;
+    let p_format = format;
 
     let path = format!(
         "/v2/accounts/{address}/assets/{asset_id}",

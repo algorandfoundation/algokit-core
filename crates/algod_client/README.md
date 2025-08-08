@@ -250,7 +250,6 @@ data/transactions/asset.go : AssetParams
 - `Box` - Box name and its content.
 - `BoxDescriptor` - Box descriptor describes a Box.
 - `BoxReference` - References a box of an application.
-- `KvDelta` - A single Delta containing the key, the previous value and the current value for a single round.
 - `Version` - algod version information.
 - `DebugSettingsProf` - algod mutex and blocking profiling state.
 - `BuildVersion` - No description
@@ -270,6 +269,7 @@ data/transactions/asset.go : AssetParams
 - `SimulateUnnamedResourcesAccessed` - These are resources that were accessed by this group that would normally have caused failure, but were allowed in simulation. Depending on where this object is in the response, the unnamed resources it contains may or may not qualify for group resource sharing. If this is a field in SimulateTransactionGroupResult, the resources do qualify, but if this is a field in SimulateTransactionResult, they do not qualify. In order to make this group valid for actual submission, resources that qualify for group sharing can be made available by any transaction of the group; otherwise, resources must be placed in the same transaction which accessed them.
 - `SimulateInitialStates` - Initial states of resources that were accessed during simulation.
 - `AppCallLogs` - The logged messages from an app call along with the app ID and outer transaction ID. Logs appear in the same order that they were emitted.
+- `TransactionProof` - Proof of transaction in a block.
 - `AccountAssetInformation` - AccountAssetResponse describes the account's asset holding and asset parameters (if either exist) for a specific asset ID. Asset parameters will only be returned if the provided address is the asset's creator.
 - `AccountAssetsInformation` - AccountAssetsInformationResponse contains a list of assets held by an account.
 - `AccountApplicationInformation` - AccountApplicationResponse describes the account's application local state and global state (AppLocalState and AppParams, if either exists) for a specific application ID. Global state will only be returned if the provided address is the application's creator.
@@ -277,7 +277,6 @@ data/transactions/asset.go : AssetParams
 - `GetBlock` - Encoded block object.
 - `GetBlockTxids` - Top level transaction IDs in a block.
 - `GetBlockHash` - Hash of a block header.
-- `GetTransactionProof` - Proof of transaction in a block.
 - `GetBlockLogs` - All logs emitted in the given round. Each app call, whether top-level or inner, that contains logs results in a separate AppCallLogs object. Therefore there may be multiple AppCallLogs with the same application ID and outer transaction ID in the event of multiple inner app calls to the same app. App calls with no logs are not included in the response. AppCallLogs are returned in the same order that their corresponding app call appeared in the block (pre-order traversal of inner app calls)
 - `GetSupply` - Supply represents the current supply of MicroAlgos in the system
 - `AddParticipationKey` - Participation ID of the submission

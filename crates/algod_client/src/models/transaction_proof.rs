@@ -15,7 +15,7 @@ use serde_with::{Bytes, serde_as};
 /// Proof of transaction in a block.
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
-pub struct GetTransactionProof {
+pub struct TransactionProof {
     /// Proof of transaction membership.
     #[serde_as(as = "serde_with::base64::Base64")]
     #[serde(rename = "proof")]
@@ -37,16 +37,16 @@ pub struct GetTransactionProof {
     pub hashtype: String,
 }
 
-impl GetTransactionProof {
-    /// Constructor for GetTransactionProof
+impl TransactionProof {
+    /// Constructor for TransactionProof
     pub fn new(
         proof: Vec<u8>,
         stibhash: Vec<u8>,
         treedepth: u64,
         idx: u64,
         hashtype: String,
-    ) -> GetTransactionProof {
-        GetTransactionProof {
+    ) -> TransactionProof {
+        TransactionProof {
             proof,
             stibhash,
             treedepth,

@@ -19,11 +19,11 @@ pub struct Box {
     /// The round for which this information is relevant
     #[serde(rename = "round")]
     pub round: u64,
-    /// \[name\] box name, base64 encoded
+    /// The box name, base64 encoded
     #[serde_as(as = "serde_with::base64::Base64")]
     #[serde(rename = "name")]
     pub name: Vec<u8>,
-    /// \[value\] box value, base64 encoded.
+    /// The box value, base64 encoded.
     #[serde_as(as = "serde_with::base64::Base64")]
     #[serde(rename = "value")]
     pub value: Vec<u8>,
