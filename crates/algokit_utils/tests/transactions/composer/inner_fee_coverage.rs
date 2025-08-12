@@ -1,6 +1,7 @@
 use crate::common::init_test_logging;
 use algokit_abi::abi_type::BitSize;
 use algokit_abi::{ABIMethod, ABIType, ABIValue};
+use algokit_test_artifacts::{inner_fee_contract, nested_contract};
 use algokit_transact::{
     ALGORAND_PUBLIC_KEY_BYTE_LENGTH, Address, OnApplicationComplete, TransactionId,
 };
@@ -1804,7 +1805,7 @@ struct Arc56AppSpec {
 }
 
 #[derive(Deserialize)]
-struct ARC32AppSpec {
+struct Arc32AppSpec {
     source: Option<TealSource>,
 }
 
@@ -1815,8 +1816,7 @@ const COVER_FEES_SEND_PARAMS: Option<SendParams> = Some(SendParams {
 
 fn get_inner_fee_teal_programs()
 -> Result<(Vec<u8>, Vec<u8>), Box<dyn std::error::Error + Send + Sync>> {
-    let app_spec: Arc56AppSpec =
-        serde_json::from_str(include_str!("../../contracts/inner_fee/application.json"))?;
+    let app_spec: Arc56AppSpec = serde_json::from_str(inner_fee_contract::APPLICATION)?;
     let teal_source = app_spec.source.unwrap();
     let approval_bytes = BASE64_STANDARD.decode(teal_source.approval)?;
     let clear_state_bytes = BASE64_STANDARD.decode(teal_source.clear)?;
@@ -1825,8 +1825,7 @@ fn get_inner_fee_teal_programs()
 
 fn get_nested_app_teal_programs()
 -> Result<(Vec<u8>, Vec<u8>), Box<dyn std::error::Error + Send + Sync>> {
-    let app_spec: ARC32AppSpec =
-        serde_json::from_str(include_str!("../../contracts/nested/application.json"))?;
+    let app_spec: Arc32AppSpec = serde_json::from_str(nested_contract::APPLICATION)?;
     let teal_source = app_spec.source.unwrap();
     let approval_bytes = BASE64_STANDARD.decode(teal_source.approval)?;
     let clear_state_bytes = BASE64_STANDARD.decode(teal_source.clear)?;

@@ -145,6 +145,25 @@ The hooks will automatically run `cargo fmt --check`, `cargo clippy`, `cargo che
    cd packages/python/algokit_transact && poetry run pytest  # Test Python
    ```
 
+### Snapshot Testing (ABI Crate)
+
+The `algokit_abi` crate uses [insta](https://insta.rs/) for snapshot testing to ensure consistent ARC56 contract parsing and serialization. 
+
+**Important for maintainers:**
+- Tests may fail if snapshots need updating after code changes
+- To review and approve new snapshots, run:
+  ```bash
+  cd crates/algokit_abi
+  cargo insta review
+  ```
+- The `cargo-insta` tool is available in the workspace (no global installation needed)
+- For more information on snapshot testing, see the [insta documentation](https://insta.rs/docs/)
+
+**When snapshot tests fail:**
+1. Review the snapshot diff carefully to ensure changes are intentional
+2. Use `cargo insta review` to interactively approve/reject changes
+3. Commit the updated `.snap` files along with your code changes
+
 ## Debugging Rust Code is VS Code
 
 ### Prerequisites

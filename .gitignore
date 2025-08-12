@@ -9,5 +9,17 @@ node_modules/
 .bin/
 .DS_Store
 wheelhouse/
+
+# Insta snapshot testing
+*.snap.new
+*.pending-snap
+
+# AI artifacts
 CLAUDE.local.md
 .claude/settings.local.json
+AGENTS.md
+.tasks/
+.opencode/
+.references/
+.kiro/
+

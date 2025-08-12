@@ -1,8 +1,8 @@
-use std::path::Path;
 use std::sync::Arc;
 
 use crate::common::init_test_logging;
 use algokit_abi::{ABIReferenceValue, ABIValue, Arc56Contract};
+use algokit_test_artifacts::sandbox;
 use algokit_transact::{
     Address, OnApplicationComplete, PaymentTransactionFields, StateSchema, Transaction,
     TransactionHeader, TransactionId,
@@ -15,8 +15,6 @@ use algokit_utils::{
 use base64::prelude::*;
 use num_bigint::BigUint;
 use rstest::*;
-
-const ARC56_SANDBOX_CONTRACT_PATH: &str = "tests/contracts/sandbox/Sandbox.arc56.json";
 
 #[tokio::test]
 async fn test_app_call_transaction() {
@@ -1175,10 +1173,7 @@ async fn setup() -> SetupResult {
     let context = fixture.context()?;
     let sender_address = context.test_account.account()?.address();
 
-    let arc56_contract = std::fs::read_to_string(
-        Path::new(env!("CARGO_MANIFEST_DIR")).join(ARC56_SANDBOX_CONTRACT_PATH),
-    )?;
-    let arc56_contract: Arc56Contract = serde_json::from_str(&arc56_contract)?;
+    let arc56_contract: Arc56Contract = serde_json::from_str(sandbox::APPLICATION_ARC56)?;
     let app_id = deploy_app(context, sender_address.clone(), arc56_contract.clone()).await;
 
     Ok(TestData {

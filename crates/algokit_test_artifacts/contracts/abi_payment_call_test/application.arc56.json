@@ -1,0 +1,57 @@
+{
+  "arcs": [
+    56
+  ],
+  "bareActions": {
+    "call": [],
+    "create": []
+  },
+  "name": "AbiPaymentCallTest",
+  "desc": "Test contract for call_abi_txn method including a payment arg and string",
+  "methods": [
+    {
+      "name": "call_abi_txn",
+      "desc": "Echo payment amount and note string",
+      "actions": {},
+      "args": [
+        {
+          "type": "pay",
+          "name": "pmt"
+        },
+        {
+          "type": "string",
+          "name": "note"
+        }
+      ],
+      "returns": {
+        "type": "string"
+      }
+    }
+  ],
+  "state": {
+    "keys": {
+      "box": {},
+      "global": {},
+      "local": {}
+    },
+    "maps": {
+      "box": {},
+      "global": {},
+      "local": {}
+    },
+    "schema": {
+      "global": {
+        "bytes": 0,
+        "ints": 0
+      },
+      "local": {
+        "bytes": 0,
+        "ints": 0
+      }
+    }
+  },
+  "structs": {},
+  "networks": {},
+  "byteCode": null,
+  "compilerInfo": null
+}

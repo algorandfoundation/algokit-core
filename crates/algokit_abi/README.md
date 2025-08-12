@@ -55,3 +55,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 ```
+
+## Testing
+
+This crate uses [insta](https://insta.rs/) for snapshot testing of ARC56 contract parsing and serialization. If tests fail due to snapshot changes:
+
+1. Review changes carefully to ensure they're intentional
+2. Run `cargo insta review` to interactively approve/reject snapshot updates
+3. Commit updated `.snap` files with your changes
+
+For more information, see the [contributing guide](../../docs/book/contributing/contributing_guide.md#snapshot-testing-abi-crate).

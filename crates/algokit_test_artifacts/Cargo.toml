@@ -1,0 +1,13 @@
+[package]
+name = "algokit_test_artifacts"
+version = "0.1.0"
+edition = "2024"
+description = "Centralized contract artifacts for testing across algokit-core crates"
+publish = false
+
+[lib]
+name = "algokit_test_artifacts"
+path = "src/lib.rs"
+
+[dependencies]
+# No runtime dependencies - this is a test-only crate that provides static artifacts
