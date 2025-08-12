@@ -1,3 +1,4 @@
+{% set client_type = get_client_type(spec) %}
 /*
  * {{ spec.info.title }}
  *
@@ -24,7 +25,7 @@ pub mod {{ operation.rust_function_name }};
 
 /// Unified error type that can represent any API error from any endpoint
 #[derive(Debug, thiserror::Error)]
-pub enum AlgodApiError {
+pub enum {{ client_type }}ApiError {
 {% for operation in operations %}
     #[error("{{ operation.rust_function_name | title }} error: {0:?}")]
     {{ operation.rust_function_name | pascal_case }}({{ operation.rust_function_name }}::{{ operation.rust_error_enum }}),
@@ -34,15 +35,15 @@ pub enum AlgodApiError {
 }
 
 {% for operation in operations %}
-impl From<{{ operation.rust_function_name }}::{{ operation.rust_error_enum }}> for AlgodApiError {
+impl From<{{ operation.rust_function_name }}::{{ operation.rust_error_enum }}> for {{ client_type }}ApiError {
     fn from(err: {{ operation.rust_function_name }}::{{ operation.rust_error_enum }}) -> Self {
-        AlgodApiError::{{ operation.rust_function_name | pascal_case }}(err)
+        {{ client_type }}ApiError::{{ operation.rust_function_name | pascal_case }}(err)
     }
 }
 
 {% endfor %}
 
-/// The main error type for all algod client operations
+/// The main error type for all {{ client_type | lower }} client operations
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("HTTP error: {0}")]
@@ -50,7 +51,7 @@ pub enum Error {
     #[error("Serialization error: {0}")]
     Serde(String),
     #[error("API error: {0}")]
-    Api(#[from] AlgodApiError),
+    Api(#[from] {{ client_type }}ApiError),
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -80,7 +81,7 @@ pub fn urlencode<T: AsRef<str>>(s: T) -> String {
 }
 
 // Re-export the consolidated client
-pub use client::AlgodClient;
+pub use client::{{ client_type }}Client;
 
 {% if param_enums %}
 // Re-export parameter enums

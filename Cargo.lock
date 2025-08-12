@@ -155,6 +155,7 @@ dependencies = [
  "env_logger 0.11.6",
  "futures",
  "hex",
+ "indexer_client",
  "lazy_static",
  "log",
  "num-bigint",
@@ -2052,6 +2053,24 @@ name = "indenter"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ce23b50ad8242c51a442f3ff322d56b02f08852c77e4c0b4d3fd684abc89c683"
+
+[[package]]
+name = "indexer_client"
+version = "2.0.0"
+dependencies = [
+ "algokit_http_client",
+ "base64 0.22.1",
+ "serde",
+ "serde_bytes",
+ "serde_json",
+ "serde_repr",
+ "serde_with",
+ "thiserror 1.0.69",
+ "tokio",
+ "tokio-test",
+ "url",
+ "uuid",
+]
 
 [[package]]
 name = "indexmap"

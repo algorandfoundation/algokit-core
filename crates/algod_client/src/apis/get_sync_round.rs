@@ -65,9 +65,7 @@ pub async fn get_sync_round(http_client: &dyn HttpClient) -> Result<GetSyncRound
         ContentType::Json => {
             serde_json::from_slice(&response.body).map_err(|e| Error::Serde(e.to_string()))
         }
-        ContentType::MsgPack => {
-            rmp_serde::from_slice(&response.body).map_err(|e| Error::Serde(e.to_string()))
-        }
+        ContentType::MsgPack => Err(Error::Serde("MsgPack not supported".to_string())),
         ContentType::Text => {
             let text = String::from_utf8(response.body).map_err(|e| Error::Serde(e.to_string()))?;
             Err(Error::Serde(format!("Unexpected text response: {}", text)))

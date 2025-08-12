@@ -29,12 +29,27 @@ enum Commands {
     /// Format generated Rust code
     #[command(name = "format-algod")]
     FormatAlgod,
+    /// Format generated indexer Rust code
+    #[command(name = "format-indexer")]
+    FormatIndexer,
     /// Generate algod API client
     #[command(name = "generate-algod")]
     GenerateAlgod,
-    /// Convert OpenAPI specification
+    /// Generate indexer API client
+    #[command(name = "generate-indexer")]
+    GenerateIndexer,
+    /// Generate both algod and indexer API clients
+    #[command(name = "generate-all")]
+    GenerateAll,
+    /// Convert OpenAPI specifications (both algod and indexer)
     #[command(name = "convert-openapi")]
     ConvertOpenapi,
+    /// Convert algod OpenAPI specification only
+    #[command(name = "convert-algod")]
+    ConvertAlgod,
+    /// Convert indexer OpenAPI specification only
+    #[command(name = "convert-indexer")]
+    ConvertIndexer,
 }
 
 fn get_repo_root() -> PathBuf {
@@ -100,6 +115,13 @@ fn execute_command(command: &Commands) -> Result<()> {
                 None,
             )?;
         }
+        Commands::FormatIndexer => {
+            run(
+                "cargo fmt --manifest-path Cargo.toml -p indexer_client",
+                None,
+                None,
+            )?;
+        }
         Commands::GenerateAlgod => {
             // Generate the client
             run(
@@ -114,9 +136,62 @@ fn execute_command(command: &Commands) -> Result<()> {
                 None,
             )?;
         }
+        Commands::GenerateIndexer => {
+            // Generate the client
+            run(
+                "uv run python -m rust_oas_generator.cli ../specs/indexer.oas3.json --output ../../crates/indexer_client/ --package-name indexer_client --description \"API client for indexer interaction.\"",
+                Some(Path::new("api/oas_generator")),
+                None,
+            )?;
+            // Format the generated code
+            run(
+                "cargo fmt --manifest-path Cargo.toml -p indexer_client",
+                None,
+                None,
+            )?;
+        }
+        Commands::GenerateAll => {
+            // Generate algod client
+            run(
+                "uv run python -m rust_oas_generator.cli ../specs/algod.oas3.json --output ../../crates/algod_client/ --package-name algod_client --description \"API client for algod interaction.\"",
+                Some(Path::new("api/oas_generator")),
+                None,
+            )?;
+            // Generate indexer client
+            run(
+                "uv run python -m rust_oas_generator.cli ../specs/indexer.oas3.json --output ../../crates/indexer_client/ --package-name indexer_client --description \"API client for indexer interaction.\"",
+                Some(Path::new("api/oas_generator")),
+                None,
+            )?;
+            // Format both generated codes
+            run(
+                "cargo fmt --manifest-path Cargo.toml -p algod_client",
+                None,
+                None,
+            )?;
+            run(
+                "cargo fmt --manifest-path Cargo.toml -p indexer_client",
+                None,
+                None,
+            )?;
+        }
         Commands::ConvertOpenapi => {
             run(
                 "bun scripts/convert-openapi.ts",
+                Some(Path::new("api")),
+                None,
+            )?;
+        }
+        Commands::ConvertAlgod => {
+            run(
+                "bun scripts/convert-openapi.ts --algod-only",
+                Some(Path::new("api")),
+                None,
+            )?;
+        }
+        Commands::ConvertIndexer => {
+            run(
+                "bun scripts/convert-openapi.ts --indexer-only",
                 Some(Path::new("api")),
                 None,
             )?;

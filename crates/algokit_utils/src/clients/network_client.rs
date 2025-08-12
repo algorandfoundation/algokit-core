@@ -84,11 +84,15 @@ pub struct AlgoClientConfig {
 #[derive(Debug, Clone)]
 pub struct AlgoConfig {
     pub algod_config: AlgoClientConfig,
+    pub indexer_config: AlgoClientConfig,
 }
 
 impl AlgoConfig {
-    pub fn new(algod_config: AlgoClientConfig) -> Self {
-        Self { algod_config }
+    pub fn new(algod_config: AlgoClientConfig, indexer_config: AlgoClientConfig) -> Self {
+        Self {
+            algod_config,
+            indexer_config,
+        }
     }
 }
 

@@ -1,0 +1,46 @@
+{# Macro to generate a Rust enum for string enum values #}
+{% macro generate_string_enum(enum_name, enum_values, description=None) %}
+{% if description %}
+{{ description | rust_doc_comment }}
+{% endif %}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub enum {{ enum_name }} {
+{% for value in enum_values %}
+    /// {{ value }}
+    #[serde(rename = "{{ value }}")]
+    {% if loop.first %}#[default]
+    {% endif %}{{ value | pascal_case }},
+{% endfor %}
+}
+
+impl fmt::Display for {{ enum_name }} {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let value = match self {
+{% for value in enum_values %}
+            {{ enum_name }}::{{ value | pascal_case }} => "{{ value }}",
+{% endfor %}
+        };
+        write!(f, "{}", value)
+    }
+}
+
+impl FromStr for {{ enum_name }} {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+{% for value in enum_values %}
+            "{{ value }}" => Ok({{ enum_name }}::{{ value | pascal_case }}),
+{% endfor %}
+            _ => Err(format!("Invalid {{ enum_name }}: {}", s)),
+        }
+    }
+}
+
+impl {{ enum_name }} {
+    /// Default constructor for {{ enum_name }}
+    pub fn new() -> {{ enum_name }} {
+        {{ enum_name }}::default()
+    }
+}
+{% endmacro %}

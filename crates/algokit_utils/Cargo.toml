@@ -8,10 +8,12 @@ default = ["default_http_client"]
 default_http_client = [
   "algokit_http_client/default_client",
   "algod_client/default_client",
+  "indexer_client/default_client",
 ]
 
 [dependencies]
 algod_client = { path = "../algod_client" }
+indexer_client = { path = "../indexer_client" }
 algokit_abi = { path = "../algokit_abi" }
 algokit_http_client = { version = "0.1.0", path = "../algokit_http_client", default-features = false }
 algokit_transact = { version = "0.1.0", path = "../algokit_transact", features = [

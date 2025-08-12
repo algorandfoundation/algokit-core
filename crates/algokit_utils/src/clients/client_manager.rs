@@ -5,11 +5,13 @@ use crate::clients::network_client::{
 use algod_client::AlgodClient;
 use algokit_http_client::DefaultHttpClient;
 use base64::{Engine, engine::general_purpose};
+use indexer_client::IndexerClient;
 use std::{env, sync::Arc};
 use tokio::sync::RwLock;
 
 pub struct ClientManager {
     algod: AlgodClient,
+    indexer: IndexerClient,
     cached_network_details: RwLock<Option<Arc<NetworkDetails>>>,
 }
 
@@ -17,12 +19,17 @@ impl ClientManager {
     pub fn new(config: AlgoConfig) -> Self {
         Self {
             algod: Self::get_algod_client(&config.algod_config),
+            indexer: Self::get_indexer_client(&config.indexer_config),
             cached_network_details: RwLock::new(None),
         }
     }
 
     pub fn algod(&self) -> &AlgodClient {
         &self.algod
+    }
+
+    pub fn indexer(&self) -> &IndexerClient {
+        &self.indexer
     }
 
     pub async fn network(
@@ -74,14 +81,29 @@ impl ClientManager {
 
     pub fn get_config_from_environment_or_localnet() -> AlgoConfig {
         match env::var("ALGOD_SERVER") {
-            Ok(_) => {
-                let algod_config = Self::get_algod_config_from_environment();
-
-                AlgoConfig { algod_config }
-            }
+            Ok(_) => AlgoConfig {
+                algod_config: Self::get_algod_config_from_environment(),
+                indexer_config: Self::get_indexer_config_from_environment(),
+            },
             Err(_) => AlgoConfig {
                 algod_config: Self::get_default_localnet_config(AlgorandService::Algod),
+                indexer_config: Self::get_default_localnet_config(AlgorandService::Indexer),
             },
+        }
+    }
+
+    pub fn get_indexer_config_from_environment() -> AlgoClientConfig {
+        let server = env::var("INDEXER_SERVER").unwrap_or_else(|_| "http://localhost".to_string());
+        let port = env::var("INDEXER_PORT")
+            .ok()
+            .and_then(|p| p.parse().ok())
+            .or(Some(8980));
+        let token = env::var("INDEXER_TOKEN").ok().map(TokenHeader::String);
+
+        AlgoClientConfig {
+            server,
+            port,
+            token,
         }
     }
 
@@ -157,8 +179,37 @@ impl ClientManager {
         AlgodClient::new(http_client)
     }
 
-    pub fn get_algod_client_from_environment() -> AlgodClient {
-        Self::get_algod_client(&Self::get_algod_config_from_environment())
+    pub fn get_indexer_client(config: &AlgoClientConfig) -> IndexerClient {
+        let base_url = if let Some(port) = config.port {
+            format!("{}:{}", config.server, port)
+        } else {
+            config.server.clone()
+        };
+
+        let http_client = match &config.token {
+            Some(TokenHeader::String(token)) => Arc::new(
+                DefaultHttpClient::with_header(&base_url, "X-Indexer-API-Token", token)
+                    .expect("Failed to create HTTP client with token header"),
+            ),
+            Some(TokenHeader::Headers(headers)) => {
+                let (header_name, header_value) = headers
+                    .iter()
+                    .next()
+                    .map(|(k, v)| (k.as_str(), v.as_str()))
+                    .unwrap_or(("X-Indexer-API-Token", ""));
+                Arc::new(
+                    DefaultHttpClient::with_header(&base_url, header_name, header_value)
+                        .expect("Failed to create HTTP client with custom header"),
+                )
+            }
+            None => Arc::new(DefaultHttpClient::new(&base_url)),
+        };
+
+        IndexerClient::new(http_client)
+    }
+
+    pub fn get_indexer_client_from_environment() -> IndexerClient {
+        Self::get_indexer_client(&Self::get_indexer_config_from_environment())
     }
 }
 
@@ -172,6 +223,11 @@ mod tests {
         let config = AlgoConfig {
             algod_config: AlgoClientConfig {
                 server: "http://localhost:4001".to_string(),
+                port: None,
+                token: None,
+            },
+            indexer_config: AlgoClientConfig {
+                server: "http://localhost:8980".to_string(),
                 port: None,
                 token: None,
             },
@@ -189,6 +245,11 @@ mod tests {
             algod_config: AlgoClientConfig {
                 server: "http://invalid-host:65534".to_string(),
                 port: Some(65534),
+                token: None,
+            },
+            indexer_config: AlgoClientConfig {
+                server: "http://invalid-host:65535".to_string(),
+                port: Some(65535),
                 token: None,
             },
         };

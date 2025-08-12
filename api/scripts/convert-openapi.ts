@@ -262,6 +262,19 @@ class OpenAPIProcessor {
   constructor(private config: ProcessingConfig) {}
 
   /**
+   * Apply typo fixes to raw JSON content
+   */
+  private patchTypos(content: string): string {
+    const patches = [
+      ["ana ccount", "an account"],
+      ["since eposh", "since epoch"],
+      ["* update\\n* update\\n* delete", "* update\\n* delete"],
+    ];
+    
+    return patches.reduce((text, [find, replace]) => text.replaceAll(find, replace), content);
+  }
+
+  /**
    * Fetch spec from URL or file
    */
   private async fetchSpec(): Promise<OpenAPISpec> {
@@ -273,7 +286,9 @@ class OpenAPIProcessor {
       if (!response.ok) {
         throw new Error(`Failed to fetch spec: ${response.status} ${response.statusText}`);
       }
-      const spec = await response.json();
+      const rawContent = await response.text();
+      const patchedContent = this.patchTypos(rawContent);
+      const spec = JSON.parse(patchedContent);
       console.log("✅ Successfully fetched OpenAPI specification");
       return spec;
     } else {
@@ -393,7 +408,7 @@ class OpenAPIProcessor {
 // ===== MAIN EXECUTION =====
 
 /**
- * Fetch the latest stable tag from GitHub API
+ * Fetch the latest stable tag from GitHub API for go-algorand
  */
 async function getLatestStableTag(): Promise<string> {
   console.log("ℹ️  Fetching latest stable tag from GitHub...");
@@ -422,6 +437,125 @@ async function getLatestStableTag(): Promise<string> {
   }
 }
 
+/**
+ * Fetch the latest release tag from GitHub API for indexer
+ */
+async function getLatestIndexerTag(): Promise<string> {
+  console.log("ℹ️  Fetching latest indexer release tag from GitHub...");
+
+  try {
+    const response = await fetch("https://api.github.com/repos/algorand/indexer/releases/latest");
+    if (!response.ok) {
+      throw new Error(`GitHub API request failed: ${response.status} ${response.statusText}`);
+    }
+
+    const release = await response.json();
+    
+    console.log(`✅ Found latest indexer release tag: ${release.tag_name}`);
+    return release.tag_name;
+  } catch (error) {
+    console.error("❌ Failed to fetch indexer release tag, falling back to master branch");
+    console.error(error instanceof Error ? error.message : error);
+    return "master";
+  }
+}
+
+/**
+ * Process specifications for both algod and indexer
+ */
+async function processAlgorandSpecs() {
+  await Promise.all([
+    processAlgodSpec(),
+    processIndexerSpec()
+  ]);
+}
+
+async function processAlgodSpec() {
+  console.log("\n🔄 Processing Algod specification...");
+  
+  const stableTag = await getLatestStableTag();
+  
+  const config: ProcessingConfig = {
+    sourceUrl: `https://raw.githubusercontent.com/algorand/go-algorand/${stableTag}/daemon/algod/api/algod.oas2.json`,
+    outputPath: join(process.cwd(), "specs", "algod.oas3.json"),
+    vendorExtensionTransforms: [
+      {
+        sourceProperty: "x-algorand-format",
+        sourceValue: "uint64",
+        targetProperty: "x-algokit-bigint",
+        targetValue: true,
+        removeSource: true,
+      },
+      {
+        sourceProperty: "format",
+        sourceValue: "uint64",
+        targetProperty: "x-algokit-bigint",
+        targetValue: true,
+        removeSource: false,
+      },
+      {
+        sourceProperty: "x-go-type",
+        sourceValue: "uint64",
+        targetProperty: "x-algokit-bigint",
+        targetValue: true,
+        removeSource: true,
+      },
+      {
+        sourceProperty: "x-algorand-format",
+        sourceValue: "SignedTransaction",
+        targetProperty: "x-algokit-signed-txn",
+        targetValue: true,
+        removeSource: true,
+      },
+    ],
+  };
+
+  await processAlgorandSpec(config);
+}
+
+async function processIndexerSpec() {
+  console.log("\n🔄 Processing Indexer specification...");
+  
+  const indexerTag = await getLatestIndexerTag();
+  
+  const config: ProcessingConfig = {
+    sourceUrl: `https://raw.githubusercontent.com/algorand/indexer/${indexerTag}/api/indexer.oas2.json`,
+    outputPath: join(process.cwd(), "specs", "indexer.oas3.json"),
+    vendorExtensionTransforms: [
+      {
+        sourceProperty: "x-algorand-format",
+        sourceValue: "uint64",
+        targetProperty: "x-algokit-bigint",
+        targetValue: true,
+        removeSource: true,
+      },
+      {
+        sourceProperty: "format",
+        sourceValue: "uint64",
+        targetProperty: "x-algokit-bigint",
+        targetValue: true,
+        removeSource: false,
+      },
+      {
+        sourceProperty: "x-go-type",
+        sourceValue: "uint64",
+        targetProperty: "x-algokit-bigint",
+        targetValue: true,
+        removeSource: true,
+      },
+      {
+        sourceProperty: "x-algorand-format",
+        sourceValue: "SignedTransaction",
+        targetProperty: "x-algokit-signed-txn",
+        targetValue: true,
+        removeSource: true,
+      },
+    ],
+  };
+
+  await processAlgorandSpec(config);
+}
+
 async function processAlgorandSpec(config: ProcessingConfig) {
   const processor = new OpenAPIProcessor(config);
   await processor.process();
@@ -430,46 +564,17 @@ async function processAlgorandSpec(config: ProcessingConfig) {
 // Example usage
 async function main() {
   try {
-    // Get the latest stable tag
-    const stableTag = await getLatestStableTag();
-
-    // Default configuration with standard Algorand transformations
-    const config: ProcessingConfig = {
-      sourceUrl: `https://raw.githubusercontent.com/algorand/go-algorand/${stableTag}/daemon/algod/api/algod.oas2.json`,
-      outputPath: join(process.cwd(), "specs", "algod.oas3.json"),
-      vendorExtensionTransforms: [
-        {
-          sourceProperty: "x-algorand-format",
-          sourceValue: "uint64",
-          targetProperty: "x-algokit-bigint",
-          targetValue: true,
-          removeSource: true,
-        },
-        {
-          sourceProperty: "format",
-          sourceValue: "uint64",
-          targetProperty: "x-algokit-bigint",
-          targetValue: true,
-          removeSource: false,
-        },
-        {
-          sourceProperty: "x-go-type",
-          sourceValue: "uint64",
-          targetProperty: "x-algokit-bigint",
-          targetValue: true,
-          removeSource: true,
-        },
-        {
-          sourceProperty: "x-algorand-format",
-          sourceValue: "SignedTransaction",
-          targetProperty: "x-algokit-signed-txn",
-          targetValue: true,
-          removeSource: true,
-        },
-      ],
-    };
-
-    await processAlgorandSpec(config);
+    const args = process.argv.slice(2);
+    
+    // Support for individual spec processing or both
+    if (args.includes("--algod-only")) {
+      await processAlgodSpec();
+    } else if (args.includes("--indexer-only")) {
+      await processIndexerSpec();
+    } else {
+      // Process both by default
+      await processAlgorandSpecs();
+    }
   } catch (error) {
     console.error("❌ Fatal error:", error instanceof Error ? error.message : error);
     process.exit(1);

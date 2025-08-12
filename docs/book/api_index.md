@@ -14,6 +14,16 @@ Includes transaction types, serialization, and cryptographic operations.
 Foreign Function Interface bindings for algokit_transact, enabling usage from
 Python, Swift, JavaScript, and other languages.
 
+### [algod_client](./api/algod_client/index.html)
+
+HTTP client library for interacting with Algorand's algod API. Provides complete
+coverage of all algod endpoints with type-safe request/response handling.
+
+### [indexer_client](./api/indexer_client/index.html)
+
+HTTP client library for interacting with Algorand's indexer API. Enables efficient
+querying of blockchain data including accounts, transactions, assets, and applications.
+
 ### [ffi_macros](./api/ffi_macros/index.html)
 
 Procedural macros for generating Foreign Function Interface code.

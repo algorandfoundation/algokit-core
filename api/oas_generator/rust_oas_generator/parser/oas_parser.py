@@ -174,14 +174,18 @@ def rust_type_from_openapi(
     return _get_openapi_type_mapping(schema_type, schema_format)
 
 
-def detect_msgpack_field(prop_data: dict[str, Any]) -> bool:
-    """Detect if a property should use msgpack/base64 encoding.
+def detect_binary_field(prop_data: dict[str, Any]) -> bool:
+    """Detect if a property contains binary data that needs base64 decoding.
+
+    This function identifies fields that contain binary data (which could be
+    raw bytes, cryptographic keys, program bytecode, or MessagePack data)
+    that is transmitted as base64-encoded strings in JSON APIs.
 
     Args:
         prop_data: The property data dictionary.
 
     Returns:
-        True if the property should use msgpack encoding.
+        True if the property contains binary data that's base64-encoded in JSON.
     """
     # Check format
     if prop_data.get("format") == "byte":
@@ -277,7 +281,7 @@ def rust_type_with_msgpack(
     Returns:
         Rust type string, using Vec<u8> for msgpack fields.
     """
-    return "Vec<u8>" if detect_msgpack_field(schema) else rust_type_from_openapi(schema, schemas, visited)
+    return "Vec<u8>" if detect_binary_field(schema) else rust_type_from_openapi(schema, schemas, visited)
 
 
 @dataclass
@@ -308,6 +312,11 @@ class Parameter:
     def is_enum_parameter(self) -> bool:
         """Check if this parameter should use an enum type."""
         return bool(self.enum_values)
+
+    @property
+    def is_array(self) -> bool:
+        """Check if this parameter is an array type."""
+        return self.rust_type.startswith("Vec<")
 
     @property
     def effective_rust_type(self) -> str:
@@ -360,7 +369,7 @@ class Property:
     rust_type: str
     required: bool
     description: str | None = None
-    is_base64_encoded: bool = False
+    is_base64_encoded: bool = False  # True if field contains binary data encoded as base64
     vendor_extensions: list[tuple[str, Any]] = field(default_factory=list)
     format: str | None = None
     items: "Property | None" = None
@@ -407,6 +416,11 @@ class Schema:
     has_required_fields: bool = field(init=False)
     implements_algokit_msgpack: bool = field(init=False)
     has_signed_transaction_fields: bool = field(init=False)
+    # For non-object schemas (e.g. top-level arrays) we capture the underlying rust type
+    underlying_rust_type: str | None = None
+    # For string enum schemas
+    enum_values: list[str] = field(default_factory=list)
+    is_string_enum: bool = field(init=False)
 
     def __post_init__(self) -> None:
         # Keep the original struct name without renaming
@@ -418,6 +432,7 @@ class Schema:
         )
         self.has_required_fields = len(self.required_fields) > 0
         self.has_signed_transaction_fields = any(prop.is_signed_transaction for prop in self.properties)
+        self.is_string_enum = self.schema_type == "string" and len(self.enum_values) > 0
 
 
 @dataclass
@@ -848,53 +863,16 @@ class OASParser:
         properties_data = schema_data.get("properties", {})
         required_fields = schema_data.get("required", [])
 
-        # Extract vendor extensions
-        vendor_extensions = {}
-        for key, value in schema_data.items():
-            if key.startswith("x-"):
-                vendor_extensions[key] = value
+        vendor_extensions = self._extract_vendor_extensions(schema_data)
+        enum_values = self._extract_enum_values(schema_type, schema_data)
 
+        underlying_rust_type = None
         properties = []
-        for prop_name, prop_data in properties_data.items():
-            rust_type = rust_type_from_openapi(prop_data, self.schemas, set())
-            is_base64_encoded = detect_msgpack_field(prop_data)
 
-            # Extract vendor extensions for this property
-            prop_vendor_extensions = []
-            for key, value in prop_data.items():
-                if key.startswith("x-"):
-                    prop_vendor_extensions.append((key, value))
-
-            # Handle array items with vendor extensions
-            items_property = None
-            if prop_data.get("type") == "array" and "items" in prop_data:
-                items_data = prop_data["items"]
-                items_vendor_extensions = []
-                for key, value in items_data.items():
-                    if key.startswith("x-"):
-                        items_vendor_extensions.append((key, value))
-
-                items_property = Property(
-                    name=f"{prop_name}_item",
-                    rust_type=rust_type_from_openapi(items_data, self.schemas, set()),
-                    required=False,
-                    description=items_data.get("description"),
-                    is_base64_encoded=detect_msgpack_field(items_data),
-                    vendor_extensions=items_vendor_extensions,
-                    format=items_data.get("format"),
-                )
-
-            prop = Property(
-                name=prop_name,
-                rust_type=rust_type,
-                required=prop_name in required_fields,
-                description=prop_data.get("description"),
-                is_base64_encoded=is_base64_encoded,
-                vendor_extensions=prop_vendor_extensions,
-                format=prop_data.get("format"),
-                items=items_property,
-            )
-            properties.append(prop)
+        if schema_type == "array":
+            underlying_rust_type = self._handle_array_schema(schema_data)
+        else:
+            properties = self._parse_properties(properties_data, required_fields)
 
         return Schema(
             name=name,
@@ -903,7 +881,79 @@ class OASParser:
             properties=properties,
             required_fields=required_fields,
             vendor_extensions=vendor_extensions,
+            underlying_rust_type=underlying_rust_type,
+            enum_values=enum_values,
         )
+
+    def _extract_vendor_extensions(self, schema_data: dict[str, Any]) -> dict[str, Any]:
+        """Extract vendor extensions from schema data."""
+        vendor_extensions = {}
+        for key, value in schema_data.items():
+            if key.startswith("x-"):
+                vendor_extensions[key] = value
+        return vendor_extensions
+
+    def _extract_enum_values(self, schema_type: str, schema_data: dict[str, Any]) -> list[str]:
+        """Extract enum values if this is a string enum."""
+        if schema_type == "string" and "enum" in schema_data:
+            return list(schema_data["enum"])
+        return []
+
+    def _handle_array_schema(self, schema_data: dict[str, Any]) -> str:
+        """Handle array schema and return underlying rust type."""
+        items = schema_data.get("items", {})
+        return f"Vec<{rust_type_from_openapi(items, self.schemas, set())}>"
+
+    def _parse_properties(self, properties_data: dict[str, Any], required_fields: list[str]) -> list[Property]:
+        """Parse properties from properties data."""
+        properties = []
+        for prop_name, prop_data in properties_data.items():
+            prop = self._create_property(prop_name, prop_data, required_fields)
+            properties.append(prop)
+        return properties
+
+    def _create_property(self, prop_name: str, prop_data: dict[str, Any], required_fields: list[str]) -> Property:
+        """Create a Property object from property data."""
+        rust_type = rust_type_from_openapi(prop_data, self.schemas, set())
+        is_binary_field = detect_binary_field(prop_data)
+        prop_vendor_extensions = self._extract_property_vendor_extensions(prop_data)
+        items_property = self._create_items_property_if_needed(prop_name, prop_data)
+
+        return Property(
+            name=prop_name,
+            rust_type=rust_type,
+            required=prop_name in required_fields,
+            description=prop_data.get("description"),
+            is_base64_encoded=is_binary_field,
+            vendor_extensions=prop_vendor_extensions,
+            format=prop_data.get("format"),
+            items=items_property,
+        )
+
+    def _extract_property_vendor_extensions(self, prop_data: dict[str, Any]) -> list[tuple[str, Any]]:
+        """Extract vendor extensions for a property."""
+        prop_vendor_extensions = []
+        for key, value in prop_data.items():
+            if key.startswith("x-"):
+                prop_vendor_extensions.append((key, value))
+        return prop_vendor_extensions
+
+    def _create_items_property_if_needed(self, prop_name: str, prop_data: dict[str, Any]) -> Property | None:
+        """Create items property for array properties if needed."""
+        if prop_data.get("type") == "array" and "items" in prop_data:
+            items_data = prop_data["items"]
+            items_vendor_extensions = self._extract_property_vendor_extensions(items_data)
+
+            return Property(
+                name=f"{prop_name}_item",
+                rust_type=rust_type_from_openapi(items_data, self.schemas, set()),
+                required=False,
+                description=items_data.get("description"),
+                is_base64_encoded=detect_binary_field(items_data),
+                vendor_extensions=items_vendor_extensions,
+                format=items_data.get("format"),
+            )
+        return None
 
     def _extract_content_types(self) -> list[str]:
         """Extract all content types used in the API."""

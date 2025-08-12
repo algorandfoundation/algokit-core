@@ -256,6 +256,41 @@ def http_method_enum(method: str) -> str:
     return method_mapping.get(method.upper(), f"HttpMethod::{method.title()}")
 
 
+def detect_client_type(spec_title: str) -> str:
+    """Detect the client type from OpenAPI spec title.
+
+    Args:
+        spec_title: The title field from the OpenAPI spec info section.
+
+    Returns:
+        The appropriate client type string (e.g., "Algod", "Indexer").
+
+    Examples:
+        >>> detect_client_type("Algod REST API.")
+        'Algod'
+        >>> detect_client_type("Indexer")
+        'Indexer'
+        >>> detect_client_type("Unknown API")
+        'Api'
+    """
+    if not spec_title:
+        return "Api"
+
+    title_lower = spec_title.lower().strip()
+
+    # Check for known API types
+    if "algod" in title_lower:
+        return "Algod"
+    if "indexer" in title_lower:
+        return "Indexer"
+
+    # Fallback: extract first word and capitalize
+    first_word = spec_title.split()[0] if spec_title.split() else "Api"
+    # Clean up common suffixes/prefixes
+    clean_word = first_word.strip(".,!?")
+    return clean_word.title() if clean_word else "Api"
+
+
 # Register filters that will be available in Jinja templates
 FILTERS = {
     "rust_doc_comment": rust_doc_comment,
@@ -267,4 +302,5 @@ FILTERS = {
     "is_valid_rust_identifier": is_valid_rust_identifier,
     "sanitize_rust_string_literal": sanitize_rust_string_literal,
     "http_method_enum": http_method_enum,
+    "detect_client_type": detect_client_type,
 }

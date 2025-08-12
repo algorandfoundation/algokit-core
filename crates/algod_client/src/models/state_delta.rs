@@ -12,27 +12,7 @@ use crate::models;
 use algokit_transact::{AlgorandMsgpack, SignedTransaction as AlgokitSignedTransaction};
 use serde::{Deserialize, Serialize};
 
+use crate::models::EvalDeltaKeyValue;
+
 /// Application state delta.
-#[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
-pub struct StateDelta {}
-
-impl AlgorandMsgpack for StateDelta {
-    const PREFIX: &'static [u8] = b""; // Adjust prefix as needed for your specific type
-}
-
-impl StateDelta {
-    /// Default constructor for StateDelta
-    pub fn new() -> StateDelta {
-        StateDelta::default()
-    }
-
-    /// Encode this struct to msgpack bytes using AlgorandMsgpack trait
-    pub fn to_msgpack(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-        Ok(self.encode()?)
-    }
-
-    /// Decode msgpack bytes to this struct using AlgorandMsgpack trait
-    pub fn from_msgpack(bytes: &[u8]) -> Result<Self, Box<dyn std::error::Error>> {
-        Ok(Self::decode(bytes)?)
-    }
-}
+pub type StateDelta = Vec<EvalDeltaKeyValue>;

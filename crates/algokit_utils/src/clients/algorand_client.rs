@@ -26,18 +26,21 @@ impl AlgorandClient {
     pub fn default_localnet() -> Self {
         Self::new(AlgoConfig {
             algod_config: ClientManager::get_default_localnet_config(AlgorandService::Algod),
+            indexer_config: ClientManager::get_default_localnet_config(AlgorandService::Indexer),
         })
     }
 
     pub fn testnet() -> Self {
         Self::new(AlgoConfig {
             algod_config: ClientManager::get_algonode_config("testnet", AlgorandService::Algod),
+            indexer_config: ClientManager::get_algonode_config("testnet", AlgorandService::Indexer),
         })
     }
 
     pub fn mainnet() -> Self {
         Self::new(AlgoConfig {
             algod_config: ClientManager::get_algonode_config("mainnet", AlgorandService::Algod),
+            indexer_config: ClientManager::get_algonode_config("mainnet", AlgorandService::Indexer),
         })
     }
 

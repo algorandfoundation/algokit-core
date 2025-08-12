@@ -44,3 +44,27 @@ repos:
         types: [rust]
         require_serial: true
         pass_filenames: false
+      - id: api-format
+        name: api-format
+        description: "Format API OAS generator Python code"
+        entry: cargo api format-oas
+        language: system
+        files: ^api/
+        require_serial: true
+        pass_filenames: false
+      - id: api-lint
+        name: api-lint
+        description: "Run linting and type-checking for API OAS generator"
+        entry: cargo api lint-oas
+        language: system
+        files: ^api/
+        require_serial: true
+        pass_filenames: false
+      - id: api-test
+        name: api-test
+        description: "Run tests for API OAS generator"
+        entry: cargo api test-oas
+        language: system
+        files: ^api/
+        require_serial: true
+        pass_filenames: false

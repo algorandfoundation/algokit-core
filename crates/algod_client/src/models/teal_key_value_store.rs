@@ -12,27 +12,7 @@ use crate::models;
 use algokit_transact::{AlgorandMsgpack, SignedTransaction as AlgokitSignedTransaction};
 use serde::{Deserialize, Serialize};
 
+use crate::models::TealKeyValue;
+
 /// Represents a key-value store for use in an application.
-#[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
-pub struct TealKeyValueStore {}
-
-impl AlgorandMsgpack for TealKeyValueStore {
-    const PREFIX: &'static [u8] = b""; // Adjust prefix as needed for your specific type
-}
-
-impl TealKeyValueStore {
-    /// Default constructor for TealKeyValueStore
-    pub fn new() -> TealKeyValueStore {
-        TealKeyValueStore::default()
-    }
-
-    /// Encode this struct to msgpack bytes using AlgorandMsgpack trait
-    pub fn to_msgpack(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-        Ok(self.encode()?)
-    }
-
-    /// Decode msgpack bytes to this struct using AlgorandMsgpack trait
-    pub fn from_msgpack(bytes: &[u8]) -> Result<Self, Box<dyn std::error::Error>> {
-        Ok(Self::decode(bytes)?)
-    }
-}
+pub type TealKeyValueStore = Vec<TealKeyValue>;
