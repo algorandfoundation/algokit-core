@@ -1,7 +1,6 @@
 use crate::common::init_test_logging;
-use algokit_utils::testing::*;
-use algokit_utils::transactions::composer::{AssetOptInParams, AssetTransferParams};
 use algokit_utils::{AssetCreateParams, CommonParams};
+use algokit_utils::{AssetOptInParams, AssetTransferParams, testing::*};
 use std::sync::Arc;
 
 #[tokio::test]

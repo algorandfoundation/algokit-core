@@ -1,4 +1,4 @@
-use algokit_transact::Address;
+use algokit_transact::{Address, AssetConfigTransactionFields, Transaction, TransactionHeader};
 
 use super::common::CommonParams;
 
@@ -151,4 +151,61 @@ pub struct AssetDestroyParams {
 
     /// ID of the existing asset to be destroyed.
     pub asset_id: u64,
+}
+
+pub fn build_asset_create(params: &AssetCreateParams, header: TransactionHeader) -> Transaction {
+    Transaction::AssetConfig(AssetConfigTransactionFields {
+        header,
+        asset_id: 0,
+        total: Some(params.total),
+        decimals: params.decimals,
+        default_frozen: params.default_frozen,
+        asset_name: params.asset_name.clone(),
+        unit_name: params.unit_name.clone(),
+        url: params.url.clone(),
+        metadata_hash: params.metadata_hash,
+        manager: params.manager.clone(),
+        reserve: params.reserve.clone(),
+        freeze: params.freeze.clone(),
+        clawback: params.clawback.clone(),
+    })
+}
+
+pub fn build_asset_reconfigure(
+    params: &AssetReconfigureParams,
+    header: TransactionHeader,
+) -> Transaction {
+    Transaction::AssetConfig(AssetConfigTransactionFields {
+        header,
+        asset_id: params.asset_id,
+        total: None,
+        decimals: None,
+        default_frozen: None,
+        asset_name: None,
+        unit_name: None,
+        url: None,
+        metadata_hash: None,
+        manager: params.manager.clone(),
+        reserve: params.reserve.clone(),
+        freeze: params.freeze.clone(),
+        clawback: params.clawback.clone(),
+    })
+}
+
+pub fn build_asset_destroy(params: &AssetDestroyParams, header: TransactionHeader) -> Transaction {
+    Transaction::AssetConfig(AssetConfigTransactionFields {
+        header,
+        asset_id: params.asset_id,
+        total: None,
+        decimals: None,
+        default_frozen: None,
+        asset_name: None,
+        unit_name: None,
+        url: None,
+        metadata_hash: None,
+        manager: None,
+        reserve: None,
+        freeze: None,
+        clawback: None,
+    })
 }

@@ -1,4 +1,4 @@
-use algokit_transact::Address;
+use algokit_transact::{Address, AssetFreezeTransactionFields, Transaction, TransactionHeader};
 
 use super::common::CommonParams;
 
@@ -26,4 +26,25 @@ pub struct AssetUnfreezeParams {
 
     /// The target account whose asset holdings will be unfrozen.
     pub target_address: Address,
+}
+
+pub fn build_asset_freeze(params: &AssetFreezeParams, header: TransactionHeader) -> Transaction {
+    Transaction::AssetFreeze(AssetFreezeTransactionFields {
+        header,
+        asset_id: params.asset_id,
+        freeze_target: params.target_address.clone(),
+        frozen: true,
+    })
+}
+
+pub fn build_asset_unfreeze(
+    params: &AssetUnfreezeParams,
+    header: TransactionHeader,
+) -> Transaction {
+    Transaction::AssetFreeze(AssetFreezeTransactionFields {
+        header,
+        asset_id: params.asset_id,
+        freeze_target: params.target_address.clone(),
+        frozen: false,
+    })
 }

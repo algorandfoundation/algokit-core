@@ -72,6 +72,17 @@ pub enum ABIReferenceType {
     Asset,
 }
 
+/// Represents a reference value that can be used as an ABI method argument.
+#[derive(Debug, Clone)]
+pub enum ABIReferenceValue {
+    /// The address to an Algorand account.
+    Account(String),
+    /// An Algorand asset ID.
+    Asset(u64),
+    /// An Algorand application ID.
+    Application(u64),
+}
+
 impl FromStr for ABIReferenceType {
     type Err = ABIError;
 
@@ -148,7 +159,7 @@ impl FromStr for ABIMethodArgType {
 }
 
 /// Represents a parsed ABI method, including its name, arguments, and return type.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct ABIMethod {
     /// The name of the method.
     pub name: String,
