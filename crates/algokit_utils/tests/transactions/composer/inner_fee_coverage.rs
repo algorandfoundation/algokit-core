@@ -5,7 +5,7 @@ use algokit_transact::{
     ALGORAND_PUBLIC_KEY_BYTE_LENGTH, Address, OnApplicationComplete, TransactionId,
 };
 use algokit_utils::transactions::composer::SendParams;
-use algokit_utils::{ApplicationCallParams, ApplicationCreateParams, PaymentParams, testing::*};
+use algokit_utils::{AppCallParams, AppCreateParams, PaymentParams, testing::*};
 use algokit_utils::{CommonParams, Composer};
 use base64::{Engine, prelude::BASE64_STANDARD};
 use num_bigint::BigUint;
@@ -83,7 +83,7 @@ async fn test_throws_when_no_max_fee_supplied(
     let app_id = app_ids[0];
     let mut composer = fixture.context()?.composer.clone();
 
-    let params = ApplicationCallParams {
+    let params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             ..Default::default()
@@ -97,7 +97,7 @@ async fn test_throws_when_no_max_fee_supplied(
         box_references: None,
     };
 
-    composer.add_application_call(params)?;
+    composer.add_app_call(params)?;
     let result = composer.send(COVER_FEES_SEND_PARAMS).await;
 
     assert!(
@@ -133,7 +133,7 @@ async fn test_throws_when_inner_fees_not_covered_and_fee_coverage_disabled(
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
 
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0]);
-    let txn_params = ApplicationCallParams {
+    let txn_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             max_fee: Some(7000),
@@ -156,7 +156,7 @@ async fn test_throws_when_inner_fees_not_covered_and_fee_coverage_disabled(
         asset_references: None,
         box_references: None,
     };
-    composer.add_application_call(txn_params)?;
+    composer.add_app_call(txn_params)?;
 
     let result = composer.send(None).await;
 
@@ -195,7 +195,7 @@ async fn test_does_not_alter_fee_when_no_inners(
 
     let expected_fee = 1000u64;
 
-    let txn_params = ApplicationCallParams {
+    let txn_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             max_fee: Some(2000),
@@ -209,7 +209,7 @@ async fn test_does_not_alter_fee_when_no_inners(
         asset_references: None,
         box_references: None,
     };
-    composer.add_application_call(txn_params.clone())?;
+    composer.add_app_call(txn_params.clone())?;
 
     let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
 
@@ -253,7 +253,7 @@ async fn test_alters_fee_no_inner_fees_covered(
 
     // Create an application call transaction that has no inner fees covered
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0]);
-    let txn_params = ApplicationCallParams {
+    let txn_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             max_fee: Some(expected_fee),
@@ -276,7 +276,7 @@ async fn test_alters_fee_no_inner_fees_covered(
         asset_references: None,
         box_references: None,
     };
-    composer.add_application_call(txn_params.clone())?;
+    composer.add_app_call(txn_params.clone())?;
 
     let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
 
@@ -321,7 +321,7 @@ async fn test_alters_fee_all_inner_fees_covered(
 
     // Create an application call transaction that has all inner fees covered
     let fees_tuple = create_fees_tuple(1000, 1000, 1000, 1000, vec![1000, 1000]);
-    let txn_params = ApplicationCallParams {
+    let txn_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             max_fee: Some(expected_fee),
@@ -344,7 +344,7 @@ async fn test_alters_fee_all_inner_fees_covered(
         asset_references: None,
         box_references: None,
     };
-    composer.add_application_call(txn_params.clone())?;
+    composer.add_app_call(txn_params.clone())?;
 
     let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
 
@@ -383,7 +383,7 @@ async fn test_alters_fee_some_inner_fees_covered(
     // This tuple represents some inner fees being partially covered
     let fees_tuple = create_fees_tuple(1000, 0, 200, 0, vec![500, 0]);
 
-    let txn_params = ApplicationCallParams {
+    let txn_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             max_fee: Some(expected_fee),
@@ -406,7 +406,7 @@ async fn test_alters_fee_some_inner_fees_covered(
         asset_references: None,
         box_references: None,
     };
-    composer.add_application_call(txn_params.clone())?;
+    composer.add_app_call(txn_params.clone())?;
 
     let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
 
@@ -445,7 +445,7 @@ async fn test_alters_fee_some_inner_fees_surplus(
     // Create an application call transaction that has some inner fees with surplus
     let fees_tuple = create_fees_tuple(0, 1000, 5000, 0, vec![0, 50]);
 
-    let txn_params = ApplicationCallParams {
+    let txn_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             max_fee: Some(expected_fee),
@@ -468,7 +468,7 @@ async fn test_alters_fee_some_inner_fees_surplus(
         asset_references: None,
         box_references: None,
     };
-    composer.add_application_call(txn_params.clone())?;
+    composer.add_app_call(txn_params.clone())?;
 
     let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
 
@@ -508,7 +508,7 @@ async fn test_alters_fee_expensive_abi_method_calls(
         .uint64
         .encode(&ABIValue::Uint(BigUint::from(6200u64)))?;
 
-    let params = ApplicationCallParams {
+    let params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             max_fee: Some(expected_fee + 2_000),
@@ -522,7 +522,7 @@ async fn test_alters_fee_expensive_abi_method_calls(
         asset_references: None,
         box_references: None,
     };
-    composer.add_application_call(params.clone())?;
+    composer.add_app_call(params.clone())?;
 
     let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
 
@@ -560,7 +560,7 @@ async fn test_throws_when_max_fee_too_small(
 
     // Create an application call transaction that has no inner fees covered
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0]);
-    let params = ApplicationCallParams {
+    let params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             max_fee: Some(expected_fee - 1),
@@ -583,7 +583,7 @@ async fn test_throws_when_max_fee_too_small(
         asset_references: None,
         box_references: None,
     };
-    composer.add_application_call(params.clone())?;
+    composer.add_app_call(params.clone())?;
 
     let result = composer.send(COVER_FEES_SEND_PARAMS).await;
 
@@ -622,7 +622,7 @@ async fn test_throws_when_static_fee_too_small(
 
     // Create an application call transaction that has no inner fees covered
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0]);
-    let params = ApplicationCallParams {
+    let params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             static_fee: Some(expected_fee - 1),
@@ -645,7 +645,7 @@ async fn test_throws_when_static_fee_too_small(
         asset_references: None,
         box_references: None,
     };
-    composer.add_application_call(params.clone())?;
+    composer.add_app_call(params.clone())?;
 
     let result = composer.send(COVER_FEES_SEND_PARAMS).await;
 
@@ -684,7 +684,7 @@ async fn test_does_not_alter_static_fee_with_surplus(
 
     // Create an application call transaction that has a static fee with surplus
     let fees_tuple = create_fees_tuple(1000, 0, 200, 0, vec![500, 0]);
-    let app_call_params = ApplicationCallParams {
+    let app_call_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             static_fee: Some(expected_fee), // Static fee with surplus
@@ -708,7 +708,7 @@ async fn test_does_not_alter_static_fee_with_surplus(
         box_references: None,
     };
 
-    composer.add_application_call(app_call_params)?;
+    composer.add_app_call(app_call_params)?;
 
     let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
 
@@ -744,7 +744,7 @@ async fn test_alters_fee_multiple_app_calls_in_group(
     // Create an application call transaction that has varying inner fees
     let txn_1_expected_fee = 5800u64;
     let txn_1_fee_tuple = create_fees_tuple(0, 1000, 0, 0, vec![200, 0]);
-    let txn_1_params = ApplicationCallParams {
+    let txn_1_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             static_fee: Some(txn_1_expected_fee),
@@ -768,12 +768,12 @@ async fn test_alters_fee_multiple_app_calls_in_group(
         asset_references: None,
         box_references: None,
     };
-    composer.add_application_call(txn_1_params.clone())?;
+    composer.add_app_call(txn_1_params.clone())?;
 
     // Create an application call transaction that has different varying inner fees
     let txn_2_expected_fee = 6000u64;
     let txn_2_fee_tuple = create_fees_tuple(1000, 0, 0, 0, vec![0, 0]);
-    let txn_2_params = ApplicationCallParams {
+    let txn_2_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             max_fee: Some(txn_2_expected_fee),
@@ -797,7 +797,7 @@ async fn test_alters_fee_multiple_app_calls_in_group(
         asset_references: None,
         box_references: None,
     };
-    composer.add_application_call(txn_2_params.clone())?;
+    composer.add_app_call(txn_2_params.clone())?;
 
     let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
 
@@ -849,7 +849,7 @@ async fn test_does_not_alter_fee_when_group_covers_inner_fees(
 
     // Create an application call transaction that has inner fees covered by the above payment
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0]);
-    let txn_2_params = ApplicationCallParams {
+    let txn_2_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             max_fee: Some(txn_1_expected_fee),
@@ -872,7 +872,7 @@ async fn test_does_not_alter_fee_when_group_covers_inner_fees(
         asset_references: None,
         box_references: None,
     };
-    composer.add_application_call(txn_2_params)?;
+    composer.add_app_call(txn_2_params)?;
 
     let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
 
@@ -922,7 +922,7 @@ async fn test_alters_fee_nested_abi_method_call(
 
     // Create an application call transaction that will be used as a nested argument
     let fees_tuple = create_fees_tuple(0, 0, 2000, 0, vec![0, 0]);
-    let txn_2_params = ApplicationCallParams {
+    let txn_2_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             max_fee: Some(6000),
@@ -945,10 +945,10 @@ async fn test_alters_fee_nested_abi_method_call(
         asset_references: None,
         box_references: None,
     };
-    composer.add_application_call(txn_2_params.clone())?;
+    composer.add_app_call(txn_2_params.clone())?;
 
     // Create the application call that will use the nested transaction
-    let txn_3_params = ApplicationCallParams {
+    let txn_3_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             static_fee: Some(expected_fee),
@@ -962,7 +962,7 @@ async fn test_alters_fee_nested_abi_method_call(
         asset_references: None,
         box_references: None,
     };
-    composer.add_application_call(txn_3_params.clone())?;
+    composer.add_app_call(txn_3_params.clone())?;
 
     let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
 
@@ -1012,7 +1012,7 @@ async fn test_throws_when_nested_max_fee_below_calculated(
     // This transaction has an insufficient max fee
     let fees_tuple = create_fees_tuple(0, 0, 2000, 0, vec![0, 0]);
     let txn_2_max_fee = 2000; // Too low for the calculated fee
-    let txn_2_params = ApplicationCallParams {
+    let txn_2_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             max_fee: Some(txn_2_max_fee),
@@ -1035,10 +1035,10 @@ async fn test_throws_when_nested_max_fee_below_calculated(
         asset_references: None,
         box_references: None,
     };
-    composer.add_application_call(txn_2_params)?;
+    composer.add_app_call(txn_2_params)?;
 
     // Create an application call transaction that will be used as a nested argument
-    let txn_3_params = ApplicationCallParams {
+    let txn_3_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             max_fee: Some(10_000),
@@ -1052,7 +1052,7 @@ async fn test_throws_when_nested_max_fee_below_calculated(
         asset_references: None,
         box_references: None,
     };
-    composer.add_application_call(txn_3_params)?;
+    composer.add_app_call(txn_3_params)?;
 
     let result = composer.send(COVER_FEES_SEND_PARAMS).await;
 
@@ -1092,7 +1092,7 @@ async fn test_alters_fee_allocating_surplus_to_most_constrained(
 
     // Create an application call transaction with inners that have no fees
     let fees_tuple_1 = create_fees_tuple(0, 0, 0, 0, vec![0, 0]);
-    let txn_1_params = ApplicationCallParams {
+    let txn_1_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             max_fee: Some(2000),
@@ -1115,7 +1115,7 @@ async fn test_alters_fee_allocating_surplus_to_most_constrained(
         asset_references: None,
         box_references: None,
     };
-    composer.add_application_call(txn_1_params)?;
+    composer.add_app_call(txn_1_params)?;
 
     // Create a payment transaction with large static fee
     let txn_2_params = PaymentParams {
@@ -1177,7 +1177,7 @@ async fn test_alters_fee_large_surplus_pooling_to_lower_siblings(
 
     // Create an application call transaction that has a large inner fee surplus pooling to lower siblings
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0, 20_000, 0, 0, 0]);
-    let txn_params = ApplicationCallParams {
+    let txn_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             max_fee: Some(expected_fee),
@@ -1200,7 +1200,7 @@ async fn test_alters_fee_large_surplus_pooling_to_lower_siblings(
         asset_references: None,
         box_references: None,
     };
-    composer.add_application_call(txn_params.clone())?;
+    composer.add_app_call(txn_params.clone())?;
 
     let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
 
@@ -1237,7 +1237,7 @@ async fn test_alters_fee_surplus_pooling_to_some_siblings(
 
     // Create an application call transaction that has a inner fee surplus pooling to some lower siblings
     let fees_tuple = create_fees_tuple(0, 0, 2200, 0, vec![0, 0, 2500, 0, 0, 0]);
-    let txn_params = ApplicationCallParams {
+    let txn_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             max_fee: Some(expected_fee),
@@ -1260,7 +1260,7 @@ async fn test_alters_fee_surplus_pooling_to_some_siblings(
         asset_references: None,
         box_references: None,
     };
-    composer.add_application_call(txn_params.clone())?;
+    composer.add_app_call(txn_params.clone())?;
 
     let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
 
@@ -1297,7 +1297,7 @@ async fn test_alters_fee_large_surplus_no_pooling(
 
     // Create an application call transaction that has a large inner fee surplus with no pooling
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0, 0, 0, 0, 20_000]);
-    let txn_params = ApplicationCallParams {
+    let txn_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             max_fee: Some(expected_fee),
@@ -1320,7 +1320,7 @@ async fn test_alters_fee_large_surplus_no_pooling(
         asset_references: None,
         box_references: None,
     };
-    composer.add_application_call(txn_params.clone())?;
+    composer.add_app_call(txn_params.clone())?;
 
     let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
 
@@ -1378,7 +1378,7 @@ async fn test_alters_fee_multiple_surplus_poolings(
             ABIValue::Uint(BigUint::from(0u64)),
         ]),
     ]);
-    let txn_params = ApplicationCallParams {
+    let txn_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             max_fee: Some(expected_fee),
@@ -1401,7 +1401,7 @@ async fn test_alters_fee_multiple_surplus_poolings(
         asset_references: None,
         box_references: None,
     };
-    composer.add_application_call(txn_params.clone())?;
+    composer.add_app_call(txn_params.clone())?;
 
     let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
 
@@ -1437,7 +1437,7 @@ async fn test_throws_when_max_fee_below_calculated(
 
     // Create an application call transaction that has no inner fees covered
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0]);
-    let txn_1_params = ApplicationCallParams {
+    let txn_1_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             max_fee: Some(1200),
@@ -1460,11 +1460,11 @@ async fn test_throws_when_max_fee_below_calculated(
         asset_references: None,
         box_references: None,
     };
-    composer.add_application_call(txn_1_params)?;
+    composer.add_app_call(txn_1_params)?;
 
     // Create an application call transaction that has large max fee,
     // without it the simulate call to get the execution info would fail
-    let txn_2_params = ApplicationCallParams {
+    let txn_2_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             max_fee: Some(10_000),
@@ -1478,7 +1478,7 @@ async fn test_throws_when_max_fee_below_calculated(
         asset_references: None,
         box_references: None,
     };
-    composer.add_application_call(txn_2_params)?;
+    composer.add_app_call(txn_2_params)?;
 
     let result = composer.send(COVER_FEES_SEND_PARAMS).await;
 
@@ -1516,7 +1516,7 @@ async fn test_throws_when_static_fee_below_calculated(
 
     // Create an application call transaction that has no inner fees covered
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0]);
-    let params = ApplicationCallParams {
+    let params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             static_fee: Some(5000),
@@ -1539,11 +1539,11 @@ async fn test_throws_when_static_fee_below_calculated(
         asset_references: None,
         box_references: None,
     };
-    composer.add_application_call(params)?;
+    composer.add_app_call(params)?;
 
     // Create an application call transaction that has large max fee,
     // without it the simulate call to get the execution info would fail
-    let txn_2_params = ApplicationCallParams {
+    let txn_2_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             max_fee: Some(10_000),
@@ -1557,7 +1557,7 @@ async fn test_throws_when_static_fee_below_calculated(
         asset_references: None,
         box_references: None,
     };
-    composer.add_application_call(txn_2_params)?;
+    composer.add_app_call(txn_2_params)?;
 
     let result = composer.send(COVER_FEES_SEND_PARAMS).await;
 
@@ -1595,7 +1595,7 @@ async fn test_throws_when_static_fee_too_low_for_non_app_call(
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0]);
 
     // Create an application call transaction with both high static and max fee
-    let txn_1_params = ApplicationCallParams {
+    let txn_1_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             static_fee: Some(13_000),
@@ -1619,10 +1619,10 @@ async fn test_throws_when_static_fee_too_low_for_non_app_call(
         asset_references: None,
         box_references: None,
     };
-    composer.add_application_call(txn_1_params)?;
+    composer.add_app_call(txn_1_params)?;
 
     // Create an application call transaction with low static
-    let txn_2_params = ApplicationCallParams {
+    let txn_2_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             static_fee: Some(1000),
@@ -1645,7 +1645,7 @@ async fn test_throws_when_static_fee_too_low_for_non_app_call(
         asset_references: None,
         box_references: None,
     };
-    composer.add_application_call(txn_2_params)?;
+    composer.add_app_call(txn_2_params)?;
 
     // Payment transaction with insufficient static fee
     let txn_3_params = PaymentParams {
@@ -1702,7 +1702,7 @@ async fn test_readonly_fixed_opcode_budget(
     let op_budget_encoded = abi_types
         .uint64
         .encode(&ABIValue::Uint(BigUint::from(6200u64)))?; // This would normally require op-ups via inner transactions
-    let txn_params = ApplicationCallParams {
+    let txn_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             ..Default::default()
@@ -1715,7 +1715,7 @@ async fn test_readonly_fixed_opcode_budget(
         asset_references: None,
         box_references: None,
     };
-    composer.add_application_call(txn_params)?;
+    composer.add_app_call(txn_params)?;
 
     let result = composer
         .send(Some(SendParams {
@@ -1761,7 +1761,7 @@ async fn test_readonly_alters_fee_handling_inners(
     // Because no fees are actually paid with readonly calls, we simply use the max_fee value (if set) and skip any minimum fee calculations.
     // If this method is running in a non readonly context, the minimum fee would be calculated as 5300.
     let fees_tuple = create_fees_tuple(1000, 0, 200, 0, vec![500, 0]);
-    let txn_params = ApplicationCallParams {
+    let txn_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             max_fee: Some(expected_fee),
@@ -1784,7 +1784,7 @@ async fn test_readonly_alters_fee_handling_inners(
         asset_references: None,
         box_references: None,
     };
-    composer.add_application_call(txn_params)?;
+    composer.add_app_call(txn_params)?;
 
     let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
 
@@ -1826,7 +1826,7 @@ async fn test_readonly_throws_when_max_fee_too_small(
 
     // This tuple represents partial inner fee coverage for readonly context
     let fees_tuple = create_fees_tuple(1000, 0, 200, 0, vec![500, 0]);
-    let txn_params = ApplicationCallParams {
+    let txn_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
             max_fee: Some(2000), // Too small for the inner fees
@@ -1849,7 +1849,7 @@ async fn test_readonly_throws_when_max_fee_too_small(
         asset_references: None,
         box_references: None,
     };
-    composer.add_application_call(txn_params)?;
+    composer.add_app_call(txn_params)?;
 
     let result = composer.send(COVER_FEES_SEND_PARAMS).await;
 
@@ -1900,7 +1900,7 @@ struct TealSource {
 }
 
 #[derive(Deserialize)]
-struct ARC56AppSpec {
+struct Arc56AppSpec {
     source: Option<TealSource>,
 }
 
@@ -1916,7 +1916,7 @@ const COVER_FEES_SEND_PARAMS: Option<SendParams> = Some(SendParams {
 
 fn get_inner_fee_teal_programs()
 -> Result<(Vec<u8>, Vec<u8>), Box<dyn std::error::Error + Send + Sync>> {
-    let app_spec: ARC56AppSpec =
+    let app_spec: Arc56AppSpec =
         serde_json::from_str(include_str!("../../contracts/inner_fee/application.json"))?;
     let teal_source = app_spec.source.unwrap();
     let approval_bytes = BASE64_STANDARD.decode(teal_source.approval)?;
@@ -1985,7 +1985,7 @@ async fn deploy_app(
     args: Option<Vec<Vec<u8>>>,
     note: &str,
 ) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
-    let app_create_params = ApplicationCreateParams {
+    let app_create_params = AppCreateParams {
         common_params: CommonParams {
             sender: sender.clone(),
             note: Some(note.as_bytes().to_vec()),
@@ -1999,7 +1999,7 @@ async fn deploy_app(
     };
 
     let mut composer = context.composer.clone();
-    composer.add_application_create(app_create_params)?;
+    composer.add_app_create(app_create_params)?;
 
     let result = composer.send(None).await?;
 
@@ -2041,12 +2041,12 @@ fn get_application_address(app_id: &u64) -> Address {
     Address(address_bytes)
 }
 
-async fn assert_min_fee(mut composer: Composer, params: &ApplicationCallParams, fee: u64) {
+async fn assert_min_fee(mut composer: Composer, params: &AppCallParams, fee: u64) {
     if fee == 1000 {
         return;
     }
 
-    let params = ApplicationCallParams {
+    let params = AppCallParams {
         common_params: CommonParams {
             static_fee: Some(fee - 1),
             ..params.common_params.clone()
@@ -2055,7 +2055,7 @@ async fn assert_min_fee(mut composer: Composer, params: &ApplicationCallParams, 
     };
 
     composer
-        .add_application_call(params)
+        .add_app_call(params)
         .expect("Failed to add application call");
 
     let result = composer

@@ -73,3 +73,10 @@ pub struct CommonParams {
     pub first_valid_round: Option<u64>,
     pub last_valid_round: Option<u64>,
 }
+
+#[derive(Debug, Clone)]
+pub struct TransactionWithSigner {
+    pub transaction: Transaction,
+    #[debug(skip)]
+    pub signer: Arc<dyn TransactionSigner>,
+}

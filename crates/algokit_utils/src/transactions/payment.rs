@@ -1,4 +1,4 @@
-use algokit_transact::Address;
+use algokit_transact::{Address, PaymentTransactionFields, Transaction, TransactionHeader};
 
 use super::common::CommonParams;
 
@@ -25,4 +25,23 @@ pub struct AccountCloseParams {
 
     /// The address to receive the remaining funds.
     pub close_remainder_to: Address,
+}
+
+pub fn build_payment(params: &PaymentParams, header: TransactionHeader) -> Transaction {
+    Transaction::Payment(PaymentTransactionFields {
+        header,
+        receiver: params.receiver.clone(),
+        amount: params.amount,
+        close_remainder_to: None,
+    })
+}
+
+pub fn build_account_close(params: &AccountCloseParams, header: TransactionHeader) -> Transaction {
+    let sender = header.sender.clone();
+    Transaction::Payment(PaymentTransactionFields {
+        header,
+        receiver: sender,
+        amount: 0,
+        close_remainder_to: Some(params.close_remainder_to.clone()),
+    })
 }
