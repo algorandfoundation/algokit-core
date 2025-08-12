@@ -8,7 +8,6 @@ use algokit_utils::transactions::composer::SendParams;
 use algokit_utils::{AppCallParams, AppCreateParams, PaymentParams, testing::*};
 use algokit_utils::{CommonParams, Composer};
 use base64::{Engine, prelude::BASE64_STANDARD};
-use num_bigint::BigUint;
 use rstest::*;
 use serde::Deserialize;
 use std::str::FromStr;
@@ -143,12 +142,8 @@ async fn test_throws_when_inner_fees_not_covered_and_fee_coverage_disabled(
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_2)))?,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_3)))?,
+            abi_types.uint64.encode(&app_id_2.into())?,
+            abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
         account_references: None,
@@ -263,12 +258,8 @@ async fn test_alters_fee_no_inner_fees_covered(
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_2)))?,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_3)))?,
+            abi_types.uint64.encode(&app_id_2.into())?,
+            abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
         account_references: None,
@@ -331,12 +322,8 @@ async fn test_alters_fee_all_inner_fees_covered(
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_2)))?,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_3)))?,
+            abi_types.uint64.encode(&app_id_2.into())?,
+            abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
         account_references: None,
@@ -393,12 +380,8 @@ async fn test_alters_fee_some_inner_fees_covered(
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_2)))?,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_3)))?,
+            abi_types.uint64.encode(&app_id_2.into())?,
+            abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
         account_references: None,
@@ -455,12 +438,8 @@ async fn test_alters_fee_some_inner_fees_surplus(
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_2)))?,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_3)))?,
+            abi_types.uint64.encode(&app_id_2.into())?,
+            abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
         account_references: None,
@@ -504,9 +483,7 @@ async fn test_alters_fee_expensive_abi_method_calls(
     let app_id = app_ids[0];
     let expected_fee = 10_000u64;
 
-    let op_budget_encoded = abi_types
-        .uint64
-        .encode(&ABIValue::Uint(BigUint::from(6200u64)))?;
+    let op_budget_encoded = abi_types.uint64.encode(&ABIValue::from(6200u64))?;
 
     let params = AppCallParams {
         common_params: CommonParams {
@@ -570,12 +547,8 @@ async fn test_throws_when_max_fee_too_small(
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_2)))?,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_3)))?,
+            abi_types.uint64.encode(&app_id_2.into())?,
+            abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
         account_references: None,
@@ -632,12 +605,8 @@ async fn test_throws_when_static_fee_too_small(
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_2)))?,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_3)))?,
+            abi_types.uint64.encode(&app_id_2.into())?,
+            abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
         account_references: None,
@@ -694,12 +663,8 @@ async fn test_does_not_alter_static_fee_with_surplus(
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_2)))?,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_3)))?,
+            abi_types.uint64.encode(&app_id_2.into())?,
+            abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
         account_references: None,
@@ -755,12 +720,8 @@ async fn test_alters_fee_multiple_app_calls_in_group(
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees.clone(),
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_2)))?,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_3)))?,
+            abi_types.uint64.encode(&app_id_2.into())?,
+            abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&txn_1_fee_tuple)?,
         ]),
         account_references: None,
@@ -784,12 +745,8 @@ async fn test_alters_fee_multiple_app_calls_in_group(
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_2)))?,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_3)))?,
+            abi_types.uint64.encode(&app_id_2.into())?,
+            abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&txn_2_fee_tuple)?,
         ]),
         account_references: None,
@@ -859,12 +816,8 @@ async fn test_does_not_alter_fee_when_group_covers_inner_fees(
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_2)))?,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_3)))?,
+            abi_types.uint64.encode(&app_id_2.into())?,
+            abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
         account_references: None,
@@ -932,12 +885,8 @@ async fn test_alters_fee_nested_abi_method_call(
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_2)))?,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_3)))?,
+            abi_types.uint64.encode(&app_id_2.into())?,
+            abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
         account_references: None,
@@ -1022,12 +971,8 @@ async fn test_throws_when_nested_max_fee_below_calculated(
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_2)))?,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_3)))?,
+            abi_types.uint64.encode(&app_id_2.into())?,
+            abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
         account_references: None,
@@ -1102,12 +1047,8 @@ async fn test_alters_fee_allocating_surplus_to_most_constrained(
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees.clone(),
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_2)))?,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_3)))?,
+            abi_types.uint64.encode(&app_id_2.into())?,
+            abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple_1)?,
         ]),
         account_references: None,
@@ -1187,12 +1128,8 @@ async fn test_alters_fee_large_surplus_pooling_to_lower_siblings(
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_2)))?,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_3)))?,
+            abi_types.uint64.encode(&app_id_2.into())?,
+            abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
         account_references: None,
@@ -1247,12 +1184,8 @@ async fn test_alters_fee_surplus_pooling_to_some_siblings(
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_2)))?,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_3)))?,
+            abi_types.uint64.encode(&app_id_2.into())?,
+            abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
         account_references: None,
@@ -1307,12 +1240,8 @@ async fn test_alters_fee_large_surplus_no_pooling(
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_2)))?,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_3)))?,
+            abi_types.uint64.encode(&app_id_2.into())?,
+            abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
         account_references: None,
@@ -1357,25 +1286,25 @@ async fn test_alters_fee_multiple_surplus_poolings(
 
     // Create an application call transaction that has multiple inner fee surplus poolings to lower siblings
     let fees_tuple = ABIValue::Array(vec![
-        ABIValue::Uint(BigUint::from(0u64)),
-        ABIValue::Uint(BigUint::from(1200u64)),
-        ABIValue::Array(vec![
-            ABIValue::Uint(BigUint::from(0u64)),
-            ABIValue::Uint(BigUint::from(0u64)),
-            ABIValue::Uint(BigUint::from(4900u64)),
-            ABIValue::Uint(BigUint::from(0u64)),
-            ABIValue::Uint(BigUint::from(0u64)),
-            ABIValue::Uint(BigUint::from(0u64)),
+        ABIValue::from(0u64),
+        ABIValue::from(1200u64),
+        ABIValue::from(vec![
+            ABIValue::from(0u64),
+            ABIValue::from(0u64),
+            ABIValue::from(4900u64),
+            ABIValue::from(0u64),
+            ABIValue::from(0u64),
+            ABIValue::from(0u64),
         ]),
-        ABIValue::Uint(BigUint::from(200u64)),
-        ABIValue::Uint(BigUint::from(1100u64)),
-        ABIValue::Array(vec![
-            ABIValue::Uint(BigUint::from(0u64)),
-            ABIValue::Uint(BigUint::from(0u64)),
-            ABIValue::Uint(BigUint::from(2500u64)),
-            ABIValue::Uint(BigUint::from(0u64)),
-            ABIValue::Uint(BigUint::from(0u64)),
-            ABIValue::Uint(BigUint::from(0u64)),
+        ABIValue::from(200u64),
+        ABIValue::from(1100u64),
+        ABIValue::from(vec![
+            ABIValue::from(0u64),
+            ABIValue::from(0u64),
+            ABIValue::from(2500u64),
+            ABIValue::from(0u64),
+            ABIValue::from(0u64),
+            ABIValue::from(0u64),
         ]),
     ]);
     let txn_params = AppCallParams {
@@ -1388,12 +1317,8 @@ async fn test_alters_fee_multiple_surplus_poolings(
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees_2,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_2)))?,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_3)))?,
+            abi_types.uint64.encode(&app_id_2.into())?,
+            abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_2_tuple.encode(&fees_tuple)?,
         ]),
         account_references: None,
@@ -1447,12 +1372,8 @@ async fn test_throws_when_max_fee_below_calculated(
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_2)))?,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_3)))?,
+            abi_types.uint64.encode(&app_id_2.into())?,
+            abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
         account_references: None,
@@ -1526,12 +1447,8 @@ async fn test_throws_when_static_fee_below_calculated(
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_2)))?,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_3)))?,
+            abi_types.uint64.encode(&app_id_2.into())?,
+            abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
         account_references: None,
@@ -1606,12 +1523,8 @@ async fn test_throws_when_static_fee_too_low_for_non_app_call(
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees.clone(),
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_2)))?,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_3)))?,
+            abi_types.uint64.encode(&app_id_2.into())?,
+            abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
         account_references: None,
@@ -1632,12 +1545,8 @@ async fn test_throws_when_static_fee_too_low_for_non_app_call(
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_2)))?,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_3)))?,
+            abi_types.uint64.encode(&app_id_2.into())?,
+            abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
         account_references: None,
@@ -1699,9 +1608,7 @@ async fn test_readonly_fixed_opcode_budget(
     let mut composer = fixture.context()?.composer.clone();
     let app_id = app_ids[0];
 
-    let op_budget_encoded = abi_types
-        .uint64
-        .encode(&ABIValue::Uint(BigUint::from(6200u64)))?; // This would normally require op-ups via inner transactions
+    let op_budget_encoded = abi_types.uint64.encode(&ABIValue::from(6200u64))?; // This would normally require op-ups via inner transactions
     let txn_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
@@ -1771,12 +1678,8 @@ async fn test_readonly_alters_fee_handling_inners(
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_2)))?,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_3)))?,
+            abi_types.uint64.encode(&app_id_2.into())?,
+            abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
         account_references: None,
@@ -1836,12 +1739,8 @@ async fn test_readonly_throws_when_max_fee_too_small(
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_2)))?,
-            abi_types
-                .uint64
-                .encode(&ABIValue::Uint(BigUint::from(app_id_3)))?,
+            abi_types.uint64.encode(&app_id_2.into())?,
+            abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
         account_references: None,
@@ -2084,16 +1983,11 @@ fn create_fees_tuple(
     fee4: u64,
     nested_fees: Vec<u64>,
 ) -> ABIValue {
-    ABIValue::Array(vec![
-        ABIValue::Uint(BigUint::from(fee1)),
-        ABIValue::Uint(BigUint::from(fee2)),
-        ABIValue::Uint(BigUint::from(fee3)),
-        ABIValue::Uint(BigUint::from(fee4)),
-        ABIValue::Array(
-            nested_fees
-                .into_iter()
-                .map(|f| ABIValue::Uint(BigUint::from(f)))
-                .collect(),
-        ),
+    ABIValue::from(vec![
+        ABIValue::from(fee1),
+        ABIValue::from(fee2),
+        ABIValue::from(fee3),
+        ABIValue::from(fee4),
+        ABIValue::Array(nested_fees.into_iter().map(|f| ABIValue::from(f)).collect()),
     ])
 }
