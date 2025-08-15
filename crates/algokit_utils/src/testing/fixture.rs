@@ -11,7 +11,7 @@ pub struct AlgorandFixture {
 }
 
 pub struct AlgorandTestContext {
-    pub algod: AlgodClient,
+    pub algod: Arc<AlgodClient>,
 
     pub composer: Composer,
 
@@ -56,7 +56,7 @@ impl AlgorandFixture {
     }
 
     pub async fn new_scope(&mut self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let algod = ClientManager::get_algod_client(&self.config.algod_config);
+        let algod = Arc::new(ClientManager::get_algod_client(&self.config.algod_config));
 
         let mut account_manager = TestAccountManager::new(algod.clone());
 

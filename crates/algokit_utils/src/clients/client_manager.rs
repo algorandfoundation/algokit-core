@@ -10,26 +10,26 @@ use std::{env, sync::Arc};
 use tokio::sync::RwLock;
 
 pub struct ClientManager {
-    algod: AlgodClient,
-    indexer: IndexerClient,
+    algod: Arc<AlgodClient>,
+    indexer: Arc<IndexerClient>,
     cached_network_details: RwLock<Option<Arc<NetworkDetails>>>,
 }
 
 impl ClientManager {
     pub fn new(config: AlgoConfig) -> Self {
         Self {
-            algod: Self::get_algod_client(&config.algod_config),
-            indexer: Self::get_indexer_client(&config.indexer_config),
+            algod: Arc::new(Self::get_algod_client(&config.algod_config)),
+            indexer: Arc::new(Self::get_indexer_client(&config.indexer_config)),
             cached_network_details: RwLock::new(None),
         }
     }
 
-    pub fn algod(&self) -> &AlgodClient {
-        &self.algod
+    pub fn algod(&self) -> Arc<AlgodClient> {
+        Arc::clone(&self.algod)
     }
 
-    pub fn indexer(&self) -> &IndexerClient {
-        &self.indexer
+    pub fn indexer(&self) -> Arc<IndexerClient> {
+        Arc::clone(&self.indexer)
     }
 
     pub async fn network(

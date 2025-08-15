@@ -1,4 +1,7 @@
-use algokit_transact::{Address, AssetConfigTransactionFields, Transaction, TransactionHeader};
+use algokit_transact::{
+    Address, AssetConfigTransactionBuilder, AssetConfigTransactionFields, Transaction,
+    TransactionHeader,
+};
 
 use super::common::CommonParams;
 
@@ -153,22 +156,54 @@ pub struct AssetDestroyParams {
     pub asset_id: u64,
 }
 
-pub fn build_asset_create(params: &AssetCreateParams, header: TransactionHeader) -> Transaction {
-    Transaction::AssetConfig(AssetConfigTransactionFields {
-        header,
-        asset_id: 0,
-        total: Some(params.total),
-        decimals: params.decimals,
-        default_frozen: params.default_frozen,
-        asset_name: params.asset_name.clone(),
-        unit_name: params.unit_name.clone(),
-        url: params.url.clone(),
-        metadata_hash: params.metadata_hash,
-        manager: params.manager.clone(),
-        reserve: params.reserve.clone(),
-        freeze: params.freeze.clone(),
-        clawback: params.clawback.clone(),
-    })
+pub fn build_asset_create(
+    params: &AssetCreateParams,
+    header: TransactionHeader,
+) -> Result<Transaction, String> {
+    let mut builder = AssetConfigTransactionBuilder::default();
+    builder.header(header).asset_id(0).total(params.total);
+
+    if let Some(decimals) = params.decimals {
+        builder.decimals(decimals);
+    }
+
+    if let Some(default_frozen) = params.default_frozen {
+        builder.default_frozen(default_frozen);
+    }
+
+    if let Some(ref asset_name) = params.asset_name {
+        builder.asset_name(asset_name.clone());
+    }
+
+    if let Some(ref unit_name) = params.unit_name {
+        builder.unit_name(unit_name.clone());
+    }
+
+    if let Some(ref url) = params.url {
+        builder.url(url.clone());
+    }
+
+    if let Some(metadata_hash) = params.metadata_hash {
+        builder.metadata_hash(metadata_hash);
+    }
+
+    if let Some(ref manager) = params.manager {
+        builder.manager(manager.clone());
+    }
+
+    if let Some(ref reserve) = params.reserve {
+        builder.reserve(reserve.clone());
+    }
+
+    if let Some(ref freeze) = params.freeze {
+        builder.freeze(freeze.clone());
+    }
+
+    if let Some(ref clawback) = params.clawback {
+        builder.clawback(clawback.clone());
+    }
+
+    builder.build().map_err(|e| e.to_string())
 }
 
 pub fn build_asset_reconfigure(

@@ -184,6 +184,90 @@ function transformVendorExtensions(spec: OpenAPISpec, transforms: VendorExtensio
 }
 
 /**
+ * Fix field naming - Add field rename extensions for better Rust ergonomics
+ */
+function fixFieldNaming(spec: OpenAPISpec): number {
+  let fixedCount = 0;
+
+  // Properties that should be renamed for better developer experience
+  const fieldRenames = [
+    { from: "application-index", to: "app_id" },
+    { from: "asset-index", to: "asset_id" },
+  ];
+
+  const processObject = (obj: any): void => {
+    if (!obj || typeof obj !== "object") return;
+
+    if (Array.isArray(obj)) {
+      obj.forEach((o) => processObject(o));
+      return;
+    }
+
+    // Look for properties object in schemas
+    if (obj.properties && typeof obj.properties === "object") {
+      for (const [propName, propDef] of Object.entries(obj.properties as Record<string, any>)) {
+        if (propDef && typeof propDef === "object") {
+          const rename = fieldRenames.find(r => r.from === propName);
+          if (rename) {
+            propDef["x-algokit-field-rename"] = rename.to;
+            fixedCount++;
+          }
+        }
+      }
+    }
+
+    // Recursively process nested objects
+    for (const value of Object.values(obj)) {
+      if (value && typeof value === "object") {
+        processObject(value);
+      }
+    }
+  };
+
+  processObject(spec);
+  return fixedCount;
+}
+
+/**
+ * Fix TealValue bytes - Add base64 extension for TealValue.bytes fields
+ */
+function fixTealValueBytes(spec: OpenAPISpec): number {
+  let fixedCount = 0;
+
+  const processObject = (obj: any, schemaName?: string): void => {
+    if (!obj || typeof obj !== "object") return;
+
+    if (Array.isArray(obj)) {
+      obj.forEach((o) => processObject(o));
+      return;
+    }
+
+    // Check if this is a TealValue schema with bytes property
+    if (schemaName === "TealValue" && obj.properties && obj.properties.bytes) {
+      obj.properties.bytes["x-algokit-bytes-base64"] = true;
+      fixedCount++;
+    }
+
+    // Recursively process schemas
+    if (obj.schemas && typeof obj.schemas === "object") {
+      for (const [name, schemaDef] of Object.entries(obj.schemas)) {
+        processObject(schemaDef, name);
+      }
+    } else {
+      // Recursively process other nested objects
+      for (const [key, value] of Object.entries(obj)) {
+        if (value && typeof value === "object") {
+          processObject(value, key);
+        }
+      }
+    }
+  };
+
+  processObject(spec);
+  return fixedCount;
+}
+
+/**
  * Fix bigint - Add x-algokit-bigint: true to properties that represent large integers
  */
 function fixBigInt(spec: OpenAPISpec): number {
@@ -370,11 +454,19 @@ class OpenAPIProcessor {
       const pydanticCount = fixPydanticRecursionError(spec);
       console.log(`ℹ️  Fixed ${pydanticCount} pydantic recursion errors`);
 
-      // 3. Fix bigint properties
-      const bigIntCount = fixBigInt(spec);
-      console.log(`ℹ️  Added x-algokit-bigint to ${bigIntCount} properties`);
+       // 3. Fix field naming
+       const fieldNamingCount = fixFieldNaming(spec);
+       console.log(`ℹ️  Added field rename extensions to ${fieldNamingCount} properties`);
 
-      // 4. Transform vendor extensions if configured
+       // 4. Fix TealValue bytes fields
+       const tealValueCount = fixTealValueBytes(spec);
+       console.log(`ℹ️  Added bytes base64 extensions to ${tealValueCount} TealValue.bytes properties`);
+
+       // 5. Fix bigint properties
+       const bigIntCount = fixBigInt(spec);
+       console.log(`ℹ️  Added x-algokit-bigint to ${bigIntCount} properties`);
+
+       // 6. Transform vendor extensions if configured
       if (this.config.vendorExtensionTransforms && this.config.vendorExtensionTransforms.length > 0) {
         const transformCounts = transformVendorExtensions(spec, this.config.vendorExtensionTransforms);
 

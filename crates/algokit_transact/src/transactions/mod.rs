@@ -258,3 +258,210 @@ impl Transactions for &[Transaction] {
             .collect())
     }
 }
+
+impl Transaction {
+    // Essential header accessors that are actually used in the codebase
+
+    /// Returns the sender address of the transaction
+    pub fn sender(&self) -> &Address {
+        &self.header().sender
+    }
+
+    /// Returns the fee of the transaction
+    pub fn fee(&self) -> Option<u64> {
+        self.header().fee
+    }
+
+    /// Returns the first valid round of the transaction
+    pub fn first_valid_round(&self) -> u64 {
+        self.header().first_valid
+    }
+
+    /// Returns the last valid round of the transaction
+    pub fn last_valid_round(&self) -> u64 {
+        self.header().last_valid
+    }
+
+    /// Returns the note of the transaction
+    pub fn note(&self) -> Option<&Vec<u8>> {
+        self.header().note.as_ref()
+    }
+}
+
+#[cfg(test)]
+mod transaction_tests {
+    use super::*;
+
+    fn create_test_header() -> TransactionHeader {
+        TransactionHeader {
+            sender: Address([0u8; 32]),
+            fee: Some(1000),
+            first_valid: 100,
+            last_valid: 200,
+            genesis_hash: None,
+            genesis_id: None,
+            note: None,
+            rekey_to: None,
+            lease: None,
+            group: None,
+        }
+    }
+
+    #[test]
+    fn test_header_accessors() {
+        let payment = PaymentTransactionFields {
+            header: create_test_header(),
+            receiver: Address([1u8; 32]),
+            amount: 1000,
+            close_remainder_to: None,
+        };
+        let transaction = Transaction::Payment(payment);
+
+        // Test header accessors
+        assert_eq!(transaction.fee(), Some(1000));
+        assert_eq!(transaction.first_valid_round(), 100);
+        assert_eq!(transaction.last_valid_round(), 200);
+        assert_eq!(transaction.sender(), &Address([0u8; 32]));
+        assert_eq!(transaction.note(), None);
+    }
+
+    #[test]
+    fn test_app_call_accessor() {
+        let app_call = Transaction::ApplicationCall(ApplicationCallTransactionFields {
+            header: create_test_header(),
+            app_id: 321,
+            on_complete: OnApplicationComplete::NoOp,
+            approval_program: None,
+            clear_state_program: None,
+            global_state_schema: None,
+            local_state_schema: None,
+            extra_program_pages: None,
+            args: None,
+            account_references: None,
+            app_references: None,
+            asset_references: None,
+            box_references: None,
+        });
+
+        // Test pattern matching for app call
+        if let Transaction::ApplicationCall(app_fields) = &app_call {
+            assert_eq!(app_fields.app_id, 321);
+        } else {
+            panic!("Expected ApplicationCall transaction");
+        }
+
+        // Test with non-app transaction
+        let payment = Transaction::Payment(PaymentTransactionFields {
+            header: create_test_header(),
+            receiver: Address([1u8; 32]),
+            amount: 1000,
+            close_remainder_to: None,
+        });
+
+        // Verify payment is not an app call
+        match &payment {
+            Transaction::ApplicationCall(_) => panic!("Expected non-ApplicationCall transaction"),
+            _ => {} // This is what we expect
+        }
+    }
+
+    #[test]
+    fn test_idiomatic_pattern_matching() {
+        let transactions = vec![
+            Transaction::Payment(PaymentTransactionFields {
+                header: create_test_header(),
+                receiver: Address([1u8; 32]),
+                amount: 1000,
+                close_remainder_to: None,
+            }),
+            Transaction::AssetTransfer(AssetTransferTransactionFields {
+                header: create_test_header(),
+                asset_id: 123,
+                amount: 500,
+                receiver: Address([2u8; 32]),
+                asset_sender: None,
+                close_remainder_to: None,
+            }),
+            Transaction::ApplicationCall(ApplicationCallTransactionFields {
+                header: create_test_header(),
+                app_id: 321,
+                on_complete: OnApplicationComplete::NoOp,
+                approval_program: None,
+                clear_state_program: None,
+                global_state_schema: None,
+                local_state_schema: None,
+                extra_program_pages: None,
+                args: None,
+                account_references: None,
+                app_references: None,
+                asset_references: None,
+                box_references: None,
+            }),
+        ];
+
+        // Test idiomatic Rust pattern matching (zero cost)
+        let mut payment_count = 0;
+        let mut asset_count = 0;
+        let mut app_count = 0;
+
+        for tx in &transactions {
+            match tx {
+                Transaction::Payment(_) => payment_count += 1,
+                Transaction::AssetTransfer(_) => asset_count += 1,
+                Transaction::ApplicationCall(_) => app_count += 1,
+                _ => {}
+            }
+        }
+
+        assert_eq!(payment_count, 1);
+        assert_eq!(asset_count, 1);
+        assert_eq!(app_count, 1);
+
+        // Test filtering with matches! macro (idiomatic for boolean checks)
+        let payments: Vec<_> = transactions
+            .iter()
+            .filter(|tx| matches!(tx, Transaction::Payment(_)))
+            .collect();
+        assert_eq!(payments.len(), 1);
+
+        // Test accessing fields directly via pattern matching
+        for tx in &transactions {
+            match tx {
+                Transaction::Payment(payment) => {
+                    assert_eq!(payment.amount, 1000);
+                    assert_eq!(payment.receiver, Address([1u8; 32]));
+                }
+                Transaction::AssetTransfer(asset) => {
+                    assert_eq!(asset.asset_id, 123);
+                    assert_eq!(asset.amount, 500);
+                }
+                Transaction::ApplicationCall(app) => {
+                    assert_eq!(app.app_id, 321);
+                }
+                _ => {}
+            }
+        }
+    }
+
+    #[test]
+    fn test_safe_extraction_pattern() {
+        let payment = Transaction::Payment(PaymentTransactionFields {
+            header: create_test_header(),
+            receiver: Address([1u8; 32]),
+            amount: 1000,
+            close_remainder_to: None,
+        });
+
+        // Test safe extraction with if let (idiomatic Rust)
+        if let Transaction::Payment(payment_fields) = &payment {
+            assert_eq!(payment_fields.amount, 1000);
+        } else {
+            panic!("Expected payment transaction");
+        }
+
+        // Test that it doesn't match wrong type
+        if let Transaction::ApplicationCall(_) = &payment {
+            panic!("Should not match app call");
+        }
+    }
+}

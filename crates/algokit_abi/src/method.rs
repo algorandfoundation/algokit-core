@@ -1,4 +1,5 @@
 use crate::abi_type::ABIType;
+use crate::abi_value::ABIValue;
 use crate::error::ABIError;
 use sha2::{Digest, Sha512_256};
 use std::fmt::Display;
@@ -355,6 +356,17 @@ impl ABIMethodArg {
             description,
         }
     }
+}
+
+/// Represents an ABI method return value with parsed data.
+#[derive(Debug, Clone)]
+pub struct ABIReturn {
+    /// The method that was called.
+    pub method: ABIMethod,
+    /// The raw return value as bytes.
+    pub raw_return_value: Vec<u8>,
+    /// The parsed ABI return value.
+    pub return_value: ABIValue,
 }
 
 /// Find the matching closing parenthesis for an opening parenthesis.

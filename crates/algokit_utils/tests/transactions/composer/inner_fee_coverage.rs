@@ -2,9 +2,7 @@ use crate::common::init_test_logging;
 use algokit_abi::abi_type::BitSize;
 use algokit_abi::{ABIMethod, ABIType, ABIValue};
 use algokit_test_artifacts::{inner_fee_contract, nested_contract};
-use algokit_transact::{
-    ALGORAND_PUBLIC_KEY_BYTE_LENGTH, Address, OnApplicationComplete, TransactionId,
-};
+use algokit_transact::{Address, OnApplicationComplete, TransactionId};
 use algokit_utils::transactions::composer::SendParams;
 use algokit_utils::{AppCallParams, AppCreateParams, PaymentParams, testing::*};
 use algokit_utils::{CommonParams, Composer};
@@ -1902,8 +1900,8 @@ async fn deploy_app(
     let result = composer.send(None).await?;
 
     result.confirmations[0]
-        .application_index
-        .ok_or_else(|| "No application index returned".into())
+        .app_id
+        .ok_or_else(|| "No application ID returned".into())
 }
 
 // Helper function to fund app accounts
@@ -1915,28 +1913,13 @@ async fn fund_app_accounts(
     let mut dispenser = LocalNetDispenser::new(context.algod.clone());
 
     for app_id in app_ids {
-        let app_address = get_application_address(app_id);
+        let app_address = Address::from_app_id(app_id);
         dispenser
             .fund_account(&app_address.to_string(), amount)
             .await?;
     }
 
     Ok(())
-}
-
-// Helper function to compute application address from app ID
-fn get_application_address(app_id: &u64) -> Address {
-    use sha2::{Digest, Sha512_256};
-
-    let mut hasher = Sha512_256::new();
-    hasher.update(b"appID");
-    hasher.update(app_id.to_be_bytes());
-
-    let hash = hasher.finalize();
-    let mut address_bytes = [0u8; ALGORAND_PUBLIC_KEY_BYTE_LENGTH];
-    address_bytes.copy_from_slice(&hash[..ALGORAND_PUBLIC_KEY_BYTE_LENGTH]);
-
-    Address(address_bytes)
 }
 
 async fn assert_min_fee(mut composer: Composer, params: &AppCallParams, fee: u64) {
@@ -1987,6 +1970,6 @@ fn create_fees_tuple(
         ABIValue::from(fee2),
         ABIValue::from(fee3),
         ABIValue::from(fee4),
-        ABIValue::Array(nested_fees.into_iter().map(|f| ABIValue::from(f)).collect()),
+        ABIValue::Array(nested_fees.into_iter().map(ABIValue::from).collect()),
     ])
 }

@@ -380,8 +380,17 @@ class Property:
     is_signed_transaction: bool = field(init=False)
 
     def __post_init__(self) -> None:
-        self.rust_name = rust_snake_case(self.name)
+        # Check for field name override from vendor extension
+        field_name_override = self._get_field_name_override()
+        field_name = field_name_override if field_name_override else self.name
+
+        self.rust_name = rust_snake_case(field_name)
         self.rust_field_name = escape_rust_keyword(self.rust_name)
+
+        # Check for bytes base64 override from vendor extension
+        if self._has_bytes_base64_extension():
+            self.is_base64_encoded = True
+
         if self.is_base64_encoded:
             self.rust_type_with_msgpack = "Vec<u8>"
         elif self.items and self.items.is_base64_encoded and self.rust_type.startswith("Vec<"):
@@ -398,6 +407,20 @@ class Property:
             self.is_signed_transaction = self.is_signed_transaction or any(
                 "x-algokit-signed-txn" in ext_name and ext_value for ext_name, ext_value in self.items.vendor_extensions
             )
+
+    def _get_field_name_override(self) -> str | None:
+        """Get field name override from vendor extension."""
+        for ext_name, ext_value in self.vendor_extensions:
+            if ext_name == "x-algokit-field-rename" and isinstance(ext_value, str):
+                return ext_value
+        return None
+
+    def _has_bytes_base64_extension(self) -> bool:
+        """Check if this property has the bytes base64 vendor extension."""
+        for ext_name, ext_value in self.vendor_extensions:
+            if ext_name == "x-algokit-bytes-base64" and ext_value is True:
+                return True
+        return False
 
 
 @dataclass

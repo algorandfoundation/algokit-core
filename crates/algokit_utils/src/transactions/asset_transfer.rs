@@ -31,6 +31,7 @@ pub struct AssetOptOutParams {
     /// without additional side effects.
     pub common_params: CommonParams,
     pub asset_id: u64,
+    /// The address to close the remainder to. If None, defaults to the asset creator.
     pub close_remainder_to: Option<Address>,
 }
 
@@ -74,7 +75,7 @@ pub fn build_asset_opt_in(params: &AssetOptInParams, header: TransactionHeader) 
 }
 
 pub fn build_asset_opt_out(params: &AssetOptOutParams, header: TransactionHeader) -> Transaction {
-    let sender = header.sender.clone();
+    let sender: Address = header.sender.clone();
     Transaction::AssetTransfer(AssetTransferTransactionFields {
         header,
         asset_id: params.asset_id,
@@ -97,4 +98,79 @@ pub fn build_asset_clawback(
         asset_sender: Some(params.clawback_target.clone()),
         close_remainder_to: None,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use algokit_transact::{Address, TransactionHeader};
+    use std::str::FromStr;
+
+    #[test]
+    fn test_asset_opt_out_with_optional_close_remainder_to() {
+        // Use valid test addresses
+        let sender =
+            Address::from_str("JB3K6HTAXODO4THESLNYTSG6GQUFNEVIQG7A6ZYVDACR6WA3ZF52TKU5NA")
+                .unwrap();
+        let creator =
+            Address::from_str("JB3K6HTAXODO4THESLNYTSG6GQUFNEVIQG7A6ZYVDACR6WA3ZF52TKU5NA")
+                .unwrap();
+
+        // Test with Some(creator) - explicit close_remainder_to
+        let params_with_creator = AssetOptOutParams {
+            common_params: CommonParams {
+                sender: sender.clone(),
+                ..Default::default()
+            },
+            asset_id: 123,
+            close_remainder_to: Some(creator.clone()),
+        };
+
+        let header = TransactionHeader {
+            sender: sender.clone(),
+            fee: Some(1000),
+            first_valid: 1000,
+            last_valid: 1100,
+            genesis_hash: Some([0; 32]),
+            genesis_id: Some("test".to_string()),
+            lease: None,
+            note: None,
+            rekey_to: None,
+            group: None,
+        };
+
+        let tx = build_asset_opt_out(&params_with_creator, header.clone());
+
+        if let Transaction::AssetTransfer(fields) = tx {
+            assert_eq!(fields.asset_id, 123);
+            assert_eq!(fields.amount, 0);
+            assert_eq!(fields.receiver, sender);
+            assert_eq!(fields.close_remainder_to, Some(creator));
+        } else {
+            panic!("Expected AssetTransfer transaction");
+        }
+
+        // Test with None - should pass None through (resolution happens at TransactionSender level)
+        let params_without_creator = AssetOptOutParams {
+            common_params: CommonParams {
+                sender: sender.clone(),
+                ..Default::default()
+            },
+            asset_id: 456,
+            close_remainder_to: None,
+        };
+
+        let tx2 = build_asset_opt_out(&params_without_creator, header);
+
+        if let Transaction::AssetTransfer(fields) = tx2 {
+            assert_eq!(fields.asset_id, 456);
+            assert_eq!(fields.amount, 0);
+            assert_eq!(fields.receiver, sender);
+            // When None is provided, build_asset_opt_out passes None through
+            // The actual creator resolution happens at the TransactionSender level
+            assert_eq!(fields.close_remainder_to, None);
+        } else {
+            panic!("Expected AssetTransfer transaction");
+        }
+    }
 }

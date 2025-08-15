@@ -93,7 +93,7 @@ async fn test_asset_freeze_unfreeze() {
         .await
         .expect("Failed to send asset create");
     let asset_id = create_result.confirmations[0]
-        .asset_index
+        .asset_id
         .expect("Failed to get asset ID");
 
     // Step 2: Target account opts into the asset

@@ -5632,7 +5632,8 @@
           },
           "bytes": {
             "type": "string",
-            "description": "\\[tb\\] bytes value."
+            "description": "\\[tb\\] bytes value.",
+            "x-algokit-bytes-base64": true
           },
           "uint": {
             "type": "integer",
@@ -6272,12 +6273,14 @@
             "type": "integer",
             "description": "The asset index if the transaction was found and it created an asset.",
             "x-go-type": "basics.AssetIndex",
+            "x-algokit-field-rename": "asset_id",
             "x-algokit-bigint": true
           },
           "application-index": {
             "type": "integer",
             "description": "The application index if the transaction was found and it created an application.",
             "x-go-type": "basics.AppIndex",
+            "x-algokit-field-rename": "app_id",
             "x-algokit-bigint": true
           },
           "close-rewards": {
@@ -6831,6 +6834,7 @@
             "type": "integer",
             "description": "The application from which the logs were generated",
             "x-go-type": "basics.AppIndex",
+            "x-algokit-field-rename": "app_id",
             "x-algokit-bigint": true
           },
           "txId": {

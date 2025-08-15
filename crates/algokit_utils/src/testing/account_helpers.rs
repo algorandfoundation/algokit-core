@@ -150,13 +150,13 @@ impl TestAccount {
 
 /// LocalNet dispenser for funding test accounts using AlgoKit CLI
 pub struct LocalNetDispenser {
-    client: AlgodClient,
+    client: Arc<AlgodClient>,
     dispenser_account: Option<TestAccount>,
 }
 
 impl LocalNetDispenser {
     /// Create a new LocalNet dispenser
-    pub fn new(client: AlgodClient) -> Self {
+    pub fn new(client: Arc<AlgodClient>) -> Self {
         Self {
             client,
             dispenser_account: None,
@@ -315,7 +315,7 @@ pub struct TestAccountManager {
 
 impl TestAccountManager {
     /// Create a new test account manager
-    pub fn new(client: AlgodClient) -> Self {
+    pub fn new(client: Arc<AlgodClient>) -> Self {
         let dispenser = LocalNetDispenser::new(client);
         Self { dispenser }
     }

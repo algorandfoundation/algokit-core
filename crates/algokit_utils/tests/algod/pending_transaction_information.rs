@@ -16,7 +16,7 @@ async fn test_pending_transaction_broadcast() {
 
     // Create algod client using ClientManager
     let config = ClientManager::get_config_from_environment_or_localnet();
-    let algod_client = ClientManager::get_algod_client(&config.algod_config);
+    let algod_client = std::sync::Arc::new(ClientManager::get_algod_client(&config.algod_config));
 
     // Create account manager and generate test accounts
     let mut account_manager = TestAccountManager::new(algod_client.clone());

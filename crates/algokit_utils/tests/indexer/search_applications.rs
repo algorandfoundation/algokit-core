@@ -43,7 +43,7 @@ async fn create_app(
     let mut composer = context.composer.clone();
     composer.add_app_create(params).unwrap();
     let result = composer.send(None).await.unwrap();
-    result.confirmations[0].application_index
+    result.confirmations[0].app_id
 }
 
 #[tokio::test]

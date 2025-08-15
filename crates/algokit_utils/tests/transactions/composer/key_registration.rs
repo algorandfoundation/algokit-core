@@ -313,7 +313,6 @@ async fn test_online_key_registration_transaction() {
         .expect("Failed to get sender account")
         .address();
 
-    // Use real participation keys from the Python test
     let vote_key = general_purpose::STANDARD
         .decode("G/lqTV6MKspW6J8wH2d8ZliZ5XZVZsruqSBJMwLwlmo=")
         .expect("Failed to decode vote key")
@@ -340,9 +339,8 @@ async fn test_online_key_registration_transaction() {
         .await
         .expect("Failed to get transaction params");
 
-    // Use voting rounds from suggested params like in Python test
     let vote_first = params.last_round;
-    let vote_last = vote_first + 10_000_000; // 10 million rounds like Python test
+    let vote_last = vote_first + 10_000_000;
 
     let online_key_reg_params = OnlineKeyRegistrationParams {
         common_params: CommonParams {
@@ -353,7 +351,7 @@ async fn test_online_key_registration_transaction() {
         selection_key,
         vote_first,
         vote_last,
-        vote_key_dilution: 100, // Same as Python test
+        vote_key_dilution: 100,
         state_proof_key: Some(state_proof_key),
     };
 

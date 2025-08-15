@@ -4,8 +4,11 @@ pub mod asset_freeze;
 pub mod asset_transfer;
 pub mod common;
 pub mod composer;
+pub mod creator;
 pub mod key_registration;
 pub mod payment;
+pub mod sender;
+pub mod sender_results;
 
 // Re-export commonly used transaction types
 pub use application_call::{
@@ -24,8 +27,14 @@ pub use common::{
 pub use composer::{
     Composer, ComposerError, ComposerTransaction, SendParams, SendTransactionComposerResults,
 };
+pub use creator::{BuiltTransactions, TransactionCreator};
 pub use key_registration::{
     NonParticipationKeyRegistrationParams, OfflineKeyRegistrationParams,
     OnlineKeyRegistrationParams,
 };
 pub use payment::{AccountCloseParams, PaymentParams};
+pub use sender::{TransactionSender, TransactionSenderError};
+pub use sender_results::{
+    SendAppCallResult, SendAppCreateResult, SendAppUpdateResult, SendAssetCreateResult,
+    SendTransactionResult, TransactionResultError,
+};

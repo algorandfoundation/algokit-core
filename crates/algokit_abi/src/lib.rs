@@ -14,6 +14,6 @@ pub use arc56_contract::*;
 pub use error::ABIError;
 
 pub use method::{
-    ABIMethod, ABIMethodArg, ABIMethodArgType, ABIReferenceType, ABIReferenceValue,
+    ABIMethod, ABIMethodArg, ABIMethodArgType, ABIReferenceType, ABIReferenceValue, ABIReturn,
     ABITransactionType,
 };

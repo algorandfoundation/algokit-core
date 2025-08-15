@@ -3400,7 +3400,8 @@
           },
           "bytes": {
             "type": "string",
-            "description": "bytes value."
+            "description": "bytes value.",
+            "x-algokit-bytes-base64": true
           },
           "uint": {
             "type": "integer",

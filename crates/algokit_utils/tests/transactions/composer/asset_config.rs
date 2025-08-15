@@ -151,7 +151,7 @@ async fn test_asset_reconfigure_transaction() {
         .await
         .expect("Failed to send asset create");
     let asset_id = create_result.confirmations[0]
-        .asset_index
+        .asset_id
         .expect("Failed to get asset ID");
 
     // Now reconfigure the asset
@@ -250,7 +250,7 @@ async fn test_asset_destroy_transaction() {
         .await
         .expect("Failed to send asset create");
     let asset_id = create_result.confirmations[0]
-        .asset_index
+        .asset_id
         .expect("Failed to get asset ID");
 
     // Now destroy the asset
@@ -281,5 +281,70 @@ async fn test_asset_destroy_transaction() {
     assert!(
         confirmation.confirmed_round.unwrap() > 0,
         "Confirmed round should be greater than 0"
+    );
+}
+
+#[tokio::test]
+async fn test_asset_create_validation_errors() {
+    init_test_logging();
+
+    let mut fixture = algorand_fixture().await.expect("Failed to create fixture");
+    fixture
+        .new_scope()
+        .await
+        .expect("Failed to create new scope");
+    let context = fixture.context().expect("Failed to get context");
+    let sender_addr: Address = context
+        .test_account
+        .account()
+        .expect("Failed to get sender address")
+        .into();
+
+    // Test asset creation with multiple validation errors
+    let invalid_asset_create_params = AssetCreateParams {
+        common_params: CommonParams {
+            sender: sender_addr.clone(),
+            ..Default::default()
+        },
+        total: 0,           // Invalid: should be > 0 (will be caught by transact validation)
+        decimals: Some(25), // Invalid: should be <= 19
+        default_frozen: Some(false),
+        asset_name: Some("a".repeat(50)), // Invalid: should be <= 32 bytes
+        unit_name: Some("VERYLONGUNITNAME".to_string()), // Invalid: should be <= 8 bytes
+        url: Some(format!("https://{}", "a".repeat(100))), // Invalid: should be <= 96 bytes
+        metadata_hash: None,
+        manager: Some(sender_addr.clone()),
+        reserve: None,
+        freeze: None,
+        clawback: None,
+    };
+
+    let mut composer = context.composer.clone();
+    composer
+        .add_asset_create(invalid_asset_create_params)
+        .expect("Adding invalid asset create should succeed at composer level");
+
+    // The validation should fail when building the transaction group
+    let result = composer.build(None).await;
+
+    // The build should return an error due to validation failures
+    assert!(
+        result.is_err(),
+        "Build with invalid asset create parameters should fail"
+    );
+
+    let error = result.unwrap_err();
+    let error_string = error.to_string();
+
+    // Check that the error contains validation-related messages from the transact crate
+    assert!(
+        error_string.contains("validation")
+            || error_string.contains("Total")
+            || error_string.contains("Decimals")
+            || error_string.contains("Asset name")
+            || error_string.contains("Unit name")
+            || error_string.contains("URL"),
+        "Error should contain validation failure details: {}",
+        error_string
     );
 }

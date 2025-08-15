@@ -22,7 +22,7 @@ pub struct AppCallLogs {
     pub logs: Vec<Vec<u8>>,
     /// The application from which the logs were generated
     #[serde(rename = "application-index")]
-    pub application_index: u64,
+    pub app_id: u64,
     /// The transaction ID of the outer app call that lead to these logs
     #[serde(rename = "txId")]
     pub tx_id: String,
@@ -30,10 +30,10 @@ pub struct AppCallLogs {
 
 impl AppCallLogs {
     /// Constructor for AppCallLogs
-    pub fn new(logs: Vec<Vec<u8>>, application_index: u64, tx_id: String) -> AppCallLogs {
+    pub fn new(logs: Vec<Vec<u8>>, app_id: u64, tx_id: String) -> AppCallLogs {
         AppCallLogs {
             logs,
-            application_index,
+            app_id,
             tx_id,
         }
     }

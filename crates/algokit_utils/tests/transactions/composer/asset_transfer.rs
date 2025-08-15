@@ -49,7 +49,7 @@ async fn test_asset_transfer_transaction() {
         .await
         .expect("Failed to send asset create");
     let asset_id = asset_create_result.confirmations[0]
-        .asset_index
+        .asset_id
         .expect("Failed to get asset ID");
 
     let mut composer = context.composer.clone();

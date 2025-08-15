@@ -153,11 +153,11 @@ async fn test_payment_and_asset_create_group() {
 
     // Verify that the asset was actually created
     assert!(
-        asset_confirmation.asset_index.is_some(),
-        "Asset index should be present for successful asset creation"
+        asset_confirmation.asset_id.is_some(),
+        "Asset ID should be present for successful asset creation"
     );
     assert!(
-        asset_confirmation.asset_index.unwrap() > 0,
+        asset_confirmation.asset_id.unwrap() > 0,
         "Asset index should be greater than 0"
     );
 }

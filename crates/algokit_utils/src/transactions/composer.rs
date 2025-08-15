@@ -7,7 +7,7 @@ use algod_client::{
         TransactionParams,
     },
 };
-use algokit_abi::ABIMethod;
+use algokit_abi::{ABIMethod, ABIReturn};
 use algokit_transact::{
     Address, AlgoKitTransactError, AlgorandMsgpack, Byte32, EMPTY_SIGNATURE, FeeParams,
     MAX_TX_GROUP_SIZE, SignedTransaction, Transaction, TransactionHeader, TransactionId,
@@ -29,9 +29,9 @@ use crate::{
 };
 
 use super::application_call::{
-    ABIReturn, AppCallParams, AppCreateMethodCallParams, AppCreateParams,
-    AppDeleteMethodCallParams, AppDeleteParams, AppUpdateMethodCallParams, AppUpdateParams,
-    build_app_call, build_app_create_call, build_app_delete_call, build_app_update_call,
+    AppCallParams, AppCreateMethodCallParams, AppCreateParams, AppDeleteMethodCallParams,
+    AppDeleteParams, AppUpdateMethodCallParams, AppUpdateParams, build_app_call,
+    build_app_create_call, build_app_delete_call, build_app_update_call,
 };
 use super::asset_config::{
     AssetCreateParams, AssetDestroyParams, AssetReconfigureParams, build_asset_create,
@@ -302,14 +302,17 @@ impl ComposerTransaction {
 #[derive(Clone)]
 pub struct Composer {
     transactions: Vec<ComposerTransaction>,
-    algod_client: AlgodClient,
+    algod_client: Arc<AlgodClient>,
     signer_getter: Arc<dyn TransactionSignerGetter>,
     built_group: Option<Vec<TransactionWithSigner>>,
     signed_group: Option<Vec<SignedTransaction>>,
 }
 
 impl Composer {
-    pub fn new(algod_client: AlgodClient, signer_getter: Arc<dyn TransactionSignerGetter>) -> Self {
+    pub fn new(
+        algod_client: Arc<AlgodClient>,
+        signer_getter: Arc<dyn TransactionSignerGetter>,
+    ) -> Self {
         Composer {
             transactions: Vec::new(),
             algod_client,
@@ -325,7 +328,7 @@ impl Composer {
 
         Composer {
             transactions: Vec::new(),
-            algod_client: AlgodClient::testnet(),
+            algod_client: Arc::new(AlgodClient::testnet()),
             signer_getter: Arc::new(EmptySigner {}),
             built_group: None,
             signed_group: None,
@@ -1028,7 +1031,8 @@ impl Composer {
                     ComposerTransaction::AssetClawback(params) => {
                         build_asset_clawback(params, header)
                     }
-                    ComposerTransaction::AssetCreate(params) => build_asset_create(params, header),
+                    ComposerTransaction::AssetCreate(params) => build_asset_create(params, header)
+                        .map_err(ComposerError::TransactionError)?,
                     ComposerTransaction::AssetReconfigure(params) => {
                         build_asset_reconfigure(params, header)
                     }
@@ -1039,7 +1043,9 @@ impl Composer {
                     ComposerTransaction::AssetUnfreeze(params) => {
                         build_asset_unfreeze(params, header)
                     }
-                    ComposerTransaction::AppCall(params) => build_app_call(params, header),
+                    ComposerTransaction::AppCall(params) => {
+                        build_app_call(params, header).map_err(ComposerError::TransactionError)?
+                    }
                     ComposerTransaction::AppCreateCall(params) => {
                         build_app_create_call(params, header)
                     }
@@ -1475,6 +1481,21 @@ impl Composer {
             confirmations,
             abi_returns,
         })
+    }
+
+    /// Extract ABI method mapping from built transactions.
+    /// Maps transaction index to the ABI method used to create it.
+    /// Used by TransactionCreator to populate BuiltTransactions.method_calls.
+    pub(crate) fn extract_method_calls(&self) -> HashMap<usize, ABIMethod> {
+        let mut method_calls = HashMap::new();
+
+        for (i, transaction) in self.transactions.iter().enumerate() {
+            if let Some(method) = self.get_method_from_transaction(transaction) {
+                method_calls.insert(i, method.clone());
+            }
+        }
+
+        method_calls
     }
 }
 

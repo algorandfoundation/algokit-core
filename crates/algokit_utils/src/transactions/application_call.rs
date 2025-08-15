@@ -13,8 +13,8 @@ use algokit_abi::{
     abi_type::BitSize,
 };
 use algokit_transact::{
-    Address, ApplicationCallTransactionFields, BoxReference, OnApplicationComplete, StateSchema,
-    Transaction, TransactionHeader,
+    Address, ApplicationCallTransactionBuilder, ApplicationCallTransactionFields, BoxReference,
+    OnApplicationComplete, StateSchema, Transaction, TransactionHeader,
 };
 use num_bigint::BigUint;
 use std::str::FromStr;
@@ -352,13 +352,6 @@ where
     pub asset_references: Option<Vec<u64>>,
     /// The boxes that should be made available for the runtime of the program.
     pub box_references: Option<Vec<BoxReference>>,
-}
-
-#[derive(Debug, Clone)]
-pub struct ABIReturn {
-    pub method: ABIMethod,
-    pub raw_return_value: Vec<u8>,
-    pub return_value: ABIValue,
 }
 
 const ARGS_TUPLE_PACKING_THRESHOLD: usize = 14; // 14+ args trigger tuple packing, excluding the method selector  (arg 0)
@@ -764,22 +757,37 @@ fn encode_args_individually(
     Ok(encoded_args.to_vec())
 }
 
-pub fn build_app_call(params: &AppCallParams, header: TransactionHeader) -> Transaction {
-    Transaction::ApplicationCall(ApplicationCallTransactionFields {
-        header,
-        app_id: params.app_id,
-        on_complete: params.on_complete,
-        approval_program: None,
-        clear_state_program: None,
-        global_state_schema: None,
-        local_state_schema: None,
-        extra_program_pages: None,
-        args: params.args.clone(),
-        account_references: params.account_references.clone(),
-        app_references: params.app_references.clone(),
-        asset_references: params.asset_references.clone(),
-        box_references: params.box_references.clone(),
-    })
+pub fn build_app_call(
+    params: &AppCallParams,
+    header: TransactionHeader,
+) -> Result<Transaction, String> {
+    let mut builder = ApplicationCallTransactionBuilder::default();
+    builder
+        .header(header)
+        .app_id(params.app_id)
+        .on_complete(params.on_complete);
+
+    if let Some(ref args) = params.args {
+        builder.args(args.clone());
+    }
+
+    if let Some(ref account_references) = params.account_references {
+        builder.account_references(account_references.clone());
+    }
+
+    if let Some(ref app_references) = params.app_references {
+        builder.app_references(app_references.clone());
+    }
+
+    if let Some(ref asset_references) = params.asset_references {
+        builder.asset_references(asset_references.clone());
+    }
+
+    if let Some(ref box_references) = params.box_references {
+        builder.box_references(box_references.clone());
+    }
+
+    builder.build().map_err(|e| e.to_string())
 }
 
 pub fn build_app_create_call(params: &AppCreateParams, header: TransactionHeader) -> Transaction {

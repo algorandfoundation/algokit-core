@@ -4,7 +4,7 @@
 //!
 //! This crate provides static access to various Algorand contract artifacts
 //! used for testing purposes. Artifacts are organized by contract name in
-//! individual folders, following the Python algokit-utils convention.
+//! individual folders.
 //!
 //! Each contract has its own folder named after the contract, containing
 //! standardized file names like `application.arc56.json` or `application.json`.

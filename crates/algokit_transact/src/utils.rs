@@ -131,3 +131,6 @@ struct GroupedTransactions {
 impl AlgorandMsgpack for GroupedTransactions {
     const PREFIX: &'static [u8] = b"TG";
 }
+
+#[cfg(test)]
+mod tests {}
