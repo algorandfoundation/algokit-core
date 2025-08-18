@@ -107,13 +107,7 @@ impl Validate for AssetTransferTransactionFields {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::TransactionHeaderMother;
-
-    fn create_test_address() -> Address {
-        "JB3K6HTAXODO4THESLNYTSG6GQUFNEVIQG7A6ZYVDACR6WA3ZF52TKU5NA"
-            .parse()
-            .unwrap()
-    }
+    use crate::test_utils::{AccountMother, TransactionHeaderMother};
 
     #[test]
     fn test_validate_asset_transfer_zero_asset_id() {
@@ -121,7 +115,7 @@ mod tests {
             header: TransactionHeaderMother::example().build().unwrap(),
             asset_id: 0, // Invalid asset ID
             amount: 1000,
-            receiver: create_test_address(),
+            receiver: AccountMother::neil().address(),
             asset_sender: None,
             close_remainder_to: None,
         };
@@ -139,7 +133,7 @@ mod tests {
             header: TransactionHeaderMother::example().build().unwrap(),
             asset_id: 123, // Valid asset ID
             amount: 1000,
-            receiver: create_test_address(),
+            receiver: AccountMother::neil().address(),
             asset_sender: None,
             close_remainder_to: None,
         };
@@ -154,7 +148,7 @@ mod tests {
             .header(TransactionHeaderMother::example().build().unwrap())
             .asset_id(0) // Invalid asset ID
             .amount(1000)
-            .receiver(create_test_address())
+            .receiver(AccountMother::neil().address())
             .build();
 
         assert!(result.is_err());
@@ -169,7 +163,7 @@ mod tests {
             .header(TransactionHeaderMother::example().build().unwrap())
             .asset_id(123) // Valid asset ID
             .amount(1000)
-            .receiver(create_test_address())
+            .receiver(AccountMother::neil().address())
             .build();
 
         assert!(result.is_ok());

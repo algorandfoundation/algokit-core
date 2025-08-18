@@ -83,20 +83,14 @@ impl Validate for AssetFreezeTransactionFields {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::TransactionHeaderMother;
-
-    fn create_test_address() -> Address {
-        "JB3K6HTAXODO4THESLNYTSG6GQUFNEVIQG7A6ZYVDACR6WA3ZF52TKU5NA"
-            .parse()
-            .unwrap()
-    }
+    use crate::test_utils::{AccountMother, TransactionHeaderMother};
 
     #[test]
     fn test_validate_asset_freeze_zero_asset_id() {
         let asset_freeze = AssetFreezeTransactionFields {
             header: TransactionHeaderMother::example().build().unwrap(),
             asset_id: 0, // Invalid asset ID
-            freeze_target: create_test_address(),
+            freeze_target: AccountMother::neil().address(),
             frozen: true,
         };
 
@@ -112,7 +106,7 @@ mod tests {
         let asset_freeze = AssetFreezeTransactionFields {
             header: TransactionHeaderMother::example().build().unwrap(),
             asset_id: 123, // Valid asset ID
-            freeze_target: create_test_address(),
+            freeze_target: AccountMother::neil().address(),
             frozen: true,
         };
 
@@ -125,7 +119,7 @@ mod tests {
         let result = AssetFreezeTransactionBuilder::default()
             .header(TransactionHeaderMother::example().build().unwrap())
             .asset_id(0) // Invalid asset ID
-            .freeze_target(create_test_address())
+            .freeze_target(AccountMother::neil().address())
             .frozen(true)
             .build();
 
@@ -140,7 +134,7 @@ mod tests {
         let result = AssetFreezeTransactionBuilder::default()
             .header(TransactionHeaderMother::example().build().unwrap())
             .asset_id(123) // Valid asset ID
-            .freeze_target(create_test_address())
+            .freeze_target(AccountMother::neil().address())
             .frozen(true)
             .build();
 
