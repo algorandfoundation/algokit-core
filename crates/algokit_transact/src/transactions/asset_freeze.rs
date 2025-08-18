@@ -5,6 +5,7 @@
 
 use crate::Transaction;
 use crate::address::Address;
+use crate::traits::Validate;
 use crate::transactions::common::TransactionHeader;
 use crate::utils::{is_zero, is_zero_addr};
 use derive_builder::Builder;
@@ -53,6 +54,96 @@ pub struct AssetFreezeTransactionFields {
 
 impl AssetFreezeTransactionBuilder {
     pub fn build(&self) -> Result<Transaction, AssetFreezeTransactionBuilderError> {
-        self.build_fields().map(Transaction::AssetFreeze)
+        let d = self.build_fields()?;
+        d.validate().map_err(|errors| {
+            AssetFreezeTransactionBuilderError::ValidationError(format!(
+                "Asset freeze validation failed: {}",
+                errors.join("\n")
+            ))
+        })?;
+        Ok(Transaction::AssetFreeze(d))
+    }
+}
+
+impl Validate for AssetFreezeTransactionFields {
+    fn validate(&self) -> Result<(), Vec<String>> {
+        let mut errors = Vec::new();
+
+        if self.asset_id == 0 {
+            errors.push("Asset ID must not be 0".to_string());
+        }
+
+        match errors.is_empty() {
+            true => Ok(()),
+            false => Err(errors),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::test_utils::TransactionHeaderMother;
+
+    fn create_test_address() -> Address {
+        "JB3K6HTAXODO4THESLNYTSG6GQUFNEVIQG7A6ZYVDACR6WA3ZF52TKU5NA"
+            .parse()
+            .unwrap()
+    }
+
+    #[test]
+    fn test_validate_asset_freeze_zero_asset_id() {
+        let asset_freeze = AssetFreezeTransactionFields {
+            header: TransactionHeaderMother::example().build().unwrap(),
+            asset_id: 0, // Invalid asset ID
+            freeze_target: create_test_address(),
+            frozen: true,
+        };
+
+        let result = asset_freeze.validate();
+        assert!(result.is_err());
+        let errors = result.unwrap_err();
+        assert_eq!(errors.len(), 1);
+        assert_eq!(errors[0], "Asset ID must not be 0");
+    }
+
+    #[test]
+    fn test_validate_valid_asset_freeze() {
+        let asset_freeze = AssetFreezeTransactionFields {
+            header: TransactionHeaderMother::example().build().unwrap(),
+            asset_id: 123, // Valid asset ID
+            freeze_target: create_test_address(),
+            frozen: true,
+        };
+
+        let result = asset_freeze.validate();
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_build_with_invalid_asset_id() {
+        let result = AssetFreezeTransactionBuilder::default()
+            .header(TransactionHeaderMother::example().build().unwrap())
+            .asset_id(0) // Invalid asset ID
+            .freeze_target(create_test_address())
+            .frozen(true)
+            .build();
+
+        assert!(result.is_err());
+        let error_message = result.unwrap_err().to_string();
+        assert!(error_message.contains("Asset freeze validation failed"));
+        assert!(error_message.contains("Asset ID must not be 0"));
+    }
+
+    #[test]
+    fn test_build_with_valid_asset_id() {
+        let result = AssetFreezeTransactionBuilder::default()
+            .header(TransactionHeaderMother::example().build().unwrap())
+            .asset_id(123) // Valid asset ID
+            .freeze_target(create_test_address())
+            .frozen(true)
+            .build();
+
+        assert!(result.is_ok());
     }
 }
