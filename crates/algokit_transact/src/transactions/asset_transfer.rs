@@ -2,6 +2,7 @@
 //!
 //! This module provides functionality for creating and managing asset transfer transactions.
 
+use crate::traits::Validate;
 use crate::transactions::common::TransactionHeader;
 use crate::utils::{is_zero, is_zero_addr, is_zero_addr_opt};
 use crate::{Address, Transaction};
@@ -77,6 +78,100 @@ pub struct AssetTransferTransactionFields {
 
 impl AssetTransferTransactionBuilder {
     pub fn build(&self) -> Result<Transaction, AssetTransferTransactionBuilderError> {
-        self.build_fields().map(Transaction::AssetTransfer)
+        let d = self.build_fields()?;
+        d.validate().map_err(|errors| {
+            AssetTransferTransactionBuilderError::ValidationError(format!(
+                "Asset transfer validation failed: {}",
+                errors.join("\n")
+            ))
+        })?;
+        Ok(Transaction::AssetTransfer(d))
+    }
+}
+
+impl Validate for AssetTransferTransactionFields {
+    fn validate(&self) -> Result<(), Vec<String>> {
+        let mut errors = Vec::new();
+
+        if self.asset_id == 0 {
+            errors.push("Asset ID must not be 0".to_string());
+        }
+
+        match errors.is_empty() {
+            true => Ok(()),
+            false => Err(errors),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::test_utils::TransactionHeaderMother;
+
+    fn create_test_address() -> Address {
+        "JB3K6HTAXODO4THESLNYTSG6GQUFNEVIQG7A6ZYVDACR6WA3ZF52TKU5NA"
+            .parse()
+            .unwrap()
+    }
+
+    #[test]
+    fn test_validate_asset_transfer_zero_asset_id() {
+        let asset_transfer = AssetTransferTransactionFields {
+            header: TransactionHeaderMother::example().build().unwrap(),
+            asset_id: 0, // Invalid asset ID
+            amount: 1000,
+            receiver: create_test_address(),
+            asset_sender: None,
+            close_remainder_to: None,
+        };
+
+        let result = asset_transfer.validate();
+        assert!(result.is_err());
+        let errors = result.unwrap_err();
+        assert_eq!(errors.len(), 1);
+        assert_eq!(errors[0], "Asset ID must not be 0");
+    }
+
+    #[test]
+    fn test_validate_valid_asset_transfer() {
+        let asset_transfer = AssetTransferTransactionFields {
+            header: TransactionHeaderMother::example().build().unwrap(),
+            asset_id: 123, // Valid asset ID
+            amount: 1000,
+            receiver: create_test_address(),
+            asset_sender: None,
+            close_remainder_to: None,
+        };
+
+        let result = asset_transfer.validate();
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_build_with_invalid_asset_id() {
+        let result = AssetTransferTransactionBuilder::default()
+            .header(TransactionHeaderMother::example().build().unwrap())
+            .asset_id(0) // Invalid asset ID
+            .amount(1000)
+            .receiver(create_test_address())
+            .build();
+
+        assert!(result.is_err());
+        let error_message = result.unwrap_err().to_string();
+        assert!(error_message.contains("Asset transfer validation failed"));
+        assert!(error_message.contains("Asset ID must not be 0"));
+    }
+
+    #[test]
+    fn test_build_with_valid_asset_id() {
+        let result = AssetTransferTransactionBuilder::default()
+            .header(TransactionHeaderMother::example().build().unwrap())
+            .asset_id(123) // Valid asset ID
+            .amount(1000)
+            .receiver(create_test_address())
+            .build();
+
+        assert!(result.is_ok());
     }
 }
