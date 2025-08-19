@@ -8,7 +8,8 @@ from tests.transaction_asserts import (
     assert_encode_with_signature,
     assert_encoded_transaction_type,
     assert_example,
-    assert_transaction_id, assert_multisig_example,
+    assert_transaction_id,
+    assert_multisig_example,
 )
 
 from . import TEST_DATA
