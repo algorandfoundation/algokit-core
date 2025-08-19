@@ -479,7 +479,7 @@ impl Validate for AssetConfigTransactionFields {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::{AccountMother, TransactionHeaderMother};
+    use crate::test_utils::{AccountMother, TestDataMother, TransactionHeaderMother};
 
     #[test]
     fn test_validate_asset_creation_multiple_errors() {
@@ -616,5 +616,32 @@ mod tests {
         assert!(error_text.contains("unit_name") && error_text.contains("immutable"));
         assert!(error_text.contains("url") && error_text.contains("immutable"));
         assert!(error_text.contains("metadata_hash") && error_text.contains("immutable"));
+    }
+
+    #[test]
+    fn test_asset_create_snapshot() {
+        let data = TestDataMother::asset_create();
+        assert_eq!(
+            data.id,
+            String::from("NXAHS2NA46DJHIULXYPJV2NOJSKKFFNFFXRZP35TA5IDCZNE2MUA")
+        );
+    }
+
+    #[test]
+    fn test_asset_reconfigure_snapshot() {
+        let data = TestDataMother::asset_reconfigure();
+        assert_eq!(
+            data.id,
+            String::from("GAMRAG3KCG23U2HOELJF32OQAWAISLIFBB5RLDDDYHUSOZNYN7MQ")
+        );
+    }
+
+    #[test]
+    fn test_asset_destroy_snapshot() {
+        let data = TestDataMother::asset_destroy();
+        assert_eq!(
+            data.id,
+            String::from("U4XH6AS5UUYQI4IZ3E5JSUEIU64Y3FGNYKLH26W4HRY7T6PK745A")
+        );
     }
 }

@@ -290,6 +290,12 @@ impl Transaction {
 
 #[cfg(test)]
 mod transaction_tests {
+    use crate::{
+        EMPTY_SIGNATURE,
+        test_utils::{TransactionGroupMother, TransactionHeaderMother, TransactionMother},
+    };
+    use base64::{Engine, prelude::BASE64_STANDARD};
+
     use super::*;
 
     fn create_test_header() -> TransactionHeader {
@@ -462,6 +468,167 @@ mod transaction_tests {
         // Test that it doesn't match wrong type
         if let Transaction::ApplicationCall(_) = &payment {
             panic!("Should not match app call");
+        }
+    }
+
+    #[test]
+    fn test_multi_transaction_group() {
+        let expected_group: [u8; 32] = BASE64_STANDARD
+            .decode(String::from("uJA6BWzZ5g7Ve0FersqCLWsrEstt6p0+F3bNGEKH3I4="))
+            .unwrap()
+            .try_into()
+            .unwrap();
+        let txs = TransactionGroupMother::testnet_payment_group();
+
+        let grouped_txs = txs.assign_group().unwrap();
+
+        assert_eq!(grouped_txs.len(), txs.len());
+        for grouped_tx in grouped_txs.iter() {
+            assert_eq!(grouped_tx.header().group.unwrap(), expected_group);
+        }
+        assert_eq!(
+            &grouped_txs[0].id().unwrap(),
+            "6SIXGV2TELA2M5RHZ72CVKLBSJ2OPUAKYFTUUE27O23RN6TFMGHQ"
+        );
+        assert_eq!(
+            &grouped_txs[1].id().unwrap(),
+            "7OY3VQXJCDSKPMGEFJMNJL2L3XIOMRM2U7DM2L54CC7QM5YBFQEA"
+        );
+    }
+
+    #[test]
+    fn test_single_transaction_group() {
+        let expected_group: [u8; 32] = BASE64_STANDARD
+            .decode(String::from("LLW3AwgyXbwoMMBNfLSAGHtqoKtj/c7MjNMR0MGW6sg="))
+            .unwrap()
+            .try_into()
+            .unwrap();
+        let txs: Vec<Transaction> = TransactionGroupMother::group_of(1);
+
+        let grouped_txs = txs.assign_group().unwrap();
+
+        assert_eq!(grouped_txs.len(), txs.len());
+        for grouped_tx in grouped_txs.iter() {
+            assert_eq!(grouped_tx.header().group.unwrap(), expected_group);
+        }
+    }
+
+    #[test]
+    fn test_transaction_group_too_big() {
+        let txs: Vec<Transaction> = TransactionGroupMother::group_of(MAX_TX_GROUP_SIZE + 1);
+
+        let result = txs.assign_group();
+
+        let error = result.unwrap_err();
+        assert!(
+            error
+                .to_string()
+                .starts_with("Transaction group size exceeds the max limit")
+        );
+    }
+
+    #[test]
+    fn test_transaction_group_too_small() {
+        let txs: Vec<Transaction> = TransactionGroupMother::group_of(0);
+
+        let result = txs.assign_group();
+
+        let error = result.unwrap_err();
+        assert!(
+            error
+                .to_string()
+                .starts_with("Transaction group size cannot be 0")
+        );
+    }
+
+    #[test]
+    fn test_transaction_group_already_set() {
+        let tx: Transaction = TransactionMother::simple_payment()
+            .header(
+                TransactionHeaderMother::simple_testnet()
+                    .group(
+                        BASE64_STANDARD
+                            .decode(String::from("y1Hz6KZhHJI4TZLwZqXO3TFgXVQdD/1+c6BLk3wTW6Q="))
+                            .unwrap()
+                            .try_into()
+                            .unwrap(),
+                    )
+                    .build()
+                    .unwrap(),
+            )
+            .to_owned()
+            .build()
+            .unwrap();
+
+        let result = vec![tx].assign_group();
+
+        let error = result.unwrap_err();
+        assert!(
+            error
+                .to_string()
+                .starts_with("Transactions must not already be grouped")
+        );
+    }
+
+    #[test]
+    fn test_transaction_group_encoding() {
+        let grouped_txs = TransactionGroupMother::testnet_payment_group()
+            .assign_group()
+            .unwrap();
+
+        let encoded_grouped_txs = grouped_txs
+            .iter()
+            .map(|tx| tx.encode())
+            .collect::<Result<Vec<Vec<u8>>, _>>()
+            .unwrap();
+        let decoded_grouped_txs = encoded_grouped_txs
+            .iter()
+            .map(|tx| Transaction::decode(tx))
+            .collect::<Result<Vec<Transaction>, _>>()
+            .unwrap();
+
+        for ((grouped_tx, encoded_tx), decoded_tx) in grouped_txs
+            .iter()
+            .zip(encoded_grouped_txs.into_iter())
+            .zip(decoded_grouped_txs.iter())
+        {
+            assert_eq!(encoded_tx, grouped_tx.encode().unwrap());
+            assert_eq!(decoded_tx, grouped_tx);
+        }
+    }
+
+    #[test]
+    fn test_signed_transaction_group_encoding() {
+        let signed_grouped_txs = TransactionGroupMother::testnet_payment_group()
+            .assign_group()
+            .unwrap()
+            .iter()
+            .map(|tx| SignedTransaction {
+                transaction: tx.clone(),
+                signature: Some(EMPTY_SIGNATURE),
+                auth_address: None,
+                multisignature: None,
+            })
+            .collect::<Vec<SignedTransaction>>();
+
+        let encoded_signed_group = signed_grouped_txs
+            .iter()
+            .map(|tx| tx.encode())
+            .collect::<Result<Vec<Vec<u8>>, _>>()
+            .unwrap();
+        let decoded_signed_group = encoded_signed_group
+            .iter()
+            .map(|tx| SignedTransaction::decode(tx))
+            .collect::<Result<Vec<SignedTransaction>, _>>()
+            .unwrap();
+
+        for ((signed_grouped_tx, encoded_signed_tx), decoded_signed_tx) in signed_grouped_txs
+            .iter()
+            .zip(encoded_signed_group.into_iter())
+            .zip(decoded_signed_group.iter())
+        {
+            assert_eq!(encoded_signed_tx, signed_grouped_tx.encode().unwrap());
+            assert_eq!(decoded_signed_tx, signed_grouped_tx);
         }
     }
 }

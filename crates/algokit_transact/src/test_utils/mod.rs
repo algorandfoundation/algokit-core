@@ -4,9 +4,9 @@ mod asset_freeze;
 mod key_registration;
 
 use crate::{
-    ALGORAND_PUBLIC_KEY_BYTE_LENGTH, Address, AlgorandMsgpack, Byte32, HASH_BYTES_LENGTH,
-    KeyPairAccount, MultisigSignature, MultisigSubsignature, SignedTransaction, Transaction,
-    TransactionHeaderBuilder, TransactionId,
+    ALGORAND_PUBLIC_KEY_BYTE_LENGTH, Address, AlgorandMsgpack, Byte32, EMPTY_SIGNATURE,
+    HASH_BYTES_LENGTH, KeyPairAccount, MultisigSignature, MultisigSubsignature, SignedTransaction,
+    Transaction, TransactionHeaderBuilder, TransactionId,
     transactions::{AssetTransferTransactionBuilder, PaymentTransactionBuilder},
 };
 use base64::{Engine, prelude::BASE64_STANDARD};
@@ -567,169 +567,84 @@ fn normalise_json(value: serde_json::Value) -> serde_json::Value {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub fn check_transaction_encoding(tx: &Transaction, expected_encoded_len: usize) {
+    let encoded = tx.encode().unwrap();
+    let decoded = Transaction::decode(&encoded).unwrap();
+    assert_eq!(decoded, *tx);
 
-    #[test]
-    fn test_simple_payment_snapshot() {
-        let data = TestDataMother::simple_payment();
-        assert_eq!(
-            data.id,
-            String::from("TZM3P4ZL4DLIEZ3WOEP67MQ6JITTO4D3NJN3RCA5YDBC3V4LA5LA")
-        );
-        print!("{:?}", data.multisig_signed_bytes);
-        assert_eq!(
-            data.multisig_signed_bytes,
-            [
-                130, 164, 109, 115, 105, 103, 131, 166, 115, 117, 98, 115, 105, 103, 146, 130, 162,
-                112, 107, 196, 32, 230, 185, 154, 253, 65, 13, 19, 221, 14, 138, 126, 148, 184,
-                121, 29, 48, 92, 117, 6, 238, 183, 225, 250, 65, 14, 118, 26, 59, 98, 44, 225, 20,
-                161, 115, 196, 64, 198, 56, 196, 15, 176, 92, 85, 96, 205, 178, 248, 28, 27, 215,
-                149, 74, 22, 18, 122, 228, 98, 34, 13, 202, 109, 58, 242, 134, 31, 206, 195, 29,
-                110, 250, 219, 67, 240, 62, 47, 253, 200, 132, 24, 36, 210, 17, 97, 97, 165, 32,
-                154, 49, 102, 252, 16, 157, 51, 135, 216, 86, 41, 198, 47, 15, 130, 162, 112, 107,
-                196, 32, 110, 60, 51, 144, 133, 183, 247, 29, 54, 150, 199, 125, 170, 105, 173, 84,
-                148, 21, 87, 24, 235, 157, 2, 172, 123, 102, 144, 142, 198, 141, 84, 114, 161, 115,
-                196, 64, 198, 56, 196, 15, 176, 92, 85, 96, 205, 178, 248, 28, 27, 215, 149, 74,
-                22, 18, 122, 228, 98, 34, 13, 202, 109, 58, 242, 134, 31, 206, 195, 29, 110, 250,
-                219, 67, 240, 62, 47, 253, 200, 132, 24, 36, 210, 17, 97, 97, 165, 32, 154, 49,
-                102, 252, 16, 157, 51, 135, 216, 86, 41, 198, 47, 15, 163, 116, 104, 114, 2, 161,
-                118, 1, 163, 116, 120, 110, 137, 163, 97, 109, 116, 206, 0, 1, 138, 136, 163, 102,
-                101, 101, 205, 3, 232, 162, 102, 118, 206, 3, 5, 0, 212, 163, 103, 101, 110, 172,
-                116, 101, 115, 116, 110, 101, 116, 45, 118, 49, 46, 48, 162, 103, 104, 196, 32, 72,
-                99, 181, 24, 164, 179, 200, 78, 200, 16, 242, 45, 79, 16, 129, 203, 15, 113, 240,
-                89, 167, 172, 32, 222, 198, 47, 127, 112, 229, 9, 58, 34, 162, 108, 118, 206, 3, 5,
-                4, 188, 163, 114, 99, 118, 196, 32, 173, 207, 218, 63, 201, 93, 52, 35, 35, 15,
-                161, 115, 204, 245, 211, 90, 68, 182, 3, 164, 184, 247, 131, 205, 149, 104, 201,
-                215, 253, 11, 206, 245, 163, 115, 110, 100, 196, 32, 138, 24, 8, 153, 89, 167, 60,
-                236, 255, 238, 91, 198, 115, 190, 137, 254, 3, 35, 198, 98, 195, 33, 65, 123, 138,
-                200, 132, 194, 74, 0, 44, 25, 164, 116, 121, 112, 101, 163, 112, 97, 121
-            ]
-        )
-    }
+    let signed_tx = SignedTransaction {
+        transaction: tx.clone(),
+        signature: Some(EMPTY_SIGNATURE),
+        auth_address: None,
+        multisignature: None,
+    };
+    let encoded_stx = signed_tx.encode().unwrap();
+    let decoded_stx = SignedTransaction::decode(&encoded_stx).unwrap();
+    assert_eq!(decoded_stx, signed_tx);
+    assert_eq!(decoded_stx.transaction, *tx);
 
-    #[test]
-    fn test_simple_asset_transfer_snapshot() {
-        let data = TestDataMother::simple_asset_transfer();
-        assert_eq!(
-            data.id,
-            String::from("VAHP4FRJH4GRV6ID2BZRK5VYID376EV3VE6T2TKKDFJBBDOXWCCA")
-        );
-    }
+    let raw_encoded = tx.encode_raw().unwrap();
+    assert_eq!(encoded[0], b'T');
+    assert_eq!(encoded[1], b'X');
+    assert_eq!(encoded.len(), raw_encoded.len() + 2);
+    assert_eq!(encoded[2..], raw_encoded);
+    assert_eq!(encoded.len(), expected_encoded_len);
+}
 
-    #[test]
-    fn test_opt_in_asset_transfer_snapshot() {
-        let data = TestDataMother::opt_in_asset_transfer();
-        assert_eq!(
-            data.id,
-            String::from("JIDBHDPLBASULQZFI4EY5FJWR6VQRMPPFSGYBKE2XKW65N3UQJXA")
-        );
-    }
+pub fn check_signed_transaction_encoding(
+    tx: &Transaction,
+    expected_encoded_len: usize,
+    auth_account: Option<KeyPairAccount>,
+) {
+    let signed_tx = SignedTransaction {
+        transaction: tx.clone(),
+        signature: Some(EMPTY_SIGNATURE),
+        auth_address: auth_account.map(|acc| acc.address()),
+        multisignature: None,
+    };
+    let encoded_stx = signed_tx.encode().unwrap();
+    assert_eq!(encoded_stx.len(), expected_encoded_len);
+    let decoded_stx = SignedTransaction::decode(&encoded_stx).unwrap();
+    assert_eq!(decoded_stx, signed_tx);
+}
 
-    #[test]
-    fn test_application_create_snapshot() {
-        let data = TestDataMother::application_create();
-        assert_eq!(
-            data.id,
-            String::from("L6B56N2BAXE43PUI7IDBXCJN5DEB6NLCH4AAN3ON64CXPSCTJNTA")
-        );
-    }
+pub fn check_multisigned_transaction_encoding(tx: &Transaction, expected_encoded_len: usize) {
+    let unsigned_multisignature = MultisigSignature::from_participants(
+        1,
+        2,
+        vec![
+            AccountMother::account().address(),
+            AccountMother::neil().address(),
+        ],
+    )
+    .unwrap();
+    let multisignature_0 = unsigned_multisignature
+        .apply_subsignature(AccountMother::account().address(), EMPTY_SIGNATURE)
+        .unwrap();
+    let multisignature_1 = unsigned_multisignature
+        .apply_subsignature(AccountMother::neil().address(), EMPTY_SIGNATURE)
+        .unwrap();
+    let multisignature = Some(multisignature_0.merge(&multisignature_1).unwrap());
+    let signed_tx = SignedTransaction {
+        transaction: tx.clone(),
+        signature: None,
+        auth_address: None,
+        multisignature,
+    };
+    let encoded_stx = signed_tx.encode().unwrap();
+    assert_eq!(encoded_stx.len(), expected_encoded_len);
+    let decoded_stx = SignedTransaction::decode(&encoded_stx).unwrap();
+    assert_eq!(decoded_stx, signed_tx);
+}
 
-    #[test]
-    fn test_application_call_snapshot() {
-        let data = TestDataMother::application_call();
-        assert_eq!(
-            data.id,
-            String::from("6Y644M5SGTKNBH7ZX6D7QAAHDF6YL6FDJPRAGSUHNZLR4IKGVSPQ")
-        );
-    }
+pub fn check_transaction_id(tx: &Transaction, expected_tx_id: &str) {
+    let signed_tx = SignedTransaction {
+        transaction: tx.clone(),
+        signature: Some(EMPTY_SIGNATURE),
+        auth_address: None,
+        multisignature: None,
+    };
 
-    #[test]
-    fn test_application_update_snapshot() {
-        let data = TestDataMother::application_update();
-        assert_eq!(
-            data.id,
-            String::from("NQVNJ5VWEDX42DMJQIQET4QPNUOW27EYIPKZ4SDWKOOEFJQB7PZA")
-        );
-    }
-
-    #[test]
-    fn test_application_delete_snapshot() {
-        let data = TestDataMother::application_delete();
-        assert_eq!(
-            data.id,
-            String::from("XVVC7UDLCPI622KCJZLWK3SEAWWVUEPEXUM5CO3DFLWOBH7NOPDQ")
-        );
-    }
-
-    #[test]
-    fn test_asset_create_snapshot() {
-        let data = TestDataMother::asset_create();
-        assert_eq!(
-            data.id,
-            String::from("NXAHS2NA46DJHIULXYPJV2NOJSKKFFNFFXRZP35TA5IDCZNE2MUA")
-        );
-    }
-
-    #[test]
-    fn test_asset_reconfigure_snapshot() {
-        let data = TestDataMother::asset_reconfigure();
-        assert_eq!(
-            data.id,
-            String::from("GAMRAG3KCG23U2HOELJF32OQAWAISLIFBB5RLDDDYHUSOZNYN7MQ")
-        );
-    }
-
-    #[test]
-    fn test_asset_destroy_snapshot() {
-        let data = TestDataMother::asset_destroy();
-        assert_eq!(
-            data.id,
-            String::from("U4XH6AS5UUYQI4IZ3E5JSUEIU64Y3FGNYKLH26W4HRY7T6PK745A")
-        );
-    }
-
-    #[test]
-    fn test_online_key_registration_snapshot() {
-        let data = TestDataMother::online_key_registration();
-        assert_eq!(
-            data.id,
-            String::from("UCWQQKWB3CMPVK6EU2ML7CN5IDYZJVVSVS3RXYEOLJUURX44SUKQ")
-        );
-    }
-    #[test]
-    fn test_offline_key_registration_snapshot() {
-        let data = TestDataMother::offline_key_registration();
-        assert_eq!(
-            data.id,
-            String::from("WAXJLC44RILOSYX73PJULCAWC43DNBU4AXMWHIRARXK4GO2LHEDQ")
-        );
-    }
-    #[test]
-    fn test_non_participation_key_registration_snapshot() {
-        let data = TestDataMother::non_participation_key_registration();
-        assert_eq!(
-            data.id,
-            String::from("ACAP6ZGMGNTLUO3IQ26P22SRKYWTQQO3MF64GX7QO6NICDUFPM5A")
-        );
-    }
-
-    #[test]
-    fn test_asset_freeze_snapshot() {
-        let data = TestDataMother::asset_freeze();
-        assert_eq!(
-            data.id,
-            String::from("2XFGVOHMFYLAWBHOSIOI67PBT5LDRHBTD3VLX5EYBDTFNVKMCJIA")
-        );
-    }
-
-    #[test]
-    fn test_asset_unfreeze_snapshot() {
-        let data = TestDataMother::asset_unfreeze();
-        assert_eq!(
-            data.id,
-            String::from("LZ2ODDAT4ATAVJUEQW34DIKMPCMBXCCHOSIYKMWGBPEVNHLSEV2A")
-        );
-    }
+    assert_eq!(tx.id().unwrap(), expected_tx_id);
+    assert_eq!(signed_tx.id().unwrap(), expected_tx_id);
 }

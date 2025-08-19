@@ -80,3 +80,32 @@ impl Display for KeyPairAccount {
         write!(f, "{}", Address::from(self.clone()).as_str())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{KeyPairAccount, test_utils::AccountMother};
+
+    #[test]
+    fn test_zero_address_account() {
+        let acct = AccountMother::zero_address_account();
+        assert_eq!(
+            acct.to_string(),
+            "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
+        );
+
+        let addr_from_str = acct.to_string().parse::<KeyPairAccount>().unwrap();
+        assert_eq!(acct, addr_from_str);
+    }
+
+    #[test]
+    fn test_account() {
+        let acct = AccountMother::account();
+        assert_eq!(
+            acct.to_string(),
+            "RIMARGKZU46OZ77OLPDHHPUJ7YBSHRTCYMQUC64KZCCMESQAFQMYU6SL2Q"
+        );
+
+        let addr_from_str = acct.to_string().parse::<KeyPairAccount>().unwrap();
+        assert_eq!(acct, addr_from_str);
+    }
+}
