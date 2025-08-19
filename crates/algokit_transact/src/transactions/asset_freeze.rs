@@ -83,7 +83,7 @@ impl Validate for AssetFreezeTransactionFields {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::{AccountMother, TransactionHeaderMother};
+    use crate::test_utils::{AccountMother, TestDataMother, TransactionHeaderMother};
 
     #[test]
     fn test_validate_asset_freeze_zero_asset_id() {
@@ -139,5 +139,23 @@ mod tests {
             .build();
 
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_asset_freeze_snapshot() {
+        let data = TestDataMother::asset_freeze();
+        assert_eq!(
+            data.id,
+            String::from("2XFGVOHMFYLAWBHOSIOI67PBT5LDRHBTD3VLX5EYBDTFNVKMCJIA")
+        );
+    }
+
+    #[test]
+    fn test_asset_unfreeze_snapshot() {
+        let data = TestDataMother::asset_unfreeze();
+        assert_eq!(
+            data.id,
+            String::from("LZ2ODDAT4ATAVJUEQW34DIKMPCMBXCCHOSIYKMWGBPEVNHLSEV2A")
+        );
     }
 }

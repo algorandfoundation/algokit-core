@@ -174,7 +174,9 @@ impl Validate for KeyRegistrationTransactionFields {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::{KeyRegistrationTransactionMother, TransactionHeaderMother};
+    use crate::test_utils::{
+        KeyRegistrationTransactionMother, TestDataMother, TransactionHeaderMother,
+    };
 
     #[test]
     fn test_validate_valid_online_key_registration() {
@@ -543,5 +545,30 @@ mod tests {
             // Group ID should be non-zero
             assert_ne!(group_id, [0u8; 32]);
         }
+    }
+
+    #[test]
+    fn test_online_key_registration_snapshot() {
+        let data = TestDataMother::online_key_registration();
+        assert_eq!(
+            data.id,
+            String::from("UCWQQKWB3CMPVK6EU2ML7CN5IDYZJVVSVS3RXYEOLJUURX44SUKQ")
+        );
+    }
+    #[test]
+    fn test_offline_key_registration_snapshot() {
+        let data = TestDataMother::offline_key_registration();
+        assert_eq!(
+            data.id,
+            String::from("WAXJLC44RILOSYX73PJULCAWC43DNBU4AXMWHIRARXK4GO2LHEDQ")
+        );
+    }
+    #[test]
+    fn test_non_participation_key_registration_snapshot() {
+        let data = TestDataMother::non_participation_key_registration();
+        assert_eq!(
+            data.id,
+            String::from("ACAP6ZGMGNTLUO3IQ26P22SRKYWTQQO3MF64GX7QO6NICDUFPM5A")
+        );
     }
 }

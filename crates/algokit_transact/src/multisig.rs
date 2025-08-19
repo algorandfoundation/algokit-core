@@ -243,3 +243,17 @@ impl Display for MultisigSignature {
         write!(f, "{}", Address::from(self.clone()).as_str())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::test_utils::AccountMother;
+
+    #[test]
+    fn test_msig_account() {
+        let msig = AccountMother::msig();
+        assert_eq!(
+            msig.to_string(),
+            "TZ6HCOKXK54E2VRU523LBTDQMQNX7DXOWENPFNBXOEU3SMEWXYNCRJUTBU"
+        );
+    }
+}

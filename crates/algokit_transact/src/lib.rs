@@ -23,8 +23,5 @@ pub use transactions::{
     StateSchema, Transaction, TransactionHeader, TransactionHeaderBuilder,
 };
 
-#[cfg(test)]
-mod tests;
-
 #[cfg(feature = "test_utils")]
 pub mod test_utils;

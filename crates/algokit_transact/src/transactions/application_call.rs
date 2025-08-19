@@ -689,9 +689,9 @@ mod tests {
     use super::*;
     use crate::AlgorandMsgpack;
     use crate::test_utils::{
-        AccountMother, ApplicationCallTransactionMother, TransactionHeaderMother,
+        AccountMother, ApplicationCallTransactionMother, TestDataMother, TransactionHeaderMother,
     };
-    use crate::tests::{check_transaction_encoding, check_transaction_id};
+    use crate::test_utils::{check_transaction_encoding, check_transaction_id};
 
     #[test]
     fn test_application_create_transaction_encoding() {
@@ -1348,5 +1348,41 @@ mod tests {
         // valid
         let result = ApplicationCallTransactionMother::application_call_example().build();
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_application_create_snapshot() {
+        let data = TestDataMother::application_create();
+        assert_eq!(
+            data.id,
+            String::from("L6B56N2BAXE43PUI7IDBXCJN5DEB6NLCH4AAN3ON64CXPSCTJNTA")
+        );
+    }
+
+    #[test]
+    fn test_application_call_snapshot() {
+        let data = TestDataMother::application_call();
+        assert_eq!(
+            data.id,
+            String::from("6Y644M5SGTKNBH7ZX6D7QAAHDF6YL6FDJPRAGSUHNZLR4IKGVSPQ")
+        );
+    }
+
+    #[test]
+    fn test_application_update_snapshot() {
+        let data = TestDataMother::application_update();
+        assert_eq!(
+            data.id,
+            String::from("NQVNJ5VWEDX42DMJQIQET4QPNUOW27EYIPKZ4SDWKOOEFJQB7PZA")
+        );
+    }
+
+    #[test]
+    fn test_application_delete_snapshot() {
+        let data = TestDataMother::application_delete();
+        assert_eq!(
+            data.id,
+            String::from("XVVC7UDLCPI622KCJZLWK3SEAWWVUEPEXUM5CO3DFLWOBH7NOPDQ")
+        );
     }
 }
