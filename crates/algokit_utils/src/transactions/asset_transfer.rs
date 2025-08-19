@@ -103,18 +103,13 @@ pub fn build_asset_clawback(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use algokit_transact::{Address, TransactionHeader};
-    use std::str::FromStr;
+    use algokit_transact::{TransactionHeader, test_utils::AccountMother};
 
     #[test]
     fn test_asset_opt_out_with_optional_close_remainder_to() {
         // Use valid test addresses
-        let sender =
-            Address::from_str("JB3K6HTAXODO4THESLNYTSG6GQUFNEVIQG7A6ZYVDACR6WA3ZF52TKU5NA")
-                .unwrap();
-        let creator =
-            Address::from_str("JB3K6HTAXODO4THESLNYTSG6GQUFNEVIQG7A6ZYVDACR6WA3ZF52TKU5NA")
-                .unwrap();
+        let sender = AccountMother::neil().address();
+        let creator = AccountMother::neil().address();
 
         // Test with Some(creator) - explicit close_remainder_to
         let params_with_creator = AssetOptOutParams {

@@ -479,14 +479,7 @@ impl Validate for AssetConfigTransactionFields {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::TransactionHeaderMother;
-
-    fn create_test_address() -> Address {
-        // Use a valid Algorand address for testing
-        "JB3K6HTAXODO4THESLNYTSG6GQUFNEVIQG7A6ZYVDACR6WA3ZF52TKU5NA"
-            .parse()
-            .unwrap()
-    }
+    use crate::test_utils::{AccountMother, TransactionHeaderMother};
 
     #[test]
     fn test_validate_asset_creation_multiple_errors() {
@@ -503,7 +496,7 @@ mod tests {
             unit_name: Some("VERYLONGUNITNAME".to_string()), // More than 8 bytes - ERROR 4
             url: Some(long_url),                             // More than 96 bytes - ERROR 5
             metadata_hash: None,
-            manager: Some(create_test_address()),
+            manager: Some(AccountMother::neil().address()),
             reserve: None,
             freeze: None,
             clawback: None,
@@ -535,10 +528,10 @@ mod tests {
             unit_name: Some("TA".to_string()),
             url: Some("https://example.com".to_string()),
             metadata_hash: Some([1; 32]),
-            manager: Some(create_test_address()),
-            reserve: Some(create_test_address()),
-            freeze: Some(create_test_address()),
-            clawback: Some(create_test_address()),
+            manager: Some(AccountMother::neil().address()),
+            reserve: Some(AccountMother::neil().address()),
+            freeze: Some(AccountMother::neil().address()),
+            clawback: Some(AccountMother::neil().address()),
         };
 
         let result = asset_config.validate();
@@ -551,18 +544,18 @@ mod tests {
     fn test_validate_valid_asset_reconfigure() {
         let asset_config = AssetConfigTransactionFields {
             header: TransactionHeaderMother::example().build().unwrap(),
-            asset_id: 123,                         // Existing asset
-            total: None,                           // Can't modify
-            decimals: None,                        // Can't modify
-            default_frozen: None,                  // Can't modify
-            asset_name: None,                      // Can't modify
-            unit_name: None,                       // Can't modify
-            url: None,                             // Can't modify
-            metadata_hash: None,                   // Can't modify
-            manager: Some(create_test_address()),  // Can modify
-            reserve: Some(create_test_address()),  // Can modify
-            freeze: Some(create_test_address()),   // Can modify
-            clawback: Some(create_test_address()), // Can modify
+            asset_id: 123,                                   // Existing asset
+            total: None,                                     // Can't modify
+            decimals: None,                                  // Can't modify
+            default_frozen: None,                            // Can't modify
+            asset_name: None,                                // Can't modify
+            unit_name: None,                                 // Can't modify
+            url: None,                                       // Can't modify
+            metadata_hash: None,                             // Can't modify
+            manager: Some(AccountMother::neil().address()),  // Can modify
+            reserve: Some(AccountMother::neil().address()),  // Can modify
+            freeze: Some(AccountMother::neil().address()),   // Can modify
+            clawback: Some(AccountMother::neil().address()), // Can modify
         };
 
         let result = asset_config.validate();
@@ -595,15 +588,15 @@ mod tests {
     fn test_validate_asset_reconfigure_multiple_immutable_field_errors() {
         let asset_config = AssetConfigTransactionFields {
             header: TransactionHeaderMother::example().build().unwrap(),
-            asset_id: 123,                               // Existing asset
-            total: Some(2000),                           // Can't modify total - ERROR 1
-            decimals: Some(3),                           // Can't modify decimals - ERROR 2
-            default_frozen: Some(true),                  // Can't modify default_frozen - ERROR 3
-            asset_name: Some("NewName".to_string()),     // Can't modify asset_name - ERROR 4
-            unit_name: Some("NEW".to_string()),          // Can't modify unit_name - ERROR 5
-            url: Some("https://newurl.com".to_string()), // Can't modify url - ERROR 6
-            metadata_hash: Some([2; 32]),                // Can't modify metadata_hash - ERROR 7
-            manager: Some(create_test_address()),        // This is allowed
+            asset_id: 123,                                  // Existing asset
+            total: Some(2000),                              // Can't modify total - ERROR 1
+            decimals: Some(3),                              // Can't modify decimals - ERROR 2
+            default_frozen: Some(true),                     // Can't modify default_frozen - ERROR 3
+            asset_name: Some("NewName".to_string()),        // Can't modify asset_name - ERROR 4
+            unit_name: Some("NEW".to_string()),             // Can't modify unit_name - ERROR 5
+            url: Some("https://newurl.com".to_string()),    // Can't modify url - ERROR 6
+            metadata_hash: Some([2; 32]),                   // Can't modify metadata_hash - ERROR 7
+            manager: Some(AccountMother::neil().address()), // This is allowed
             reserve: None,
             freeze: None,
             clawback: None,
