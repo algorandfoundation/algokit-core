@@ -26,7 +26,7 @@ pub struct ApplicationStateOperation {
     #[serde(rename = "app-state-type")]
     pub app_state_type: String,
     /// The key (name) of the global/local/box state.
-    #[serde_as(as = "serde_with::base64::Base64")]
+    #[serde_as(as = "Bytes")]
     #[serde(rename = "key")]
     pub key: Vec<u8>,
     #[serde(rename = "new-value", skip_serializing_if = "Option::is_none")]

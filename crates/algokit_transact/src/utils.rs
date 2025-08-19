@@ -1,6 +1,7 @@
 use crate::constants::{
     ALGORAND_CHECKSUM_BYTE_LENGTH, ALGORAND_PUBLIC_KEY_BYTE_LENGTH, Byte32, HASH_BYTES_LENGTH,
 };
+use crate::traits::MsgPackEmpty;
 use crate::{Address, AlgoKitTransactError, AlgorandMsgpack, Transaction, TransactionId};
 use serde::{Deserialize, Serialize};
 use serde_with::{Bytes, serde_as, skip_serializing_none};
@@ -74,6 +75,13 @@ pub fn is_empty_vec_opt<T>(vec: &Option<Vec<T>>) -> bool {
     vec.as_ref().is_none_or(Vec::is_empty)
 }
 
+pub fn is_empty_struct_opt<T>(val: &Option<T>) -> bool
+where
+    T: MsgPackEmpty,
+{
+    val.as_ref().is_none_or(|v| v.is_empty())
+}
+
 pub fn pub_key_to_checksum(pub_key: &Byte32) -> [u8; ALGORAND_CHECKSUM_BYTE_LENGTH] {
     let mut hasher = Sha512_256::new();
     hasher.update(pub_key);
@@ -88,9 +96,9 @@ pub fn hash(bytes: &Vec<u8>) -> Byte32 {
     let mut hasher = Sha512_256::new();
     hasher.update(bytes);
 
-    let mut group = [0u8; HASH_BYTES_LENGTH];
-    group.copy_from_slice(&hasher.finalize()[..HASH_BYTES_LENGTH]);
-    group
+    let mut hash_bytes = [0u8; HASH_BYTES_LENGTH];
+    hash_bytes.copy_from_slice(&hasher.finalize()[..HASH_BYTES_LENGTH]);
+    hash_bytes
 }
 
 pub fn compute_group_id(txs: &[Transaction]) -> Result<Byte32, AlgoKitTransactError> {

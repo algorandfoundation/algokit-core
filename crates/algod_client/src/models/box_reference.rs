@@ -21,7 +21,7 @@ pub struct BoxReference {
     #[serde(rename = "app")]
     pub app: u64,
     /// Base64 encoded box name
-    #[serde_as(as = "serde_with::base64::Base64")]
+    #[serde_as(as = "Bytes")]
     #[serde(rename = "name")]
     pub name: Vec<u8>,
 }

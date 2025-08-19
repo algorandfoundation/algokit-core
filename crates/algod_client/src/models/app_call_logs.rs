@@ -17,7 +17,7 @@ use serde_with::{Bytes, serde_as};
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct AppCallLogs {
     /// An array of logs
-    #[serde_as(as = "Vec<Bytes>")]
+    #[serde_as(as = "Vec<serde_with::base64::Base64>")]
     #[serde(rename = "logs")]
     pub logs: Vec<Vec<u8>>,
     /// The application from which the logs were generated

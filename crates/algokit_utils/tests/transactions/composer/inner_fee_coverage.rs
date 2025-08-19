@@ -3,7 +3,7 @@ use algokit_abi::abi_type::BitSize;
 use algokit_abi::{ABIMethod, ABIType, ABIValue};
 use algokit_test_artifacts::{inner_fee_contract, nested_contract};
 use algokit_transact::{Address, OnApplicationComplete, TransactionId};
-use algokit_utils::transactions::composer::SendParams;
+use algokit_utils::transactions::composer::{ResourcePopulation, SendParams};
 use algokit_utils::{AppCallParams, AppCreateParams, PaymentParams, testing::*};
 use algokit_utils::{CommonParams, Composer};
 use base64::{Engine, prelude::BASE64_STANDARD};
@@ -26,14 +26,12 @@ async fn setup(
     let mut app_ids = Vec::new();
 
     for i in 1..=inner_fee_app_count {
-        let app_id =
-            deploy_inner_fee_app(context, &sender_address, &format!("inner_fee_app_{}", i)).await?;
+        let app_id = deploy_inner_fee_app(context, &format!("inner_fee_app_{}", i)).await?;
         app_ids.push(app_id);
     }
 
     for i in 1..=nested_app_count {
-        let app_id =
-            deploy_nested_app(context, &sender_address, &format!("nested_app_{}", i)).await?;
+        let app_id = deploy_nested_app(context, &format!("nested_app_{}", i)).await?;
         app_ids.push(app_id);
     }
 
@@ -65,8 +63,8 @@ async fn setup(
 
 #[rstest]
 #[tokio::test]
-/// Throws when no max fee is supplied
-async fn test_throws_when_no_max_fee_supplied(
+/// Errors when no max fee is supplied
+async fn test_errors_when_no_max_fee_supplied(
     #[with(1)]
     #[future]
     setup: SetupResult,
@@ -114,8 +112,8 @@ async fn test_throws_when_no_max_fee_supplied(
 
 #[rstest]
 #[tokio::test]
-/// Throws when inner transaction fees are not covered and coverAppCallInnerTransactionFees is disabled
-async fn test_throws_when_inner_fees_not_covered_and_fee_coverage_disabled(
+/// Errors when inner transaction fees are not covered and coverAppCallInnerTransactionFees is disabled
+async fn test_errors_when_inner_fees_not_covered_and_fee_coverage_disabled(
     #[with(3)]
     #[future]
     setup: SetupResult,
@@ -152,7 +150,15 @@ async fn test_throws_when_inner_fees_not_covered_and_fee_coverage_disabled(
     };
     composer.add_app_call(txn_params)?;
 
-    let result = composer.send(None).await;
+    let result = composer
+        .send(Some(SendParams {
+            cover_app_call_inner_transaction_fees: false,
+            populate_app_call_resources: ResourcePopulation::Enabled {
+                use_access_list: false,
+            }, // Ensure the same behaviour when simulating due to resource population
+            ..Default::default()
+        }))
+        .await;
 
     assert!(
         result.is_err()
@@ -207,20 +213,14 @@ async fn test_does_not_alter_fee_when_no_inners(
 
     let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
 
-    assert!(
-        !result.confirmations.is_empty(),
-        "Should have confirmations"
-    );
+    assert_eq!(result.confirmations.len(), 1);
     let transaction_fee = result.confirmations[0]
         .txn
         .transaction
         .header()
         .fee
         .unwrap_or(0);
-    assert_eq!(
-        transaction_fee, expected_fee,
-        "Fee should not be altered for calls with no inners"
-    );
+    assert_eq!(transaction_fee, expected_fee);
     assert_min_fee(fixture.new_composer()?, &txn_params, transaction_fee).await;
 
     Ok(())
@@ -270,20 +270,14 @@ async fn test_alters_fee_no_inner_fees_covered(
 
     let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
 
-    assert!(
-        !result.confirmations.is_empty(),
-        "Should have confirmations"
-    );
+    assert_eq!(result.confirmations.len(), 1);
     let transaction_fee = result.confirmations[0]
         .txn
         .transaction
         .header()
         .fee
         .unwrap_or(0);
-    assert_eq!(
-        transaction_fee, expected_fee,
-        "Fee should be altered to cover inner fees"
-    );
+    assert_eq!(transaction_fee, expected_fee);
     assert_min_fee(fixture.new_composer()?, &txn_params, transaction_fee).await;
 
     Ok(())
@@ -517,8 +511,8 @@ async fn test_alters_fee_expensive_abi_method_calls(
 
 #[rstest]
 #[tokio::test]
-/// Throws when max fee is too small to cover inner transaction fees
-async fn test_throws_when_max_fee_too_small(
+/// Errors when max fee is too small to cover inner transaction fees
+async fn test_errors_when_max_fee_too_small(
     #[with(3)]
     #[future]
     setup: SetupResult,
@@ -575,8 +569,8 @@ async fn test_throws_when_max_fee_too_small(
 
 #[rstest]
 #[tokio::test]
-/// Throws when static fee is too small to cover inner transaction fees
-async fn test_throws_when_static_fee_too_small(
+/// Errors when static fee is too small to cover inner transaction fees
+async fn test_errors_when_static_fee_too_small(
     #[with(3)]
     #[future]
     setup: SetupResult,
@@ -929,8 +923,8 @@ async fn test_alters_fee_nested_abi_method_call(
 
 #[rstest]
 #[tokio::test]
-/// Throws when nested maxFee is below the calculated fee
-async fn test_throws_when_nested_max_fee_below_calculated(
+/// Errors when nested maxFee is below the calculated fee
+async fn test_errors_when_nested_max_fee_below_calculated(
     #[with(3, 1)]
     #[future]
     setup: SetupResult,
@@ -1343,8 +1337,8 @@ async fn test_alters_fee_multiple_surplus_poolings(
 
 #[rstest]
 #[tokio::test]
-/// Throws when maxFee is below the calculated fee
-async fn test_throws_when_max_fee_below_calculated(
+/// Errors when maxFee is below the calculated fee
+async fn test_errors_when_max_fee_below_calculated(
     #[with(3)]
     #[future]
     setup: SetupResult,
@@ -1418,8 +1412,8 @@ async fn test_throws_when_max_fee_below_calculated(
 
 #[rstest]
 #[tokio::test]
-/// Throws when staticFee is below the calculated fee
-async fn test_throws_when_static_fee_below_calculated(
+/// Errors when staticFee is below the calculated fee
+async fn test_errors_when_static_fee_below_calculated(
     #[with(3)]
     #[future]
     setup: SetupResult,
@@ -1493,8 +1487,8 @@ async fn test_throws_when_static_fee_below_calculated(
 
 #[rstest]
 #[tokio::test]
-/// Throws when staticFee for non app call transaction is too low
-async fn test_throws_when_static_fee_too_low_for_non_app_call(
+/// Errors when staticFee for non app call transaction is too low
+async fn test_errors_when_static_fee_too_low_for_non_app_call(
     #[with(3)]
     #[future]
     setup: SetupResult,
@@ -1625,7 +1619,7 @@ async fn test_readonly_fixed_opcode_budget(
 
     let result = composer
         .send(Some(SendParams {
-            cover_app_call_inner_transaction_fees: Some(cover_inner_fees),
+            cover_app_call_inner_transaction_fees: cover_inner_fees,
             ..Default::default()
         }))
         .await?;
@@ -1709,8 +1703,8 @@ async fn test_readonly_alters_fee_handling_inners(
 #[rstest]
 #[tokio::test]
 #[ignore = "Readonly method support not yet implemented"]
-/// Readonly throws when max fee is too small to cover inner transaction fees
-async fn test_readonly_throws_when_max_fee_too_small(
+/// Readonly Errors when max fee is too small to cover inner transaction fees
+async fn test_readonly_errors_when_max_fee_too_small(
     #[with(3)]
     #[future]
     setup: SetupResult,
@@ -1808,8 +1802,9 @@ struct Arc32AppSpec {
 }
 
 const COVER_FEES_SEND_PARAMS: Option<SendParams> = Some(SendParams {
-    cover_app_call_inner_transaction_fees: Some(true),
+    cover_app_call_inner_transaction_fees: true,
     max_rounds_to_wait_for_confirmation: None,
+    populate_app_call_resources: ResourcePopulation::Disabled,
 });
 
 fn get_inner_fee_teal_programs()
@@ -1832,7 +1827,6 @@ fn get_nested_app_teal_programs()
 
 async fn deploy_inner_fee_app(
     context: &AlgorandTestContext,
-    sender: &Address,
     note: &str,
 ) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
     let (approval_teal, clear_state_teal) = get_inner_fee_teal_programs()?;
@@ -1841,7 +1835,6 @@ async fn deploy_inner_fee_app(
 
     deploy_app(
         context,
-        sender,
         approval_compile_result.result,
         clear_state_compile_result.result,
         None,
@@ -1852,7 +1845,6 @@ async fn deploy_inner_fee_app(
 
 async fn deploy_nested_app(
     context: &AlgorandTestContext,
-    sender: &Address,
     note: &str,
 ) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
     let (approval_teal, clear_state_teal) = get_nested_app_teal_programs()?;
@@ -1864,7 +1856,6 @@ async fn deploy_nested_app(
 
     deploy_app(
         context,
-        sender,
         approval_compile_result.result,
         clear_state_compile_result.result,
         Some(vec![create_method_selector]),
@@ -1875,7 +1866,6 @@ async fn deploy_nested_app(
 
 async fn deploy_app(
     context: &AlgorandTestContext,
-    sender: &Address,
     approval_program: Vec<u8>,
     clear_state_program: Vec<u8>,
     args: Option<Vec<Vec<u8>>>,
@@ -1883,7 +1873,7 @@ async fn deploy_app(
 ) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
     let app_create_params = AppCreateParams {
         common_params: CommonParams {
-            sender: sender.clone(),
+            sender: context.test_account.account()?.address(),
             note: Some(note.as_bytes().to_vec()),
             ..Default::default()
         },
@@ -1901,7 +1891,7 @@ async fn deploy_app(
 
     result.confirmations[0]
         .app_id
-        .ok_or_else(|| "No application ID returned".into())
+        .ok_or_else(|| "No application id returned".into())
 }
 
 // Helper function to fund app accounts
@@ -1941,7 +1931,7 @@ async fn assert_min_fee(mut composer: Composer, params: &AppCallParams, fee: u64
 
     let result = composer
         .send(Some(SendParams {
-            cover_app_call_inner_transaction_fees: Some(false),
+            cover_app_call_inner_transaction_fees: false,
             ..Default::default()
         }))
         .await;

@@ -154,3 +154,8 @@ pub trait Validate {
         Ok(())
     }
 }
+
+/// Trait for checking if a type will be empty when serialized to MsgPack.
+pub trait MsgPackEmpty {
+    fn is_empty(&self) -> bool;
+}

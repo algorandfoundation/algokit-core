@@ -19,7 +19,7 @@ pub struct ApplicationLogData {
     #[serde(rename = "txid")]
     pub txid: String,
     /// Logs for the application being executed by the transaction.
-    #[serde_as(as = "Vec<Bytes>")]
+    #[serde_as(as = "Vec<serde_with::base64::Base64>")]
     #[serde(rename = "logs")]
     pub logs: Vec<Vec<u8>>,
 }

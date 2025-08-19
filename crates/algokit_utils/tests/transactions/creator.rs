@@ -174,7 +174,7 @@ async fn asset_operations(#[case] test_case: AssetTestCase) {
                     assert_eq!(freeze_fields.header.sender, sender_address);
                     assert_eq!(freeze_fields.freeze_target, target_address);
                     assert_eq!(freeze_fields.asset_id, 1);
-                    assert_eq!(freeze_fields.frozen, true);
+                    assert!(freeze_fields.frozen);
                 }
                 _ => panic!("Expected AssetFreeze transaction"),
             }

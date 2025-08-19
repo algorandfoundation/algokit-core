@@ -25,7 +25,8 @@ pub use common::{
     CommonParams, EmptySigner, TransactionSigner, TransactionSignerGetter, TransactionWithSigner,
 };
 pub use composer::{
-    Composer, ComposerError, ComposerTransaction, SendParams, SendTransactionComposerResults,
+    Composer, ComposerError, ComposerTransaction, ResourcePopulation, SendParams,
+    SendTransactionComposerResults,
 };
 pub use creator::{BuiltTransactions, TransactionCreator};
 pub use key_registration::{

@@ -162,7 +162,7 @@ pub struct Transaction {
     #[serde(rename = "global-state-delta", skip_serializing_if = "Option::is_none")]
     pub global_state_delta: Option<StateDelta>,
     /// \[lg\] Logs for the application being executed by this transaction.
-    #[serde_as(as = "Option<Vec<Bytes>>")]
+    #[serde_as(as = "Option<Vec<serde_with::base64::Base64>>")]
     #[serde(rename = "logs", skip_serializing_if = "Option::is_none")]
     pub logs: Option<Vec<Vec<u8>>>,
     /// Inner transactions produced by application execution.

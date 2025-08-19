@@ -3,31 +3,18 @@
 //! This module provides functionality for creating and managing application transactions,
 //! which are used to create, update, delete and call Algorand Smart Contracts (Applications).
 
-use crate::traits::Validate;
+use crate::traits::{MsgPackEmpty, Validate};
 use crate::transactions::common::{TransactionHeader, TransactionValidationError};
-use crate::utils::{is_empty_vec_opt, is_zero, is_zero_opt};
-use crate::{Address, Transaction};
+use crate::utils::{is_empty_struct_opt, is_empty_vec_opt, is_zero, is_zero_opt};
+use crate::{
+    Address, MAX_ACCOUNT_REFERENCES, MAX_APP_ARGS, MAX_APP_REFERENCES, MAX_ARGS_SIZE,
+    MAX_ASSET_REFERENCES, MAX_BOX_REFERENCES, MAX_EXTRA_PROGRAM_PAGES, MAX_GLOBAL_STATE_KEYS,
+    MAX_LOCAL_STATE_KEYS, MAX_OVERALL_REFERENCES, PROGRAM_PAGE_SIZE, Transaction,
+};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use serde_with::{Bytes, serde_as, skip_serializing_none};
-
-// Application program size constraints (based on Algorand protocol)
-const MAX_EXTRA_PROGRAM_PAGES: u64 = 3;
-const PROGRAM_PAGE_SIZE: usize = 2048; // In bytes
-
-// Application reference limits
-const MAX_APP_ARGS: usize = 16;
-const MAX_ARGS_SIZE: usize = 2048; // Maximum size in bytes of all args combined
-const MAX_OVERALL_REFERENCES: usize = 8;
-const MAX_ACCOUNT_REFERENCES: usize = 4;
-const MAX_APP_REFERENCES: usize = 8;
-const MAX_ASSET_REFERENCES: usize = 8;
-const MAX_BOX_REFERENCES: usize = 8;
-
-// Application state schema limits
-const MAX_GLOBAL_STATE_KEYS: u64 = 64;
-const MAX_LOCAL_STATE_KEYS: u64 = 16;
 
 // Field name constants for validation error messages
 const FIELD_APPROVAL_PROGRAM: &str = "Approval program";
@@ -94,6 +81,12 @@ pub struct StateSchema {
     pub num_byte_slices: u64,
 }
 
+impl MsgPackEmpty for StateSchema {
+    fn is_empty(&self) -> bool {
+        self.num_uints == 0 && self.num_byte_slices == 0
+    }
+}
+
 /// Box reference for application call transactions.
 ///
 /// References a specific box that should be made available for the runtime
@@ -112,6 +105,8 @@ pub struct BoxReference {
     /// Name of the box.
     #[serde(rename = "n")]
     #[serde_as(as = "Bytes")]
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     pub name: Vec<u8>,
 }
 
@@ -174,7 +169,7 @@ pub struct ApplicationCallTransactionFields {
     /// Only required for application creation transactions.
     /// This cannot be changed after creation.
     #[serde(rename = "apgs")]
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "is_empty_struct_opt")]
     #[serde(default)]
     #[builder(default)]
     pub global_state_schema: Option<StateSchema>,
@@ -184,7 +179,7 @@ pub struct ApplicationCallTransactionFields {
     /// Only required for application creation transactions.
     /// This cannot be changed after creation.
     #[serde(rename = "apls")]
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "is_empty_struct_opt")]
     #[serde(default)]
     #[builder(default)]
     pub local_state_schema: Option<StateSchema>,

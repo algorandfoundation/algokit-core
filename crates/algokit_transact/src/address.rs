@@ -21,7 +21,7 @@ use std::str::FromStr;
 /// and provides methods for encoding to and decoding from the standard Algorand base32 string format.
 /// The checksum is automatically calculated and validated as part of parsing and formatting.
 #[serde_as]
-#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq, Eq)]
 #[serde(transparent)]
 pub struct Address(#[serde_as(as = "Bytes")] pub Byte32);
 

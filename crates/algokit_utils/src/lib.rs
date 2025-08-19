@@ -21,8 +21,9 @@ pub use transactions::{
     AssetReconfigureParams, AssetTransferParams, AssetUnfreezeParams, BuiltTransactions,
     CommonParams, Composer, ComposerError, ComposerTransaction, EmptySigner,
     NonParticipationKeyRegistrationParams, OfflineKeyRegistrationParams,
-    OnlineKeyRegistrationParams, PaymentParams, SendAppCallResult, SendAppCreateResult,
-    SendAppUpdateResult, SendAssetCreateResult, SendParams, SendTransactionComposerResults,
-    SendTransactionResult, TransactionCreator, TransactionResultError, TransactionSender,
-    TransactionSenderError, TransactionSigner, TransactionSignerGetter, TransactionWithSigner,
+    OnlineKeyRegistrationParams, PaymentParams, ResourcePopulation, SendAppCallResult,
+    SendAppCreateResult, SendAppUpdateResult, SendAssetCreateResult, SendParams,
+    SendTransactionComposerResults, SendTransactionResult, TransactionCreator,
+    TransactionResultError, TransactionSender, TransactionSenderError, TransactionSigner,
+    TransactionSignerGetter, TransactionWithSigner,
 };

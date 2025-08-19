@@ -19,7 +19,7 @@ use crate::models::AvmValue;
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct AvmKeyValue {
-    #[serde_as(as = "serde_with::base64::Base64")]
+    #[serde_as(as = "Bytes")]
     #[serde(rename = "key")]
     pub key: Vec<u8>,
     #[serde(rename = "value")]

@@ -41,7 +41,7 @@ pub struct DryrunTxnResult {
     pub global_delta: Option<StateDelta>,
     #[serde(rename = "local-deltas", skip_serializing_if = "Option::is_none")]
     pub local_deltas: Option<Vec<AccountStateDelta>>,
-    #[serde_as(as = "Option<Vec<Bytes>>")]
+    #[serde_as(as = "Option<Vec<serde_with::base64::Base64>>")]
     #[serde(rename = "logs", skip_serializing_if = "Option::is_none")]
     pub logs: Option<Vec<Vec<u8>>>,
     /// Budget added during execution of app call transaction.

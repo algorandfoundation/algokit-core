@@ -21,7 +21,7 @@ pub struct TealValue {
     #[serde(rename = "type")]
     pub r#type: u64,
     /// \[tb\] bytes value.
-    #[serde_as(as = "serde_with::base64::Base64")]
+    #[serde_as(as = "Bytes")]
     #[serde(rename = "bytes")]
     pub bytes: Vec<u8>,
     /// \[ui\] uint value.
