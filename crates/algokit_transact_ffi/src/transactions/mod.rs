@@ -5,6 +5,12 @@ pub mod asset_freeze;
 pub use application_call::ApplicationCallTransactionFields;
 pub use asset_config::AssetConfigTransactionFields;
 
-pub mod keyreg;
+pub mod key_registration;
 pub use asset_freeze::AssetFreezeTransactionFields;
-pub use keyreg::KeyRegistrationTransactionFields;
+pub use key_registration::KeyRegistrationTransactionFields;
+
+pub mod payment;
+pub use payment::PaymentTransactionFields;
+
+pub mod asset_transfer;
+pub use asset_transfer::AssetTransferTransactionFields;
