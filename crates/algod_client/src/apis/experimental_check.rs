@@ -49,7 +49,7 @@ pub async fn experimental_check(http_client: &dyn HttpClient) -> Result<(), Erro
             Some(headers),
         )
         .await
-        .map_err(Error::Http)?;
+        .map_err(|e| Error::Http { source: e })?;
 
     let _ = response;
     Ok(())

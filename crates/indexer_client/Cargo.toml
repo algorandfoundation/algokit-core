@@ -28,7 +28,7 @@ url = "^2.5"
 
 
 # Error handling
-thiserror = "^1.0"
+snafu = { workspace = true }
 
 # Utilities
 base64 = "^0.22"

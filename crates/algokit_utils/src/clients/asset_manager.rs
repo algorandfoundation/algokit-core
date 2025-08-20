@@ -1,6 +1,7 @@
 use algod_client::apis::{AlgodClient, Error as AlgodError};
 use algod_client::models::{AccountAssetInformation as AlgodAccountAssetInformation, Asset};
 use algokit_transact::Address;
+use snafu::Snafu;
 use std::{str::FromStr, sync::Arc};
 
 use crate::transactions::{
@@ -168,7 +169,7 @@ impl AssetManager {
             .algod_client
             .get_asset_by_id(asset_id)
             .await
-            .map_err(AssetManagerError::AlgodClientError)?;
+            .map_err(|e| AssetManagerError::AlgodClientError { source: e })?;
 
         Ok(asset.into())
     }
@@ -184,7 +185,7 @@ impl AssetManager {
         self.algod_client
             .account_asset_information(&sender.to_string(), asset_id, None)
             .await
-            .map_err(AssetManagerError::AlgodClientError)
+            .map_err(|e| AssetManagerError::AlgodClientError { source: e })
     }
 
     pub async fn bulk_opt_in(
@@ -211,14 +212,14 @@ impl AssetManager {
 
             composer
                 .add_asset_opt_in(opt_in_params)
-                .map_err(AssetManagerError::ComposerError)?;
+                .map_err(|e| AssetManagerError::ComposerError { source: e })?;
         }
 
         // Send the transaction group
         let results = composer
             .send(Default::default())
             .await
-            .map_err(AssetManagerError::ComposerError)?;
+            .map_err(|e| AssetManagerError::ComposerError { source: e })?;
 
         // Map transaction IDs back to assets
         let bulk_results: Vec<BulkAssetOptInOutResult> = asset_ids
@@ -270,7 +271,7 @@ impl AssetManager {
         for &asset_id in asset_ids {
             let asset_info = self.get_by_id(asset_id).await?;
             let creator = Address::from_str(&asset_info.creator)
-                .map_err(|_| AssetManagerError::AssetNotFound(asset_id))?;
+                .map_err(|_| AssetManagerError::AssetNotFound { asset_id })?;
             asset_creators.push(creator);
         }
 
@@ -289,14 +290,14 @@ impl AssetManager {
 
             composer
                 .add_asset_opt_out(opt_out_params)
-                .map_err(AssetManagerError::ComposerError)?;
+                .map_err(|e| AssetManagerError::ComposerError { source: e })?;
         }
 
         // Send the transaction group
         let results = composer
             .send(Default::default())
             .await
-            .map_err(AssetManagerError::ComposerError)?;
+            .map_err(|e| AssetManagerError::ComposerError { source: e })?;
 
         // Map transaction IDs back to assets
         let bulk_results: Vec<BulkAssetOptInOutResult> = asset_ids
@@ -312,33 +313,33 @@ impl AssetManager {
     }
 }
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, Snafu)]
 pub enum AssetManagerError {
-    #[error("Algod client error: {0}")]
-    AlgodClientError(AlgodError),
+    #[snafu(display("Algod client error: {source}"))]
+    AlgodClientError { source: AlgodError },
 
-    #[error("Composer error: {0}")]
-    ComposerError(ComposerError),
+    #[snafu(display("Composer error: {source}"))]
+    ComposerError { source: ComposerError },
 
-    #[error("Asset not found: {0}")]
-    AssetNotFound(u64),
+    #[snafu(display("Asset not found: {asset_id}"))]
+    AssetNotFound { asset_id: u64 },
 
-    #[error("Account not found: {0}")]
-    AccountNotFound(String),
+    #[snafu(display("Account not found: {address}"))]
+    AccountNotFound { address: String },
 
-    #[error("Account {address} is not opted into asset {asset_id}")]
+    #[snafu(display("Account {address} is not opted into asset {asset_id}"))]
     NotOptedIn { address: String, asset_id: u64 },
 
-    #[error("Account {address} has non-zero balance {balance} for asset {asset_id}")]
+    #[snafu(display("Account {address} has non-zero balance {balance} for asset {asset_id}"))]
     NonZeroBalance {
         address: String,
         asset_id: u64,
         balance: u64,
     },
 
-    #[error("Asset {asset_id} is frozen for account {address}")]
+    #[snafu(display("Asset {asset_id} is frozen for account {address}"))]
     AssetFrozen { address: String, asset_id: u64 },
 
-    #[error("Method '{method}' not implemented: {reason}")]
+    #[snafu(display("Method '{method}' not implemented: {reason}"))]
     NotImplemented { method: String, reason: String },
 }

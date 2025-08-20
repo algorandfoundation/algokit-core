@@ -57,7 +57,7 @@ pub async fn set_block_time_stamp_offset(
             Some(headers),
         )
         .await
-        .map_err(Error::Http)?;
+        .map_err(|e| Error::Http { source: e })?;
 
     let _ = response;
     Ok(())

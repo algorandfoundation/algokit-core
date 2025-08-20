@@ -39,10 +39,9 @@ impl FromStr for ABITransactionType {
             "axfer" => Ok(ABITransactionType::AssetTransfer),
             "afrz" => Ok(ABITransactionType::AssetFreeze),
             "appl" => Ok(ABITransactionType::ApplicationCall),
-            _ => Err(ABIError::ValidationError(format!(
-                "Invalid transaction type: {}",
-                s
-            ))),
+            _ => Err(ABIError::ValidationError {
+                message: format!("Invalid transaction type: {}", s),
+            }),
         }
     }
 }
@@ -92,10 +91,9 @@ impl FromStr for ABIReferenceType {
             "account" => Ok(ABIReferenceType::Account),
             "application" => Ok(ABIReferenceType::Application),
             "asset" => Ok(ABIReferenceType::Asset),
-            _ => Err(ABIError::ValidationError(format!(
-                "Invalid reference type: {}",
-                s
-            ))),
+            _ => Err(ABIError::ValidationError {
+                message: format!("Invalid reference type: {}", s),
+            }),
         }
     }
 }
@@ -227,9 +225,9 @@ impl ABIMethod {
     pub fn selector(&self) -> Result<Vec<u8>, ABIError> {
         let signature = self.signature()?;
         if signature.chars().any(|c| c.is_whitespace()) {
-            return Err(ABIError::ValidationError(
-                "Method signature cannot contain whitespace".to_string(),
-            ));
+            return Err(ABIError::ValidationError {
+                message: "Method signature cannot contain whitespace".to_string(),
+            });
         }
 
         let mut hasher = Sha512_256::new();
@@ -242,9 +240,9 @@ impl ABIMethod {
     /// Returns the method signature as a string.
     pub fn signature(&self) -> Result<String, ABIError> {
         if self.name.is_empty() {
-            return Err(ABIError::ValidationError(
-                "Method name cannot be empty".to_string(),
-            ));
+            return Err(ABIError::ValidationError {
+                message: "Method name cannot be empty".to_string(),
+            });
         }
 
         let arg_types: Vec<String> = self
@@ -272,9 +270,9 @@ impl ABIMethod {
         let signature = format!("{}({}){}", self.name, args_str, return_type);
 
         if signature.chars().any(|c| c.is_whitespace()) {
-            return Err(ABIError::ValidationError(
-                "Generated signature contains whitespace".to_string(),
-            ));
+            return Err(ABIError::ValidationError {
+                message: "Generated signature contains whitespace".to_string(),
+            });
         }
 
         Ok(signature)
@@ -286,21 +284,21 @@ impl FromStr for ABIMethod {
 
     fn from_str(signature: &str) -> Result<Self, Self::Err> {
         if signature.chars().any(|c| c.is_whitespace()) {
-            return Err(ABIError::ValidationError(
-                "Method signature cannot contain whitespace".to_string(),
-            ));
+            return Err(ABIError::ValidationError {
+                message: "Method signature cannot contain whitespace".to_string(),
+            });
         }
 
-        let open_paren_pos = signature.find('(').ok_or_else(|| {
-            ABIError::ValidationError(
-                "Method signature must contain opening parenthesis".to_string(),
-            )
-        })?;
+        let open_paren_pos = signature
+            .find('(')
+            .ok_or_else(|| ABIError::ValidationError {
+                message: "Method signature must contain opening parenthesis".to_string(),
+            })?;
 
         if open_paren_pos == 0 {
-            return Err(ABIError::ValidationError(
-                "Method name cannot be empty".to_string(),
-            ));
+            return Err(ABIError::ValidationError {
+                message: "Method name cannot be empty".to_string(),
+            });
         }
         let method_name = signature[..open_paren_pos].to_string();
 
@@ -387,9 +385,9 @@ fn find_matching_closing_paren(s: &str, open_pos: usize) -> Result<usize, ABIErr
         }
     }
 
-    Err(ABIError::ValidationError(
-        "Mismatched parentheses in method signature".to_string(),
-    ))
+    Err(ABIError::ValidationError {
+        message: "Mismatched parentheses in method signature".to_string(),
+    })
 }
 
 /// Split arguments by comma, respecting nested parentheses.
@@ -407,9 +405,9 @@ fn split_arguments_by_comma(args_str: &str) -> Result<Vec<String>, ABIError> {
     // Additional validation for method arguments: no empty arguments
     for arg in &arguments {
         if arg.trim().is_empty() {
-            return Err(ABIError::ValidationError(
-                "Empty argument in method signature".to_string(),
-            ));
+            return Err(ABIError::ValidationError {
+                message: "Empty argument in method signature".to_string(),
+            });
         }
     }
 

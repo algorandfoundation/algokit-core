@@ -69,11 +69,8 @@ impl TryFrom<MultisigSubsignature> for algokit_transact::MultisigSubsignature {
                 .signature
                 .map(|sig| bytebuf_to_bytes(&sig))
                 .transpose()
-                .map_err(|e| {
-                    AlgoKitTransactError::DecodingError(format!(
-                        "Error while decoding a subsignature: {}",
-                        e
-                    ))
+                .map_err(|e| AlgoKitTransactError::DecodingError {
+                    message: format!("Error while decoding a subsignature: {}", e),
                 })?,
         })
     }
@@ -143,12 +140,14 @@ pub fn apply_multisig_subsignature(
     let multisignature: algokit_transact::MultisigSignature = multisig_signature.try_into()?;
     let partially_signed_multisignature = multisignature.apply_subsignature(
         participant.parse()?,
-        subsignature.try_into().map_err(|_| {
-            AlgoKitTransactError::EncodingError(format!(
-                "signature should be {} bytes",
-                ALGORAND_SIGNATURE_BYTE_LENGTH
-            ))
-        })?,
+        subsignature
+            .try_into()
+            .map_err(|_| AlgoKitTransactError::EncodingError {
+                message: format!(
+                    "signature should be {} bytes",
+                    ALGORAND_SIGNATURE_BYTE_LENGTH
+                ),
+            })?,
     )?;
     Ok(partially_signed_multisignature.into())
 }

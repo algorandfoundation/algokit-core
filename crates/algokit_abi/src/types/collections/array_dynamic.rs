@@ -9,18 +9,18 @@ impl ABIType {
         let values = match value {
             ABIValue::Array(n) => n,
             _ => {
-                return Err(ABIError::EncodingError(
-                    "ABI value mismatch, expected an array of values".to_string(),
-                ));
+                return Err(ABIError::EncodingError {
+                    message: "ABI value mismatch, expected an array of values".to_string(),
+                });
             }
         };
 
         let child_type = match self {
             ABIType::DynamicArray(child_type) => child_type,
             _ => {
-                return Err(ABIError::EncodingError(
-                    "ABI type mismatch, expected dynamic array".to_string(),
-                ));
+                return Err(ABIError::EncodingError {
+                    message: "ABI type mismatch, expected dynamic array".to_string(),
+                });
             }
         };
 
@@ -36,9 +36,9 @@ impl ABIType {
 
     pub(crate) fn decode_dynamic_array(&self, value: &[u8]) -> Result<ABIValue, ABIError> {
         if value.len() < LENGTH_ENCODE_BYTE_SIZE {
-            return Err(ABIError::DecodingError(
-                "Byte array is too short to be decoded as dynamic array".to_string(),
-            ));
+            return Err(ABIError::DecodingError {
+                message: "Byte array is too short to be decoded as dynamic array".to_string(),
+            });
         }
 
         // The first 2 bytes in the value determines how many values in the array
@@ -48,9 +48,9 @@ impl ABIType {
         let child_type = match self {
             ABIType::DynamicArray(child_type) => child_type,
             _ => {
-                return Err(ABIError::EncodingError(
-                    "ABI type mismatch, expected dynamic array".to_string(),
-                ));
+                return Err(ABIError::EncodingError {
+                    message: "ABI type mismatch, expected dynamic array".to_string(),
+                });
             }
         };
 

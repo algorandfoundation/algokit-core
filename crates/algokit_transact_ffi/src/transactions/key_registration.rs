@@ -54,9 +54,9 @@ impl TryFrom<crate::Transaction> for algokit_transact::KeyRegistrationTransactio
         if tx.transaction_type != crate::TransactionType::KeyRegistration
             || tx.key_registration.is_none()
         {
-            return Err(Self::Error::DecodingError(
-                "Key Registration data missing".to_string(),
-            ));
+            return Err(Self::Error::DecodingError {
+                message: "Key Registration data missing".to_string(),
+            });
         }
 
         let data = tx.clone().key_registration.unwrap();
@@ -82,12 +82,11 @@ impl TryFrom<crate::Transaction> for algokit_transact::KeyRegistrationTransactio
             non_participation: data.non_participation,
         };
 
-        transaction_fields.validate().map_err(|errors| {
-            AlgoKitTransactError::DecodingError(format!(
-                "Key registration validation failed: {}",
-                errors.join("\n")
-            ))
-        })?;
+        transaction_fields
+            .validate()
+            .map_err(|errors| AlgoKitTransactError::DecodingError {
+                message: format!("Key registration validation failed: {}", errors.join("\n")),
+            })?;
 
         Ok(transaction_fields)
     }

@@ -106,9 +106,9 @@ pub fn compute_group_id(txs: &[Transaction]) -> Result<Byte32, AlgoKitTransactEr
         .iter()
         .map(|tx| {
             if tx.header().group.is_some() {
-                return Err(AlgoKitTransactError::InputError(
-                    "Transactions must not already be grouped".to_string(),
-                ));
+                return Err(AlgoKitTransactError::InputError {
+                    message: "Transactions must not already be grouped".to_string(),
+                });
             }
             tx.id_raw()
         })

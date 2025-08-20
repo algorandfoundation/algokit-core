@@ -74,7 +74,9 @@ async fn finds_created_application() {
                     .await
                     .and_then(|response| {
                         if response.applications.is_empty() {
-                            Err(IndexerError::Serde("Application not found".to_string()))
+                            Err(IndexerError::Serde {
+                                message: "Application not found".to_string(),
+                            })
                         } else {
                             Ok(())
                         }

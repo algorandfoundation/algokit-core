@@ -15,32 +15,32 @@ impl ABIType {
                 let address_str = match value {
                     ABIValue::Address(a) => a,
                     _ => {
-                        return Err(ABIError::EncodingError(
-                            "ABI value mismatch, expected address string".to_string(),
-                        ));
+                        return Err(ABIError::EncodingError {
+                            message: "ABI value mismatch, expected address string".to_string(),
+                        });
                     }
                 };
 
                 if address_str.len() != ALGORAND_ADDRESS_LENGTH {
-                    return Err(ABIError::ValidationError(format!(
-                        "Algorand address must be exactly {} characters",
-                        ALGORAND_ADDRESS_LENGTH
-                    )));
+                    return Err(ABIError::ValidationError {
+                        message: format!(
+                            "Algorand address must be exactly {} characters",
+                            ALGORAND_ADDRESS_LENGTH
+                        ),
+                    });
                 }
                 let decoded_address =
                     base32::decode(base32::Alphabet::Rfc4648 { padding: false }, address_str)
-                        .ok_or_else(|| {
-                            ABIError::ValidationError(
-                                "Invalid base32 encoding for Algorand address".to_string(),
-                            )
+                        .ok_or_else(|| ABIError::ValidationError {
+                            message: "Invalid base32 encoding for Algorand address".to_string(),
                         })?[..ALGORAND_PUBLIC_KEY_BYTE_LENGTH]
                         .to_vec();
 
                 Ok(decoded_address)
             }
-            _ => Err(ABIError::EncodingError(
-                "ABI type mismatch, expected address".to_string(),
-            )),
+            _ => Err(ABIError::EncodingError {
+                message: "ABI type mismatch, expected address".to_string(),
+            }),
         }
     }
 
@@ -48,17 +48,19 @@ impl ABIType {
         match self {
             ABIType::Address => {
                 if bytes.len() != ALGORAND_PUBLIC_KEY_BYTE_LENGTH {
-                    return Err(ABIError::DecodingError(format!(
-                        "Address byte string must be {} bytes long",
-                        ALGORAND_PUBLIC_KEY_BYTE_LENGTH
-                    )));
+                    return Err(ABIError::DecodingError {
+                        message: format!(
+                            "Address byte string must be {} bytes long",
+                            ALGORAND_PUBLIC_KEY_BYTE_LENGTH
+                        ),
+                    });
                 }
                 let bytes: &[u8; ALGORAND_PUBLIC_KEY_BYTE_LENGTH] =
-                    bytes.try_into().map_err(|_| {
-                        ABIError::DecodingError(format!(
+                    bytes.try_into().map_err(|_| ABIError::DecodingError {
+                        message: format!(
                             "Failed to convert bytes to [u8; {}] for checksum",
                             ALGORAND_PUBLIC_KEY_BYTE_LENGTH
-                        ))
+                        ),
                     })?;
 
                 let mut buffer =
@@ -73,9 +75,9 @@ impl ABIType {
 
                 Ok(ABIValue::Address(address_str))
             }
-            _ => Err(ABIError::DecodingError(
-                "ABI type mismatch, expected address".to_string(),
-            )),
+            _ => Err(ABIError::DecodingError {
+                message: "ABI type mismatch, expected address".to_string(),
+            }),
         }
     }
 }

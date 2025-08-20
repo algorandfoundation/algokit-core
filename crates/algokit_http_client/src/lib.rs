@@ -1,14 +1,15 @@
 use async_trait::async_trait;
+use snafu::Snafu;
 use std::collections::HashMap;
 
 #[cfg(feature = "ffi_uniffi")]
 uniffi::setup_scaffolding!();
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, Snafu)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum HttpError {
-    #[error("HttpError: {0}")]
-    RequestError(String),
+    #[snafu(display("HttpError: {message}"))]
+    RequestError { message: String },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -92,16 +93,22 @@ impl DefaultHttpClient {
         let mut headers = reqwest::header::HeaderMap::new();
         headers.insert(
             reqwest::header::HeaderName::from_bytes(header_name.as_bytes()).map_err(|e| {
-                HttpError::RequestError(format!("Invalid header name '{}': {}", header_name, e))
+                HttpError::RequestError {
+                    message: format!("Invalid header name '{}': {}", header_name, e),
+                }
             })?,
             reqwest::header::HeaderValue::from_str(header_value).map_err(|e| {
-                HttpError::RequestError(format!("Invalid header value '{}': {}", header_value, e))
+                HttpError::RequestError {
+                    message: format!("Invalid header value '{}': {}", header_value, e),
+                }
             })?,
         );
         let client = reqwest::Client::builder()
             .default_headers(headers)
             .build()
-            .map_err(|e| HttpError::RequestError(format!("Failed to build HTTP client: {}", e)))?;
+            .map_err(|e| HttpError::RequestError {
+                message: format!("Failed to build HTTP client: {}", e),
+            })?;
         Ok(DefaultHttpClient {
             client,
             base_url: base_url.to_string(),
@@ -122,8 +129,11 @@ impl HttpClient for DefaultHttpClient {
         headers: Option<HashMap<String, String>>,
     ) -> Result<HttpResponse, HttpError> {
         let url = format!("{}{}", self.base_url, path);
-        let method = reqwest::Method::from_bytes(method.as_str().as_bytes())
-            .map_err(|e| HttpError::RequestError(e.to_string()))?;
+        let method = reqwest::Method::from_bytes(method.as_str().as_bytes()).map_err(|e| {
+            HttpError::RequestError {
+                message: e.to_string(),
+            }
+        })?;
 
         let mut request_builder = self.client.request(method, &url);
 
@@ -144,7 +154,9 @@ impl HttpClient for DefaultHttpClient {
         let response = request_builder
             .send()
             .await
-            .map_err(|e| HttpError::RequestError(e.to_string()))?;
+            .map_err(|e| HttpError::RequestError {
+                message: e.to_string(),
+            })?;
 
         if !response.status().is_success() {
             let status = response.status();
@@ -152,10 +164,9 @@ impl HttpClient for DefaultHttpClient {
                 .text()
                 .await
                 .unwrap_or_else(|_| "Failed to read error response text".to_string());
-            return Err(HttpError::RequestError(format!(
-                "Request failed with status {}: {}",
-                status, text
-            )));
+            return Err(HttpError::RequestError {
+                message: format!("Request failed with status {}: {}", status, text),
+            });
         }
 
         let response_headers = response
@@ -167,7 +178,9 @@ impl HttpClient for DefaultHttpClient {
         let body = response
             .bytes()
             .await
-            .map_err(|e| HttpError::RequestError(e.to_string()))?
+            .map_err(|e| HttpError::RequestError {
+                message: e.to_string(),
+            })?
             .to_vec();
 
         Ok(HttpResponse {
@@ -252,18 +265,17 @@ impl HttpClient for WasmHttpClient {
         let result = self
             .request(method.as_str(), &path, &query_js, &body_js, &headers_js)
             .await
-            .map_err(|e| {
-                HttpError::RequestError(
-                    e.as_string().unwrap_or(
-                        "A HTTP error occurred in JavaScript, but it cannot be converted to a string"
-                            .to_string(),
-                    ),
-                )
+            .map_err(|e| HttpError::RequestError {
+                message: e.as_string().unwrap_or(
+                    "A HTTP error occurred in JavaScript, but it cannot be converted to a string"
+                        .to_string(),
+                ),
             })?;
 
         // Parse the response from JavaScript
-        let response = HttpResponse::from_js(result)
-            .map_err(|e| HttpError::RequestError(format!("Failed to parse response: {:?}", e)))?;
+        let response = HttpResponse::from_js(result).map_err(|e| HttpError::RequestError {
+            message: format!("Failed to parse response: {:?}", e),
+        })?;
 
         Ok(response)
     }

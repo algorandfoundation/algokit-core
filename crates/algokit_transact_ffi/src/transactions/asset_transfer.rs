@@ -30,9 +30,9 @@ impl TryFrom<Transaction> for algokit_transact::AssetTransferTransactionFields {
 
     fn try_from(tx: Transaction) -> Result<Self, Self::Error> {
         if tx.transaction_type != TransactionType::AssetTransfer || tx.asset_transfer.is_none() {
-            return Err(Self::Error::DecodingError(
-                "Asset Transfer data missing".to_string(),
-            ));
+            return Err(Self::Error::DecodingError {
+                message: "Asset Transfer data missing".to_string(),
+            });
         }
 
         let data = tx.clone().asset_transfer.unwrap();

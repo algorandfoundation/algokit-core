@@ -63,7 +63,7 @@ pub async fn raw_transaction_async(
             Some(headers),
         )
         .await
-        .map_err(Error::Http)?;
+        .map_err(|e| Error::Http { source: e })?;
 
     let _ = response;
     Ok(())

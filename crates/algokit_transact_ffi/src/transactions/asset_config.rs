@@ -138,9 +138,9 @@ impl TryFrom<Transaction> for algokit_transact::AssetConfigTransactionFields {
 
     fn try_from(tx: Transaction) -> Result<Self, Self::Error> {
         if tx.transaction_type != TransactionType::AssetConfig || tx.asset_config.is_none() {
-            return Err(Self::Error::DecodingError(
-                "Asset configuration data missing".to_string(),
-            ));
+            return Err(Self::Error::DecodingError {
+                message: "Asset configuration data missing".to_string(),
+            });
         }
 
         let data = tx.clone().asset_config.unwrap();
@@ -167,12 +167,11 @@ impl TryFrom<Transaction> for algokit_transact::AssetConfigTransactionFields {
             clawback: data.clawback.map(|addr| addr.parse()).transpose()?,
         };
 
-        transaction_fields.validate().map_err(|errors| {
-            AlgoKitTransactError::DecodingError(format!(
-                "Asset config validation failed: {}",
-                errors.join("\n")
-            ))
-        })?;
+        transaction_fields
+            .validate()
+            .map_err(|errors| AlgoKitTransactError::DecodingError {
+                message: format!("Asset config validation failed: {}", errors.join("\n")),
+            })?;
 
         Ok(transaction_fields)
     }

@@ -24,9 +24,9 @@ impl TryFrom<Transaction> for algokit_transact::PaymentTransactionFields {
 
     fn try_from(tx: Transaction) -> Result<Self, Self::Error> {
         if tx.transaction_type != TransactionType::Payment || tx.payment.is_none() {
-            return Err(Self::Error::DecodingError(
-                "Payment data missing".to_string(),
-            ));
+            return Err(Self::Error::DecodingError {
+                message: "Payment data missing".to_string(),
+            });
         }
 
         let data = tx.clone().payment.unwrap();

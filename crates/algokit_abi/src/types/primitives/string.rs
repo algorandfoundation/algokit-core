@@ -7,9 +7,9 @@ impl ABIType {
                 let value = match value {
                     ABIValue::String(s) => s,
                     _ => {
-                        return Err(ABIError::EncodingError(
-                            "ABI value mismatch, expected string".to_string(),
-                        ));
+                        return Err(ABIError::EncodingError {
+                            message: "ABI value mismatch, expected string".to_string(),
+                        });
                     }
                 };
 
@@ -21,9 +21,9 @@ impl ABIType {
 
                 Ok(result)
             }
-            _ => Err(ABIError::EncodingError(
-                "ABI type mismatch, expected string".to_string(),
-            )),
+            _ => Err(ABIError::EncodingError {
+                message: "ABI type mismatch, expected string".to_string(),
+            }),
         }
     }
 
@@ -31,28 +31,33 @@ impl ABIType {
         match self {
             ABIType::String => {
                 if value.len() < LENGTH_ENCODE_BYTE_SIZE {
-                    return Err(ABIError::DecodingError(
-                        "Byte array is too short for string".to_string(),
-                    ));
+                    return Err(ABIError::DecodingError {
+                        message: "Byte array is too short for string".to_string(),
+                    });
                 }
 
                 let length = u16::from_be_bytes([value[0], value[1]]) as usize;
                 let content_bytes = &value[LENGTH_ENCODE_BYTE_SIZE..];
                 if content_bytes.len() != length {
-                    return Err(ABIError::DecodingError(format!(
-                        "Invalid byte array length for string, expected {} value, got {}",
-                        length,
-                        content_bytes.len()
-                    )));
+                    return Err(ABIError::DecodingError {
+                        message: format!(
+                            "Invalid byte array length for string, expected {} value, got {}",
+                            length,
+                            content_bytes.len()
+                        ),
+                    });
                 }
 
-                let string_value = String::from_utf8(content_bytes.to_vec())
-                    .map_err(|_| ABIError::DecodingError("Invalid UTF-8 encoding".to_string()))?;
+                let string_value = String::from_utf8(content_bytes.to_vec()).map_err(|_| {
+                    ABIError::DecodingError {
+                        message: "Invalid UTF-8 encoding".to_string(),
+                    }
+                })?;
                 Ok(ABIValue::String(string_value))
             }
-            _ => Err(ABIError::DecodingError(
-                "ABI type mismatch, expected string".to_string(),
-            )),
+            _ => Err(ABIError::DecodingError {
+                message: "ABI type mismatch, expected string".to_string(),
+            }),
         }
     }
 }

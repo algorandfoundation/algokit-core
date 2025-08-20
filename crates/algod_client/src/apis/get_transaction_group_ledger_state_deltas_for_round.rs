@@ -76,7 +76,7 @@ pub async fn get_transaction_group_ledger_state_deltas_for_round(
             Some(headers),
         )
         .await
-        .map_err(Error::Http)?;
+        .map_err(|e| Error::Http { source: e })?;
 
     let content_type = response
         .headers
@@ -85,18 +85,22 @@ pub async fn get_transaction_group_ledger_state_deltas_for_round(
         .unwrap_or("application/json");
 
     match ContentType::from(content_type) {
-        ContentType::Json => {
-            serde_json::from_slice(&response.body).map_err(|e| Error::Serde(e.to_string()))
-        }
-        ContentType::MsgPack => {
-            rmp_serde::from_slice(&response.body).map_err(|e| Error::Serde(e.to_string()))
-        }
+        ContentType::Json => serde_json::from_slice(&response.body).map_err(|e| Error::Serde {
+            message: e.to_string(),
+        }),
+        ContentType::MsgPack => rmp_serde::from_slice(&response.body).map_err(|e| Error::Serde {
+            message: e.to_string(),
+        }),
         ContentType::Text => {
-            let text = String::from_utf8(response.body).map_err(|e| Error::Serde(e.to_string()))?;
-            Err(Error::Serde(format!("Unexpected text response: {}", text)))
+            let text = String::from_utf8(response.body).map_err(|e| Error::Serde {
+                message: e.to_string(),
+            })?;
+            Err(Error::Serde {
+                message: format!("Unexpected text response: {}", text),
+            })
         }
-        ContentType::Unsupported(ct) => {
-            Err(Error::Serde(format!("Unsupported content type: {}", ct)))
-        }
+        ContentType::Unsupported(ct) => Err(Error::Serde {
+            message: format!("Unsupported content type: {}", ct),
+        }),
     }
 }

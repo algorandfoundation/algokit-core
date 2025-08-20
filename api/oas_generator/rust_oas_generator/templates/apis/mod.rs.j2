@@ -23,35 +23,37 @@ pub mod parameter_enums;
 pub mod {{ operation.rust_function_name }};
 {% endfor %}
 
+use snafu::Snafu;
+
 /// Unified error type that can represent any API error from any endpoint
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, Snafu)]
 pub enum {{ client_type }}ApiError {
 {% for operation in operations %}
-    #[error("{{ operation.rust_function_name | title }} error: {0:?}")]
-    {{ operation.rust_function_name | pascal_case }}({{ operation.rust_function_name }}::{{ operation.rust_error_enum }}),
+    #[snafu(display("{{ operation.rust_function_name | title }} error: {error:?}"))]
+    {{ operation.rust_function_name | pascal_case }} { error: {{ operation.rust_function_name }}::{{ operation.rust_error_enum }} },
 {% endfor %}
-    #[error("Unknown API error: {0}")]
-    Unknown(String),
+    #[snafu(display("Unknown API error: {message}"))]
+    Unknown { message: String },
 }
 
 {% for operation in operations %}
 impl From<{{ operation.rust_function_name }}::{{ operation.rust_error_enum }}> for {{ client_type }}ApiError {
     fn from(err: {{ operation.rust_function_name }}::{{ operation.rust_error_enum }}) -> Self {
-        {{ client_type }}ApiError::{{ operation.rust_function_name | pascal_case }}(err)
+        {{ client_type }}ApiError::{{ operation.rust_function_name | pascal_case }} { error: err }
     }
 }
 
 {% endfor %}
 
 /// The main error type for all {{ client_type | lower }} client operations
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, Snafu)]
 pub enum Error {
-    #[error("HTTP error: {0}")]
-    Http(#[from] algokit_http_client::HttpError),
-    #[error("Serialization error: {0}")]
-    Serde(String),
-    #[error("API error: {0}")]
-    Api(#[from] {{ client_type }}ApiError),
+    #[snafu(display("HTTP error: {source}"))]
+    Http { source: algokit_http_client::HttpError },
+    #[snafu(display("Serialization error: {message}"))]
+    Serde { message: String },
+    #[snafu(display("API error: {source}"))]
+    Api { source: {{ client_type }}ApiError },
 }
 
 #[derive(Debug, PartialEq, Eq)]

@@ -4,35 +4,59 @@
 //! transaction processing, including encoding/decoding errors, validation errors,
 //! and other transaction-related failures.
 
-use thiserror::Error;
+use snafu::Snafu;
 
 /// Represents errors that can occur during Algorand transaction operations.
 ///
 /// This enum encompasses various failure scenarios that may arise when creating,
 /// manipulating, serializing, or deserializing Algorand transactions.
-#[derive(Debug, Error)]
+#[derive(Debug, Snafu)]
 pub enum AlgoKitTransactError {
-    #[error("Error ocurred during encoding: {0}")]
-    EncodingError(#[from] rmp_serde::encode::Error),
+    #[snafu(display("Error ocurred during encoding: {source}"))]
+    EncodingError { source: rmp_serde::encode::Error },
 
-    #[error("Error ocurred during decoding: {0}")]
-    DecodingError(#[from] rmp_serde::decode::Error),
+    #[snafu(display("Error ocurred during decoding: {source}"))]
+    DecodingError { source: rmp_serde::decode::Error },
 
-    #[error("Error ocurred during msgpack encoding: {0}")]
-    MsgpackEncodingError(#[from] rmpv::encode::Error),
+    #[snafu(display("Error ocurred during msgpack encoding: {source}"))]
+    MsgpackEncodingError { source: rmpv::encode::Error },
 
-    #[error("Error ocurred during msgpack decoding: {0}")]
-    MsgpackDecodingError(#[from] rmpv::decode::Error),
+    #[snafu(display("Error ocurred during msgpack decoding: {source}"))]
+    MsgpackDecodingError { source: rmpv::decode::Error },
 
-    #[error("Unknown transaction type: {0}")]
-    UnknownTransactionType(String),
+    #[snafu(display("Unknown transaction type: {message}"))]
+    UnknownTransactionType { message: String },
 
-    #[error("{0}")]
-    InputError(String),
+    #[snafu(display("{message}"))]
+    InputError { message: String },
 
-    #[error("{0}")]
-    InvalidAddress(String),
+    #[snafu(display("{message}"))]
+    InvalidAddress { message: String },
 
-    #[error("Invalid multisig signature: {0}")]
-    InvalidMultisigSignature(String),
+    #[snafu(display("Invalid multisig signature: {message}"))]
+    InvalidMultisigSignature { message: String },
+}
+
+impl From<rmp_serde::encode::Error> for AlgoKitTransactError {
+    fn from(source: rmp_serde::encode::Error) -> Self {
+        AlgoKitTransactError::EncodingError { source }
+    }
+}
+
+impl From<rmp_serde::decode::Error> for AlgoKitTransactError {
+    fn from(source: rmp_serde::decode::Error) -> Self {
+        AlgoKitTransactError::DecodingError { source }
+    }
+}
+
+impl From<rmpv::encode::Error> for AlgoKitTransactError {
+    fn from(source: rmpv::encode::Error) -> Self {
+        AlgoKitTransactError::MsgpackEncodingError { source }
+    }
+}
+
+impl From<rmpv::decode::Error> for AlgoKitTransactError {
+    fn from(source: rmpv::decode::Error) -> Self {
+        AlgoKitTransactError::MsgpackDecodingError { source }
+    }
 }

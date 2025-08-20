@@ -3,6 +3,7 @@ use algokit_abi::ABIReturn;
 use algokit_transact::{
     Address, ApplicationCallTransactionFields, AssetConfigTransactionFields, Transaction,
 };
+use snafu::Snafu;
 
 /// The unified, comprehensive result of sending a single transaction or transaction group.
 ///
@@ -91,14 +92,14 @@ pub struct SendAppCallResult {
 }
 
 /// Errors that can occur when constructing transaction results
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, Snafu)]
 pub enum TransactionResultError {
-    #[error("Missing confirmation data: {0}")]
-    MissingConfirmation(String),
-    #[error("Invalid confirmation data: {0}")]
-    InvalidConfirmation(String),
-    #[error("Transaction parsing error: {0}")]
-    ParsingError(String),
+    #[snafu(display("Missing confirmation data: {message}"))]
+    MissingConfirmation { message: String },
+    #[snafu(display("Invalid confirmation data: {message}"))]
+    InvalidConfirmation { message: String },
+    #[snafu(display("Transaction parsing error: {message}"))]
+    ParsingError { message: String },
 }
 
 impl SendTransactionResult {
@@ -114,21 +115,21 @@ impl SendTransactionResult {
         abi_returns: Option<Vec<ABIReturn>>,
     ) -> Result<Self, TransactionResultError> {
         if transactions.is_empty() {
-            return Err(TransactionResultError::MissingConfirmation(
-                "No transactions provided".to_string(),
-            ));
+            return Err(TransactionResultError::MissingConfirmation {
+                message: "No transactions provided".to_string(),
+            });
         }
 
         if confirmations.is_empty() {
-            return Err(TransactionResultError::MissingConfirmation(
-                "No confirmations provided".to_string(),
-            ));
+            return Err(TransactionResultError::MissingConfirmation {
+                message: "No confirmations provided".to_string(),
+            });
         }
 
         if tx_ids.len() != transactions.len() || tx_ids.len() != confirmations.len() {
-            return Err(TransactionResultError::InvalidConfirmation(
-                "Mismatched transaction, confirmation, and ID counts".to_string(),
-            ));
+            return Err(TransactionResultError::InvalidConfirmation {
+                message: "Mismatched transaction, confirmation, and ID counts".to_string(),
+            });
         }
 
         // The primary transaction is the last one in the group
@@ -253,9 +254,9 @@ impl SendAssetCreateResult {
     pub fn new(common_params: SendTransactionResult) -> Result<Self, TransactionResultError> {
         // Extract asset ID from the confirmation
         let asset_id = common_params.confirmation.asset_id.ok_or_else(|| {
-            TransactionResultError::InvalidConfirmation(
-                "Asset creation confirmation missing asset-index".to_string(),
-            )
+            TransactionResultError::InvalidConfirmation {
+                message: "Asset creation confirmation missing asset-index".to_string(),
+            }
         })?;
 
         Ok(SendAssetCreateResult {
@@ -284,9 +285,9 @@ impl SendAppCreateResult {
     ) -> Result<Self, TransactionResultError> {
         // Extract app ID from the confirmation
         let app_id = common_params.confirmation.app_id.ok_or_else(|| {
-            TransactionResultError::InvalidConfirmation(
-                "Application creation confirmation missing application-index".to_string(),
-            )
+            TransactionResultError::InvalidConfirmation {
+                message: "Application creation confirmation missing application-index".to_string(),
+            }
         })?;
 
         // Calculate app address
@@ -432,8 +433,8 @@ mod tests {
 
         assert!(result.is_err());
         match result.unwrap_err() {
-            TransactionResultError::MissingConfirmation(msg) => {
-                assert!(msg.contains("No transactions provided"));
+            TransactionResultError::MissingConfirmation { message } => {
+                assert!(message.contains("No transactions provided"));
             }
             _ => panic!("Expected MissingConfirmation error"),
         }

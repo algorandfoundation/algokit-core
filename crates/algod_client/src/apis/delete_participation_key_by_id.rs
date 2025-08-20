@@ -61,7 +61,7 @@ pub async fn delete_participation_key_by_id(
             Some(headers),
         )
         .await
-        .map_err(Error::Http)?;
+        .map_err(|e| Error::Http { source: e })?;
 
     let _ = response;
     Ok(())

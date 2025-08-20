@@ -12,24 +12,26 @@ impl ABIType {
                 let value = match value {
                     ABIValue::Uint(n) => n,
                     _ => {
-                        return Err(ABIError::EncodingError(
-                            "ABI value mismatch, expected uint".to_string(),
-                        ));
+                        return Err(ABIError::EncodingError {
+                            message: "ABI value mismatch, expected uint".to_string(),
+                        });
                     }
                 };
 
                 if value >= &BigUint::from(2u64).pow(bit_size as u32) {
-                    return Err(ABIError::EncodingError(format!(
-                        "{} is too big to fit in ufixed{}x{}",
-                        value, bit_size, precision
-                    )));
+                    return Err(ABIError::EncodingError {
+                        message: format!(
+                            "{} is too big to fit in ufixed{}x{}",
+                            value, bit_size, precision
+                        ),
+                    });
                 }
 
                 Ok(utils::big_uint_to_bytes(value, (bit_size / 8) as usize))
             }
-            _ => Err(ABIError::EncodingError(
-                "ABI type mismatch, expected ufixed".to_string(),
-            )),
+            _ => Err(ABIError::EncodingError {
+                message: "ABI type mismatch, expected ufixed".to_string(),
+            }),
         }
     }
 
@@ -39,18 +41,20 @@ impl ABIType {
                 let bit_size = bit_size.value();
                 let expected_len = (bit_size / 8) as usize;
                 if bytes.len() != expected_len {
-                    return Err(ABIError::DecodingError(format!(
-                        "Invalid byte array length, expected {} bytes, got {}",
-                        expected_len,
-                        bytes.len()
-                    )));
+                    return Err(ABIError::DecodingError {
+                        message: format!(
+                            "Invalid byte array length, expected {} bytes, got {}",
+                            expected_len,
+                            bytes.len()
+                        ),
+                    });
                 }
 
                 Ok(ABIValue::Uint(BigUint::from_bytes_be(bytes)))
             }
-            _ => Err(ABIError::DecodingError(
-                "ABI type mismatch, expected ufixed".to_string(),
-            )),
+            _ => Err(ABIError::DecodingError {
+                message: "ABI type mismatch, expected ufixed".to_string(),
+            }),
         }
     }
 }

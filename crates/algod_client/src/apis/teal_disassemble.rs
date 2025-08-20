@@ -51,7 +51,9 @@ pub async fn teal_disassemble(
     );
     headers.insert("Accept".to_string(), "application/msgpack".to_string());
 
-    let body = Some(serde_json::to_vec(&p_request).map_err(|e| Error::Serde(e.to_string()))?);
+    let body = Some(serde_json::to_vec(&p_request).map_err(|e| Error::Serde {
+        message: e.to_string(),
+    })?);
 
     let response = http_client
         .request(
@@ -62,7 +64,7 @@ pub async fn teal_disassemble(
             Some(headers),
         )
         .await
-        .map_err(Error::Http)?;
+        .map_err(|e| Error::Http { source: e })?;
 
     let content_type = response
         .headers
@@ -71,18 +73,22 @@ pub async fn teal_disassemble(
         .unwrap_or("application/json");
 
     match ContentType::from(content_type) {
-        ContentType::Json => {
-            serde_json::from_slice(&response.body).map_err(|e| Error::Serde(e.to_string()))
-        }
-        ContentType::MsgPack => {
-            rmp_serde::from_slice(&response.body).map_err(|e| Error::Serde(e.to_string()))
-        }
+        ContentType::Json => serde_json::from_slice(&response.body).map_err(|e| Error::Serde {
+            message: e.to_string(),
+        }),
+        ContentType::MsgPack => rmp_serde::from_slice(&response.body).map_err(|e| Error::Serde {
+            message: e.to_string(),
+        }),
         ContentType::Text => {
-            let text = String::from_utf8(response.body).map_err(|e| Error::Serde(e.to_string()))?;
-            Err(Error::Serde(format!("Unexpected text response: {}", text)))
+            let text = String::from_utf8(response.body).map_err(|e| Error::Serde {
+                message: e.to_string(),
+            })?;
+            Err(Error::Serde {
+                message: format!("Unexpected text response: {}", text),
+            })
         }
-        ContentType::Unsupported(ct) => {
-            Err(Error::Serde(format!("Unsupported content type: {}", ct)))
-        }
+        ContentType::Unsupported(ct) => Err(Error::Serde {
+            message: format!("Unsupported content type: {}", ct),
+        }),
     }
 }

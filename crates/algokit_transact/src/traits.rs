@@ -62,9 +62,9 @@ pub trait AlgorandMsgpack: Serialize + for<'de> Deserialize<'de> {
     /// deserialization fails.
     fn decode(bytes: &[u8]) -> Result<Self, AlgoKitTransactError> {
         if bytes.is_empty() {
-            return Err(AlgoKitTransactError::InputError(
-                "attempted to decode 0 bytes".to_string(),
-            ));
+            return Err(AlgoKitTransactError::InputError {
+                message: "attempted to decode 0 bytes".to_string(),
+            });
         }
 
         // If there is a PREFIX defined, bytes is longer than the prefix, and the bytes start

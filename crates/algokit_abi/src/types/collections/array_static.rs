@@ -8,18 +8,18 @@ impl ABIType {
         let child_types = match self {
             ABIType::StaticArray(child_type, size) => vec![child_type.as_ref(); *size],
             _ => {
-                return Err(ABIError::EncodingError(
-                    "ABI type mismatch, expected static array".to_string(),
-                ));
+                return Err(ABIError::EncodingError {
+                    message: "ABI type mismatch, expected static array".to_string(),
+                });
             }
         };
 
         let values = match value {
             ABIValue::Array(n) => n,
             _ => {
-                return Err(ABIError::EncodingError(
-                    "ABI value mismatch, expected an array of values".to_string(),
-                ));
+                return Err(ABIError::EncodingError {
+                    message: "ABI value mismatch, expected an array of values".to_string(),
+                });
             }
         };
 
@@ -30,9 +30,9 @@ impl ABIType {
         let child_types = match self {
             ABIType::StaticArray(child_type, size) => vec![child_type.as_ref(); *size],
             _ => {
-                return Err(ABIError::EncodingError(
-                    "ABI type mismatch, expected static array".to_string(),
-                ));
+                return Err(ABIError::EncodingError {
+                    message: "ABI type mismatch, expected static array".to_string(),
+                });
             }
         };
 

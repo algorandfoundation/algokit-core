@@ -77,21 +77,17 @@ impl MultisigSignature {
         subsignatures: Vec<MultisigSubsignature>,
     ) -> Result<Self, AlgoKitTransactError> {
         if version == 0 {
-            return Err(AlgoKitTransactError::InvalidMultisigSignature(
-                "Version cannot be zero".to_string(),
-            ));
+            return Err(AlgoKitTransactError::InvalidMultisigSignature {
+                message: "Version cannot be zero".to_string(),
+            });
         }
         if subsignatures.is_empty() {
-            return Err(AlgoKitTransactError::InvalidMultisigSignature(
-                "Subsignatures cannot be empty".to_string(),
-            ));
+            return Err(AlgoKitTransactError::InvalidMultisigSignature {
+                message: "Subsignatures cannot be empty".to_string(),
+            });
         }
         if threshold == 0 || threshold as usize > subsignatures.len() {
-            return Err(AlgoKitTransactError::InvalidMultisigSignature(
-                "Threshold must be greater than zero and less than or equal \
-                to the number of sub-signers"
-                    .to_string(),
-            ));
+            return Err(AlgoKitTransactError::InvalidMultisigSignature { message: "Threshold must be greater than zero and less than or equal to the number of sub-signers".to_string() });
         }
         Ok(Self {
             version,
@@ -141,9 +137,9 @@ impl MultisigSignature {
             subsig.signature = Some(subsignature);
         }
         if !found {
-            return Err(AlgoKitTransactError::InvalidMultisigSignature(
-                "Address not found in multisig signature".to_string(),
-            ));
+            return Err(AlgoKitTransactError::InvalidMultisigSignature {
+                message: "Address not found in multisig signature".to_string(),
+            });
         }
 
         Ok(Self {
@@ -164,19 +160,19 @@ impl MultisigSignature {
     /// Returns [`AlgoKitTransactError::InvalidMultisigSignature`] if the version, threshold, or participants differ.
     pub fn merge(&self, other: &Self) -> Result<Self, AlgoKitTransactError> {
         if self.version != other.version {
-            return Err(AlgoKitTransactError::InvalidMultisigSignature(
-                "Cannot merge multisig signatures with different versions".to_string(),
-            ));
+            return Err(AlgoKitTransactError::InvalidMultisigSignature {
+                message: "Cannot merge multisig signatures with different versions".to_string(),
+            });
         }
         if self.threshold != other.threshold {
-            return Err(AlgoKitTransactError::InvalidMultisigSignature(
-                "Cannot merge multisig signatures with different thresholds".to_string(),
-            ));
+            return Err(AlgoKitTransactError::InvalidMultisigSignature {
+                message: "Cannot merge multisig signatures with different thresholds".to_string(),
+            });
         }
         if self.participants() != other.participants() {
-            return Err(AlgoKitTransactError::InvalidMultisigSignature(
-                "Cannot merge multisig signatures with different participants".to_string(),
-            ));
+            return Err(AlgoKitTransactError::InvalidMultisigSignature {
+                message: "Cannot merge multisig signatures with different participants".to_string(),
+            });
         }
 
         let subsignatures = self

@@ -17,19 +17,21 @@ pub use transactions::AssetTransferTransactionFields;
 pub use transactions::KeyRegistrationTransactionFields;
 pub use transactions::PaymentTransactionFields;
 
-// thiserror is used to easily create errors than can be propagated to the language bindings
+use snafu::Snafu;
+
+// snafu is used to easily create errors than can be propagated to the language bindings
 // UniFFI will create classes for errors (i.e. `MsgPackError.EncodingError` in Python)
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, Snafu)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum AlgoKitTransactError {
-    #[error("EncodingError: {0}")]
-    EncodingError(String),
-    #[error("DecodingError: {0}")]
-    DecodingError(String),
-    #[error("{0}")]
-    InputError(String),
-    #[error("MsgPackError: {0}")]
-    MsgPackError(String),
+    #[snafu(display("EncodingError: {message}"))]
+    EncodingError { message: String },
+    #[snafu(display("DecodingError: {message}"))]
+    DecodingError { message: String },
+    #[snafu(display("{message}"))]
+    InputError { message: String },
+    #[snafu(display("MsgPackError: {message}"))]
+    MsgPackError { message: String },
 }
 
 // For now, in WASM we just throw the string, hence the error
@@ -46,29 +48,43 @@ impl From<AlgoKitTransactError> for JsValue {
 impl From<algokit_transact::AlgoKitTransactError> for AlgoKitTransactError {
     fn from(e: algokit_transact::AlgoKitTransactError) -> Self {
         match e {
-            algokit_transact::AlgoKitTransactError::DecodingError(_) => {
-                AlgoKitTransactError::DecodingError(e.to_string())
+            algokit_transact::AlgoKitTransactError::DecodingError { .. } => {
+                AlgoKitTransactError::DecodingError {
+                    message: e.to_string(),
+                }
             }
-            algokit_transact::AlgoKitTransactError::EncodingError(_) => {
-                AlgoKitTransactError::EncodingError(e.to_string())
+            algokit_transact::AlgoKitTransactError::EncodingError { .. } => {
+                AlgoKitTransactError::EncodingError {
+                    message: e.to_string(),
+                }
             }
-            algokit_transact::AlgoKitTransactError::MsgpackDecodingError(_) => {
-                AlgoKitTransactError::DecodingError(e.to_string())
+            algokit_transact::AlgoKitTransactError::MsgpackDecodingError { .. } => {
+                AlgoKitTransactError::DecodingError {
+                    message: e.to_string(),
+                }
             }
-            algokit_transact::AlgoKitTransactError::MsgpackEncodingError(_) => {
-                AlgoKitTransactError::EncodingError(e.to_string())
+            algokit_transact::AlgoKitTransactError::MsgpackEncodingError { .. } => {
+                AlgoKitTransactError::EncodingError {
+                    message: e.to_string(),
+                }
             }
-            algokit_transact::AlgoKitTransactError::UnknownTransactionType(_) => {
-                AlgoKitTransactError::DecodingError(e.to_string())
+            algokit_transact::AlgoKitTransactError::UnknownTransactionType { .. } => {
+                AlgoKitTransactError::DecodingError {
+                    message: e.to_string(),
+                }
             }
-            algokit_transact::AlgoKitTransactError::InputError(e) => {
-                AlgoKitTransactError::InputError(e.to_string())
+            algokit_transact::AlgoKitTransactError::InputError { message } => {
+                AlgoKitTransactError::InputError { message }
             }
-            algokit_transact::AlgoKitTransactError::InvalidAddress(_) => {
-                AlgoKitTransactError::DecodingError(e.to_string())
+            algokit_transact::AlgoKitTransactError::InvalidAddress { .. } => {
+                AlgoKitTransactError::DecodingError {
+                    message: e.to_string(),
+                }
             }
-            algokit_transact::AlgoKitTransactError::InvalidMultisigSignature(_) => {
-                AlgoKitTransactError::DecodingError(e.to_string())
+            algokit_transact::AlgoKitTransactError::InvalidMultisigSignature { .. } => {
+                AlgoKitTransactError::DecodingError {
+                    message: e.to_string(),
+                }
             }
         }
     }
@@ -138,11 +154,8 @@ impl TryFrom<KeyPairAccount> for algokit_transact::KeyPairAccount {
 
     fn try_from(value: KeyPairAccount) -> Result<Self, Self::Error> {
         let pub_key: [u8; ALGORAND_PUBLIC_KEY_BYTE_LENGTH] = bytebuf_to_bytes(&value.pub_key)
-            .map_err(|e| {
-                AlgoKitTransactError::DecodingError(format!(
-                    "Error while decoding a public key: {}",
-                    e
-                ))
+            .map_err(|e| AlgoKitTransactError::DecodingError {
+                message: format!("Error while decoding a public key: {}", e),
             })?;
 
         Ok(algokit_transact::KeyPairAccount::from_pubkey(&pub_key))
@@ -234,9 +247,9 @@ impl TryFrom<Transaction> for algokit_transact::Transaction {
         .count()
             > 1
         {
-            return Err(Self::Error::DecodingError(
-                "Multiple transaction type specific fields set".to_string(),
-            ));
+            return Err(Self::Error::DecodingError {
+                message: "Multiple transaction type specific fields set".to_string(),
+            });
         }
 
         match tx.transaction_type {
@@ -413,11 +426,11 @@ impl TryFrom<SignedTransaction> for algokit_transact::SignedTransaction {
                 .signature
                 .map(|sig| bytebuf_to_bytes(&sig))
                 .transpose()
-                .map_err(|e| {
-                    AlgoKitTransactError::DecodingError(format!(
+                .map_err(|e| AlgoKitTransactError::DecodingError {
+                    message: format!(
                         "Error while decoding the signature in a signed transaction: {}",
                         e
-                    ))
+                    ),
                 })?,
             auth_address: signed_tx
                 .auth_address
@@ -432,12 +445,11 @@ impl TryFrom<SignedTransaction> for algokit_transact::SignedTransaction {
 }
 
 fn bytebuf_to_bytes<const N: usize>(buf: &ByteBuf) -> Result<[u8; N], AlgoKitTransactError> {
-    buf.to_vec().try_into().map_err(|_| {
-        AlgoKitTransactError::DecodingError(format!(
-            "Expected {} bytes but got a different length",
-            N
-        ))
-    })
+    buf.to_vec()
+        .try_into()
+        .map_err(|_| AlgoKitTransactError::DecodingError {
+            message: format!("Expected {} bytes but got a different length", N),
+        })
 }
 
 fn byte32_to_bytebuf(b32: Byte32) -> ByteBuf {
@@ -593,9 +605,12 @@ pub fn decode_transactions(
 #[ffi_func]
 pub fn estimate_transaction_size(transaction: Transaction) -> Result<u64, AlgoKitTransactError> {
     let core_tx: algokit_transact::Transaction = transaction.try_into()?;
-    core_tx.estimate_size()?.try_into().map_err(|_| {
-        AlgoKitTransactError::EncodingError("Failed to convert size to u64".to_string())
-    })
+    core_tx
+        .estimate_size()?
+        .try_into()
+        .map_err(|_| AlgoKitTransactError::EncodingError {
+            message: "Failed to convert size to u64".to_string(),
+        })
 }
 
 #[ffi_func]
@@ -604,13 +619,12 @@ pub fn keypair_account_from_pub_key(
 ) -> Result<KeyPairAccount, AlgoKitTransactError> {
     Ok(
         algokit_transact::KeyPairAccount::from_pubkey(pub_key.try_into().map_err(|_| {
-            AlgoKitTransactError::EncodingError(
-                format!(
+            AlgoKitTransactError::EncodingError {
+                message: format!(
                     "public key should be {} bytes",
                     ALGORAND_PUBLIC_KEY_BYTE_LENGTH
-                )
-                .to_string(),
-            )
+                ),
+            }
         })?)
         .into(),
     )

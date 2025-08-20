@@ -5,13 +5,13 @@ impl ABIType {
         match self {
             ABIType::Byte => match value {
                 ABIValue::Byte(n) => Ok(vec![*n]),
-                _ => Err(ABIError::EncodingError(
-                    "ABI value mismatch, expected byte".to_string(),
-                )),
+                _ => Err(ABIError::EncodingError {
+                    message: "ABI value mismatch, expected byte".to_string(),
+                }),
             },
-            _ => Err(ABIError::EncodingError(
-                "ABI type mismatch, expected byte".to_string(),
-            )),
+            _ => Err(ABIError::EncodingError {
+                message: "ABI type mismatch, expected byte".to_string(),
+            }),
         }
     }
 
@@ -19,16 +19,16 @@ impl ABIType {
         match self {
             ABIType::Byte => {
                 if bytes.len() != 1 {
-                    return Err(ABIError::DecodingError(
-                        "Byte array must be 1 byte long".to_string(),
-                    ));
+                    return Err(ABIError::DecodingError {
+                        message: "Byte array must be 1 byte long".to_string(),
+                    });
                 }
 
                 Ok(ABIValue::Byte(bytes[0]))
             }
-            _ => Err(ABIError::DecodingError(
-                "ABI type mismatch, expected byte".to_string(),
-            )),
+            _ => Err(ABIError::DecodingError {
+                message: "ABI type mismatch, expected byte".to_string(),
+            }),
         }
     }
 }

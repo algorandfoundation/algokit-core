@@ -25,7 +25,7 @@ derive_more = { version = "2.0.1", features = ["full"] }
 dotenvy = "0.15"
 log = "0.4.27"
 reqwest = { version = "0.12.19", features = ["blocking"] }
-thiserror.workspace = true
+snafu = { workspace = true }
 tokio = { version = "1.45.1", features = ["time"] }
 
 # Dependencies used in algod client integrations tests

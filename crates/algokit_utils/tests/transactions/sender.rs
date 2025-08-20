@@ -338,7 +338,10 @@ async fn test_validation_error_propagation(
     // Validate Sender properly propagates validation errors from AssetManager coordination
     assert!(result.is_err());
     let error = result.unwrap_err();
-    assert!(matches!(error, TransactionSenderError::ValidationError(_)));
+    assert!(matches!(
+        error,
+        TransactionSenderError::ValidationError { message: _ }
+    ));
 
     Ok(())
 }

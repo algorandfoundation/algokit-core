@@ -36,92 +36,132 @@ pub mod search_for_assets;
 pub mod search_for_block_headers;
 pub mod search_for_transactions;
 
+use snafu::Snafu;
+
 /// Unified error type that can represent any API error from any endpoint
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, Snafu)]
 pub enum IndexerApiError {
-    #[error("Make_health_check error: {0:?}")]
-    MakeHealthCheck(make_health_check::MakeHealthCheckError),
-    #[error("Search_for_accounts error: {0:?}")]
-    SearchForAccounts(search_for_accounts::SearchForAccountsError),
-    #[error("Lookup_account_by_id error: {0:?}")]
-    LookupAccountById(lookup_account_by_id::LookupAccountByIdError),
-    #[error("Lookup_account_assets error: {0:?}")]
-    LookupAccountAssets(lookup_account_assets::LookupAccountAssetsError),
-    #[error("Lookup_account_created_assets error: {0:?}")]
-    LookupAccountCreatedAssets(lookup_account_created_assets::LookupAccountCreatedAssetsError),
-    #[error("Lookup_account_app_local_states error: {0:?}")]
-    LookupAccountAppLocalStates(lookup_account_app_local_states::LookupAccountAppLocalStatesError),
-    #[error("Lookup_account_created_applications error: {0:?}")]
-    LookupAccountCreatedApplications(
-        lookup_account_created_applications::LookupAccountCreatedApplicationsError,
-    ),
-    #[error("Lookup_account_transactions error: {0:?}")]
-    LookupAccountTransactions(lookup_account_transactions::LookupAccountTransactionsError),
-    #[error("Search_for_applications error: {0:?}")]
-    SearchForApplications(search_for_applications::SearchForApplicationsError),
-    #[error("Lookup_application_by_id error: {0:?}")]
-    LookupApplicationById(lookup_application_by_id::LookupApplicationByIdError),
-    #[error("Search_for_application_boxes error: {0:?}")]
-    SearchForApplicationBoxes(search_for_application_boxes::SearchForApplicationBoxesError),
-    #[error("Lookup_application_box_by_id_and_name error: {0:?}")]
-    LookupApplicationBoxByIdAndName(
-        lookup_application_box_by_id_and_name::LookupApplicationBoxByIdAndNameError,
-    ),
-    #[error("Lookup_application_logs_by_id error: {0:?}")]
-    LookupApplicationLogsById(lookup_application_logs_by_id::LookupApplicationLogsByIdError),
-    #[error("Search_for_assets error: {0:?}")]
-    SearchForAssets(search_for_assets::SearchForAssetsError),
-    #[error("Lookup_asset_by_id error: {0:?}")]
-    LookupAssetById(lookup_asset_by_id::LookupAssetByIdError),
-    #[error("Lookup_asset_balances error: {0:?}")]
-    LookupAssetBalances(lookup_asset_balances::LookupAssetBalancesError),
-    #[error("Lookup_asset_transactions error: {0:?}")]
-    LookupAssetTransactions(lookup_asset_transactions::LookupAssetTransactionsError),
-    #[error("Search_for_block_headers error: {0:?}")]
-    SearchForBlockHeaders(search_for_block_headers::SearchForBlockHeadersError),
-    #[error("Lookup_block error: {0:?}")]
-    LookupBlock(lookup_block::LookupBlockError),
-    #[error("Lookup_transaction error: {0:?}")]
-    LookupTransaction(lookup_transaction::LookupTransactionError),
-    #[error("Search_for_transactions error: {0:?}")]
-    SearchForTransactions(search_for_transactions::SearchForTransactionsError),
-    #[error("Unknown API error: {0}")]
-    Unknown(String),
+    #[snafu(display("Make_health_check error: {error:?}"))]
+    MakeHealthCheck {
+        error: make_health_check::MakeHealthCheckError,
+    },
+    #[snafu(display("Search_for_accounts error: {error:?}"))]
+    SearchForAccounts {
+        error: search_for_accounts::SearchForAccountsError,
+    },
+    #[snafu(display("Lookup_account_by_id error: {error:?}"))]
+    LookupAccountById {
+        error: lookup_account_by_id::LookupAccountByIdError,
+    },
+    #[snafu(display("Lookup_account_assets error: {error:?}"))]
+    LookupAccountAssets {
+        error: lookup_account_assets::LookupAccountAssetsError,
+    },
+    #[snafu(display("Lookup_account_created_assets error: {error:?}"))]
+    LookupAccountCreatedAssets {
+        error: lookup_account_created_assets::LookupAccountCreatedAssetsError,
+    },
+    #[snafu(display("Lookup_account_app_local_states error: {error:?}"))]
+    LookupAccountAppLocalStates {
+        error: lookup_account_app_local_states::LookupAccountAppLocalStatesError,
+    },
+    #[snafu(display("Lookup_account_created_applications error: {error:?}"))]
+    LookupAccountCreatedApplications {
+        error: lookup_account_created_applications::LookupAccountCreatedApplicationsError,
+    },
+    #[snafu(display("Lookup_account_transactions error: {error:?}"))]
+    LookupAccountTransactions {
+        error: lookup_account_transactions::LookupAccountTransactionsError,
+    },
+    #[snafu(display("Search_for_applications error: {error:?}"))]
+    SearchForApplications {
+        error: search_for_applications::SearchForApplicationsError,
+    },
+    #[snafu(display("Lookup_application_by_id error: {error:?}"))]
+    LookupApplicationById {
+        error: lookup_application_by_id::LookupApplicationByIdError,
+    },
+    #[snafu(display("Search_for_application_boxes error: {error:?}"))]
+    SearchForApplicationBoxes {
+        error: search_for_application_boxes::SearchForApplicationBoxesError,
+    },
+    #[snafu(display("Lookup_application_box_by_id_and_name error: {error:?}"))]
+    LookupApplicationBoxByIdAndName {
+        error: lookup_application_box_by_id_and_name::LookupApplicationBoxByIdAndNameError,
+    },
+    #[snafu(display("Lookup_application_logs_by_id error: {error:?}"))]
+    LookupApplicationLogsById {
+        error: lookup_application_logs_by_id::LookupApplicationLogsByIdError,
+    },
+    #[snafu(display("Search_for_assets error: {error:?}"))]
+    SearchForAssets {
+        error: search_for_assets::SearchForAssetsError,
+    },
+    #[snafu(display("Lookup_asset_by_id error: {error:?}"))]
+    LookupAssetById {
+        error: lookup_asset_by_id::LookupAssetByIdError,
+    },
+    #[snafu(display("Lookup_asset_balances error: {error:?}"))]
+    LookupAssetBalances {
+        error: lookup_asset_balances::LookupAssetBalancesError,
+    },
+    #[snafu(display("Lookup_asset_transactions error: {error:?}"))]
+    LookupAssetTransactions {
+        error: lookup_asset_transactions::LookupAssetTransactionsError,
+    },
+    #[snafu(display("Search_for_block_headers error: {error:?}"))]
+    SearchForBlockHeaders {
+        error: search_for_block_headers::SearchForBlockHeadersError,
+    },
+    #[snafu(display("Lookup_block error: {error:?}"))]
+    LookupBlock {
+        error: lookup_block::LookupBlockError,
+    },
+    #[snafu(display("Lookup_transaction error: {error:?}"))]
+    LookupTransaction {
+        error: lookup_transaction::LookupTransactionError,
+    },
+    #[snafu(display("Search_for_transactions error: {error:?}"))]
+    SearchForTransactions {
+        error: search_for_transactions::SearchForTransactionsError,
+    },
+    #[snafu(display("Unknown API error: {message}"))]
+    Unknown { message: String },
 }
 
 impl From<make_health_check::MakeHealthCheckError> for IndexerApiError {
     fn from(err: make_health_check::MakeHealthCheckError) -> Self {
-        IndexerApiError::MakeHealthCheck(err)
+        IndexerApiError::MakeHealthCheck { error: err }
     }
 }
 
 impl From<search_for_accounts::SearchForAccountsError> for IndexerApiError {
     fn from(err: search_for_accounts::SearchForAccountsError) -> Self {
-        IndexerApiError::SearchForAccounts(err)
+        IndexerApiError::SearchForAccounts { error: err }
     }
 }
 
 impl From<lookup_account_by_id::LookupAccountByIdError> for IndexerApiError {
     fn from(err: lookup_account_by_id::LookupAccountByIdError) -> Self {
-        IndexerApiError::LookupAccountById(err)
+        IndexerApiError::LookupAccountById { error: err }
     }
 }
 
 impl From<lookup_account_assets::LookupAccountAssetsError> for IndexerApiError {
     fn from(err: lookup_account_assets::LookupAccountAssetsError) -> Self {
-        IndexerApiError::LookupAccountAssets(err)
+        IndexerApiError::LookupAccountAssets { error: err }
     }
 }
 
 impl From<lookup_account_created_assets::LookupAccountCreatedAssetsError> for IndexerApiError {
     fn from(err: lookup_account_created_assets::LookupAccountCreatedAssetsError) -> Self {
-        IndexerApiError::LookupAccountCreatedAssets(err)
+        IndexerApiError::LookupAccountCreatedAssets { error: err }
     }
 }
 
 impl From<lookup_account_app_local_states::LookupAccountAppLocalStatesError> for IndexerApiError {
     fn from(err: lookup_account_app_local_states::LookupAccountAppLocalStatesError) -> Self {
-        IndexerApiError::LookupAccountAppLocalStates(err)
+        IndexerApiError::LookupAccountAppLocalStates { error: err }
     }
 }
 
@@ -131,31 +171,31 @@ impl From<lookup_account_created_applications::LookupAccountCreatedApplicationsE
     fn from(
         err: lookup_account_created_applications::LookupAccountCreatedApplicationsError,
     ) -> Self {
-        IndexerApiError::LookupAccountCreatedApplications(err)
+        IndexerApiError::LookupAccountCreatedApplications { error: err }
     }
 }
 
 impl From<lookup_account_transactions::LookupAccountTransactionsError> for IndexerApiError {
     fn from(err: lookup_account_transactions::LookupAccountTransactionsError) -> Self {
-        IndexerApiError::LookupAccountTransactions(err)
+        IndexerApiError::LookupAccountTransactions { error: err }
     }
 }
 
 impl From<search_for_applications::SearchForApplicationsError> for IndexerApiError {
     fn from(err: search_for_applications::SearchForApplicationsError) -> Self {
-        IndexerApiError::SearchForApplications(err)
+        IndexerApiError::SearchForApplications { error: err }
     }
 }
 
 impl From<lookup_application_by_id::LookupApplicationByIdError> for IndexerApiError {
     fn from(err: lookup_application_by_id::LookupApplicationByIdError) -> Self {
-        IndexerApiError::LookupApplicationById(err)
+        IndexerApiError::LookupApplicationById { error: err }
     }
 }
 
 impl From<search_for_application_boxes::SearchForApplicationBoxesError> for IndexerApiError {
     fn from(err: search_for_application_boxes::SearchForApplicationBoxesError) -> Self {
-        IndexerApiError::SearchForApplicationBoxes(err)
+        IndexerApiError::SearchForApplicationBoxes { error: err }
     }
 }
 
@@ -165,73 +205,75 @@ impl From<lookup_application_box_by_id_and_name::LookupApplicationBoxByIdAndName
     fn from(
         err: lookup_application_box_by_id_and_name::LookupApplicationBoxByIdAndNameError,
     ) -> Self {
-        IndexerApiError::LookupApplicationBoxByIdAndName(err)
+        IndexerApiError::LookupApplicationBoxByIdAndName { error: err }
     }
 }
 
 impl From<lookup_application_logs_by_id::LookupApplicationLogsByIdError> for IndexerApiError {
     fn from(err: lookup_application_logs_by_id::LookupApplicationLogsByIdError) -> Self {
-        IndexerApiError::LookupApplicationLogsById(err)
+        IndexerApiError::LookupApplicationLogsById { error: err }
     }
 }
 
 impl From<search_for_assets::SearchForAssetsError> for IndexerApiError {
     fn from(err: search_for_assets::SearchForAssetsError) -> Self {
-        IndexerApiError::SearchForAssets(err)
+        IndexerApiError::SearchForAssets { error: err }
     }
 }
 
 impl From<lookup_asset_by_id::LookupAssetByIdError> for IndexerApiError {
     fn from(err: lookup_asset_by_id::LookupAssetByIdError) -> Self {
-        IndexerApiError::LookupAssetById(err)
+        IndexerApiError::LookupAssetById { error: err }
     }
 }
 
 impl From<lookup_asset_balances::LookupAssetBalancesError> for IndexerApiError {
     fn from(err: lookup_asset_balances::LookupAssetBalancesError) -> Self {
-        IndexerApiError::LookupAssetBalances(err)
+        IndexerApiError::LookupAssetBalances { error: err }
     }
 }
 
 impl From<lookup_asset_transactions::LookupAssetTransactionsError> for IndexerApiError {
     fn from(err: lookup_asset_transactions::LookupAssetTransactionsError) -> Self {
-        IndexerApiError::LookupAssetTransactions(err)
+        IndexerApiError::LookupAssetTransactions { error: err }
     }
 }
 
 impl From<search_for_block_headers::SearchForBlockHeadersError> for IndexerApiError {
     fn from(err: search_for_block_headers::SearchForBlockHeadersError) -> Self {
-        IndexerApiError::SearchForBlockHeaders(err)
+        IndexerApiError::SearchForBlockHeaders { error: err }
     }
 }
 
 impl From<lookup_block::LookupBlockError> for IndexerApiError {
     fn from(err: lookup_block::LookupBlockError) -> Self {
-        IndexerApiError::LookupBlock(err)
+        IndexerApiError::LookupBlock { error: err }
     }
 }
 
 impl From<lookup_transaction::LookupTransactionError> for IndexerApiError {
     fn from(err: lookup_transaction::LookupTransactionError) -> Self {
-        IndexerApiError::LookupTransaction(err)
+        IndexerApiError::LookupTransaction { error: err }
     }
 }
 
 impl From<search_for_transactions::SearchForTransactionsError> for IndexerApiError {
     fn from(err: search_for_transactions::SearchForTransactionsError) -> Self {
-        IndexerApiError::SearchForTransactions(err)
+        IndexerApiError::SearchForTransactions { error: err }
     }
 }
 
 /// The main error type for all indexer client operations
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, Snafu)]
 pub enum Error {
-    #[error("HTTP error: {0}")]
-    Http(#[from] algokit_http_client::HttpError),
-    #[error("Serialization error: {0}")]
-    Serde(String),
-    #[error("API error: {0}")]
-    Api(#[from] IndexerApiError),
+    #[snafu(display("HTTP error: {source}"))]
+    Http {
+        source: algokit_http_client::HttpError,
+    },
+    #[snafu(display("Serialization error: {message}"))]
+    Serde { message: String },
+    #[snafu(display("API error: {source}"))]
+    Api { source: IndexerApiError },
 }
 
 #[derive(Debug, PartialEq, Eq)]

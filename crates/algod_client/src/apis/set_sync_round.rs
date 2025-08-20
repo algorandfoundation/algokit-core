@@ -55,7 +55,7 @@ pub async fn set_sync_round(http_client: &dyn HttpClient, round: u64) -> Result<
             Some(headers),
         )
         .await
-        .map_err(Error::Http)?;
+        .map_err(|e| Error::Http { source: e })?;
 
     let _ = response;
     Ok(())

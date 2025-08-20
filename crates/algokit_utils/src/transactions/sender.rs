@@ -19,25 +19,56 @@ use crate::clients::asset_manager::{AssetManager, AssetManagerError};
 use algod_client::apis::AlgodApiError;
 use algokit_abi::{ABIMethod, ABIReturn};
 use algokit_transact::Address;
+use snafu::Snafu;
 
 use std::{str::FromStr, sync::Arc};
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, Snafu)]
 pub enum TransactionSenderError {
-    #[error("Algod client error: {0}")]
-    AlgodClientError(#[from] AlgodApiError),
-    #[error("Composer error: {0}")]
-    ComposerError(#[from] ComposerError),
-    #[error("Asset manager error: {0}")]
-    AssetManagerError(#[from] AssetManagerError),
-    #[error("App manager error: {0}")]
-    AppManagerError(#[from] AppManagerError),
-    #[error("Transaction result error: {0}")]
-    TransactionResultError(#[from] TransactionResultError),
-    #[error("Invalid parameters: {0}")]
-    InvalidParameters(String),
-    #[error("Transaction validation error: {0}")]
-    ValidationError(String),
+    #[snafu(display("Algod client error: {source}"))]
+    AlgodClientError { source: AlgodApiError },
+    #[snafu(display("Composer error: {source}"))]
+    ComposerError { source: ComposerError },
+    #[snafu(display("Asset manager error: {source}"))]
+    AssetManagerError { source: AssetManagerError },
+    #[snafu(display("App manager error: {source}"))]
+    AppManagerError { source: AppManagerError },
+    #[snafu(display("Transaction result error: {source}"))]
+    TransactionResultError { source: TransactionResultError },
+    #[snafu(display("Invalid parameters: {message}"))]
+    InvalidParameters { message: String },
+    #[snafu(display("Transaction validation error: {message}"))]
+    ValidationError { message: String },
+}
+
+impl From<AlgodApiError> for TransactionSenderError {
+    fn from(e: AlgodApiError) -> Self {
+        Self::AlgodClientError { source: e }
+    }
+}
+
+impl From<ComposerError> for TransactionSenderError {
+    fn from(e: ComposerError) -> Self {
+        Self::ComposerError { source: e }
+    }
+}
+
+impl From<AssetManagerError> for TransactionSenderError {
+    fn from(e: AssetManagerError) -> Self {
+        Self::AssetManagerError { source: e }
+    }
+}
+
+impl From<AppManagerError> for TransactionSenderError {
+    fn from(e: AppManagerError) -> Self {
+        Self::AppManagerError { source: e }
+    }
+}
+
+impl From<TransactionResultError> for TransactionSenderError {
+    fn from(e: TransactionResultError) -> Self {
+        Self::TransactionResultError { source: e }
+    }
 }
 
 /// Sends transactions and groups with validation and result processing.
@@ -182,7 +213,9 @@ impl TransactionSender {
             let returns: Result<Vec<_>, _> = composer_results
                 .abi_returns
                 .into_iter()
-                .map(|result| result.map_err(TransactionSenderError::ComposerError))
+                .map(|result| {
+                    result.map_err(|e| TransactionSenderError::ComposerError { source: e })
+                })
                 .collect();
             match returns {
                 Ok(returns) => {
@@ -341,9 +374,9 @@ impl TransactionSender {
     ) -> Result<SendTransactionResult, TransactionSenderError> {
         // Enhanced parameter validation
         if params.asset_id == 0 {
-            return Err(TransactionSenderError::InvalidParameters(
-                "Asset ID must be greater than 0".to_string(),
-            ));
+            return Err(TransactionSenderError::InvalidParameters {
+                message: "Asset ID must be greater than 0".to_string(),
+            });
         }
         // Note: amount can be 0 for opt-in transactions, so we don't validate it here
 
@@ -374,18 +407,17 @@ impl TransactionSender {
                 .asset_manager
                 .get_by_id(params.asset_id)
                 .await
-                .map_err(|e| {
-                    TransactionSenderError::ValidationError(format!(
-                        "Failed to get asset {} information: {}",
-                        params.asset_id, e
-                    ))
+                .map_err(|e| TransactionSenderError::ValidationError {
+                    message: format!("Failed to get asset {} information: {}", params.asset_id, e),
                 })?;
 
             let creator = Address::from_str(&asset_info.creator).map_err(|e| {
-                TransactionSenderError::ValidationError(format!(
-                    "Invalid creator address for asset {}: {}",
-                    params.asset_id, e
-                ))
+                TransactionSenderError::ValidationError {
+                    message: format!(
+                        "Invalid creator address for asset {}: {}",
+                        params.asset_id, e
+                    ),
+                }
             })?;
 
             AssetOptOutParams {
@@ -402,11 +434,11 @@ impl TransactionSender {
                 .asset_manager
                 .get_account_information(&params.common_params.sender, params.asset_id)
                 .await
-                .map_err(|e| {
-                    TransactionSenderError::ValidationError(format!(
+                .map_err(|e| TransactionSenderError::ValidationError {
+                    message: format!(
                         "Account {} validation failed for Asset {}: {}",
                         params.common_params.sender, params.asset_id, e
-                    ))
+                    ),
                 })?;
 
             let balance = account_info
@@ -415,10 +447,12 @@ impl TransactionSender {
                 .map(|h| h.amount)
                 .unwrap_or(0);
             if balance != 0 {
-                return Err(TransactionSenderError::ValidationError(format!(
-                    "Account {} does not have a zero balance for Asset {}; can't opt-out.",
-                    params.common_params.sender, params.asset_id
-                )));
+                return Err(TransactionSenderError::ValidationError {
+                    message: format!(
+                        "Account {} does not have a zero balance for Asset {}; can't opt-out.",
+                        params.common_params.sender, params.asset_id
+                    ),
+                });
             }
         }
 
@@ -437,7 +471,7 @@ impl TransactionSender {
             |composer| composer.add_asset_create(params),
             |base_result| {
                 SendAssetCreateResult::new(base_result)
-                    .map_err(TransactionSenderError::TransactionResultError)
+                    .map_err(|e| TransactionSenderError::TransactionResultError { source: e })
             },
         )
         .await
@@ -513,7 +547,7 @@ impl TransactionSender {
                 let clear_bytes = compiled_clear.map(|ct| ct.compiled_base64_to_bytes);
 
                 SendAppCreateResult::new(base_result, None, approval_bytes, clear_bytes)
-                    .map_err(TransactionSenderError::TransactionResultError)
+                    .map_err(|e| TransactionSenderError::TransactionResultError { source: e })
             },
         )
         .await
@@ -598,7 +632,7 @@ impl TransactionSender {
                 let clear_bytes = compiled_clear.map(|ct| ct.compiled_base64_to_bytes);
 
                 SendAppCreateResult::new(base_result, abi_return, approval_bytes, clear_bytes)
-                    .map_err(TransactionSenderError::TransactionResultError)
+                    .map_err(|e| TransactionSenderError::TransactionResultError { source: e })
             },
         )
         .await

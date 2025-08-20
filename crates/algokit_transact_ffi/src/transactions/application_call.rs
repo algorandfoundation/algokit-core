@@ -101,9 +101,9 @@ impl TryFrom<Transaction> for algokit_transact::ApplicationCallTransactionFields
     fn try_from(tx: Transaction) -> Result<Self, Self::Error> {
         if tx.transaction_type != TransactionType::ApplicationCall || tx.application_call.is_none()
         {
-            return Err(Self::Error::DecodingError(
-                "Application call data missing".to_string(),
-            ));
+            return Err(Self::Error::DecodingError {
+                message: "Application call data missing".to_string(),
+            });
         }
 
         let data = tx.clone().application_call.unwrap();
@@ -137,12 +137,11 @@ impl TryFrom<Transaction> for algokit_transact::ApplicationCallTransactionFields
                 .map(|boxes| boxes.into_iter().map(Into::into).collect()),
         };
 
-        transaction_fields.validate().map_err(|errors| {
-            AlgoKitTransactError::DecodingError(format!(
-                "Application call validation failed: {}",
-                errors.join("\n")
-            ))
-        })?;
+        transaction_fields
+            .validate()
+            .map_err(|errors| AlgoKitTransactError::DecodingError {
+                message: format!("Application call validation failed: {}", errors.join("\n")),
+            })?;
 
         Ok(transaction_fields)
     }

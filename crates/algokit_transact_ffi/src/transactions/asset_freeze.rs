@@ -34,9 +34,9 @@ impl TryFrom<Transaction> for algokit_transact::AssetFreezeTransactionFields {
 
     fn try_from(tx: Transaction) -> Result<Self, Self::Error> {
         if tx.transaction_type != TransactionType::AssetFreeze || tx.asset_freeze.is_none() {
-            return Err(Self::Error::DecodingError(
-                "Asset Freeze data missing".to_string(),
-            ));
+            return Err(Self::Error::DecodingError {
+                message: "Asset Freeze data missing".to_string(),
+            });
         }
 
         let data = tx.clone().asset_freeze.unwrap();

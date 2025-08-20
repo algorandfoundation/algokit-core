@@ -49,7 +49,7 @@ async fn test_get_asset_by_id_nonexistent() -> Result<(), Box<dyn std::error::Er
     assert!(result.is_err());
     assert!(matches!(
         result.unwrap_err(),
-        AssetManagerError::AlgodClientError(_)
+        AssetManagerError::AlgodClientError { source: _ }
     ));
 
     Ok(())
@@ -104,7 +104,7 @@ async fn test_get_account_information_not_opted_in()
     assert!(result.is_err());
     assert!(matches!(
         result.unwrap_err(),
-        AssetManagerError::AlgodClientError(_)
+        AssetManagerError::AlgodClientError { source: _ }
     ));
 
     Ok(())

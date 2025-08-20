@@ -50,7 +50,7 @@ dependencies = [
  "serde_json",
  "serde_repr",
  "serde_with",
- "thiserror 1.0.69",
+ "snafu",
  "tokio",
  "tokio-test",
  "url",
@@ -72,7 +72,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
- "thiserror 2.0.12",
+ "snafu",
 ]
 
 [[package]]
@@ -84,7 +84,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde-wasm-bindgen",
- "thiserror 2.0.12",
+ "snafu",
  "tsify-next",
  "uniffi",
  "wasm-bindgen",
@@ -115,7 +115,7 @@ dependencies = [
  "serde_repr",
  "serde_with",
  "sha2",
- "thiserror 2.0.12",
+ "snafu",
 ]
 
 [[package]]
@@ -131,7 +131,7 @@ dependencies = [
  "serde",
  "serde_bytes",
  "serde_json",
- "thiserror 2.0.12",
+ "snafu",
  "tsify-next",
  "uniffi",
  "wasm-bindgen",
@@ -167,7 +167,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
- "thiserror 2.0.12",
+ "snafu",
  "tokio",
  "tokio-test",
 ]
@@ -2065,7 +2065,7 @@ dependencies = [
  "serde_json",
  "serde_repr",
  "serde_with",
- "thiserror 1.0.69",
+ "snafu",
  "tokio",
  "tokio-test",
  "url",
@@ -3594,6 +3594,27 @@ name = "smawk"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b7c388c1b5e93756d0c740965c41e8822f866621d41acbdf6336a6a168f8840c"
+
+[[package]]
+name = "snafu"
+version = "0.8.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "320b01e011bf8d5d7a4a4a4be966d9160968935849c83b918827f6a435e7f627"
+dependencies = [
+ "snafu-derive",
+]
+
+[[package]]
+name = "snafu-derive"
+version = "0.8.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1961e2ef424c1424204d3a5d6975f934f56b6d50ff5732382d84ebf460e147f7"
+dependencies = [
+ "heck",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
 
 [[package]]
 name = "socket2"

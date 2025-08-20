@@ -25,10 +25,12 @@ impl BitSize {
     /// A new [`BitSize`] if valid, or an [`ABIError`] if invalid.
     pub fn new(bits: u16) -> Result<Self, ABIError> {
         if bits < BITS_PER_BYTE as u16 || bits > MAX_BIT_SIZE || bits % BITS_PER_BYTE as u16 != 0 {
-            return Err(ABIError::ValidationError(format!(
-                "Bit size must be between {} and {} and divisible by {}, got {}",
-                BITS_PER_BYTE, MAX_BIT_SIZE, BITS_PER_BYTE, bits
-            )));
+            return Err(ABIError::ValidationError {
+                message: format!(
+                    "Bit size must be between {} and {} and divisible by {}, got {}",
+                    BITS_PER_BYTE, MAX_BIT_SIZE, BITS_PER_BYTE, bits
+                ),
+            });
         }
         Ok(BitSize(bits))
     }
@@ -56,10 +58,12 @@ impl Precision {
     /// A new [`Precision`] if valid, or an [`ABIError`] if invalid.
     pub fn new(precision: u8) -> Result<Self, ABIError> {
         if precision > MAX_PRECISION {
-            return Err(ABIError::ValidationError(format!(
-                "Precision must be between 0 and {}, got {}",
-                MAX_PRECISION, precision
-            )));
+            return Err(ABIError::ValidationError {
+                message: format!(
+                    "Precision must be between 0 and {}, got {}",
+                    MAX_PRECISION, precision
+                ),
+            });
         }
         Ok(Precision(precision))
     }
@@ -186,14 +190,12 @@ impl ABIType {
                 }
                 Ok(size)
             }
-            ABIType::String => Err(ABIError::DecodingError(format!(
-                "Failed to get size, {} is a dynamic type",
-                abi_type
-            ))),
-            ABIType::DynamicArray(_) => Err(ABIError::DecodingError(format!(
-                "Failed to get size, {} is a dynamic type",
-                abi_type
-            ))),
+            ABIType::String => Err(ABIError::DecodingError {
+                message: format!("Failed to get size, {} is a dynamic type", abi_type),
+            }),
+            ABIType::DynamicArray(_) => Err(ABIError::DecodingError {
+                message: format!("Failed to get size, {} is a dynamic type", abi_type),
+            }),
         }
     }
 }
@@ -240,33 +242,36 @@ impl FromStr for ABIType {
                 let element_type_str = &captures[1];
                 let length_str = &captures[2];
 
-                let length = length_str.parse::<usize>().map_err(|_| {
-                    ABIError::ValidationError(format!("Invalid array length: {}", length_str))
-                })?;
+                let length =
+                    length_str
+                        .parse::<usize>()
+                        .map_err(|_| ABIError::ValidationError {
+                            message: format!("Invalid array length: {}", length_str),
+                        })?;
 
                 let element_type = ABIType::from_str(element_type_str)?;
                 return Ok(ABIType::StaticArray(Box::new(element_type), length));
             } else {
-                return Err(ABIError::ValidationError(format!(
-                    "Malformed static array string: {}",
-                    s
-                )));
+                return Err(ABIError::ValidationError {
+                    message: format!("Malformed static array string: {}", s),
+                });
             }
         }
 
         // Uint type
         if let Some(size_str) = s.strip_prefix("uint") {
             if size_str.chars().all(|c| c.is_ascii_digit()) {
-                let size = size_str.parse::<u16>().map_err(|_| {
-                    ABIError::ValidationError(format!("Invalid uint size: {}", size_str))
-                })?;
+                let size = size_str
+                    .parse::<u16>()
+                    .map_err(|_| ABIError::ValidationError {
+                        message: format!("Invalid uint size: {}", size_str),
+                    })?;
                 let bit_size = BitSize::new(size)?;
                 return Ok(ABIType::Uint(bit_size));
             } else {
-                return Err(ABIError::ValidationError(format!(
-                    "Malformed uint string: {}",
-                    size_str
-                )));
+                return Err(ABIError::ValidationError {
+                    message: format!("Malformed uint string: {}", size_str),
+                });
             }
         }
 
@@ -277,24 +282,25 @@ impl FromStr for ABIType {
                 let size_str = &captures[1];
                 let precision_str = &captures[2];
 
-                let size = size_str.parse::<u16>().map_err(|_| {
-                    ABIError::ValidationError(format!("Invalid ufixed size: {}", size_str))
-                })?;
-                let precision = precision_str.parse::<u8>().map_err(|_| {
-                    ABIError::ValidationError(format!(
-                        "Invalid ufixed precision: {}",
-                        precision_str
-                    ))
-                })?;
+                let size = size_str
+                    .parse::<u16>()
+                    .map_err(|_| ABIError::ValidationError {
+                        message: format!("Invalid ufixed size: {}", size_str),
+                    })?;
+                let precision =
+                    precision_str
+                        .parse::<u8>()
+                        .map_err(|_| ABIError::ValidationError {
+                            message: format!("Invalid ufixed precision: {}", precision_str),
+                        })?;
 
                 let bit_size = BitSize::new(size)?;
                 let precision = Precision::new(precision)?;
                 return Ok(ABIType::UFixed(bit_size, precision));
             } else {
-                return Err(ABIError::ValidationError(format!(
-                    "Malformed ufixed type: {}",
-                    s
-                )));
+                return Err(ABIError::ValidationError {
+                    message: format!("Malformed ufixed type: {}", s),
+                });
             }
         }
 
@@ -315,10 +321,9 @@ impl FromStr for ABIType {
             "bool" => Ok(ABIType::Bool),
             "address" => Ok(ABIType::Address),
             "string" => Ok(ABIType::String),
-            _ => Err(ABIError::ValidationError(format!(
-                "Cannot convert string '{}' to an ABI type",
-                s
-            ))),
+            _ => Err(ABIError::ValidationError {
+                message: format!("Cannot convert string '{}' to an ABI type", s),
+            }),
         }
     }
 }
@@ -329,19 +334,19 @@ pub(crate) fn parse_tuple_content(content: &str) -> Result<Vec<String>, ABIError
     }
 
     if content.starts_with(",") {
-        return Err(ABIError::ValidationError(
-            "Tuple name should not start with comma".to_string(),
-        ));
+        return Err(ABIError::ValidationError {
+            message: "Tuple name should not start with comma".to_string(),
+        });
     }
     if content.ends_with(",") {
-        return Err(ABIError::ValidationError(
-            "Tuple name should not start with comma".to_string(),
-        ));
+        return Err(ABIError::ValidationError {
+            message: "Tuple name should not start with comma".to_string(),
+        });
     }
     if content.contains(",,") {
-        return Err(ABIError::ValidationError(
-            "tuple string should not have consecutive commas".to_string(),
-        ));
+        return Err(ABIError::ValidationError {
+            message: "tuple string should not have consecutive commas".to_string(),
+        });
     }
 
     let mut tuple_strings: Vec<String> = Vec::new();
@@ -365,9 +370,9 @@ pub(crate) fn parse_tuple_content(content: &str) -> Result<Vec<String>, ABIError
         tuple_strings.push(word);
     }
     if depth != 0 {
-        return Err(ABIError::ValidationError(
-            "Tuple string has mismatched parentheses".to_string(),
-        ));
+        return Err(ABIError::ValidationError {
+            message: "Tuple string has mismatched parentheses".to_string(),
+        });
     }
 
     Ok(tuple_strings)

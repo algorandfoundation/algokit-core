@@ -115,10 +115,12 @@ impl Transaction {
 
         if let Some(max_fee) = request.max_fee {
             if calculated_fee > max_fee {
-                return Err(AlgoKitTransactError::InputError(format!(
-                    "Transaction fee {} µALGO is greater than max fee {} µALGO",
-                    calculated_fee, max_fee
-                )));
+                return Err(AlgoKitTransactError::InputError {
+                    message: format!(
+                        "Transaction fee {} µALGO is greater than max fee {} µALGO",
+                        calculated_fee, max_fee
+                    ),
+                });
             }
         }
 
@@ -205,10 +207,12 @@ impl AlgorandMsgpack for SignedTransaction {
 
                 Ok(stxn)
             }
-            _ => Err(AlgoKitTransactError::InputError(format!(
-                "expected signed transaction to be a map, but got a: {:#?}",
-                value.type_id()
-            ))),
+            _ => Err(AlgoKitTransactError::InputError {
+                message: format!(
+                    "expected signed transaction to be a map, but got a: {:#?}",
+                    value.type_id()
+                ),
+            }),
         }
     }
 }
@@ -235,16 +239,18 @@ impl Transactions for &[Transaction] {
     /// A result containing the transactions with group assign or an error if grouping fails.
     fn assign_group(self) -> Result<Vec<Transaction>, AlgoKitTransactError> {
         if self.len() > MAX_TX_GROUP_SIZE {
-            return Err(AlgoKitTransactError::InputError(format!(
-                "Transaction group size exceeds the max limit of {}",
-                MAX_TX_GROUP_SIZE
-            )));
+            return Err(AlgoKitTransactError::InputError {
+                message: format!(
+                    "Transaction group size exceeds the max limit of {}",
+                    MAX_TX_GROUP_SIZE
+                ),
+            });
         }
 
         if self.is_empty() {
-            return Err(AlgoKitTransactError::InputError(String::from(
-                "Transaction group size cannot be 0",
-            )));
+            return Err(AlgoKitTransactError::InputError {
+                message: String::from("Transaction group size cannot be 0"),
+            });
         }
 
         let group_id = compute_group_id(self)?;

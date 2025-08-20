@@ -48,9 +48,9 @@ impl TransactionCreator {
         built_transactions
             .last()
             .map(|tx_with_signer| tx_with_signer.transaction.clone())
-            .ok_or(ComposerError::StateError(
-                "No transactions were built by the composer".to_string(),
-            ))
+            .ok_or(ComposerError::StateError {
+                message: "No transactions were built by the composer".to_string(),
+            })
     }
 
     pub async fn payment(&self, params: PaymentParams) -> Result<Transaction, ComposerError> {
@@ -72,9 +72,9 @@ impl TransactionCreator {
     ) -> Result<Transaction, ComposerError> {
         // Enhanced parameter validation
         if params.asset_id == 0 {
-            return Err(ComposerError::TransactionError(
-                "Asset ID must be greater than 0".to_string(),
-            ));
+            return Err(ComposerError::TransactionError {
+                message: "Asset ID must be greater than 0".to_string(),
+            });
         }
         // Note: amount can be 0 for opt-in transactions, so we don't validate it here
 

@@ -10,9 +10,9 @@ impl ABIType {
                 let bool_value = match value {
                     ABIValue::Bool(b) => b,
                     _ => {
-                        return Err(ABIError::EncodingError(
-                            "ABI value mismatch, expected boolean".to_string(),
-                        ));
+                        return Err(ABIError::EncodingError {
+                            message: "ABI value mismatch, expected boolean".to_string(),
+                        });
                     }
                 };
 
@@ -21,9 +21,9 @@ impl ABIType {
                     false => Ok(vec![BOOL_FALSE_BYTE]), // false -> 0
                 }
             }
-            _ => Err(ABIError::EncodingError(
-                "ABI type mismatch, expected bool".to_string(),
-            )),
+            _ => Err(ABIError::EncodingError {
+                message: "ABI type mismatch, expected bool".to_string(),
+            }),
         }
     }
 
@@ -31,22 +31,22 @@ impl ABIType {
         match self {
             ABIType::Bool => {
                 if bytes.len() != 1 {
-                    return Err(ABIError::DecodingError(
-                        "Bool string must be 1 byte long".to_string(),
-                    ));
+                    return Err(ABIError::DecodingError {
+                        message: "Bool string must be 1 byte long".to_string(),
+                    });
                 }
 
                 match bytes[0] {
                     BOOL_TRUE_BYTE => Ok(ABIValue::Bool(true)),
                     BOOL_FALSE_BYTE => Ok(ABIValue::Bool(false)),
-                    _ => Err(ABIError::DecodingError(
-                        "Boolean could not be decoded from the byte string".to_string(),
-                    )),
+                    _ => Err(ABIError::DecodingError {
+                        message: "Boolean could not be decoded from the byte string".to_string(),
+                    }),
                 }
             }
-            _ => Err(ABIError::DecodingError(
-                "ABI type mismatch, expected bool".to_string(),
-            )),
+            _ => Err(ABIError::DecodingError {
+                message: "ABI type mismatch, expected bool".to_string(),
+            }),
         }
     }
 }

@@ -1,17 +1,17 @@
-use thiserror::Error;
+use snafu::Snafu;
 
 /// Represents an error that can occur during ABI operations.
-#[derive(Debug, Error)]
+#[derive(Debug, Snafu)]
 pub enum ABIError {
     /// An error that occurs during ABI type validation.
-    #[error("ABI validation failed: {0}")]
-    ValidationError(String),
+    #[snafu(display("ABI validation failed: {message}"))]
+    ValidationError { message: String },
 
     /// An error that occurs during ABI encoding.
-    #[error("ABI encoding failed: {0}")]
-    EncodingError(String),
+    #[snafu(display("ABI encoding failed: {message}"))]
+    EncodingError { message: String },
 
     /// An error that occurs during ABI decoding.
-    #[error("ABI decoding failed: {0}")]
-    DecodingError(String),
+    #[snafu(display("ABI decoding failed: {message}"))]
+    DecodingError { message: String },
 }

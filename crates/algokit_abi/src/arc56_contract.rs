@@ -144,9 +144,12 @@ impl Source {
     }
 
     fn decode_source(&self, b64_text: &str) -> Result<String, ABIError> {
-        let decoded = general_purpose::STANDARD
-            .decode(b64_text)
-            .map_err(|e| ABIError::ValidationError(format!("Failed to decode base64: {}", e)))?;
+        let decoded =
+            general_purpose::STANDARD
+                .decode(b64_text)
+                .map_err(|e| ABIError::ValidationError {
+                    message: format!("Failed to decode base64: {}", e),
+                })?;
         Ok(String::from_utf8_lossy(&decoded).to_string())
     }
 }
@@ -514,8 +517,9 @@ pub struct Arc56Contract {
 impl Arc56Contract {
     /// Create Arc56Contract from JSON string
     pub fn from_json(json_str: &str) -> Result<Self, ABIError> {
-        serde_json::from_str(json_str)
-            .map_err(|e| ABIError::ValidationError(format!("Failed to parse ARC-56 JSON: {}", e)))
+        serde_json::from_str(json_str).map_err(|e| ABIError::ValidationError {
+            message: format!("Failed to parse ARC-56 JSON: {}", e),
+        })
     }
 
     /// Convert Arc56Contract to JSON string with optional indentation
@@ -526,17 +530,14 @@ impl Arc56Contract {
         match indent {
             None => {
                 // Compact JSON
-                serde_json::to_string(self).map_err(|e| {
-                    ABIError::EncodingError(format!("Failed to serialize ARC-56 to JSON: {}", e))
+                serde_json::to_string(self).map_err(|e| ABIError::EncodingError {
+                    message: format!("Failed to serialize ARC-56 to JSON: {}", e),
                 })
             }
             Some(0) => {
                 // Pretty JSON with default formatting
-                serde_json::to_string_pretty(self).map_err(|e| {
-                    ABIError::EncodingError(format!(
-                        "Failed to serialize ARC-56 to pretty JSON: {}",
-                        e
-                    ))
+                serde_json::to_string_pretty(self).map_err(|e| ABIError::EncodingError {
+                    message: format!("Failed to serialize ARC-56 to pretty JSON: {}", e),
                 })
             }
             Some(indent_size) => {
@@ -545,17 +546,12 @@ impl Arc56Contract {
                 let formatter = serde_json::ser::PrettyFormatter::with_indent(&indent_bytes);
                 let mut buf = Vec::new();
                 let mut ser = serde_json::Serializer::with_formatter(&mut buf, formatter);
-                self.serialize(&mut ser).map_err(|e| {
-                    ABIError::EncodingError(format!(
-                        "Failed to serialize ARC-56 with indent: {}",
-                        e
-                    ))
-                })?;
-                String::from_utf8(buf).map_err(|e| {
-                    ABIError::EncodingError(format!(
-                        "Failed to convert serialized JSON to string: {}",
-                        e
-                    ))
+                self.serialize(&mut ser)
+                    .map_err(|e| ABIError::EncodingError {
+                        message: format!("Failed to serialize ARC-56 with indent: {}", e),
+                    })?;
+                String::from_utf8(buf).map_err(|e| ABIError::EncodingError {
+                    message: format!("Failed to convert serialized JSON to string: {}", e),
                 })
             }
         }
@@ -572,23 +568,27 @@ impl Arc56Contract {
                 .collect();
 
             if methods.is_empty() {
-                return Err(ABIError::ValidationError(format!(
-                    "Unable to find method {} in {} app",
-                    method_name_or_signature, self.name
-                )));
+                return Err(ABIError::ValidationError {
+                    message: format!(
+                        "Unable to find method {} in {} app",
+                        method_name_or_signature, self.name
+                    ),
+                });
             }
 
             if methods.len() > 1 {
                 let signatures: Result<Vec<String>, ABIError> =
                     methods.iter().map(|m| m.get_signature()).collect();
                 let signatures = signatures?;
-                return Err(ABIError::ValidationError(format!(
-                    "Received a call to method {} in contract {}, but this resolved to multiple methods; \
+                return Err(ABIError::ValidationError {
+                    message: format!(
+                        "Received a call to method {} in contract {}, but this resolved to multiple methods; \
                      please pass in an ABI signature instead: {}",
-                    method_name_or_signature,
-                    self.name,
-                    signatures.join(", ")
-                )));
+                        method_name_or_signature,
+                        self.name,
+                        signatures.join(", ")
+                    ),
+                });
             }
 
             Ok(methods[0])
@@ -600,11 +600,11 @@ impl Arc56Contract {
                     m.get_signature()
                         .is_ok_and(|sig| sig == method_name_or_signature)
                 })
-                .ok_or_else(|| {
-                    ABIError::ValidationError(format!(
+                .ok_or_else(|| ABIError::ValidationError {
+                    message: format!(
                         "Unable to find method {} in {} app",
                         method_name_or_signature, self.name
-                    ))
+                    ),
                 })
         }
     }

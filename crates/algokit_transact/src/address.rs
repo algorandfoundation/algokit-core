@@ -64,15 +64,13 @@ impl FromStr for Address {
     /// or if the checksum does not match.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.len() != ALGORAND_ADDRESS_LENGTH {
-            return Err(AlgoKitTransactError::InvalidAddress(
-                "Algorand address must be exactly 58 characters".into(),
-            ));
+            return Err(AlgoKitTransactError::InvalidAddress {
+                message: "Algorand address must be exactly 58 characters".into(),
+            });
         }
         let decoded_address = base32::decode(base32::Alphabet::Rfc4648 { padding: false }, s)
-            .ok_or_else(|| {
-                AlgoKitTransactError::InvalidAddress(
-                    "Invalid base32 encoding for Algorand address".into(),
-                )
+            .ok_or_else(|| AlgoKitTransactError::InvalidAddress {
+                message: "Invalid base32 encoding for Algorand address".into(),
             })?;
 
         // Although this is called public key (and it actually is when the account is a `KeyPairAccount`),
@@ -81,24 +79,20 @@ impl FromStr for Address {
         let pub_key: [u8; ALGORAND_PUBLIC_KEY_BYTE_LENGTH] = decoded_address
             [..ALGORAND_PUBLIC_KEY_BYTE_LENGTH]
             .try_into()
-            .map_err(|_| {
-                AlgoKitTransactError::InvalidAddress(
-                    "Could not decode address into 32-byte public key".to_string(),
-                )
+            .map_err(|_| AlgoKitTransactError::InvalidAddress {
+                message: "Could not decode address into 32-byte public key".to_string(),
             })?;
         let checksum: [u8; ALGORAND_CHECKSUM_BYTE_LENGTH] = decoded_address
             [ALGORAND_PUBLIC_KEY_BYTE_LENGTH..]
             .try_into()
-            .map_err(|_| {
-                AlgoKitTransactError::InvalidAddress(
-                    "Could not get 4-byte checksum from decoded address".to_string(),
-                )
+            .map_err(|_| AlgoKitTransactError::InvalidAddress {
+                message: "Could not get 4-byte checksum from decoded address".to_string(),
             })?;
 
         if pub_key_to_checksum(&pub_key) != checksum {
-            return Err(AlgoKitTransactError::InvalidAddress(
-                "Checksum is invalid".to_string(),
-            ));
+            return Err(AlgoKitTransactError::InvalidAddress {
+                message: "Checksum is invalid".to_string(),
+            });
         }
         Ok(Address(pub_key))
     }

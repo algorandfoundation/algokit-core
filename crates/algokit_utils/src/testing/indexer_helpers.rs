@@ -1,4 +1,5 @@
 use indexer_client::{IndexerClient, apis::Error as IndexerError};
+use snafu::Snafu;
 use std::future::Future;
 use std::time::Duration;
 use tokio::time::sleep;
@@ -22,13 +23,13 @@ impl Default for IndexerWaitConfig {
 }
 
 /// Error types for indexer wait operations
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, Snafu)]
 pub enum IndexerWaitError {
-    #[error("Indexer operation failed after {attempts} attempts: {last_error}")]
+    #[snafu(display("Indexer operation failed after {attempts} attempts: {last_error}"))]
     MaxAttemptsExceeded { attempts: u32, last_error: String },
-    #[error("Indexer client error: {0}")]
-    ClientError(String),
-    #[error("Transaction {tx_id} not found after {attempts} attempts")]
+    #[snafu(display("Indexer client error: {message}"))]
+    ClientError { message: String },
+    #[snafu(display("Transaction {tx_id} not found after {attempts} attempts"))]
     TransactionNotFound { tx_id: String, attempts: u32 },
 }
 
@@ -58,7 +59,9 @@ where
 
                 // If it's not a 404-like error, fail immediately
                 if !is_not_found {
-                    return Err(IndexerWaitError::ClientError(last_error));
+                    return Err(IndexerWaitError::ClientError {
+                        message: last_error,
+                    });
                 }
 
                 // If we've reached max attempts, break out of the loop
@@ -120,7 +123,9 @@ pub async fn wait_for_indexer_transaction(
                     .and_then(|response| {
                         if response.transactions.is_empty() {
                             // Return a string error that will be treated as "not found"
-                            Err(IndexerError::Serde("Transaction not found".to_string()))
+                            Err(IndexerError::Serde {
+                                message: "Transaction not found".to_string(),
+                            })
                         } else {
                             Ok(())
                         }
@@ -193,6 +198,9 @@ mod tests {
     async fn fails_immediately_on_non_retriable_error() {
         let result = wait_for_indexer(|| async { Err::<(), &str>("server error") }, None).await;
 
-        assert!(matches!(result, Err(IndexerWaitError::ClientError(_))));
+        assert!(matches!(
+            result,
+            Err(IndexerWaitError::ClientError { message: _ })
+        ));
     }
 }
