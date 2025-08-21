@@ -57,12 +57,9 @@ async fn test_app_call_transaction() {
     let mut composer = context.composer.clone();
     composer
         .add_app_call(app_call_params)
-        .expect("Failed to add application call");
+        .expect("Failed to add app call");
 
-    let result = composer
-        .send(None)
-        .await
-        .expect("Failed to send application call");
+    let result = composer.send(None).await.expect("Failed to send app call");
     let confirmation = &result.confirmations[0];
 
     assert!(
@@ -77,18 +74,15 @@ async fn test_app_call_transaction() {
     let transaction = &confirmation.txn.transaction;
 
     match transaction {
-        algokit_transact::Transaction::ApplicationCall(application_call_fields) => {
+        algokit_transact::Transaction::AppCall(app_call_fields) => {
+            assert_eq!(app_call_fields.app_id, app_id, "App ID should match");
             assert_eq!(
-                application_call_fields.app_id, app_id,
-                "Application ID should match"
-            );
-            assert_eq!(
-                application_call_fields.on_complete,
+                app_call_fields.on_complete,
                 OnApplicationComplete::NoOp,
                 "On Complete should match"
             );
         }
-        _ => panic!("Transaction should be an application call transaction"),
+        _ => panic!("Transaction should be an app call transaction"),
     }
 }
 
@@ -131,12 +125,12 @@ async fn test_app_create_transaction() {
     let mut composer = context.composer.clone();
     composer
         .add_app_create(app_create_params)
-        .expect("Failed to add application create");
+        .expect("Failed to add app create");
 
     let result = composer
         .send(None)
         .await
-        .expect("Failed to send application create");
+        .expect("Failed to send app create");
     let confirmation = &result.confirmations[0];
 
     assert!(
@@ -151,28 +145,28 @@ async fn test_app_create_transaction() {
     let transaction = &confirmation.txn.transaction;
 
     match transaction {
-        algokit_transact::Transaction::ApplicationCall(application_call_fields) => {
+        algokit_transact::Transaction::AppCall(app_call_fields) => {
             assert_eq!(
-                application_call_fields.app_id, 0,
+                app_call_fields.app_id, 0,
                 "Application ID should be 0 for create"
             );
             assert_eq!(
-                application_call_fields.on_complete,
+                app_call_fields.on_complete,
                 OnApplicationComplete::NoOp,
                 "Clear state program should match"
             );
             assert_eq!(
-                application_call_fields.approval_program,
+                app_call_fields.approval_program,
                 Some(HELLO_WORLD_APPROVAL_PROGRAM.to_vec()),
                 "Approval program should match"
             );
             assert_eq!(
-                application_call_fields.clear_state_program,
+                app_call_fields.clear_state_program,
                 Some(HELLO_WORLD_CLEAR_STATE_PROGRAM.to_vec()),
                 "Clear state program should match"
             );
         }
-        _ => panic!("Transaction should be an application call transaction"),
+        _ => panic!("Transaction should be an app call transaction"),
     }
 }
 
@@ -214,12 +208,12 @@ async fn test_app_delete_transaction() {
     let mut composer = context.composer.clone();
     composer
         .add_app_delete(app_delete_params)
-        .expect("Failed to add application delete");
+        .expect("Failed to add app delete");
 
     let result = composer
         .send(None)
         .await
-        .expect("Failed to send application delete");
+        .expect("Failed to send app delete");
     let confirmation = &result.confirmations[0];
 
     assert!(
@@ -234,18 +228,18 @@ async fn test_app_delete_transaction() {
     let transaction = &confirmation.txn.transaction;
 
     match transaction {
-        algokit_transact::Transaction::ApplicationCall(application_call_fields) => {
+        algokit_transact::Transaction::AppCall(app_call_fields) => {
             assert_eq!(
-                application_call_fields.app_id, app_id,
+                app_call_fields.app_id, app_id,
                 "Application ID should match"
             );
             assert_eq!(
-                application_call_fields.on_complete,
+                app_call_fields.on_complete,
                 OnApplicationComplete::DeleteApplication,
                 "On Complete should be DeleteApplication"
             );
         }
-        _ => panic!("Transaction should be an application delete transaction"),
+        _ => panic!("Transaction should be an app delete transaction"),
     }
 }
 
@@ -289,12 +283,12 @@ async fn test_app_update_transaction() {
     let mut composer = context.composer.clone();
     composer
         .add_app_update(app_update_params)
-        .expect("Failed to add application update");
+        .expect("Failed to add app update");
 
     let result = composer
         .send(None)
         .await
-        .expect("Failed to send application update");
+        .expect("Failed to send app update");
 
     let confirmation = &result.confirmations[0];
 
@@ -309,28 +303,28 @@ async fn test_app_update_transaction() {
     let transaction = &confirmation.txn.transaction;
 
     match transaction {
-        algokit_transact::Transaction::ApplicationCall(application_call_fields) => {
+        algokit_transact::Transaction::AppCall(app_call_fields) => {
             assert_eq!(
-                application_call_fields.app_id, app_id,
+                app_call_fields.app_id, app_id,
                 "Application ID should match"
             );
             assert_eq!(
-                application_call_fields.on_complete,
+                app_call_fields.on_complete,
                 OnApplicationComplete::UpdateApplication,
                 "On Complete should be UpdateApplication"
             );
             assert_eq!(
-                application_call_fields.approval_program,
+                app_call_fields.approval_program,
                 Some(HELLO_WORLD_CLEAR_STATE_PROGRAM.to_vec()),
                 "Updated approval program should match"
             );
             assert_eq!(
-                application_call_fields.clear_state_program,
+                app_call_fields.clear_state_program,
                 Some(HELLO_WORLD_CLEAR_STATE_PROGRAM.to_vec()),
                 "Clear state program should match"
             );
         }
-        _ => panic!("Transaction should be an application update transaction"),
+        _ => panic!("Transaction should be an app update transaction"),
     }
 }
 
@@ -1220,12 +1214,12 @@ async fn create_test_app(context: &AlgorandTestContext, sender: Address) -> Opti
 
     composer
         .add_app_create(app_create_params)
-        .expect("Failed to add application create");
+        .expect("Failed to add app create");
 
     let result = composer
         .send(None)
         .await
-        .expect("Failed to send application create");
+        .expect("Failed to send app create");
 
     result.confirmations[0].app_id
 }
@@ -1235,9 +1229,7 @@ async fn deploy_app(
     sender: Address,
     arc56_contract: Arc56Contract,
 ) -> u64 {
-    let teal_source = arc56_contract
-        .source
-        .expect("No source found in application spec");
+    let teal_source = arc56_contract.source.expect("No source found in app spec");
 
     let approval_bytes = BASE64_STANDARD
         .decode(teal_source.approval)
@@ -1279,12 +1271,12 @@ async fn deploy_app(
     let mut composer = context.composer.clone();
     composer
         .add_app_create(app_create_params)
-        .expect("Failed to add application create");
+        .expect("Failed to add app create");
 
     let result = composer
         .send(None)
         .await
-        .expect("Failed to send application create");
+        .expect("Failed to send app create");
 
     result.confirmations[0].app_id.expect("No app ID returned")
 }
@@ -1461,10 +1453,10 @@ async fn test_more_than_15_args_with_ref_types_app_call_method_call(
                     assert_eq!(
                         *returned_app_id,
                         BigUint::from(app_id),
-                        "Returned application ID should match deployed app"
+                        "Returned app ID should match deployed app"
                     );
                 }
-                _ => panic!("Second element should be application ID"),
+                _ => panic!("Second element should be app ID"),
             }
 
             match &returned_tuple[2] {

@@ -1,6 +1,6 @@
 //! Application transaction module for AlgoKit Core.
 //!
-//! This module provides functionality for creating and managing application transactions,
+//! This module provides functionality for creating and managing app transactions,
 //! which are used to create, update, delete and call Algorand Smart Contracts (Applications).
 
 use crate::traits::{MsgPackEmpty, Validate};
@@ -25,44 +25,44 @@ const FIELD_EXTRA_PROGRAM_PAGES: &str = "Extra program pages";
 const FIELD_APP_ID: &str = "App id";
 const FIELD_ARGS: &str = "Args";
 
-/// On-completion actions for application transactions.
+/// On-completion actions for app transactions.
 ///
 /// These values define what additional actions occur with the transaction.
 #[derive(Serialize_repr, Deserialize_repr, Debug, PartialEq, Clone, Copy)]
 #[repr(u8)]
 #[derive(Default)]
 pub enum OnApplicationComplete {
-    /// NoOp indicates that an application transaction will simply call its
+    /// NoOp indicates that an app transaction will simply call its
     /// approval program without any additional action.
     #[default]
     NoOp = 0,
 
-    /// OptIn indicates that an application transaction will allocate some
-    /// local state for the application in the sender's account.
+    /// OptIn indicates that an app transaction will allocate some
+    /// local state for the app in the sender's account.
     OptIn = 1,
 
-    /// CloseOut indicates that an application transaction will deallocate
-    /// some local state for the application from the user's account.
+    /// CloseOut indicates that an app transaction will deallocate
+    /// some local state for the app from the user's account.
     CloseOut = 2,
 
     /// ClearState is similar to CloseOut, but may never fail. This
-    /// allows users to reclaim their minimum balance from an application
+    /// allows users to reclaim their minimum balance from an app
     /// they no longer wish to opt in to.
     ClearState = 3,
 
-    /// UpdateApplication indicates that an application transaction will
-    /// update the approval program and clear state program for the application.
+    /// UpdateApplication indicates that an app transaction will
+    /// update the approval program and clear state program for the app.
     UpdateApplication = 4,
 
-    /// DeleteApplication indicates that an application transaction will
-    /// delete the application parameters for the application from the creator's
+    /// DeleteApplication indicates that an app transaction will
+    /// delete the app parameters for the app from the creator's
     /// balance record.
     DeleteApplication = 5,
 }
 
-/// Schema for application state storage.
+/// Schema for app state storage.
 ///
-/// Defines the maximum number of values that may be stored in application
+/// Defines the maximum number of values that may be stored in app
 /// key/value storage for both global and local state.
 #[serde_as]
 #[skip_serializing_none]
@@ -87,7 +87,7 @@ impl MsgPackEmpty for StateSchema {
     }
 }
 
-/// Box reference for application call transactions.
+/// Box reference for app call transactions.
 ///
 /// References a specific box that should be made available for the runtime
 /// of the program.
@@ -95,8 +95,8 @@ impl MsgPackEmpty for StateSchema {
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct BoxReference {
-    /// Application ID that owns the box.
-    /// A value of 0 indicates the current application.
+    /// App ID that owns the box.
+    /// A value of 0 indicates the current app.
     #[serde(rename = "i")]
     #[serde(skip_serializing_if = "is_zero")]
     #[serde(default)]
@@ -110,26 +110,26 @@ pub struct BoxReference {
     pub name: Vec<u8>,
 }
 
-/// Represents an application call transaction that interacts with Algorand Smart Contracts.
+/// Represents an app call transaction that interacts with Algorand Smart Contracts.
 ///
-/// Application call transactions are used to create, update, delete, opt-in to,
-/// close out of, or clear state from Algorand applications (smart contracts).
+/// App call transactions are used to create, update, delete, opt-in to,
+/// close out of, or clear state from Algorand apps (smart contracts).
 #[serde_as]
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Builder)]
 #[builder(
-    name = ApplicationCallTransactionBuilder,
+    name = AppCallTransactionBuilder,
     setter(strip_option),
     build_fn(name = "build_fields")
 )]
-pub struct ApplicationCallTransactionFields {
+pub struct AppCallTransactionFields {
     /// Common transaction header fields.
     #[serde(flatten)]
     pub header: TransactionHeader,
 
-    /// ID of the application being called.
+    /// ID of the app being called.
     ///
-    /// Set this to 0 to indicate an application creation call.
+    /// Set this to 0 to indicate an app creation call.
     #[serde(rename = "apid")]
     #[serde(skip_serializing_if = "is_zero")]
     #[serde(default)]
@@ -141,11 +141,11 @@ pub struct ApplicationCallTransactionFields {
     #[serde(default)]
     pub on_complete: OnApplicationComplete,
 
-    /// Logic executed for every application call transaction, except when
+    /// Logic executed for every app call transaction, except when
     /// on-completion is set to "clear".
     ///
     /// Approval programs may reject the transaction.
-    /// Only required for application creation and update transactions.
+    /// Only required for app creation and update transactions.
     #[serde(rename = "apap")]
     #[serde_as(as = "Option<Bytes>")]
     #[serde(skip_serializing_if = "is_empty_vec_opt")]
@@ -153,10 +153,10 @@ pub struct ApplicationCallTransactionFields {
     #[builder(default)]
     pub approval_program: Option<Vec<u8>>,
 
-    /// Logic executed for application call transactions with on-completion set to "clear".
+    /// Logic executed for app call transactions with on-completion set to "clear".
     ///
     /// Clear state programs cannot reject the transaction.
-    /// Only required for application creation and update transactions.
+    /// Only required for app creation and update transactions.
     #[serde(rename = "apsu")]
     #[serde_as(as = "Option<Bytes>")]
     #[serde(skip_serializing_if = "is_empty_vec_opt")]
@@ -166,7 +166,7 @@ pub struct ApplicationCallTransactionFields {
 
     /// Holds the maximum number of global state values.
     ///
-    /// Only required for application creation transactions.
+    /// Only required for app creation transactions.
     /// This cannot be changed after creation.
     #[serde(rename = "apgs")]
     #[serde(skip_serializing_if = "is_empty_struct_opt")]
@@ -176,7 +176,7 @@ pub struct ApplicationCallTransactionFields {
 
     /// Holds the maximum number of local state values.
     ///
-    /// Only required for application creation transactions.
+    /// Only required for app creation transactions.
     /// This cannot be changed after creation.
     #[serde(rename = "apls")]
     #[serde(skip_serializing_if = "is_empty_struct_opt")]
@@ -184,7 +184,7 @@ pub struct ApplicationCallTransactionFields {
     #[builder(default)]
     pub local_state_schema: Option<StateSchema>,
 
-    /// Number of additional pages allocated to the application's approval
+    /// Number of additional pages allocated to the app's approval
     /// and clear state programs.
     ///
     /// Each extra program page is 2048 bytes. The sum of approval program
@@ -197,7 +197,7 @@ pub struct ApplicationCallTransactionFields {
     #[builder(default)]
     pub extra_program_pages: Option<u64>,
 
-    /// Transaction specific arguments available in the application's
+    /// Transaction specific arguments available in the app's
     /// approval program and clear state program.
     #[serde(rename = "apaa")]
     #[serde_as(as = "Option<Vec<Bytes>>")]
@@ -207,22 +207,22 @@ pub struct ApplicationCallTransactionFields {
     pub args: Option<Vec<Vec<u8>>>,
 
     /// List of accounts in addition to the sender that may be accessed
-    /// from the application's approval program and clear state program.
+    /// from the app's approval program and clear state program.
     #[serde(rename = "apat")]
     #[serde(skip_serializing_if = "is_empty_vec_opt")]
     #[serde(default)]
     #[builder(default)]
     pub account_references: Option<Vec<Address>>,
 
-    /// List of applications in addition to the current application that may be called
-    /// from the application's approval program and clear state program.
+    /// List of apps in addition to the current app that may be called
+    /// from the app's approval program and clear state program.
     #[serde(rename = "apfa")]
     #[serde(skip_serializing_if = "is_empty_vec_opt")]
     #[serde(default)]
     #[builder(default)]
     pub app_references: Option<Vec<u64>>,
 
-    /// Lists the assets whose parameters may be accessed by this application's
+    /// Lists the assets whose parameters may be accessed by this app's
     /// approval program and clear state program.
     ///
     /// The access is read-only.
@@ -244,12 +244,12 @@ fn is_default_on_complete(on_complete: &OnApplicationComplete) -> bool {
     matches!(on_complete, OnApplicationComplete::NoOp)
 }
 
-/// Custom serializer for application call transactions.
+/// Custom serializer for app call transactions.
 ///
 /// This serializer handles the special case of box references, where app IDs need to be
-/// transformed from actual application IDs to positional indices for wire format compatibility.
-pub fn application_call_serializer<S>(
-    fields: &ApplicationCallTransactionFields,
+/// transformed from actual app IDs to positional indices for wire format compatibility.
+pub fn app_call_serializer<S>(
+    fields: &AppCallTransactionFields,
     serializer: S,
 ) -> Result<S::Ok, S::Error>
 where
@@ -265,14 +265,14 @@ where
                 .map(|box_ref| {
                     let app_id_index = if box_ref.app_id == 0 || box_ref.app_id == fields.app_id {
                         // A 0 value denotes the current app_id,
-                        // return 0 when the app_id is for the current application.
+                        // return 0 when the app_id is for the current app.
                         0
                     } else {
                         // Find position in app_references and add 1 (1-based indexing)
                         app_references
                             .iter()
                             .position(|&id| id == box_ref.app_id)
-                            .map(|pos| (pos + 1) as u64) // App references start from index 1; index 0 is the current application ID.
+                            .map(|pos| (pos + 1) as u64) // App references start from index 1; index 0 is the current app ID.
                             .ok_or_else(|| {
                                 format!(
                                     "Box reference with app id {} not found in app references.",
@@ -289,7 +289,7 @@ where
                 .collect::<Result<Vec<_>, String>>()
                 .map_err(serde::ser::Error::custom)?;
 
-            let mut fields: ApplicationCallTransactionFields = fields.clone();
+            let mut fields: AppCallTransactionFields = fields.clone();
             fields.box_references = Some(box_references);
 
             return fields.serialize(serializer);
@@ -300,17 +300,15 @@ where
     fields.serialize(serializer)
 }
 
-/// Custom deserializer for application call transactions.
+/// Custom deserializer for app call transactions.
 ///
 /// This deserializer handles the special case of box references, where app IDs need to be
-/// transformed from positional indices back to actual application IDs.
-pub fn application_call_deserializer<'de, D>(
-    deserializer: D,
-) -> Result<ApplicationCallTransactionFields, D::Error>
+/// transformed from positional indices back to actual app IDs.
+pub fn app_call_deserializer<'de, D>(deserializer: D) -> Result<AppCallTransactionFields, D::Error>
 where
     D: serde::Deserializer<'de>,
 {
-    let mut fields = ApplicationCallTransactionFields::deserialize(deserializer)?;
+    let mut fields = AppCallTransactionFields::deserialize(deserializer)?;
 
     // Transform box references if present
     if let Some(ref box_references) = fields.box_references {
@@ -322,7 +320,7 @@ where
                 .map(|box_ref| {
                     let app_id = if box_ref.app_id == 0 {
                         // The current app_id is always serialized as 0,
-                        // return 0 when the app_id is for the current application.
+                        // return 0 when the app_id is for the current app.
                         0
                     } else {
                         // Convert 1-based index back to the actual app ID
@@ -350,7 +348,7 @@ where
     Ok(fields)
 }
 
-impl ApplicationCallTransactionFields {
+impl AppCallTransactionFields {
     /// Validates that the app ID is not zero.
     fn validate_app_id_not_zero(&self, errors: &mut Vec<TransactionValidationError>) {
         if self.app_id == 0 {
@@ -400,7 +398,7 @@ impl ApplicationCallTransactionFields {
         }
     }
 
-    /// Validates fields specific to application creation.
+    /// Validates fields specific to app creation.
     pub fn validate_for_create(&self) -> Result<(), Vec<TransactionValidationError>> {
         let mut errors = Vec::new();
 
@@ -490,7 +488,7 @@ impl ApplicationCallTransactionFields {
         }
     }
 
-    /// Validates fields specific to application update.
+    /// Validates fields specific to app update.
     pub fn validate_for_update(&self) -> Result<(), Vec<TransactionValidationError>> {
         let mut errors = Vec::new();
 
@@ -506,7 +504,7 @@ impl ApplicationCallTransactionFields {
         }
     }
 
-    /// Validates fields for application call (no-op), opt-in, close-out, clear-state operations.
+    /// Validates fields for app call (no-op), opt-in, close-out, clear-state operations.
     pub fn validate_for_call(&self) -> Result<(), Vec<TransactionValidationError>> {
         let mut errors = Vec::new();
 
@@ -521,7 +519,7 @@ impl ApplicationCallTransactionFields {
         }
     }
 
-    /// Validates fields for application deletion.
+    /// Validates fields for app deletion.
     pub fn validate_for_delete(&self) -> Result<(), Vec<TransactionValidationError>> {
         let mut errors = Vec::new();
 
@@ -536,7 +534,7 @@ impl ApplicationCallTransactionFields {
         }
     }
 
-    /// Validates common fields that apply to all application call types.
+    /// Validates common fields that apply to all app call types.
     fn validate_common_fields(&self, errors: &mut Vec<TransactionValidationError>) {
         if let Some(ref args) = self.args {
             // Validate number of args
@@ -573,11 +571,11 @@ impl ApplicationCallTransactionFields {
             }
         }
 
-        // Validate application references
+        // Validate app references
         if let Some(ref app_refs) = self.app_references {
             if app_refs.len() > MAX_APP_REFERENCES {
                 errors.push(TransactionValidationError::FieldTooLong {
-                    field: "Application references".to_string(),
+                    field: "App references".to_string(),
                     actual: app_refs.len(),
                     max: MAX_APP_REFERENCES,
                     unit: "refs".to_string(),
@@ -646,20 +644,20 @@ impl ApplicationCallTransactionFields {
     }
 }
 
-impl ApplicationCallTransactionBuilder {
-    pub fn build(&self) -> Result<Transaction, ApplicationCallTransactionBuilderError> {
+impl AppCallTransactionBuilder {
+    pub fn build(&self) -> Result<Transaction, AppCallTransactionBuilderError> {
         let fields = self.build_fields()?;
         fields.validate().map_err(|errors| {
-            ApplicationCallTransactionBuilderError::ValidationError(format!(
-                "Application call validation failed: {}",
+            AppCallTransactionBuilderError::ValidationError(format!(
+                "App call validation failed: {}",
                 errors.join("\n")
             ))
         })?;
-        Ok(Transaction::ApplicationCall(fields))
+        Ok(Transaction::AppCall(fields))
     }
 }
 
-impl Validate for ApplicationCallTransactionFields {
+impl Validate for AppCallTransactionFields {
     fn validate(&self) -> Result<(), Vec<String>> {
         let result = match (self.app_id, &self.on_complete) {
             // Application creation (app_id = 0)
@@ -671,7 +669,7 @@ impl Validate for ApplicationCallTransactionFields {
             // Application deletion
             (_, OnApplicationComplete::DeleteApplication) => self.validate_for_delete(),
 
-            // Regular application calls (NoOp, OptIn, CloseOut, ClearState)
+            // Regular app calls (NoOp, OptIn, CloseOut, ClearState)
             (_, _) => self.validate_for_call(),
         };
 
@@ -684,105 +682,90 @@ mod tests {
     use super::*;
     use crate::AlgorandMsgpack;
     use crate::test_utils::{
-        AccountMother, ApplicationCallTransactionMother, TestDataMother, TransactionHeaderMother,
+        AccountMother, AppCallTransactionMother, TestDataMother, TransactionHeaderMother,
     };
     use crate::test_utils::{check_transaction_encoding, check_transaction_id};
 
     #[test]
-    fn test_application_create_transaction_encoding() {
-        let application_create_tx = ApplicationCallTransactionMother::application_create()
-            .build()
-            .unwrap();
+    fn test_app_create_transaction_encoding() {
+        let app_create_tx = AppCallTransactionMother::app_create().build().unwrap();
 
         check_transaction_id(
-            &application_create_tx,
+            &app_create_tx,
             "L6B56N2BAXE43PUI7IDBXCJN5DEB6NLCH4AAN3ON64CXPSCTJNTA",
         );
-        check_transaction_encoding(&application_create_tx, 1386);
+        check_transaction_encoding(&app_create_tx, 1386);
     }
 
     #[test]
-    fn test_application_call_encoding() {
-        let application_call_tx = ApplicationCallTransactionMother::application_call()
-            .build()
-            .unwrap();
+    fn test_app_call_encoding() {
+        let app_call_tx = AppCallTransactionMother::app_call().build().unwrap();
 
         check_transaction_id(
-            &application_call_tx,
+            &app_call_tx,
             "6Y644M5SGTKNBH7ZX6D7QAAHDF6YL6FDJPRAGSUHNZLR4IKGVSPQ",
         );
-        check_transaction_encoding(&application_call_tx, 377);
+        check_transaction_encoding(&app_call_tx, 377);
     }
 
     #[test]
-    fn test_application_update_encoding() {
-        let application_update_tx = ApplicationCallTransactionMother::application_update()
-            .build()
-            .unwrap();
+    fn test_app_update_encoding() {
+        let app_update_tx = AppCallTransactionMother::app_update().build().unwrap();
 
         check_transaction_id(
-            &application_update_tx,
+            &app_update_tx,
             "NQVNJ5VWEDX42DMJQIQET4QPNUOW27EYIPKZ4SDWKOOEFJQB7PZA",
         );
-        check_transaction_encoding(&application_update_tx, 7069);
+        check_transaction_encoding(&app_update_tx, 7069);
     }
 
     #[test]
-    fn test_application_delete_transaction_encoding() {
-        let application_delete_tx = ApplicationCallTransactionMother::application_delete()
-            .build()
-            .unwrap();
+    fn test_app_delete_transaction_encoding() {
+        let app_delete_tx = AppCallTransactionMother::app_delete().build().unwrap();
 
         check_transaction_id(
-            &application_delete_tx,
+            &app_delete_tx,
             "XVVC7UDLCPI622KCJZLWK3SEAWWVUEPEXUM5CO3DFLWOBH7NOPDQ",
         );
-        check_transaction_encoding(&application_delete_tx, 263);
+        check_transaction_encoding(&app_delete_tx, 263);
     }
 
     #[test]
-    fn test_application_opt_in_transaction_encoding() {
-        let application_opt_in_tx = ApplicationCallTransactionMother::application_opt_in()
-            .build()
-            .unwrap();
+    fn test_app_opt_in_transaction_encoding() {
+        let app_opt_in_tx = AppCallTransactionMother::app_opt_in().build().unwrap();
 
         check_transaction_id(
-            &application_opt_in_tx,
+            &app_opt_in_tx,
             "BNASGY47TXXUTFUZPDAGGPQKK54B4QPEEPDTJIZFDXC64WQH4GOQ",
         );
-        check_transaction_encoding(&application_opt_in_tx, 247);
+        check_transaction_encoding(&app_opt_in_tx, 247);
     }
 
     #[test]
-    fn test_application_close_out_transaction_encoding() {
-        let application_close_out_tx = ApplicationCallTransactionMother::application_close_out()
-            .build()
-            .unwrap();
+    fn test_app_close_out_transaction_encoding() {
+        let app_close_out_tx = AppCallTransactionMother::app_close_out().build().unwrap();
 
         check_transaction_id(
-            &application_close_out_tx,
+            &app_close_out_tx,
             "R4LXOUN4KPRIILRLIYKMA2DJ4HKCXWCD5TYWGH76635KUHGFNTUQ",
         );
-        check_transaction_encoding(&application_close_out_tx, 131);
+        check_transaction_encoding(&app_close_out_tx, 131);
     }
 
     #[test]
-    fn test_application_clear_state_transaction_encoding() {
-        let application_clear_state_tx =
-            ApplicationCallTransactionMother::application_clear_state()
-                .build()
-                .unwrap();
+    fn test_app_clear_state_transaction_encoding() {
+        let app_clear_state_tx = AppCallTransactionMother::app_clear_state().build().unwrap();
 
         check_transaction_id(
-            &application_clear_state_tx,
+            &app_clear_state_tx,
             "XQE2YKONC62QXSXDIRJ7CL6YDWP45JXCQO6N7DAAFQH7DJM6BEKA",
         );
-        check_transaction_encoding(&application_clear_state_tx, 131);
+        check_transaction_encoding(&app_clear_state_tx, 131);
     }
 
     #[test]
-    fn test_0_box_ref_application_call_transaction_encoding() {
-        let application_call_tx = ApplicationCallTransactionMother::application_call_example()
+    fn test_0_box_ref_app_call_transaction_encoding() {
+        let app_call_tx = AppCallTransactionMother::app_call_example()
             .box_references(vec![BoxReference {
                 app_id: 0,
                 name: "b1".as_bytes().to_vec(),
@@ -791,15 +774,15 @@ mod tests {
             .unwrap();
 
         check_transaction_id(
-            &application_call_tx,
+            &app_call_tx,
             "LXUGSM4264PQ2YSSO3JW535NHGC5JESKLQS6ITONGO2S6ATEWM2A",
         );
-        check_transaction_encoding(&application_call_tx, 138);
+        check_transaction_encoding(&app_call_tx, 138);
     }
 
     #[test]
-    fn test_app_id_box_ref_application_call_transaction_encoding() {
-        let application_call_tx = ApplicationCallTransactionMother::application_call_example()
+    fn test_app_id_box_ref_app_call_transaction_encoding() {
+        let app_call_tx = AppCallTransactionMother::app_call_example()
             .box_references(vec![BoxReference {
                 app_id: 12345,
                 name: "b1".as_bytes().to_vec(),
@@ -808,26 +791,26 @@ mod tests {
             .unwrap();
 
         check_transaction_id(
-            &application_call_tx,
+            &app_call_tx,
             "LXUGSM4264PQ2YSSO3JW535NHGC5JESKLQS6ITONGO2S6ATEWM2A",
         );
 
-        let encoded = application_call_tx.encode().unwrap();
+        let encoded = app_call_tx.encode().unwrap();
         let decoded = Transaction::decode(&encoded).unwrap();
 
-        if let Transaction::ApplicationCall(decoded_app_call) = decoded {
+        if let Transaction::AppCall(decoded_app_call) = decoded {
             assert_eq!(
                 decoded_app_call.box_references.as_ref().unwrap()[0].app_id,
                 0
             );
         } else {
-            panic!("Expected ApplicationCall transaction type");
+            panic!("Expected AppCall transaction type");
         }
     }
 
     #[test]
-    fn test_external_box_refs_application_call_transaction_encoding() {
-        let application_call_tx = ApplicationCallTransactionMother::application_call_example()
+    fn test_external_box_refs_app_call_transaction_encoding() {
+        let app_call_tx = AppCallTransactionMother::app_call_example()
             .app_references(vec![54321, 11111, 55555, 22222])
             .box_references(vec![
                 BoxReference {
@@ -843,33 +826,32 @@ mod tests {
             .unwrap();
 
         check_transaction_id(
-            &application_call_tx,
+            &app_call_tx,
             "GB4AYDJEHVBLOVSLCBOXG3KASTS3V6QV6GPB6F2BILG7L6J3P4OQ",
         );
-        check_transaction_encoding(&application_call_tx, 169);
+        check_transaction_encoding(&app_call_tx, 169);
     }
 
     #[test]
     fn test_box_ref_missing_app_reference_encode() {
-        let application_call_tx_fields =
-            ApplicationCallTransactionMother::application_call_example()
-                .app_references(vec![54321])
-                .box_references(vec![
-                    BoxReference {
-                        app_id: 55555,
-                        name: "b1".as_bytes().to_vec(),
-                    },
-                    BoxReference {
-                        app_id: 54321,
-                        name: "b2".as_bytes().to_vec(),
-                    },
-                ])
-                .build_fields() // Skips the builder validation
-                .unwrap();
+        let app_call_tx_fields = AppCallTransactionMother::app_call_example()
+            .app_references(vec![54321])
+            .box_references(vec![
+                BoxReference {
+                    app_id: 55555,
+                    name: "b1".as_bytes().to_vec(),
+                },
+                BoxReference {
+                    app_id: 54321,
+                    name: "b2".as_bytes().to_vec(),
+                },
+            ])
+            .build_fields() // Skips the builder validation
+            .unwrap();
 
-        let application_call_tx = Transaction::ApplicationCall(application_call_tx_fields);
+        let app_call_tx = Transaction::AppCall(app_call_tx_fields);
 
-        let result = application_call_tx.encode();
+        let result = app_call_tx.encode();
 
         assert!(result.is_err());
         let error_message = result.unwrap_err().to_string();
@@ -906,8 +888,8 @@ mod tests {
     }
 
     #[test]
-    fn test_application_call_empty_value_encoding() {
-        let builder = &ApplicationCallTransactionBuilder::default()
+    fn test_app_call_empty_value_encoding() {
+        let builder = &AppCallTransactionBuilder::default()
             .header(TransactionHeaderMother::example().build().unwrap())
             .app_id(1234)
             .on_complete(OnApplicationComplete::NoOp)
@@ -936,8 +918,8 @@ mod tests {
     }
 
     #[test]
-    fn test_validate_application_create_success() {
-        let app_call = ApplicationCallTransactionMother::application_create()
+    fn test_validate_app_create_success() {
+        let app_call = AppCallTransactionMother::app_create()
             .build_fields()
             .unwrap();
 
@@ -945,8 +927,8 @@ mod tests {
     }
 
     #[test]
-    fn test_validate_application_create_invalid() {
-        let app_call = ApplicationCallTransactionMother::application_create()
+    fn test_validate_app_create_invalid() {
+        let app_call = AppCallTransactionMother::app_create()
             .approval_program(vec![]) // Missing approval program
             .clear_state_program(vec![]) // Missing clear state program
             .extra_program_pages(MAX_EXTRA_PROGRAM_PAGES + 1) // Too many extra pages
@@ -1000,11 +982,11 @@ mod tests {
     }
 
     #[test]
-    fn test_validate_application_create_programs_too_large() {
+    fn test_validate_app_create_programs_too_large() {
         let large_approval_program = vec![0u8; PROGRAM_PAGE_SIZE + 1];
         let large_clear_program = vec![1u8; PROGRAM_PAGE_SIZE + 1];
 
-        let app_call_large_programs = ApplicationCallTransactionMother::application_create()
+        let app_call_large_programs = AppCallTransactionMother::app_create()
             .extra_program_pages(0)
             .approval_program(large_approval_program)
             .clear_state_program(large_clear_program)
@@ -1036,8 +1018,8 @@ mod tests {
     }
 
     #[test]
-    fn test_validate_application_update_success() {
-        let app_call = ApplicationCallTransactionMother::application_update()
+    fn test_validate_app_update_success() {
+        let app_call = AppCallTransactionMother::app_update()
             .build_fields()
             .unwrap();
 
@@ -1045,8 +1027,8 @@ mod tests {
     }
 
     #[test]
-    fn test_validate_application_update_invalid() {
-        let app_call = ApplicationCallTransactionMother::application_update()
+    fn test_validate_app_update_invalid() {
+        let app_call = AppCallTransactionMother::app_update()
             .app_id(0) // Invalid app ID (must not be zero for update)
             .approval_program(vec![]) // Missing approval program
             .clear_state_program(vec![]) // Missing clear state program
@@ -1106,8 +1088,8 @@ mod tests {
     }
 
     #[test]
-    fn test_validate_application_delete_success() {
-        let app_call = ApplicationCallTransactionMother::application_delete()
+    fn test_validate_app_delete_success() {
+        let app_call = AppCallTransactionMother::app_delete()
             .build_fields()
             .unwrap();
 
@@ -1115,8 +1097,8 @@ mod tests {
     }
 
     #[test]
-    fn test_validate_application_delete_invalid() {
-        let app_call = ApplicationCallTransactionMother::application_delete()
+    fn test_validate_app_delete_invalid() {
+        let app_call = AppCallTransactionMother::app_delete()
             .app_id(0) // Invalid app ID (must not be zero for delete)
             .global_state_schema(StateSchema {
                 num_uints: 2,
@@ -1166,8 +1148,8 @@ mod tests {
     }
 
     #[test]
-    fn test_validate_application_call_success() {
-        let app_call = ApplicationCallTransactionMother::application_call_example()
+    fn test_validate_app_call_success() {
+        let app_call = AppCallTransactionMother::app_call_example()
             .build_fields()
             .unwrap();
 
@@ -1175,8 +1157,8 @@ mod tests {
     }
 
     #[test]
-    fn test_validate_application_call_invalid() {
-        let app_call = ApplicationCallTransactionMother::application_call_example()
+    fn test_validate_app_call_invalid() {
+        let app_call = AppCallTransactionMother::app_call_example()
             .app_id(0) // Invalid app ID (must not be zero for delete)
             .global_state_schema(StateSchema {
                 num_uints: 2,
@@ -1228,7 +1210,7 @@ mod tests {
     fn test_validate_args() {
         // The args are both too many and too large
         let args = (0..=MAX_APP_ARGS).map(|_i| vec![0u8; 700]).collect();
-        let app_call = ApplicationCallTransactionMother::application_call_example()
+        let app_call = AppCallTransactionMother::app_call_example()
             .args(args)
             .build_fields()
             .unwrap();
@@ -1272,7 +1254,7 @@ mod tests {
             MAX_BOX_REFERENCES
         ];
 
-        let app_call = ApplicationCallTransactionMother::application_call_example()
+        let app_call = AppCallTransactionMother::app_call_example()
             .account_references(excessive_account_refs)
             .app_references(excessive_app_refs)
             .asset_references(excessive_asset_refs)
@@ -1302,7 +1284,7 @@ mod tests {
         assert!(
             errors
                 .iter()
-                .any(|e| e.contains("Application references") && e.contains("exceed"))
+                .any(|e| e.contains("App references") && e.contains("exceed"))
         );
         assert!(
             errors
@@ -1335,19 +1317,19 @@ mod tests {
     #[test]
     fn test_builder_validation_integration() {
         // invalid
-        let result = ApplicationCallTransactionMother::application_call_example()
+        let result = AppCallTransactionMother::app_call_example()
             .app_id(0)
             .build();
         assert!(result.is_err());
 
         // valid
-        let result = ApplicationCallTransactionMother::application_call_example().build();
+        let result = AppCallTransactionMother::app_call_example().build();
         assert!(result.is_ok());
     }
 
     #[test]
-    fn test_application_create_snapshot() {
-        let data = TestDataMother::application_create();
+    fn test_app_create_snapshot() {
+        let data = TestDataMother::app_create();
         assert_eq!(
             data.id,
             String::from("L6B56N2BAXE43PUI7IDBXCJN5DEB6NLCH4AAN3ON64CXPSCTJNTA")
@@ -1355,8 +1337,8 @@ mod tests {
     }
 
     #[test]
-    fn test_application_call_snapshot() {
-        let data = TestDataMother::application_call();
+    fn test_app_call_snapshot() {
+        let data = TestDataMother::app_call();
         assert_eq!(
             data.id,
             String::from("6Y644M5SGTKNBH7ZX6D7QAAHDF6YL6FDJPRAGSUHNZLR4IKGVSPQ")
@@ -1364,8 +1346,8 @@ mod tests {
     }
 
     #[test]
-    fn test_application_update_snapshot() {
-        let data = TestDataMother::application_update();
+    fn test_app_update_snapshot() {
+        let data = TestDataMother::app_update();
         assert_eq!(
             data.id,
             String::from("NQVNJ5VWEDX42DMJQIQET4QPNUOW27EYIPKZ4SDWKOOEFJQB7PZA")
@@ -1373,8 +1355,8 @@ mod tests {
     }
 
     #[test]
-    fn test_application_delete_snapshot() {
-        let data = TestDataMother::application_delete();
+    fn test_app_delete_snapshot() {
+        let data = TestDataMother::app_delete();
         assert_eq!(
             data.id,
             String::from("XVVC7UDLCPI622KCJZLWK3SEAWWVUEPEXUM5CO3DFLWOBH7NOPDQ")

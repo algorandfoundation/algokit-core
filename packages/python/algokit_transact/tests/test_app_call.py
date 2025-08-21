@@ -8,18 +8,19 @@ from tests.transaction_asserts import (
     assert_encode_with_signature,
     assert_encoded_transaction_type,
     assert_example,
-    assert_transaction_id, assert_multisig_example,
+    assert_transaction_id,
+    assert_multisig_example,
 )
 from . import TEST_DATA
 
 txn_test_data = {
-    "application call": TEST_DATA.application_call,
-    "application create": TEST_DATA.application_create,
-    "application update": TEST_DATA.application_update,
-    "application delete": TEST_DATA.application_delete,
+    "app call": TEST_DATA.app_call,
+    "app create": TEST_DATA.app_create,
+    "app update": TEST_DATA.app_update,
+    "app delete": TEST_DATA.app_delete,
 }
 
-# Polytest Suite: Application Call
+# Polytest Suite: App Call
 
 # Polytest Group: Transaction Tests
 

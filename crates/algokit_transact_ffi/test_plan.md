@@ -13,7 +13,7 @@
 | --- | --- |
 | [Transaction Tests](#transaction-tests) | Tests that apply to all transaction types |
 
-### Application Call
+### App Call
 
 | Name | Description |
 | --- | --- |
@@ -58,6 +58,7 @@
 | [get encoded transaction type](#get-encoded-transaction-type) | The transaction type of an encoded transaction can be retrieved |
 | [get transaction id](#get-transaction-id) | A transaction id can be obtained from a transaction |
 | [example](#example) | A human-readable example of forming a transaction and signing it |
+| [multisig example](#multisig-example) | A human-readable example of forming a transaction and signing it with a multisignature sig |
 | [assign fee](#assign-fee) | A fee can be calculated and assigned to a transaction |
 
 ### Transaction Group Tests
@@ -109,6 +110,10 @@ A transaction id can be obtained from a transaction
 ### example
 
 A human-readable example of forming a transaction and signing it
+
+### multisig example
+
+A human-readable example of forming a transaction and signing it with a multisignature sig
 
 ### assign fee
 

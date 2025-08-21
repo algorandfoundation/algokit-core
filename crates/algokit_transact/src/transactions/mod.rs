@@ -4,7 +4,7 @@
 //! This module includes support for various transaction types, along with the ability to sign,
 //! serialize, and deserialize them.
 
-mod application_call;
+mod app_call;
 mod asset_config;
 mod asset_freeze;
 mod asset_transfer;
@@ -12,11 +12,11 @@ mod common;
 mod key_registration;
 mod payment;
 
-pub use application_call::{
-    ApplicationCallTransactionBuilder, ApplicationCallTransactionFields, BoxReference,
-    OnApplicationComplete, StateSchema,
+pub use app_call::{
+    AppCallTransactionBuilder, AppCallTransactionFields, BoxReference, OnApplicationComplete,
+    StateSchema,
 };
-use application_call::{application_call_deserializer, application_call_serializer};
+use app_call::{app_call_deserializer, app_call_serializer};
 pub use asset_config::{
     AssetConfigTransactionBuilder, AssetConfigTransactionFields, asset_config_deserializer,
     asset_config_serializer,
@@ -54,10 +54,10 @@ pub enum Transaction {
     #[serde(rename = "acfg")]
     AssetConfig(AssetConfigTransactionFields),
 
-    #[serde(serialize_with = "application_call_serializer")]
-    #[serde(deserialize_with = "application_call_deserializer")]
+    #[serde(serialize_with = "app_call_serializer")]
+    #[serde(deserialize_with = "app_call_deserializer")]
     #[serde(rename = "appl")]
-    ApplicationCall(ApplicationCallTransactionFields),
+    AppCall(AppCallTransactionFields),
 
     #[serde(rename = "afrz")]
     AssetFreeze(AssetFreezeTransactionFields),
@@ -80,7 +80,7 @@ impl Transaction {
             Transaction::Payment(p) => &p.header,
             Transaction::AssetTransfer(a) => &a.header,
             Transaction::AssetConfig(a) => &a.header,
-            Transaction::ApplicationCall(a) => &a.header,
+            Transaction::AppCall(a) => &a.header,
             Transaction::KeyRegistration(k) => &k.header,
             Transaction::AssetFreeze(f) => &f.header,
         }
@@ -91,7 +91,7 @@ impl Transaction {
             Transaction::Payment(p) => &mut p.header,
             Transaction::AssetTransfer(a) => &mut a.header,
             Transaction::AssetConfig(a) => &mut a.header,
-            Transaction::ApplicationCall(a) => &mut a.header,
+            Transaction::AppCall(a) => &mut a.header,
             Transaction::KeyRegistration(k) => &mut k.header,
             Transaction::AssetFreeze(f) => &mut f.header,
         }
@@ -339,7 +339,7 @@ mod transaction_tests {
 
     #[test]
     fn test_app_call_accessor() {
-        let app_call = Transaction::ApplicationCall(ApplicationCallTransactionFields {
+        let app_call = Transaction::AppCall(AppCallTransactionFields {
             header: create_test_header(),
             app_id: 321,
             on_complete: OnApplicationComplete::NoOp,
@@ -356,10 +356,10 @@ mod transaction_tests {
         });
 
         // Test pattern matching for app call
-        if let Transaction::ApplicationCall(app_fields) = &app_call {
+        if let Transaction::AppCall(app_fields) = &app_call {
             assert_eq!(app_fields.app_id, 321);
         } else {
-            panic!("Expected ApplicationCall transaction");
+            panic!("Expected AppCall transaction");
         }
 
         // Test with non-app transaction
@@ -372,7 +372,7 @@ mod transaction_tests {
 
         // Verify payment is not an app call
         match &payment {
-            Transaction::ApplicationCall(_) => panic!("Expected non-ApplicationCall transaction"),
+            Transaction::AppCall(_) => panic!("Expected non-AppCall transaction"),
             _ => {} // This is what we expect
         }
     }
@@ -394,7 +394,7 @@ mod transaction_tests {
                 asset_sender: None,
                 close_remainder_to: None,
             }),
-            Transaction::ApplicationCall(ApplicationCallTransactionFields {
+            Transaction::AppCall(AppCallTransactionFields {
                 header: create_test_header(),
                 app_id: 321,
                 on_complete: OnApplicationComplete::NoOp,
@@ -420,7 +420,7 @@ mod transaction_tests {
             match tx {
                 Transaction::Payment(_) => payment_count += 1,
                 Transaction::AssetTransfer(_) => asset_count += 1,
-                Transaction::ApplicationCall(_) => app_count += 1,
+                Transaction::AppCall(_) => app_count += 1,
                 _ => {}
             }
         }
@@ -447,7 +447,7 @@ mod transaction_tests {
                     assert_eq!(asset.asset_id, 123);
                     assert_eq!(asset.amount, 500);
                 }
-                Transaction::ApplicationCall(app) => {
+                Transaction::AppCall(app) => {
                     assert_eq!(app.app_id, 321);
                 }
                 _ => {}
@@ -472,7 +472,7 @@ mod transaction_tests {
         }
 
         // Test that it doesn't match wrong type
-        if let Transaction::ApplicationCall(_) = &payment {
+        if let Transaction::AppCall(_) = &payment {
             panic!("Should not match app call");
         }
     }

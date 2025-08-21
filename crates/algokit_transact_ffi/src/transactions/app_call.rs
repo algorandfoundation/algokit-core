@@ -1,45 +1,45 @@
 use crate::*;
 
-/// Represents an application call transaction that interacts with Algorand Smart Contracts.
+/// Represents an app call transaction that interacts with Algorand Smart Contracts.
 ///
-/// Application call transactions are used to create, update, delete, opt-in to,
+/// App call transactions are used to create, update, delete, opt-in to,
 /// close out of, or clear state from Algorand applications (smart contracts).
 #[ffi_record]
-pub struct ApplicationCallTransactionFields {
-    /// ID of the application being called.
+pub struct AppCallTransactionFields {
+    /// ID of the app being called.
     ///
-    /// Set this to 0 to indicate an application creation call.
+    /// Set this to 0 to indicate an app creation call.
     app_id: u64,
 
     /// Defines what additional actions occur with the transaction.
     on_complete: OnApplicationComplete,
 
-    /// Logic executed for every application call transaction, except when
+    /// Logic executed for every app call transaction, except when
     /// on-completion is set to "clear".
     ///
     /// Approval programs may reject the transaction.
-    /// Only required for application creation and update transactions.
+    /// Only required for app creation and update transactions.
     approval_program: Option<ByteBuf>,
 
-    /// Logic executed for application call transactions with on-completion set to "clear".
+    /// Logic executed for app call transactions with on-completion set to "clear".
     ///
     /// Clear state programs cannot reject the transaction.
-    /// Only required for application creation and update transactions.
+    /// Only required for app creation and update transactions.
     clear_state_program: Option<ByteBuf>,
 
     /// Holds the maximum number of global state values.
     ///
-    /// Only required for application creation transactions.
+    /// Only required for app creation transactions.
     /// This cannot be changed after creation.
     global_state_schema: Option<StateSchema>,
 
     /// Holds the maximum number of local state values.
     ///
-    /// Only required for application creation transactions.
+    /// Only required for app creation transactions.
     /// This cannot be changed after creation.
     local_state_schema: Option<StateSchema>,
 
-    /// Number of additional pages allocated to the application's approval
+    /// Number of additional pages allocated to the app's approval
     /// and clear state programs.
     ///
     /// Each extra program page is 2048 bytes. The sum of approval program
@@ -48,19 +48,19 @@ pub struct ApplicationCallTransactionFields {
     /// This cannot be changed after creation.
     extra_program_pages: Option<u64>,
 
-    /// Transaction specific arguments available in the application's
+    /// Transaction specific arguments available in the app's
     /// approval program and clear state program.
     args: Option<Vec<ByteBuf>>,
 
     /// List of accounts in addition to the sender that may be accessed
-    /// from the application's approval program and clear state program.
+    /// from the app's approval program and clear state program.
     account_references: Option<Vec<String>>,
 
-    /// List of applications in addition to the current application that may be called
-    /// from the application's approval program and clear state program.
+    /// List of apps in addition to the current app that may be called
+    /// from the app's approval program and clear state program.
     app_references: Option<Vec<u64>>,
 
-    /// Lists the assets whose parameters may be accessed by this application's
+    /// Lists the assets whose parameters may be accessed by this app's
     /// approval program and clear state program.
     ///
     /// The access is read-only.
@@ -70,8 +70,8 @@ pub struct ApplicationCallTransactionFields {
     box_references: Option<Vec<BoxReference>>,
 }
 
-impl From<algokit_transact::ApplicationCallTransactionFields> for ApplicationCallTransactionFields {
-    fn from(tx: algokit_transact::ApplicationCallTransactionFields) -> Self {
+impl From<algokit_transact::AppCallTransactionFields> for AppCallTransactionFields {
+    fn from(tx: algokit_transact::AppCallTransactionFields) -> Self {
         Self {
             app_id: tx.app_id,
             on_complete: tx.on_complete.into(),
@@ -95,18 +95,17 @@ impl From<algokit_transact::ApplicationCallTransactionFields> for ApplicationCal
     }
 }
 
-impl TryFrom<Transaction> for algokit_transact::ApplicationCallTransactionFields {
+impl TryFrom<Transaction> for algokit_transact::AppCallTransactionFields {
     type Error = AlgoKitTransactError;
 
     fn try_from(tx: Transaction) -> Result<Self, Self::Error> {
-        if tx.transaction_type != TransactionType::ApplicationCall || tx.application_call.is_none()
-        {
+        if tx.transaction_type != TransactionType::AppCall || tx.app_call.is_none() {
             return Err(Self::Error::DecodingError {
-                message: "Application call data missing".to_string(),
+                message: "AppCall call data missing".to_string(),
             });
         }
 
-        let data = tx.clone().application_call.unwrap();
+        let data = tx.clone().app_call.unwrap();
         let header: algokit_transact::TransactionHeader = tx.try_into()?;
 
         let transaction_fields = Self {
@@ -140,21 +139,21 @@ impl TryFrom<Transaction> for algokit_transact::ApplicationCallTransactionFields
         transaction_fields
             .validate()
             .map_err(|errors| AlgoKitTransactError::DecodingError {
-                message: format!("Application call validation failed: {}", errors.join("\n")),
+                message: format!("App call validation failed: {}", errors.join("\n")),
             })?;
 
         Ok(transaction_fields)
     }
 }
 
-/// Box reference for application call transactions.
+/// Box reference for app call transactions.
 ///
 /// References a specific box that should be made available for the runtime
 /// of the program.
 #[ffi_record]
 pub struct BoxReference {
-    /// Application ID that owns the box.
-    /// A value of 0 indicates the current application.
+    /// App ID that owns the box.
+    /// A value of 0 indicates the current app.
     app_id: u64,
 
     /// Name of the box.
@@ -179,7 +178,7 @@ impl From<BoxReference> for algokit_transact::BoxReference {
     }
 }
 
-/// On-completion actions for application transactions.
+/// On-completion actions for app transactions.
 ///
 /// These values define what additional actions occur with the transaction.
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
@@ -187,29 +186,29 @@ impl From<BoxReference> for algokit_transact::BoxReference {
 #[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Enum))]
 pub enum OnApplicationComplete {
-    /// NoOp indicates that an application transaction will simply call its
+    /// NoOp indicates that an app transaction will simply call its
     /// approval program without any additional action.
     NoOp = 0,
 
-    /// OptIn indicates that an application transaction will allocate some
-    /// local state for the application in the sender's account.
+    /// OptIn indicates that an app transaction will allocate some
+    /// local state for the app in the sender's account.
     OptIn = 1,
 
-    /// CloseOut indicates that an application transaction will deallocate
-    /// some local state for the application from the user's account.
+    /// CloseOut indicates that an app transaction will deallocate
+    /// some local state for the app from the user's account.
     CloseOut = 2,
 
     /// ClearState is similar to CloseOut, but may never fail. This
-    /// allows users to reclaim their minimum balance from an application
+    /// allows users to reclaim their minimum balance from an app
     /// they no longer wish to opt in to.
     ClearState = 3,
 
-    /// UpdateApplication indicates that an application transaction will
-    /// update the approval program and clear state program for the application.
+    /// UpdateApplication indicates that an app transaction will
+    /// update the approval program and clear state program for the app.
     UpdateApplication = 4,
 
-    /// DeleteApplication indicates that an application transaction will
-    /// delete the application parameters for the application from the creator's
+    /// DeleteApplication indicates that an app transaction will
+    /// delete the app parameters for the app from the creator's
     /// balance record.
     DeleteApplication = 5,
 }
@@ -252,9 +251,9 @@ impl From<OnApplicationComplete> for algokit_transact::OnApplicationComplete {
     }
 }
 
-/// Schema for application state storage.
+/// Schema for app state storage.
 ///
-/// Defines the maximum number of values that may be stored in application
+/// Defines the maximum number of values that may be stored in app
 /// key/value storage for both global and local state.
 #[ffi_record]
 pub struct StateSchema {
@@ -291,21 +290,13 @@ mod tests {
     #[test]
     fn test_encode_transaction_validation_integration() {
         // invalid
-        let mut tx: Transaction = TestDataMother::application_call()
-            .transaction
-            .try_into()
-            .unwrap();
-        tx.application_call.as_mut().unwrap().app_id = 0;
+        let mut tx: Transaction = TestDataMother::app_call().transaction.try_into().unwrap();
+        tx.app_call.as_mut().unwrap().app_id = 0;
         let result = encode_transaction(tx);
         assert!(result.is_err());
 
         // valid
-        let result = encode_transaction(
-            TestDataMother::application_call()
-                .transaction
-                .try_into()
-                .unwrap(),
-        );
+        let result = encode_transaction(TestDataMother::app_call().transaction.try_into().unwrap());
         assert!(result.is_ok());
     }
 }

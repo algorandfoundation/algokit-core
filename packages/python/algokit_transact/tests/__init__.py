@@ -10,7 +10,7 @@ from algokit_transact import (
     AssetTransferTransactionFields,
     AssetConfigTransactionFields,
     AssetFreezeTransactionFields,
-    ApplicationCallTransactionFields,
+    AppCallTransactionFields,
     KeyRegistrationTransactionFields,
     OnApplicationComplete,
     StateSchema,
@@ -41,10 +41,10 @@ class TestData:
     asset_reconfigure: TransactionTestData
     asset_freeze: TransactionTestData
     asset_unfreeze: TransactionTestData
-    application_call: TransactionTestData
-    application_create: TransactionTestData
-    application_update: TransactionTestData
-    application_delete: TransactionTestData
+    app_call: TransactionTestData
+    app_create: TransactionTestData
+    app_update: TransactionTestData
+    app_delete: TransactionTestData
     online_key_registration: TransactionTestData
     offline_key_registration: TransactionTestData
     non_participation_key_registration: TransactionTestData
@@ -141,10 +141,10 @@ def create_transaction_test_data(test_data: dict[str, Any]) -> TransactionTestDa
             "field_name": "asset_freeze",
             "field_class": AssetFreezeTransactionFields,
         },
-        "ApplicationCall": {
-            "type": TransactionType.APPLICATION_CALL,
-            "field_name": "application_call",
-            "field_class": ApplicationCallTransactionFields,
+        "AppCall": {
+            "type": TransactionType.APP_CALL,
+            "field_name": "app_call",
+            "field_class": AppCallTransactionFields,
         },
         "KeyRegistration": {
             "type": TransactionType.KEY_REGISTRATION,

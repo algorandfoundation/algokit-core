@@ -245,7 +245,7 @@ async fn test_alters_fee_no_inner_fees_covered(
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
     let expected_fee = 7000u64;
 
-    // Create an application call transaction that has no inner fees covered
+    // Create an app call transaction that has no inner fees covered
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0]);
     let txn_params = AppCallParams {
         common_params: CommonParams {
@@ -303,7 +303,7 @@ async fn test_alters_fee_all_inner_fees_covered(
 
     let expected_fee = 1000u64;
 
-    // Create an application call transaction that has all inner fees covered
+    // Create an app call transaction that has all inner fees covered
     let fees_tuple = create_fees_tuple(1000, 1000, 1000, 1000, vec![1000, 1000]);
     let txn_params = AppCallParams {
         common_params: CommonParams {
@@ -418,7 +418,7 @@ async fn test_alters_fee_some_inner_fees_surplus(
 
     let expected_fee = 2000u64;
 
-    // Create an application call transaction that has some inner fees with surplus
+    // Create an app call transaction that has some inner fees with surplus
     let fees_tuple = create_fees_tuple(0, 1000, 5000, 0, vec![0, 50]);
 
     let txn_params = AppCallParams {
@@ -528,7 +528,7 @@ async fn test_errors_when_max_fee_too_small(
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
     let expected_fee = 7000u64;
 
-    // Create an application call transaction that has no inner fees covered
+    // Create an app call transaction that has no inner fees covered
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0]);
     let params = AppCallParams {
         common_params: CommonParams {
@@ -586,7 +586,7 @@ async fn test_errors_when_static_fee_too_small(
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
     let expected_fee = 7000u64;
 
-    // Create an application call transaction that has no inner fees covered
+    // Create an app call transaction that has no inner fees covered
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0]);
     let params = AppCallParams {
         common_params: CommonParams {
@@ -644,7 +644,7 @@ async fn test_does_not_alter_static_fee_with_surplus(
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
     let expected_fee = 6000u64;
 
-    // Create an application call transaction that has a static fee with surplus
+    // Create an app call transaction that has a static fee with surplus
     let fees_tuple = create_fees_tuple(1000, 0, 200, 0, vec![500, 0]);
     let app_call_params = AppCallParams {
         common_params: CommonParams {
@@ -699,7 +699,7 @@ async fn test_alters_fee_multiple_app_calls_in_group(
     let mut composer = fixture.context()?.composer.clone();
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
 
-    // Create an application call transaction that has varying inner fees
+    // Create an app call transaction that has varying inner fees
     let txn_1_expected_fee = 5800u64;
     let txn_1_fee_tuple = create_fees_tuple(0, 1000, 0, 0, vec![200, 0]);
     let txn_1_params = AppCallParams {
@@ -724,7 +724,7 @@ async fn test_alters_fee_multiple_app_calls_in_group(
     };
     composer.add_app_call(txn_1_params.clone())?;
 
-    // Create an application call transaction that has different varying inner fees
+    // Create an app call transaction that has different varying inner fees
     let txn_2_expected_fee = 6000u64;
     let txn_2_fee_tuple = create_fees_tuple(1000, 0, 0, 0, vec![0, 0]);
     let txn_2_params = AppCallParams {
@@ -797,7 +797,7 @@ async fn test_does_not_alter_fee_when_group_covers_inner_fees(
     };
     composer.add_payment(txn_1_params)?;
 
-    // Create an application call transaction that has inner fees covered by the above payment
+    // Create an app call transaction that has inner fees covered by the above payment
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0]);
     let txn_2_params = AppCallParams {
         common_params: CommonParams {
@@ -866,7 +866,7 @@ async fn test_alters_fee_nested_abi_method_call(
     };
     composer.add_payment(txn_1_params.clone())?;
 
-    // Create an application call transaction that will be used as a nested argument
+    // Create an app call transaction that will be used as a nested argument
     let fees_tuple = create_fees_tuple(0, 0, 2000, 0, vec![0, 0]);
     let txn_2_params = AppCallParams {
         common_params: CommonParams {
@@ -889,7 +889,7 @@ async fn test_alters_fee_nested_abi_method_call(
     };
     composer.add_app_call(txn_2_params.clone())?;
 
-    // Create the application call that will use the nested transaction
+    // Create the app call that will use the nested transaction
     let txn_3_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
@@ -950,7 +950,7 @@ async fn test_errors_when_nested_max_fee_below_calculated(
     };
     composer.add_payment(txn_1_params)?;
 
-    // Create an application call transaction that will be used as a nested argument
+    // Create an app call transaction that will be used as a nested argument
     // This transaction has an insufficient max fee
     let fees_tuple = create_fees_tuple(0, 0, 2000, 0, vec![0, 0]);
     let txn_2_max_fee = 2000; // Too low for the calculated fee
@@ -975,7 +975,7 @@ async fn test_errors_when_nested_max_fee_below_calculated(
     };
     composer.add_app_call(txn_2_params)?;
 
-    // Create an application call transaction that will be used as a nested argument
+    // Create an app call transaction that will be used as a nested argument
     let txn_3_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
@@ -1028,7 +1028,7 @@ async fn test_alters_fee_allocating_surplus_to_most_constrained(
     let mut composer = fixture.context()?.composer.clone();
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
 
-    // Create an application call transaction with inners that have no fees
+    // Create an app call transaction with inners that have no fees
     let fees_tuple_1 = create_fees_tuple(0, 0, 0, 0, vec![0, 0]);
     let txn_1_params = AppCallParams {
         common_params: CommonParams {
@@ -1109,7 +1109,7 @@ async fn test_alters_fee_large_surplus_pooling_to_lower_siblings(
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
     let expected_fee = 7000u64;
 
-    // Create an application call transaction that has a large inner fee surplus pooling to lower siblings
+    // Create an app call transaction that has a large inner fee surplus pooling to lower siblings
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0, 20_000, 0, 0, 0]);
     let txn_params = AppCallParams {
         common_params: CommonParams {
@@ -1165,7 +1165,7 @@ async fn test_alters_fee_surplus_pooling_to_some_siblings(
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
     let expected_fee = 6300u64;
 
-    // Create an application call transaction that has a inner fee surplus pooling to some lower siblings
+    // Create an app call transaction that has a inner fee surplus pooling to some lower siblings
     let fees_tuple = create_fees_tuple(0, 0, 2200, 0, vec![0, 0, 2500, 0, 0, 0]);
     let txn_params = AppCallParams {
         common_params: CommonParams {
@@ -1221,7 +1221,7 @@ async fn test_alters_fee_large_surplus_no_pooling(
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
     let expected_fee = 10_000u64;
 
-    // Create an application call transaction that has a large inner fee surplus with no pooling
+    // Create an app call transaction that has a large inner fee surplus with no pooling
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0, 0, 0, 0, 20_000]);
     let txn_params = AppCallParams {
         common_params: CommonParams {
@@ -1277,7 +1277,7 @@ async fn test_alters_fee_multiple_surplus_poolings(
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
     let expected_fee = 7100u64;
 
-    // Create an application call transaction that has multiple inner fee surplus poolings to lower siblings
+    // Create an app call transaction that has multiple inner fee surplus poolings to lower siblings
     let fees_tuple = ABIValue::Array(vec![
         ABIValue::from(0u64),
         ABIValue::from(1200u64),
@@ -1353,7 +1353,7 @@ async fn test_errors_when_max_fee_below_calculated(
     let mut composer = fixture.context()?.composer.clone();
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
 
-    // Create an application call transaction that has no inner fees covered
+    // Create an app call transaction that has no inner fees covered
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0]);
     let txn_1_params = AppCallParams {
         common_params: CommonParams {
@@ -1376,7 +1376,7 @@ async fn test_errors_when_max_fee_below_calculated(
     };
     composer.add_app_call(txn_1_params)?;
 
-    // Create an application call transaction that has large max fee,
+    // Create an app call transaction that has large max fee,
     // without it the simulate call to get the execution info would fail
     let txn_2_params = AppCallParams {
         common_params: CommonParams {
@@ -1428,7 +1428,7 @@ async fn test_errors_when_static_fee_below_calculated(
     let mut composer = fixture.context()?.composer.clone();
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
 
-    // Create an application call transaction that has no inner fees covered
+    // Create an app call transaction that has no inner fees covered
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0]);
     let params = AppCallParams {
         common_params: CommonParams {
@@ -1451,7 +1451,7 @@ async fn test_errors_when_static_fee_below_calculated(
     };
     composer.add_app_call(params)?;
 
-    // Create an application call transaction that has large max fee,
+    // Create an app call transaction that has large max fee,
     // without it the simulate call to get the execution info would fail
     let txn_2_params = AppCallParams {
         common_params: CommonParams {
@@ -1504,7 +1504,7 @@ async fn test_errors_when_static_fee_too_low_for_non_app_call(
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0]);
 
-    // Create an application call transaction with both high static and max fee
+    // Create an app call transaction with both high static and max fee
     let txn_1_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
@@ -1527,7 +1527,7 @@ async fn test_errors_when_static_fee_too_low_for_non_app_call(
     };
     composer.add_app_call(txn_1_params)?;
 
-    // Create an application call transaction with low static
+    // Create an app call transaction with low static
     let txn_2_params = AppCallParams {
         common_params: CommonParams {
             sender: sender_address.clone(),
@@ -1569,7 +1569,7 @@ async fn test_errors_when_static_fee_too_low_for_non_app_call(
                 .as_ref()
                 .unwrap_err()
                 .to_string()
-                .contains("fee of 500 µALGO is required for non application call transaction"),
+                .contains("fee of 500 µALGO is required for non app call transaction"),
         "Unexpected result, got: {:?}",
         result
     );
@@ -1891,7 +1891,7 @@ async fn deploy_app(
 
     result.confirmations[0]
         .app_id
-        .ok_or_else(|| "No application id returned".into())
+        .ok_or_else(|| "No app id returned".into())
 }
 
 // Helper function to fund app accounts
@@ -1927,7 +1927,7 @@ async fn assert_min_fee(mut composer: Composer, params: &AppCallParams, fee: u64
 
     composer
         .add_app_call(params)
-        .expect("Failed to add application call");
+        .expect("Failed to add app call");
 
     let result = composer
         .send(Some(SendParams {

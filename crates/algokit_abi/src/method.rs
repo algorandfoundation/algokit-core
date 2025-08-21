@@ -23,8 +23,8 @@ pub enum ABITransactionType {
     AssetTransfer,
     /// Asset freeze (freeze or unfreeze ASAs)
     AssetFreeze,
-    /// Application call (create, update, delete and call an application)
-    ApplicationCall,
+    /// App call (create, update, delete and call an app)
+    AppCall,
 }
 
 impl FromStr for ABITransactionType {
@@ -38,7 +38,7 @@ impl FromStr for ABITransactionType {
             "acfg" => Ok(ABITransactionType::AssetConfig),
             "axfer" => Ok(ABITransactionType::AssetTransfer),
             "afrz" => Ok(ABITransactionType::AssetFreeze),
-            "appl" => Ok(ABITransactionType::ApplicationCall),
+            "appl" => Ok(ABITransactionType::AppCall),
             _ => Err(ABIError::ValidationError {
                 message: format!("Invalid transaction type: {}", s),
             }),
@@ -55,7 +55,7 @@ impl Display for ABITransactionType {
             ABITransactionType::AssetConfig => "acfg",
             ABITransactionType::AssetTransfer => "axfer",
             ABITransactionType::AssetFreeze => "afrz",
-            ABITransactionType::ApplicationCall => "appl",
+            ABITransactionType::AppCall => "appl",
         };
         write!(f, "{}", s)
     }
@@ -79,7 +79,7 @@ pub enum ABIReferenceValue {
     Account(String),
     /// An Algorand asset ID.
     Asset(u64),
-    /// An Algorand application ID.
+    /// An Algorand app ID.
     Application(u64),
 }
 
@@ -112,9 +112,9 @@ impl Display for ABIReferenceType {
 /// Represents the category of an ABI method argument, which can be a value, a transaction, or a reference.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ABIMethodArgType {
-    /// A value that is directly encoded in the application arguments.
+    /// A value that is directly encoded in the app arguments.
     Value(ABIType),
-    /// A transaction that is placed immediately before the application call in the transaction group.
+    /// A transaction that is placed immediately before the app call in the transaction group.
     Transaction(ABITransactionType),
     /// A reference to an account, asset, or application that is encoded as an index into a reference array.
     Reference(ABIReferenceType),
@@ -429,7 +429,7 @@ mod tests {
     #[case("acfg", ABITransactionType::AssetConfig)]
     #[case("axfer", ABITransactionType::AssetTransfer)]
     #[case("afrz", ABITransactionType::AssetFreeze)]
-    #[case("appl", ABITransactionType::ApplicationCall)]
+    #[case("appl", ABITransactionType::AppCall)]
     fn transaction_type_from_str(#[case] input: &str, #[case] expected: ABITransactionType) {
         assert_eq!(ABITransactionType::from_str(input).unwrap(), expected);
         assert_eq!(expected.to_string(), input);

@@ -79,7 +79,7 @@ pub struct Transaction {
 pub enum TransactionType {
     Payment,
     AssetTransfer,
-    ApplicationCall,
+    AppCall,
 }
 ```
 

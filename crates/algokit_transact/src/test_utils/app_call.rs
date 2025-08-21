@@ -1,15 +1,15 @@
 use crate::{
-    ApplicationCallTransactionBuilder, OnApplicationComplete, StateSchema,
+    AppCallTransactionBuilder, OnApplicationComplete, StateSchema,
     test_utils::{AccountMother, TransactionHeaderMother},
 };
 use base64::{Engine, prelude::BASE64_STANDARD};
 
-pub struct ApplicationCallTransactionMother {}
+pub struct AppCallTransactionMother {}
 
-impl ApplicationCallTransactionMother {
-    pub fn application_create() -> ApplicationCallTransactionBuilder {
+impl AppCallTransactionMother {
+    pub fn app_create() -> AppCallTransactionBuilder {
         // https://lora.algokit.io/testnet/transaction/L6B56N2BAXE43PUI7IDBXCJN5DEB6NLCH4AAN3ON64CXPSCTJNTA
-        ApplicationCallTransactionBuilder::default()
+        AppCallTransactionBuilder::default()
         .header(TransactionHeaderMother::testnet()
             .sender(AccountMother::nfd_testnet().address())
             .first_valid(21038057)
@@ -41,9 +41,9 @@ impl ApplicationCallTransactionMother {
         .to_owned()
     }
 
-    pub fn application_update() -> ApplicationCallTransactionBuilder {
+    pub fn app_update() -> AppCallTransactionBuilder {
         // https://lora.algokit.io/testnet/transaction/NQVNJ5VWEDX42DMJQIQET4QPNUOW27EYIPKZ4SDWKOOEFJQB7PZA
-        ApplicationCallTransactionBuilder::default()
+        AppCallTransactionBuilder::default()
         .header(TransactionHeaderMother::testnet()
             .sender(AccountMother::nfd_testnet().address())
             .first_valid(43679851)
@@ -73,9 +73,9 @@ impl ApplicationCallTransactionMother {
         .to_owned()
     }
 
-    pub fn application_call() -> ApplicationCallTransactionBuilder {
+    pub fn app_call() -> AppCallTransactionBuilder {
         // https://lora.algokit.io/testnet/transaction/6Y644M5SGTKNBH7ZX6D7QAAHDF6YL6FDJPRAGSUHNZLR4IKGVSPQ
-        ApplicationCallTransactionBuilder::default()
+        AppCallTransactionBuilder::default()
         .header(
             TransactionHeaderMother::testnet()
                 .sender("KVAGZI3WJI36TTTKJUI36ECGP3NHGR5VBJNIXG3DROHPGH2XFC36D4HENE".parse().unwrap())
@@ -107,9 +107,9 @@ impl ApplicationCallTransactionMother {
         .to_owned()
     }
 
-    pub fn application_delete() -> ApplicationCallTransactionBuilder {
+    pub fn app_delete() -> AppCallTransactionBuilder {
         // https://lora.algokit.io/mainnet/transaction/XVVC7UDLCPI622KCJZLWK3SEAWWVUEPEXUM5CO3DFLWOBH7NOPDQ
-        ApplicationCallTransactionBuilder::default()
+        AppCallTransactionBuilder::default()
             .header(
                 TransactionHeaderMother::mainnet()
                     .sender(
@@ -139,9 +139,9 @@ impl ApplicationCallTransactionMother {
             .to_owned()
     }
 
-    pub fn application_opt_in() -> ApplicationCallTransactionBuilder {
+    pub fn app_opt_in() -> AppCallTransactionBuilder {
         // https://lora.algokit.io/testnet/transaction/BNASGY47TXXUTFUZPDAGGPQKK54B4QPEEPDTJIZFDXC64WQH4GOQ
-        ApplicationCallTransactionBuilder::default()
+        AppCallTransactionBuilder::default()
             .header(
                 TransactionHeaderMother::testnet()
                     .sender(
@@ -174,22 +174,22 @@ impl ApplicationCallTransactionMother {
             .to_owned()
     }
 
-    pub fn application_call_example() -> ApplicationCallTransactionBuilder {
-        ApplicationCallTransactionBuilder::default()
+    pub fn app_call_example() -> AppCallTransactionBuilder {
+        AppCallTransactionBuilder::default()
             .header(TransactionHeaderMother::example().build().unwrap())
             .app_id(12345)
             .on_complete(OnApplicationComplete::NoOp)
             .to_owned()
     }
 
-    pub fn application_close_out() -> ApplicationCallTransactionBuilder {
-        Self::application_call_example()
+    pub fn app_close_out() -> AppCallTransactionBuilder {
+        Self::app_call_example()
             .on_complete(OnApplicationComplete::CloseOut)
             .to_owned()
     }
 
-    pub fn application_clear_state() -> ApplicationCallTransactionBuilder {
-        Self::application_call_example()
+    pub fn app_clear_state() -> AppCallTransactionBuilder {
+        Self::app_call_example()
             .on_complete(OnApplicationComplete::ClearState)
             .to_owned()
     }

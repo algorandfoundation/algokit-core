@@ -1,5 +1,5 @@
 use super::{
-    application_call::{
+    app_call::{
         AppCallMethodCallParams, AppCallParams, AppCreateMethodCallParams, AppCreateParams,
         AppDeleteMethodCallParams, AppDeleteParams, AppUpdateMethodCallParams, AppUpdateParams,
     },
@@ -91,7 +91,7 @@ pub trait HasPrograms {
 // Implement HasMethod for method call parameters
 impl<T> HasMethod for AppCallMethodCallParams<T>
 where
-    T: super::application_call::ValidMethodCallArg,
+    T: super::app_call::ValidMethodCallArg,
 {
     fn method(&self) -> &ABIMethod {
         &self.method
@@ -100,7 +100,7 @@ where
 
 impl<T> HasMethod for AppCreateMethodCallParams<T>
 where
-    T: super::application_call::ValidMethodCallArg,
+    T: super::app_call::ValidMethodCallArg,
 {
     fn method(&self) -> &ABIMethod {
         &self.method
@@ -109,7 +109,7 @@ where
 
 impl<T> HasMethod for AppUpdateMethodCallParams<T>
 where
-    T: super::application_call::ValidMethodCallArg,
+    T: super::app_call::ValidMethodCallArg,
 {
     fn method(&self) -> &ABIMethod {
         &self.method
@@ -118,7 +118,7 @@ where
 
 impl<T> HasMethod for AppDeleteMethodCallParams<T>
 where
-    T: super::application_call::ValidMethodCallArg,
+    T: super::app_call::ValidMethodCallArg,
 {
     fn method(&self) -> &ABIMethod {
         &self.method
@@ -147,7 +147,7 @@ impl HasPrograms for AppUpdateParams {
 
 impl<T> HasPrograms for AppCreateMethodCallParams<T>
 where
-    T: super::application_call::ValidMethodCallArg,
+    T: super::app_call::ValidMethodCallArg,
 {
     fn approval_program(&self) -> &[u8] {
         &self.approval_program
@@ -160,7 +160,7 @@ where
 
 impl<T> HasPrograms for AppUpdateMethodCallParams<T>
 where
-    T: super::application_call::ValidMethodCallArg,
+    T: super::app_call::ValidMethodCallArg,
 {
     fn approval_program(&self) -> &[u8] {
         &self.approval_program
@@ -519,7 +519,7 @@ impl TransactionSender {
             .await
     }
 
-    /// Send application call transaction.
+    /// Send app call transaction.
     pub async fn app_call(
         &self,
         params: AppCallParams,
@@ -529,7 +529,7 @@ impl TransactionSender {
             .await
     }
 
-    /// Send application creation transaction.
+    /// Send app creation transaction.
     pub async fn app_create(
         &self,
         params: AppCreateParams,
@@ -553,7 +553,7 @@ impl TransactionSender {
         .await
     }
 
-    /// Send application update transaction.
+    /// Send app update transaction.
     pub async fn app_update(
         &self,
         params: AppUpdateParams,
@@ -581,7 +581,7 @@ impl TransactionSender {
         .await
     }
 
-    /// Send application delete transaction.
+    /// Send app delete transaction.
     pub async fn app_delete(
         &self,
         params: AppDeleteParams,

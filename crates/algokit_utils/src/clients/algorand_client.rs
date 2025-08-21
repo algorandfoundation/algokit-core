@@ -74,7 +74,7 @@ impl AlgorandClient {
         &self.asset_manager
     }
 
-    /// Get access to the AppManager for application operations
+    /// Get access to the AppManager for app operations
     pub fn app(&self) -> &AppManager {
         &self.app_manager
     }

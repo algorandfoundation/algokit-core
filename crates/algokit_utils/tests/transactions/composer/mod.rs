@@ -1,4 +1,4 @@
-pub mod application_call;
+pub mod app_call;
 pub mod asset_config;
 pub mod asset_freeze;
 pub mod asset_transfer;
