@@ -255,7 +255,7 @@ async fn application_operations(#[case] on_complete: OnApplicationComplete, #[ca
 
     let tx = match on_complete {
         OnApplicationComplete::NoOp if app_id == 0 => creator
-            .application_create(AppCreateParams {
+            .app_create(AppCreateParams {
                 common_params: CommonParams {
                     sender: sender_address.clone(),
                     ..Default::default()
@@ -267,7 +267,7 @@ async fn application_operations(#[case] on_complete: OnApplicationComplete, #[ca
             .await
             .unwrap(),
         OnApplicationComplete::NoOp => creator
-            .application_call(AppCallParams {
+            .app_call(AppCallParams {
                 common_params: CommonParams {
                     sender: sender_address.clone(),
                     ..Default::default()
@@ -279,7 +279,7 @@ async fn application_operations(#[case] on_complete: OnApplicationComplete, #[ca
             .await
             .unwrap(),
         OnApplicationComplete::UpdateApplication => creator
-            .application_update(AppUpdateParams {
+            .app_update(AppUpdateParams {
                 common_params: CommonParams {
                     sender: sender_address.clone(),
                     ..Default::default()
@@ -292,7 +292,7 @@ async fn application_operations(#[case] on_complete: OnApplicationComplete, #[ca
             .await
             .unwrap(),
         OnApplicationComplete::DeleteApplication => creator
-            .application_delete(AppDeleteParams {
+            .app_delete(AppDeleteParams {
                 common_params: CommonParams {
                     sender: sender_address.clone(),
                     ..Default::default()
@@ -306,7 +306,7 @@ async fn application_operations(#[case] on_complete: OnApplicationComplete, #[ca
     };
 
     match &tx {
-        Transaction::ApplicationCall(app_fields) => {
+        Transaction::AppCall(app_fields) => {
             assert_eq!(app_fields.header.sender, sender_address);
             assert_eq!(app_fields.on_complete, on_complete);
             if app_id == 0 {
@@ -317,7 +317,7 @@ async fn application_operations(#[case] on_complete: OnApplicationComplete, #[ca
                 assert_eq!(app_fields.app_id, app_id);
             }
         }
-        _ => panic!("Expected ApplicationCall transaction"),
+        _ => panic!("Expected AppCall transaction"),
     }
 }
 
@@ -355,18 +355,18 @@ async fn method_call_returns_built_transactions() {
         box_references: None,
     };
 
-    let result = creator.application_method_call(params).await.unwrap();
+    let result = creator.app_call_method_call(params).await.unwrap();
 
     assert!(!result.transactions.is_empty());
     assert!(!result.signers.is_empty());
     assert_eq!(result.transactions.len(), result.signers.len());
 
     match &result.transactions[0] {
-        Transaction::ApplicationCall(app_fields) => {
+        Transaction::AppCall(app_fields) => {
             assert_eq!(app_fields.header.sender, sender_address);
             assert_eq!(app_fields.app_id, 1);
         }
-        _ => panic!("Expected ApplicationCall transaction"),
+        _ => panic!("Expected AppCall transaction"),
     }
 }
 

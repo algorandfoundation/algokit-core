@@ -11,8 +11,8 @@ groups = ["Transaction Tests"]
 desc = "Tests for asset config transactions"
 groups = ["Transaction Tests"]
 
-[suite."Application Call"]
-desc = "Tests for application call transactions"
+[suite."App Call"]
+desc = "Tests for app call transactions"
 groups = ["Transaction Tests"]
 
 [suite."Generic Transaction"]

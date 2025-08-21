@@ -1,4 +1,4 @@
-pub mod application_call;
+pub mod app_call;
 pub mod asset_config;
 pub mod asset_freeze;
 pub mod asset_transfer;
@@ -11,7 +11,7 @@ pub mod sender;
 pub mod sender_results;
 
 // Re-export commonly used transaction types
-pub use application_call::{
+pub use app_call::{
     AppCallMethodCallParams, AppCallParams, AppCreateMethodCallParams, AppCreateParams,
     AppDeleteMethodCallParams, AppDeleteParams, AppMethodCallArg, AppUpdateMethodCallParams,
     AppUpdateParams,

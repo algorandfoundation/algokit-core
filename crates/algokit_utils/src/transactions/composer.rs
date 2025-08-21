@@ -30,7 +30,7 @@ use std::{collections::HashMap, sync::Arc};
 use crate::{
     AppMethodCallArg,
     transactions::{
-        application_call::{
+        app_call::{
             AppCallMethodCallParams, ProcessedAppMethodCallArg, build_app_call_method_call,
             build_app_create_method_call, build_app_delete_method_call,
             build_app_update_method_call,
@@ -39,7 +39,7 @@ use crate::{
     },
 };
 
-use super::application_call::{
+use super::app_call::{
     AppCallParams, AppCreateMethodCallParams, AppCreateParams, AppDeleteMethodCallParams,
     AppDeleteParams, AppUpdateMethodCallParams, AppUpdateParams, build_app_call,
     build_app_create_call, build_app_delete_call, build_app_update_call,
@@ -276,9 +276,9 @@ impl std::ops::Add for FeeDelta {
 enum FeePriority {
     /// Covered / Non-deficit transactions (lowest priority)
     Covered,
-    /// Application call transactions with deficits that can be modified
+    /// App call transactions with deficits that can be modified
     ModifiableDeficit(u64),
-    /// Non application call or immutable fee transactions with deficits (highest priority)
+    /// Non app call or immutable fee transactions with deficits (highest priority)
     ImmutableDeficit(u64),
 }
 
@@ -874,7 +874,7 @@ impl Composer {
                 let txn_header = txn_to_simulate.header_mut();
                 txn_header.group = None;
                 if build_params.cover_app_call_inner_transaction_fees {
-                    if let Transaction::ApplicationCall(_) = txn {
+                    if let Transaction::AppCall(_) = txn {
                         match ctxn.logical_max_fee() {
                             Some(logical_max_fee) => txn_header.fee = Some(logical_max_fee),
                             None => app_call_indexes_without_max_fees.push(group_index),
@@ -910,7 +910,7 @@ impl Composer {
         {
             return Err(ComposerError::StateError {
                 message: format!(
-                    "Please provide a max fee for each application call transaction when inner transaction fee coverage is enabled. Required for transaction {}",
+                    "Please provide a max fee for each app call transaction when inner transaction fee coverage is enabled. Required for transaction {}",
                     app_call_indexes_without_max_fees
                         .iter()
                         .map(|i| i.to_string())
@@ -945,7 +945,7 @@ impl Composer {
                 && failure_message.contains("fee too small")
             {
                 return Err(ComposerError::StateError {
-                    message: "Fees were too small to analyze group requirements via simulate. You may need to increase an application call transaction max fee.".to_string(),
+                    message: "Fees were too small to analyze group requirements via simulate. You may need to increase an app call transaction max fee.".to_string(),
                 });
             }
 
@@ -991,7 +991,7 @@ impl Composer {
                     let txn_fee_delta = FeeDelta::from_i64(min_txn_fee as i64 - txn_fee as i64);
 
                     match btxn {
-                        Transaction::ApplicationCall(_) => {
+                        Transaction::AppCall(_) => {
                             // Calculate inner transaction fee delta
                             let inner_txns_fee_delta = Self::calculate_inner_fee_delta(
                                 &simulate_txn_result.txn_result.inner_txns,
@@ -1242,13 +1242,11 @@ impl Composer {
                         };
                         let priority = match &transaction_analysis.required_fee_delta {
                             Some(FeeDelta::Deficit(amount)) => {
-                                if is_immutable_fee
-                                    || !matches!(txn, Transaction::ApplicationCall(_))
-                                {
+                                if is_immutable_fee || !matches!(txn, Transaction::AppCall(_)) {
                                     // High priority: transactions that can't be modified
                                     FeePriority::ImmutableDeficit(*amount)
                                 } else {
-                                    // Normal priority: application call transactions that can be modified
+                                    // Normal priority: app call transactions that can be modified
                                     FeePriority::ModifiableDeficit(*amount)
                                 }
                             }
@@ -1290,7 +1288,7 @@ impl Composer {
                     // If there is any additional fee deficit, the transaction must cover it by modifying the fee
                     if let Some(FeeDelta::Deficit(deficit_amount)) = additional_fee_delta {
                         match transactions[group_index] {
-                            Transaction::ApplicationCall(_) => {
+                            Transaction::AppCall(_) => {
                                 let txn_header = transactions[group_index].header_mut();
                                 let current_fee = txn_header.fee.unwrap_or(0);
                                 let transaction_fee = current_fee + deficit_amount;
@@ -1315,7 +1313,7 @@ impl Composer {
                             _ => {
                                 return Err(ComposerError::TransactionError {
                                     message: format!(
-                                        "An additional fee of {} µALGO is required for non application call transaction {}",
+                                        "An additional fee of {} µALGO is required for non app call transaction {}",
                                         deficit_amount, group_index
                                     ),
                                 });
@@ -1326,9 +1324,7 @@ impl Composer {
 
                 if let Some(resources_accessed) = resources_accessed {
                     // Apply the transaction level resource population logic
-                    if let Transaction::ApplicationCall(ref mut app_call) =
-                        transactions[group_index]
-                    {
+                    if let Transaction::AppCall(ref mut app_call) = transactions[group_index] {
                         // Check for unexpected resources at transaction level
                         if resources_accessed.boxes.is_some()
                             || resources_accessed.extra_box_refs.is_some()
@@ -1533,7 +1529,7 @@ impl Composer {
 
     // Helper function to check if an application call transaction is below resource limit
     fn is_app_call_below_resource_limit(txn: &Transaction) -> bool {
-        if let Transaction::ApplicationCall(app_call) = txn {
+        if let Transaction::AppCall(app_call) = txn {
             let accounts_count = app_call
                 .account_references
                 .as_ref()
@@ -1581,7 +1577,7 @@ impl Composer {
                         return false;
                     }
 
-                    if let Transaction::ApplicationCall(app_call) = txn {
+                    if let Transaction::AppCall(app_call) = txn {
                         // Check if account is in foreign accounts array
                         if let Some(ref accounts) = app_call.account_references {
                             let address = account.parse::<Address>().unwrap_or_default();
@@ -1609,9 +1605,7 @@ impl Composer {
                 });
 
                 if let Some(group_index) = group_index {
-                    if let Transaction::ApplicationCall(ref mut app_call) =
-                        transactions[group_index]
-                    {
+                    if let Transaction::AppCall(ref mut app_call) = transactions[group_index] {
                         match resource {
                             GroupResourceType::AssetHolding(asset_holding) => {
                                 let assets = app_call.asset_references.get_or_insert_with(Vec::new);
@@ -1638,7 +1632,7 @@ impl Composer {
                         return false;
                     }
 
-                    if let Transaction::ApplicationCall(app_call) = txn {
+                    if let Transaction::AppCall(app_call) = txn {
                         // Check if there's space in the accounts array
                         if app_call
                             .account_references
@@ -1670,9 +1664,7 @@ impl Composer {
                 });
 
                 if let Some(group_index) = group_index {
-                    if let Transaction::ApplicationCall(ref mut app_call) =
-                        transactions[group_index]
-                    {
+                    if let Transaction::AppCall(ref mut app_call) = transactions[group_index] {
                         let accounts = app_call.account_references.get_or_insert_with(Vec::new);
                         let address = account.parse::<Address>().map_err(|e| {
                             ComposerError::TransactionError {
@@ -1693,7 +1685,7 @@ impl Composer {
                         return false;
                     }
 
-                    if let Transaction::ApplicationCall(app_call) = txn {
+                    if let Transaction::AppCall(app_call) = txn {
                         // Check if the app is in the foreign array OR the app being called
                         if let Some(ref apps) = app_call.app_references {
                             if apps.contains(&box_ref.app) {
@@ -1707,9 +1699,7 @@ impl Composer {
                 });
 
                 if let Some(group_index) = group_index {
-                    if let Transaction::ApplicationCall(ref mut app_call) =
-                        transactions[group_index]
-                    {
+                    if let Transaction::AppCall(ref mut app_call) = transactions[group_index] {
                         let boxes = app_call.box_references.get_or_insert_with(Vec::new);
                         if !boxes
                             .iter()
@@ -1729,7 +1719,7 @@ impl Composer {
 
         // Find the transaction index to put the reference(s)
         let group_index = transactions.iter().position(|txn| {
-            if let Transaction::ApplicationCall(app_call) = txn {
+            if let Transaction::AppCall(app_call) = txn {
                 let accounts_count = app_call
                     .account_references
                     .as_ref()
@@ -1787,7 +1777,7 @@ impl Composer {
                     .to_string(),
         })?;
 
-        if let Transaction::ApplicationCall(ref mut app_call) = transactions[group_index] {
+        if let Transaction::AppCall(ref mut app_call) = transactions[group_index] {
             match resource {
                 GroupResourceType::Account(account) => {
                     let accounts = app_call.account_references.get_or_insert_with(Vec::new);

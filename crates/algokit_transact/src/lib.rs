@@ -15,12 +15,12 @@ pub use keypair_account::KeyPairAccount;
 pub use multisig::*;
 pub use traits::{AlgorandMsgpack, EstimateTransactionSize, TransactionId, Transactions, Validate};
 pub use transactions::{
-    ApplicationCallTransactionBuilder, ApplicationCallTransactionFields,
-    AssetConfigTransactionBuilder, AssetConfigTransactionFields, AssetFreezeTransactionBuilder,
-    AssetFreezeTransactionFields, AssetTransferTransactionBuilder, AssetTransferTransactionFields,
-    BoxReference, FeeParams, KeyRegistrationTransactionBuilder, KeyRegistrationTransactionFields,
-    OnApplicationComplete, PaymentTransactionBuilder, PaymentTransactionFields, SignedTransaction,
-    StateSchema, Transaction, TransactionHeader, TransactionHeaderBuilder,
+    AppCallTransactionBuilder, AppCallTransactionFields, AssetConfigTransactionBuilder,
+    AssetConfigTransactionFields, AssetFreezeTransactionBuilder, AssetFreezeTransactionFields,
+    AssetTransferTransactionBuilder, AssetTransferTransactionFields, BoxReference, FeeParams,
+    KeyRegistrationTransactionBuilder, KeyRegistrationTransactionFields, OnApplicationComplete,
+    PaymentTransactionBuilder, PaymentTransactionFields, SignedTransaction, StateSchema,
+    Transaction, TransactionHeader, TransactionHeaderBuilder,
 };
 
 #[cfg(feature = "test_utils")]

@@ -51,15 +51,15 @@ pub enum AppStateValue {
 
 #[derive(Debug, Clone)]
 pub struct AppInformation {
-    /// The application ID
+    /// The app ID
     pub app_id: u64,
-    /// The address of the application account
+    /// The address of the app account
     pub app_address: Address,
     /// The approval program as bytecode
     pub approval_program: Vec<u8>,
     /// The clear state program as bytecode
     pub clear_state_program: Vec<u8>,
-    /// The creator address of the application
+    /// The creator address of the app
     pub creator: String,
     /// Number of local state integers allocated
     pub local_ints: u32,
@@ -71,7 +71,7 @@ pub struct AppInformation {
     pub global_byte_slices: u32,
     /// Number of extra program pages (if any)
     pub extra_program_pages: Option<u32>,
-    /// The current global state of the application
+    /// The current global state of the app
     /// Keys are stored as Vec<u8> for binary data support, matching TypeScript UInt8Array typing
     pub global_state: HashMap<Vec<u8>, AppState>,
 }
@@ -94,7 +94,7 @@ pub type BoxIdentifier = Vec<u8>;
 pub const UPDATABLE_TEMPLATE_NAME: &str = "TMPL_UPDATABLE";
 pub const DELETABLE_TEMPLATE_NAME: &str = "TMPL_DELETABLE";
 
-/// Manages TEAL compilation and application state.
+/// Manages TEAL compilation and app state.
 #[derive(Clone)]
 pub struct AppManager {
     algod_client: Arc<AlgodClient>,
@@ -228,7 +228,7 @@ impl AppManager {
         })
     }
 
-    /// Get global state of application.
+    /// Get global state of an application.
     /// Returns state keys as Vec<u8> for binary data support, matching TypeScript UInt8Array typing.
     pub async fn get_global_state(
         &self,
@@ -238,7 +238,7 @@ impl AppManager {
         Ok(app_info.global_state)
     }
 
-    /// Get local state for account in application.
+    /// Get local state for account in an application.
     /// Returns state keys as Vec<u8> for binary data support, matching TypeScript UInt8Array typing.
     pub async fn get_local_state(
         &self,
@@ -325,7 +325,7 @@ impl AppManager {
     /// TypeScript and Python implementations.
     ///
     /// # Arguments
-    /// * `app_id` - The application ID
+    /// * `app_id` - The app ID
     /// * `box_name` - The box name identifier
     /// * `abi_type` - The ABI type to use for decoding
     ///
@@ -354,7 +354,7 @@ impl AppManager {
     /// TypeScript and Python implementations.
     ///
     /// # Arguments
-    /// * `app_id` - The application ID
+    /// * `app_id` - The app ID
     /// * `box_names` - The box name identifiers
     /// * `abi_type` - The ABI type to use for decoding
     ///

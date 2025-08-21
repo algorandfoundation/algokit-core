@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use serde_bytes::ByteBuf;
 
 pub use multisig::{MultisigSignature, MultisigSubsignature};
-pub use transactions::ApplicationCallTransactionFields;
+pub use transactions::AppCallTransactionFields;
 pub use transactions::AssetConfigTransactionFields;
 pub use transactions::AssetFreezeTransactionFields;
 pub use transactions::AssetTransferTransactionFields;
@@ -133,7 +133,7 @@ pub enum TransactionType {
     AssetFreeze,
     AssetConfig,
     KeyRegistration,
-    ApplicationCall,
+    AppCall,
 }
 
 #[ffi_record]
@@ -222,7 +222,7 @@ pub struct Transaction {
 
     asset_config: Option<AssetConfigTransactionFields>,
 
-    application_call: Option<ApplicationCallTransactionFields>,
+    app_call: Option<AppCallTransactionFields>,
 
     key_registration: Option<KeyRegistrationTransactionFields>,
 
@@ -239,7 +239,7 @@ impl TryFrom<Transaction> for algokit_transact::Transaction {
             tx.asset_transfer.is_some(),
             tx.asset_config.is_some(),
             tx.key_registration.is_some(),
-            tx.application_call.is_some(),
+            tx.app_call.is_some(),
             tx.asset_freeze.is_some(),
         ]
         .into_iter()
@@ -265,9 +265,7 @@ impl TryFrom<Transaction> for algokit_transact::Transaction {
                 Ok(algokit_transact::Transaction::AssetConfig(tx.try_into()?))
             }
 
-            TransactionType::ApplicationCall => Ok(algokit_transact::Transaction::ApplicationCall(
-                tx.try_into()?,
-            )),
+            TransactionType::AppCall => Ok(algokit_transact::Transaction::AppCall(tx.try_into()?)),
             TransactionType::AssetFreeze => {
                 Ok(algokit_transact::Transaction::AssetFreeze(tx.try_into()?))
             }
@@ -347,15 +345,15 @@ impl TryFrom<algokit_transact::Transaction> for Transaction {
                     None,
                 )
             }
-            algokit_transact::Transaction::ApplicationCall(application_call) => {
-                let application_call_fields = application_call.clone().into();
+            algokit_transact::Transaction::AppCall(app_call) => {
+                let app_call_fields = app_call.clone().into();
                 build_transaction(
-                    application_call.header,
-                    TransactionType::ApplicationCall,
+                    app_call.header,
+                    TransactionType::AppCall,
                     None,
                     None,
                     None,
-                    Some(application_call_fields),
+                    Some(app_call_fields),
                     None,
                     None,
                 )
@@ -463,7 +461,7 @@ fn build_transaction(
     payment: Option<PaymentTransactionFields>,
     asset_transfer: Option<AssetTransferTransactionFields>,
     asset_config: Option<AssetConfigTransactionFields>,
-    application_call: Option<ApplicationCallTransactionFields>,
+    app_call: Option<AppCallTransactionFields>,
     key_registration: Option<KeyRegistrationTransactionFields>,
     asset_freeze: Option<AssetFreezeTransactionFields>,
 ) -> Result<Transaction, AlgoKitTransactError> {
@@ -482,7 +480,7 @@ fn build_transaction(
         payment,
         asset_transfer,
         asset_config,
-        application_call,
+        app_call,
         key_registration,
         asset_freeze,
     })
@@ -501,7 +499,7 @@ pub fn get_encoded_transaction_type(bytes: &[u8]) -> Result<TransactionType, Alg
         algokit_transact::Transaction::Payment(_) => Ok(TransactionType::Payment),
         algokit_transact::Transaction::AssetTransfer(_) => Ok(TransactionType::AssetTransfer),
         algokit_transact::Transaction::AssetConfig(_) => Ok(TransactionType::AssetConfig),
-        algokit_transact::Transaction::ApplicationCall(_) => Ok(TransactionType::ApplicationCall),
+        algokit_transact::Transaction::AppCall(_) => Ok(TransactionType::AppCall),
         algokit_transact::Transaction::KeyRegistration(_) => Ok(TransactionType::KeyRegistration),
         algokit_transact::Transaction::AssetFreeze(_) => Ok(TransactionType::AssetFreeze),
     }

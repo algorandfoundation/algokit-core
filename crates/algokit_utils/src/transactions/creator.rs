@@ -138,39 +138,27 @@ impl TransactionCreator {
             .await
     }
 
-    pub async fn application_call(
-        &self,
-        params: AppCallParams,
-    ) -> Result<Transaction, ComposerError> {
+    pub async fn app_call(&self, params: AppCallParams) -> Result<Transaction, ComposerError> {
         self.transaction(|composer| composer.add_app_call(params))
             .await
     }
 
-    pub async fn application_create(
-        &self,
-        params: AppCreateParams,
-    ) -> Result<Transaction, ComposerError> {
+    pub async fn app_create(&self, params: AppCreateParams) -> Result<Transaction, ComposerError> {
         self.transaction(|composer| composer.add_app_create(params))
             .await
     }
 
-    pub async fn application_update(
-        &self,
-        params: AppUpdateParams,
-    ) -> Result<Transaction, ComposerError> {
+    pub async fn app_update(&self, params: AppUpdateParams) -> Result<Transaction, ComposerError> {
         self.transaction(|composer| composer.add_app_update(params))
             .await
     }
 
-    pub async fn application_delete(
-        &self,
-        params: AppDeleteParams,
-    ) -> Result<Transaction, ComposerError> {
+    pub async fn app_delete(&self, params: AppDeleteParams) -> Result<Transaction, ComposerError> {
         self.transaction(|composer| composer.add_app_delete(params))
             .await
     }
 
-    pub async fn application_method_call(
+    pub async fn app_call_method_call(
         &self,
         params: AppCallMethodCallParams,
     ) -> Result<BuiltTransactions, ComposerError> {
@@ -178,7 +166,7 @@ impl TransactionCreator {
             .await
     }
 
-    pub async fn application_create_method_call(
+    pub async fn app_create_method_call(
         &self,
         params: AppCreateMethodCallParams,
     ) -> Result<BuiltTransactions, ComposerError> {
@@ -186,7 +174,7 @@ impl TransactionCreator {
             .await
     }
 
-    pub async fn application_update_method_call(
+    pub async fn app_update_method_call(
         &self,
         params: AppUpdateMethodCallParams,
     ) -> Result<BuiltTransactions, ComposerError> {
@@ -194,7 +182,7 @@ impl TransactionCreator {
             .await
     }
 
-    pub async fn application_delete_method_call(
+    pub async fn app_delete_method_call(
         &self,
         params: AppDeleteMethodCallParams,
     ) -> Result<BuiltTransactions, ComposerError> {

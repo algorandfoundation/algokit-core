@@ -1,4 +1,4 @@
-mod application_call;
+mod app_call;
 mod asset_config;
 mod asset_freeze;
 mod key_registration;
@@ -17,7 +17,7 @@ use serde_json::to_writer_pretty;
 use std::vec;
 use std::{fs::File, str::FromStr};
 
-pub use application_call::ApplicationCallTransactionMother;
+pub use app_call::AppCallTransactionMother;
 pub use asset_config::AssetConfigTransactionMother;
 pub use asset_freeze::AssetFreezeTransactionMother;
 pub use key_registration::KeyRegistrationTransactionMother;
@@ -413,31 +413,23 @@ impl TestDataMother {
         TransactionTestData::new(transaction, SIGNING_PRIVATE_KEY)
     }
 
-    pub fn application_create() -> TransactionTestData {
-        let transaction = ApplicationCallTransactionMother::application_create()
-            .build()
-            .unwrap();
+    pub fn app_create() -> TransactionTestData {
+        let transaction = AppCallTransactionMother::app_create().build().unwrap();
         TransactionTestData::new(transaction, SIGNING_PRIVATE_KEY)
     }
 
-    pub fn application_update() -> TransactionTestData {
-        let transaction = ApplicationCallTransactionMother::application_update()
-            .build()
-            .unwrap();
+    pub fn app_update() -> TransactionTestData {
+        let transaction = AppCallTransactionMother::app_update().build().unwrap();
         TransactionTestData::new(transaction, SIGNING_PRIVATE_KEY)
     }
 
-    pub fn application_delete() -> TransactionTestData {
-        let transaction = ApplicationCallTransactionMother::application_delete()
-            .build()
-            .unwrap();
+    pub fn app_delete() -> TransactionTestData {
+        let transaction = AppCallTransactionMother::app_delete().build().unwrap();
         TransactionTestData::new(transaction, SIGNING_PRIVATE_KEY)
     }
 
-    pub fn application_call() -> TransactionTestData {
-        let transaction = ApplicationCallTransactionMother::application_call()
-            .build()
-            .unwrap();
+    pub fn app_call() -> TransactionTestData {
+        let transaction = AppCallTransactionMother::app_call().build().unwrap();
         TransactionTestData::new(transaction, SIGNING_PRIVATE_KEY)
     }
 
@@ -517,10 +509,10 @@ impl TestDataMother {
         let test_data = normalise_json(serde_json::json!({
             "simple_payment": Self::simple_payment().as_json(&transform),
             "opt_in_asset_transfer": Self::opt_in_asset_transfer().as_json(&transform),
-            "application_create": Self::application_create().as_json(&transform),
-            "application_update": Self::application_update().as_json(&transform),
-            "application_delete": Self::application_delete().as_json(&transform),
-            "application_call": Self::application_call().as_json(&transform),
+            "app_create": Self::app_create().as_json(&transform),
+            "app_update": Self::app_update().as_json(&transform),
+            "app_delete": Self::app_delete().as_json(&transform),
+            "app_call": Self::app_call().as_json(&transform),
             "asset_create": Self::asset_create().as_json(&transform),
             "asset_destroy": Self::asset_destroy().as_json(&transform),
             "asset_reconfigure": Self::asset_reconfigure().as_json(&transform),

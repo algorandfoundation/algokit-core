@@ -14,14 +14,14 @@ import {
 } from "./transaction_asserts";
 
 const txnTestData = Object.entries({
-  ["application call"]: testData.applicationCall,
-  ["application create"]: testData.applicationCreate,
-  ["application update"]: testData.applicationUpdate,
-  ["application delete"]: testData.applicationDelete,
+  ["app call"]: testData.appCall,
+  ["app create"]: testData.appCreate,
+  ["app update"]: testData.appUpdate,
+  ["app delete"]: testData.appDelete,
 });
 
-describe("Application Call", () => {
-  // Polytest Suite: Application Call
+describe("App Call", () => {
+  // Polytest Suite: App Call
 
   describe("Transaction Tests", () => {
     // Polytest Group: Transaction Tests

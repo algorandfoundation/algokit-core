@@ -13,7 +13,7 @@ use algokit_abi::{
     abi_type::BitSize,
 };
 use algokit_transact::{
-    Address, ApplicationCallTransactionBuilder, ApplicationCallTransactionFields, BoxReference,
+    Address, AppCallTransactionBuilder, AppCallTransactionFields, BoxReference,
     OnApplicationComplete, StateSchema, Transaction, TransactionHeader,
 };
 use num_bigint::BigUint;
@@ -70,24 +70,24 @@ pub trait ValidMethodCallArg: sealed::ValidMethodCallArgSealed {}
 impl ValidMethodCallArg for AppMethodCallArg {}
 impl ValidMethodCallArg for ProcessedAppMethodCallArg {}
 
-/// Parameters for application call transactions.
+/// Parameters for app call transactions.
 #[derive(Debug, Default, Clone)]
 pub struct AppCallParams {
     pub common_params: CommonParams,
-    /// ID of the application being called.
+    /// ID of the app being called.
     pub app_id: u64,
     /// Defines what additional actions occur with the transaction.
     pub on_complete: OnApplicationComplete,
-    /// Transaction specific arguments available in the application's
+    /// Transaction specific arguments available in the app's
     /// approval program and clear state program.
     pub args: Option<Vec<Vec<u8>>>,
     /// List of accounts in addition to the sender that may be accessed
-    /// from the application's approval program and clear state program.
+    /// from the app's approval program and clear state program.
     pub account_references: Option<Vec<Address>>,
-    /// List of applications in addition to the current application that may be called
-    /// from the application's approval program and clear state program.
+    /// List of apps in addition to the current app that may be called
+    /// from the app's approval program and clear state program.
     pub app_references: Option<Vec<u64>>,
-    /// Lists the assets whose parameters may be accessed by this application's
+    /// Lists the assets whose parameters may be accessed by this app's
     /// approval program and clear state program.
     ///
     /// The access is read-only.
@@ -96,18 +96,18 @@ pub struct AppCallParams {
     pub box_references: Option<Vec<BoxReference>>,
 }
 
-/// Parameters for application create transactions.
+/// Parameters for app create transactions.
 #[derive(Debug, Default, Clone)]
 pub struct AppCreateParams {
     pub common_params: CommonParams,
     /// Defines what additional actions occur with the transaction.
     pub on_complete: OnApplicationComplete,
-    /// Logic executed for every application call transaction, except when
+    /// Logic executed for every app call transaction, except when
     /// on-completion is set to "clear".
     ///
     /// Approval programs may reject the transaction.
     pub approval_program: Vec<u8>,
-    /// Logic executed for application call transactions with on-completion set to "clear".
+    /// Logic executed for app call transactions with on-completion set to "clear".
     ///
     /// Clear state programs cannot reject the transaction.
     pub clear_state_program: Vec<u8>,
@@ -119,7 +119,7 @@ pub struct AppCreateParams {
     ///
     /// This cannot be changed after creation.
     pub local_state_schema: Option<StateSchema>,
-    /// Number of additional pages allocated to the application's approval
+    /// Number of additional pages allocated to the app's approval
     /// and clear state programs.
     ///
     /// Each extra program page is 2048 bytes. The sum of approval program
@@ -127,16 +127,16 @@ pub struct AppCreateParams {
     /// Currently, the maximum value is 3.
     /// This cannot be changed after creation.
     pub extra_program_pages: Option<u64>,
-    /// Transaction specific arguments available in the application's
+    /// Transaction specific arguments available in the app's
     /// approval program and clear state program.
     pub args: Option<Vec<Vec<u8>>>,
     /// List of accounts in addition to the sender that may be accessed
-    /// from the application's approval program and clear state program.
+    /// from the app's approval program and clear state program.
     pub account_references: Option<Vec<Address>>,
-    /// List of applications in addition to the current application that may be called
-    /// from the application's approval program and clear state program.
+    /// List of apps in addition to the current app that may be called
+    /// from the app's approval program and clear state program.
     pub app_references: Option<Vec<u64>>,
-    /// Lists the assets whose parameters may be accessed by this application's
+    /// Lists the assets whose parameters may be accessed by this app's
     /// approval program and clear state program.
     ///
     /// The access is read-only.
@@ -145,22 +145,22 @@ pub struct AppCreateParams {
     pub box_references: Option<Vec<BoxReference>>,
 }
 
-/// Parameters for application delete transactions.
+/// Parameters for app delete transactions.
 #[derive(Debug, Default, Clone)]
 pub struct AppDeleteParams {
     pub common_params: CommonParams,
-    /// ID of the application being deleted.
+    /// ID of the app being deleted.
     pub app_id: u64,
-    /// Transaction specific arguments available in the application's
+    /// Transaction specific arguments available in the app's
     /// approval program and clear state program.
     pub args: Option<Vec<Vec<u8>>>,
     /// List of accounts in addition to the sender that may be accessed
-    /// from the application's approval program and clear state program.
+    /// from the app's approval program and clear state program.
     pub account_references: Option<Vec<Address>>,
-    /// List of applications in addition to the current application that may be called
-    /// from the application's approval program and clear state program.
+    /// List of apps in addition to the current app that may be called
+    /// from the app's approval program and clear state program.
     pub app_references: Option<Vec<u64>>,
-    /// Lists the assets whose parameters may be accessed by this application's
+    /// Lists the assets whose parameters may be accessed by this app's
     /// approval program and clear state program.
     ///
     /// The access is read-only.
@@ -169,31 +169,31 @@ pub struct AppDeleteParams {
     pub box_references: Option<Vec<BoxReference>>,
 }
 
-/// Parameters for application update transactions.
+/// Parameters for app update transactions.
 #[derive(Debug, Default, Clone)]
 pub struct AppUpdateParams {
     pub common_params: CommonParams,
-    /// ID of the application being updated.
+    /// ID of the app being updated.
     pub app_id: u64,
-    /// Logic executed for every application call transaction, except when
+    /// Logic executed for every app call transaction, except when
     /// on-completion is set to "clear".
     ///
     /// Approval programs may reject the transaction.
     pub approval_program: Vec<u8>,
-    /// Logic executed for application call transactions with on-completion set to "clear".
+    /// Logic executed for app call transactions with on-completion set to "clear".
     ///
     /// Clear state programs cannot reject the transaction.
     pub clear_state_program: Vec<u8>,
-    /// Transaction specific arguments available in the application's
+    /// Transaction specific arguments available in the app's
     /// approval program and clear state program.
     pub args: Option<Vec<Vec<u8>>>,
     /// List of accounts in addition to the sender that may be accessed
-    /// from the application's approval program and clear state program.
+    /// from the app's approval program and clear state program.
     pub account_references: Option<Vec<Address>>,
-    /// List of applications in addition to the current application that may be called
-    /// from the application's approval program and clear state program.
+    /// List of apps in addition to the current app that may be called
+    /// from the app's approval program and clear state program.
     pub app_references: Option<Vec<u64>>,
-    /// Lists the assets whose parameters may be accessed by this application's
+    /// Lists the assets whose parameters may be accessed by this app's
     /// approval program and clear state program.
     ///
     /// The access is read-only.
@@ -202,27 +202,27 @@ pub struct AppUpdateParams {
     pub box_references: Option<Vec<BoxReference>>,
 }
 
-/// Parameters for application method call transactions.
+/// Parameters for app method call transactions.
 #[derive(Debug, Default, Clone)]
 pub struct AppCallMethodCallParams<T = AppMethodCallArg>
 where
     T: ValidMethodCallArg,
 {
     pub common_params: CommonParams,
-    /// ID of the application being called.
+    /// ID of the app being called.
     pub app_id: u64,
     /// The ABI method to call.
     pub method: ABIMethod,
-    /// Transaction specific arguments available in the application's
+    /// Transaction specific arguments available in the app's
     /// approval program and clear state program.
     pub args: Vec<T>,
     /// List of accounts in addition to the sender that may be accessed
-    /// from the application's approval program and clear state program.
+    /// from the app's approval program and clear state program.
     pub account_references: Option<Vec<Address>>,
-    /// List of applications in addition to the current application that may be called
-    /// from the application's approval program and clear state program.
+    /// List of apps in addition to the current app that may be called
+    /// from the app's approval program and clear state program.
     pub app_references: Option<Vec<u64>>,
-    /// Lists the assets whose parameters may be accessed by this application's
+    /// Lists the assets whose parameters may be accessed by this app's
     /// approval program and clear state program.
     ///
     /// The access is read-only.
@@ -233,7 +233,7 @@ where
     pub on_complete: OnApplicationComplete,
 }
 
-/// Parameters for application create method call transactions.
+/// Parameters for app create method call transactions.
 #[derive(Debug, Default, Clone)]
 pub struct AppCreateMethodCallParams<T = AppMethodCallArg>
 where
@@ -242,12 +242,12 @@ where
     pub common_params: CommonParams,
     /// Defines what additional actions occur with the transaction.
     pub on_complete: OnApplicationComplete,
-    /// Logic executed for every application call transaction, except when
+    /// Logic executed for every app call transaction, except when
     /// on-completion is set to "clear".
     ///
     /// Approval programs may reject the transaction.
     pub approval_program: Vec<u8>,
-    /// Logic executed for application call transactions with on-completion set to "clear".
+    /// Logic executed for app call transactions with on-completion set to "clear".
     ///
     /// Clear state programs cannot reject the transaction.
     pub clear_state_program: Vec<u8>,
@@ -259,7 +259,7 @@ where
     ///
     /// This cannot be changed after creation.
     pub local_state_schema: Option<StateSchema>,
-    /// Number of additional pages allocated to the application's approval
+    /// Number of additional pages allocated to the app's approval
     /// and clear state programs.
     ///
     /// Each extra program page is 2048 bytes. The sum of approval program
@@ -269,16 +269,16 @@ where
     pub extra_program_pages: Option<u64>,
     /// The ABI method to call.
     pub method: ABIMethod,
-    /// Transaction specific arguments available in the application's
+    /// Transaction specific arguments available in the app's
     /// approval program and clear state program.
     pub args: Vec<T>,
     /// List of accounts in addition to the sender that may be accessed
-    /// from the application's approval program and clear state program.
+    /// from the app's approval program and clear state program.
     pub account_references: Option<Vec<Address>>,
-    /// List of applications in addition to the current application that may be called
-    /// from the application's approval program and clear state program.
+    /// List of apps in addition to the current app that may be called
+    /// from the app's approval program and clear state program.
     pub app_references: Option<Vec<u64>>,
-    /// Lists the assets whose parameters may be accessed by this application's
+    /// Lists the assets whose parameters may be accessed by this app's
     /// approval program and clear state program.
     ///
     /// The access is read-only.
@@ -287,36 +287,36 @@ where
     pub box_references: Option<Vec<BoxReference>>,
 }
 
-/// Parameters for application update method call transactions.
+/// Parameters for app update method call transactions.
 #[derive(Debug, Default, Clone)]
 pub struct AppUpdateMethodCallParams<T = AppMethodCallArg>
 where
     T: ValidMethodCallArg,
 {
     pub common_params: CommonParams,
-    /// ID of the application being updated.
+    /// ID of the app being updated.
     pub app_id: u64,
-    /// Logic executed for every application call transaction, except when
+    /// Logic executed for every app call transaction, except when
     /// on-completion is set to "clear".
     ///
     /// Approval programs may reject the transaction.
     pub approval_program: Vec<u8>,
-    /// Logic executed for application call transactions with on-completion set to "clear".
+    /// Logic executed for app call transactions with on-completion set to "clear".
     ///
     /// Clear state programs cannot reject the transaction.
     pub clear_state_program: Vec<u8>,
     /// The ABI method to call.
     pub method: ABIMethod,
-    /// Transaction specific arguments available in the application's
+    /// Transaction specific arguments available in the app's
     /// approval program and clear state program.
     pub args: Vec<T>,
     /// List of accounts in addition to the sender that may be accessed
-    /// from the application's approval program and clear state program.
+    /// from the app's approval program and clear state program.
     pub account_references: Option<Vec<Address>>,
-    /// List of applications in addition to the current application that may be called
-    /// from the application's approval program and clear state program.
+    /// List of apps in addition to the current app that may be called
+    /// from the app's approval program and clear state program.
     pub app_references: Option<Vec<u64>>,
-    /// Lists the assets whose parameters may be accessed by this application's
+    /// Lists the assets whose parameters may be accessed by this app's
     /// approval program and clear state program.
     ///
     /// The access is read-only.
@@ -325,27 +325,27 @@ where
     pub box_references: Option<Vec<BoxReference>>,
 }
 
-/// Parameters for application delete method call transactions.
+/// Parameters for app delete method call transactions.
 #[derive(Debug, Default, Clone)]
 pub struct AppDeleteMethodCallParams<T = AppMethodCallArg>
 where
     T: ValidMethodCallArg,
 {
     pub common_params: CommonParams,
-    /// ID of the application being deleted.
+    /// ID of the app being deleted.
     pub app_id: u64,
     /// The ABI method to call.
     pub method: ABIMethod,
-    /// Transaction specific arguments available in the application's
+    /// Transaction specific arguments available in the app's
     /// approval program and clear state program.
     pub args: Vec<T>,
     /// List of accounts in addition to the sender that may be accessed
-    /// from the application's approval program and clear state program.
+    /// from the app's approval program and clear state program.
     pub account_references: Option<Vec<Address>>,
-    /// List of applications in addition to the current application that may be called
-    /// from the application's approval program and clear state program.
+    /// List of apps in addition to the current app that may be called
+    /// from the app's approval program and clear state program.
     pub app_references: Option<Vec<u64>>,
-    /// Lists the assets whose parameters may be accessed by this application's
+    /// Lists the assets whose parameters may be accessed by this app's
     /// approval program and clear state program.
     ///
     /// The access is read-only.
@@ -641,13 +641,13 @@ fn calculate_method_arg_reference_array_index(
         }
         ABIReferenceValue::Application(app_id_ref) => {
             if *app_id_ref == app_id {
-                // If application ID is the same as the current app, use index 0
+                // If app ID is the same as the current app, use index 0
                 Ok(0)
             } else if let Some(existing_index) = app_references
                 .iter()
                 .position(|&ref_id| ref_id == *app_id_ref)
             {
-                // If application already exists in app_references, use existing index + 1
+                // If app already exists in app_references, use existing index + 1
                 Ok((existing_index + 1) as u8)
             } else {
                 Err(ComposerError::ABIEncodingError {
@@ -766,7 +766,7 @@ pub fn build_app_call(
     params: &AppCallParams,
     header: TransactionHeader,
 ) -> Result<Transaction, String> {
-    let mut builder = ApplicationCallTransactionBuilder::default();
+    let mut builder = AppCallTransactionBuilder::default();
     builder
         .header(header)
         .app_id(params.app_id)
@@ -796,7 +796,7 @@ pub fn build_app_call(
 }
 
 pub fn build_app_create_call(params: &AppCreateParams, header: TransactionHeader) -> Transaction {
-    Transaction::ApplicationCall(ApplicationCallTransactionFields {
+    Transaction::AppCall(AppCallTransactionFields {
         header,
         app_id: 0,
         on_complete: params.on_complete,
@@ -814,7 +814,7 @@ pub fn build_app_create_call(params: &AppCreateParams, header: TransactionHeader
 }
 
 pub fn build_app_update_call(params: &AppUpdateParams, header: TransactionHeader) -> Transaction {
-    Transaction::ApplicationCall(ApplicationCallTransactionFields {
+    Transaction::AppCall(AppCallTransactionFields {
         header,
         app_id: params.app_id,
         on_complete: OnApplicationComplete::UpdateApplication,
@@ -832,7 +832,7 @@ pub fn build_app_update_call(params: &AppUpdateParams, header: TransactionHeader
 }
 
 pub fn build_app_delete_call(params: &AppDeleteParams, header: TransactionHeader) -> Transaction {
-    Transaction::ApplicationCall(ApplicationCallTransactionFields {
+    Transaction::AppCall(AppCallTransactionFields {
         header,
         app_id: params.app_id,
         on_complete: OnApplicationComplete::DeleteApplication,
@@ -908,7 +908,7 @@ pub fn build_app_call_method_call(
         header.clone(),
         params,
         |header, account_refs, app_refs, asset_refs, encoded_args| {
-            Transaction::ApplicationCall(algokit_transact::ApplicationCallTransactionFields {
+            Transaction::AppCall(algokit_transact::AppCallTransactionFields {
                 header,
                 app_id: params.app_id,
                 on_complete: params.on_complete,
@@ -935,9 +935,9 @@ pub fn build_app_create_method_call(
         header.clone(),
         params,
         |header, account_refs, app_refs, asset_refs, encoded_args| {
-            Transaction::ApplicationCall(algokit_transact::ApplicationCallTransactionFields {
+            Transaction::AppCall(algokit_transact::AppCallTransactionFields {
                 header,
-                app_id: 0, // 0 indicates application creation
+                app_id: 0, // 0 indicates app creation
                 on_complete: params.on_complete,
                 approval_program: Some(params.approval_program.clone()),
                 clear_state_program: Some(params.clear_state_program.clone()),
@@ -962,7 +962,7 @@ pub fn build_app_update_method_call(
         header.clone(),
         params,
         |header, account_refs, app_refs, asset_refs, encoded_args| {
-            Transaction::ApplicationCall(algokit_transact::ApplicationCallTransactionFields {
+            Transaction::AppCall(algokit_transact::AppCallTransactionFields {
                 header,
                 app_id: params.app_id,
                 on_complete: OnApplicationComplete::UpdateApplication,
@@ -989,7 +989,7 @@ pub fn build_app_delete_method_call(
         header.clone(),
         params,
         |header, account_refs, app_refs, asset_refs, encoded_args| {
-            Transaction::ApplicationCall(algokit_transact::ApplicationCallTransactionFields {
+            Transaction::AppCall(algokit_transact::AppCallTransactionFields {
                 header,
                 app_id: params.app_id,
                 on_complete: OnApplicationComplete::DeleteApplication,

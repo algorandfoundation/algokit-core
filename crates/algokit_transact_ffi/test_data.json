@@ -1,5 +1,5 @@
 {
-  "applicationCall": {
+  "appCall": {
     "id": "6Y644M5SGTKNBH7ZX6D7QAAHDF6YL6FDJPRAGSUHNZLR4IKGVSPQ",
     "idRaw": [
       246,
@@ -1634,7 +1634,7 @@
       44
     ],
     "transaction": {
-      "applicationCall": {
+      "appCall": {
         "accountReferences": [
           "KVAGZI3WJI36TTTKJUI36ECGP3NHGR5VBJNIXG3DROHPGH2XFC36D4HENE",
           "KVAGZI3WJI36TTTKJUI36ECGP3NHGR5VBJNIXG3DROHPGH2XFC36D4HENE"
@@ -1825,7 +1825,7 @@
         64
       ],
       "sender": "KVAGZI3WJI36TTTKJUI36ECGP3NHGR5VBJNIXG3DROHPGH2XFC36D4HENE",
-      "transactionType": "ApplicationCall"
+      "transactionType": "AppCall"
     },
     "unsignedBytes": [
       84,
@@ -2207,7 +2207,7 @@
       108
     ]
   },
-  "applicationCreate": {
+  "appCreate": {
     "id": "L6B56N2BAXE43PUI7IDBXCJN5DEB6NLCH4AAN3ON64CXPSCTJNTA",
     "idRaw": [
       95,
@@ -6869,7 +6869,7 @@
       44
     ],
     "transaction": {
-      "applicationCall": {
+      "appCall": {
         "appId": 0,
         "approvalProgram": [
           6,
@@ -8142,7 +8142,7 @@
         116
       ],
       "sender": "3Y62HTJ4WYSIEKC74XE3F2JFCS7774EN3CYNUHQCEFIN7QBYFAWLKE5MFY",
-      "transactionType": "ApplicationCall"
+      "transactionType": "AppCall"
     },
     "unsignedBytes": [
       84,
@@ -9533,7 +9533,7 @@
       108
     ]
   },
-  "applicationDelete": {
+  "appDelete": {
     "id": "XVVC7UDLCPI622KCJZLWK3SEAWWVUEPEXUM5CO3DFLWOBH7NOPDQ",
     "idRaw": [
       189,
@@ -10826,7 +10826,7 @@
       44
     ],
     "transaction": {
-      "applicationCall": {
+      "appCall": {
         "accountReferences": [
           "MDIVKI64M2HEKCWKH7SOTUXEEW6KNOYSAOBTDTS32KUQOGUT75D43MSP5M",
           "H3OQEQIIC35RZTJNU5A75LT4PCTUCF3VKVEQTSXAJMUGNTRUKEKI4QSRW4",
@@ -10877,7 +10877,7 @@
       "genesisId": "mainnet-v1.0",
       "lastValid": 39724798,
       "sender": "H3OQEQIIC35RZTJNU5A75LT4PCTUCF3VKVEQTSXAJMUGNTRUKEKI4QSRW4",
-      "transactionType": "ApplicationCall"
+      "transactionType": "AppCall"
     },
     "unsignedBytes": [
       84,
@@ -11145,7 +11145,7 @@
       108
     ]
   },
-  "applicationUpdate": {
+  "appUpdate": {
     "id": "NQVNJ5VWEDX42DMJQIQET4QPNUOW27EYIPKZ4SDWKOOEFJQB7PZA",
     "idRaw": [
       108,
@@ -32856,7 +32856,7 @@
       44
     ],
     "transaction": {
-      "applicationCall": {
+      "appCall": {
         "appId": 84366825,
         "approvalProgram": [
           10,
@@ -39804,7 +39804,7 @@
         77
       ],
       "sender": "3Y62HTJ4WYSIEKC74XE3F2JFCS7774EN3CYNUHQCEFIN7QBYFAWLKE5MFY",
-      "transactionType": "ApplicationCall"
+      "transactionType": "AppCall"
     },
     "unsignedBytes": [
       84,

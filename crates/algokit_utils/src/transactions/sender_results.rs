@@ -1,7 +1,7 @@
 use algod_client::models::PendingTransactionResponse;
 use algokit_abi::ABIReturn;
 use algokit_transact::{
-    Address, ApplicationCallTransactionFields, AssetConfigTransactionFields, Transaction,
+    Address, AppCallTransactionFields, AssetConfigTransactionFields, Transaction,
 };
 use snafu::Snafu;
 
@@ -31,7 +31,7 @@ pub struct SendTransactionResult {
     pub confirmations: Vec<PendingTransactionResponse>,
 
     // ABI support
-    /// ABI return values for application calls (if any)
+    /// ABI return values for app calls (if any)
     pub abi_returns: Option<Vec<ABIReturn>>,
 }
 
@@ -46,16 +46,16 @@ pub struct SendAssetCreateResult {
     pub asset_id: u64,
 }
 
-/// Result of sending an application creation transaction.
+/// Result of sending an app creation transaction.
 ///
 /// This is a specialized result that includes the app ID and address extracted from the confirmation.
 #[derive(Debug, Clone)]
 pub struct SendAppCreateResult {
     /// The common transaction result containing all standard information
     pub common_params: SendTransactionResult,
-    /// The ID of the newly created application (extracted from confirmation)
+    /// The ID of the newly created app (extracted from confirmation)
     pub app_id: u64,
-    /// The address of the newly created application
+    /// The address of the newly created app
     pub app_address: Address,
     /// The ABI return value if this was an ABI method call
     pub abi_return: Option<ABIReturn>,
@@ -65,7 +65,7 @@ pub struct SendAppCreateResult {
     pub compiled_clear: Option<Vec<u8>>,
 }
 
-/// Result of sending an application update transaction.
+/// Result of sending an app update transaction.
 ///
 /// This is a specialized result that includes the ABI return and compilation results.
 #[derive(Debug, Clone)]
@@ -80,7 +80,7 @@ pub struct SendAppUpdateResult {
     pub compiled_clear: Option<Vec<u8>>,
 }
 
-/// Result of sending an application call transaction.
+/// Result of sending an app call transaction.
 ///
 /// This is a specialized result that includes the ABI return value.
 #[derive(Debug, Clone)]
@@ -241,11 +241,9 @@ impl SendTransactionResult {
         self.filter_transactions(|tx| matches!(tx, Transaction::AssetTransfer(_)))
     }
 
-    /// Get all application call transactions from the group
-    pub fn application_call_transactions(
-        &self,
-    ) -> Vec<(&Transaction, &PendingTransactionResponse)> {
-        self.filter_transactions(|tx| matches!(tx, Transaction::ApplicationCall(_)))
+    /// Get all app call transactions from the group
+    pub fn app_call_transactions(&self) -> Vec<(&Transaction, &PendingTransactionResponse)> {
+        self.filter_transactions(|tx| matches!(tx, Transaction::AppCall(_)))
     }
 }
 
@@ -286,7 +284,7 @@ impl SendAppCreateResult {
         // Extract app ID from the confirmation
         let app_id = common_params.confirmation.app_id.ok_or_else(|| {
             TransactionResultError::InvalidConfirmation {
-                message: "Application creation confirmation missing application-index".to_string(),
+                message: "App creation confirmation missing application-index".to_string(),
             }
         })?;
 
@@ -303,10 +301,10 @@ impl SendAppCreateResult {
         })
     }
 
-    /// Get the application call transaction from the common transaction
-    pub fn application_call_transaction(&self) -> Option<&ApplicationCallTransactionFields> {
+    /// Get the app call transaction from the common transaction
+    pub fn app_call_transaction(&self) -> Option<&AppCallTransactionFields> {
         match &self.common_params.transaction {
-            Transaction::ApplicationCall(app_call) => Some(app_call),
+            Transaction::AppCall(app_call) => Some(app_call),
             _ => None,
         }
     }

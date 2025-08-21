@@ -159,10 +159,10 @@ async fn test_accounts_populated_when_resource_population_enabled(
     let result = composer.send(POPULATE_RESOURCES_SEND_PARAMS).await?;
 
     assert!(result.confirmations.len() == 1);
-    if let Transaction::ApplicationCall(app_call) = &result.confirmations[0].txn.transaction {
+    if let Transaction::AppCall(app_call) = &result.confirmations[0].txn.transaction {
         assert_eq!(app_call.account_references, Some(vec![alice]));
     } else {
-        return Err("ApplicationCall transaction expected".into());
+        return Err("AppCall transaction expected".into());
     }
 
     Ok(())
@@ -292,10 +292,10 @@ async fn test_boxes_populated_when_resource_population_enabled(
     let result = composer.send(POPULATE_RESOURCES_SEND_PARAMS).await?;
 
     assert!(result.confirmations.len() == 1);
-    if let Transaction::ApplicationCall(app_call) = &result.confirmations[0].txn.transaction {
+    if let Transaction::AppCall(app_call) = &result.confirmations[0].txn.transaction {
         assert_eq!(app_call.box_references, Some(box_refs));
     } else {
-        return Err("ApplicationCall transaction expected".into());
+        return Err("AppCall transaction expected".into());
     }
 
     Ok(())
@@ -375,10 +375,10 @@ async fn test_apps_populated_when_resource_population_enabled(
     let result = composer.send(POPULATE_RESOURCES_SEND_PARAMS).await?;
 
     assert!(result.confirmations.len() == 1);
-    if let Transaction::ApplicationCall(app_call) = &result.confirmations[0].txn.transaction {
+    if let Transaction::AppCall(app_call) = &result.confirmations[0].txn.transaction {
         assert_eq!(app_call.app_references.as_ref().unwrap().len(), 1);
     } else {
-        return Err("ApplicationCall transaction expected".into());
+        return Err("AppCall transaction expected".into());
     }
 
     Ok(())
@@ -462,10 +462,10 @@ async fn test_assets_populated_when_resource_population_enabled(
     let result = composer.send(POPULATE_RESOURCES_SEND_PARAMS).await?;
 
     assert!(result.confirmations.len() == 1);
-    if let Transaction::ApplicationCall(app_call) = &result.confirmations[0].txn.transaction {
+    if let Transaction::AppCall(app_call) = &result.confirmations[0].txn.transaction {
         assert_eq!(app_call.asset_references.as_ref().unwrap().len(), 1);
     } else {
-        return Err("ApplicationCall transaction expected".into());
+        return Err("AppCall transaction expected".into());
     }
 
     Ok(())
@@ -566,11 +566,11 @@ async fn test_cross_product_assets_and_accounts_populated_when_resource_populati
     let result = composer.send(POPULATE_RESOURCES_SEND_PARAMS).await?;
 
     assert!(result.confirmations.len() == 1);
-    if let Transaction::ApplicationCall(app_call) = &result.confirmations[0].txn.transaction {
+    if let Transaction::AppCall(app_call) = &result.confirmations[0].txn.transaction {
         assert_eq!(app_call.account_references, Some(vec![alice]));
         assert_eq!(app_call.asset_references.as_ref().unwrap().len(), 1);
     } else {
-        return Err("ApplicationCall transaction expected".into());
+        return Err("AppCall transaction expected".into());
     }
 
     Ok(())
@@ -704,11 +704,11 @@ async fn test_cross_product_account_app_populated_when_resource_population_enabl
     let result = composer.send(POPULATE_RESOURCES_SEND_PARAMS).await?;
 
     assert!(result.confirmations.len() == 2);
-    if let Transaction::ApplicationCall(app_call) = &result.confirmations[1].txn.transaction {
+    if let Transaction::AppCall(app_call) = &result.confirmations[1].txn.transaction {
         assert_eq!(app_call.account_references, expected_account_refs);
         assert_eq!(app_call.app_references, expected_app_refs);
     } else {
-        return Err("ApplicationCall transaction expected".into());
+        return Err("AppCall transaction expected".into());
     }
 
     Ok(())
@@ -776,17 +776,14 @@ async fn test_mixed_avm_version_same_account(
     let result = composer.send(POPULATE_RESOURCES_SEND_PARAMS).await?;
 
     assert!(result.confirmations.len() == 2);
-    if let (
-        Transaction::ApplicationCall(avm_8_app_call),
-        Transaction::ApplicationCall(avm_9_app_call),
-    ) = (
+    if let (Transaction::AppCall(avm_8_app_call), Transaction::AppCall(avm_9_app_call)) = (
         &result.confirmations[0].txn.transaction,
         &result.confirmations[1].txn.transaction,
     ) {
         assert_eq!(avm_8_app_call.account_references, Some(vec![alice]));
         assert_eq!(avm_9_app_call.account_references, None);
     } else {
-        return Err("ApplicationCall transactions expected".into());
+        return Err("AppCall transactions expected".into());
     }
 
     Ok(())
@@ -843,17 +840,14 @@ async fn test_mixed_avm_version_app_account(
     let result = composer.send(POPULATE_RESOURCES_SEND_PARAMS).await?;
 
     assert!(result.confirmations.len() == 2);
-    if let (
-        Transaction::ApplicationCall(avm_8_app_call),
-        Transaction::ApplicationCall(avm_9_app_call),
-    ) = (
+    if let (Transaction::AppCall(avm_8_app_call), Transaction::AppCall(avm_9_app_call)) = (
         &result.confirmations[0].txn.transaction,
         &result.confirmations[1].txn.transaction,
     ) {
         assert_eq!(avm_8_app_call.app_references, Some(vec![external_app_id]));
         assert_eq!(avm_9_app_call.account_references, None);
     } else {
-        return Err("ApplicationCall transactions expected".into());
+        return Err("AppCall transactions expected".into());
     }
 
     Ok(())
@@ -964,7 +958,7 @@ async fn test_box_with_txn_arg(
     let result = composer.send(POPULATE_RESOURCES_SEND_PARAMS).await?;
 
     assert!(result.confirmations.len() == 2);
-    if let Transaction::ApplicationCall(app_call) = &result.confirmations[1].txn.transaction {
+    if let Transaction::AppCall(app_call) = &result.confirmations[1].txn.transaction {
         assert_eq!(
             app_call.box_references,
             Some(vec![BoxReference {
@@ -973,7 +967,7 @@ async fn test_box_with_txn_arg(
             }])
         );
     } else {
-        return Err("ApplicationCall transaction expected".into());
+        return Err("AppCall transaction expected".into());
     }
 
     Ok(())
@@ -1022,10 +1016,10 @@ async fn test_sender_asset_holding(
     let result = composer.send(POPULATE_RESOURCES_SEND_PARAMS).await?;
 
     assert!(result.confirmations.len() == 2);
-    if let Transaction::ApplicationCall(app_call) = &result.confirmations[1].txn.transaction {
+    if let Transaction::AppCall(app_call) = &result.confirmations[1].txn.transaction {
         assert_eq!(app_call.account_references, None);
     } else {
-        return Err("ApplicationCall transaction expected".into());
+        return Err("AppCall transaction expected".into());
     }
 
     Ok(())
@@ -1095,10 +1089,10 @@ async fn test_rekeyed_account(
     let result = composer.send(POPULATE_RESOURCES_SEND_PARAMS).await?;
 
     assert!(result.confirmations.len() == 3);
-    if let Transaction::ApplicationCall(app_call) = &result.confirmations[2].txn.transaction {
+    if let Transaction::AppCall(app_call) = &result.confirmations[2].txn.transaction {
         assert_eq!(app_call.account_references, None);
     } else {
-        return Err("ApplicationCall transaction expected".into());
+        return Err("AppCall transaction expected".into());
     }
 
     Ok(())

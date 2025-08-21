@@ -42,7 +42,7 @@ pub enum StructFieldType {
     Nested(Vec<StructField>),
 }
 
-/// Enum representing different call types for application transactions
+/// Enum representing different call types for app transactions
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum CallOnApplicationComplete {
     ClearState,
@@ -53,7 +53,7 @@ pub enum CallOnApplicationComplete {
     UpdateApplication,
 }
 
-/// Enum representing different create types for application transactions
+/// Enum representing different create types for app transactions
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum CreateOnApplicationComplete {
     DeleteApplication,
@@ -71,7 +71,7 @@ pub struct BareActions {
     pub create: Vec<CreateOnApplicationComplete>,
 }
 
-/// The compiled bytecode for the application.
+/// The compiled bytecode for the app.
 /// MUST be omitted if included as part of ARC23.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ByteCode {
@@ -109,7 +109,7 @@ pub struct CompilerInfo {
     pub compiler_version: CompilerVersion,
 }
 
-/// Network-specific application information
+/// Network-specific app information
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Network {
     #[serde(rename = "appID")]
@@ -161,7 +161,7 @@ pub struct StateSchema {
     pub ints: u32,
 }
 
-/// Defines the values that should be used for state allocation when creating the application.
+/// Defines the values that should be used for state allocation when creating the app.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Schema {
     #[serde(rename = "global")]
@@ -378,7 +378,7 @@ pub struct Maps {
     pub local_state: HashMap<String, StorageMap>,
 }
 
-/// Application state information
+/// App state information
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct State {
     pub keys: Keys,
@@ -482,7 +482,7 @@ impl TryFrom<Method> for ABIMethod {
     }
 }
 
-/// ARC-56 application specification.
+/// ARC-56 app specification.
 /// Describes the entire contract as an extension of the ARC-4 interface.
 /// See https://github.com/algorandfoundation/ARCs/blob/main/ARCs/arc-0056.md
 #[derive(Debug, Clone, Serialize, Deserialize)]

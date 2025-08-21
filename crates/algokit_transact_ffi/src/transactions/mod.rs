@@ -1,8 +1,8 @@
-mod application_call;
+mod app_call;
 pub mod asset_config;
 pub mod asset_freeze;
 
-pub use application_call::ApplicationCallTransactionFields;
+pub use app_call::AppCallTransactionFields;
 pub use asset_config::AssetConfigTransactionFields;
 
 pub mod key_registration;
