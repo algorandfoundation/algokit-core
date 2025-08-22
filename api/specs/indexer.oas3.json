@@ -3444,10 +3444,6 @@
         "description": "Application index and its parameters"
       },
       "ApplicationParams": {
-        "required": [
-          "approval-program",
-          "clear-state-program"
-        ],
         "type": "object",
         "properties": {
           "creator": {

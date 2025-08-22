@@ -1,9 +1,11 @@
 use std::sync::Arc;
 
 use super::account_helpers::{NetworkType, TestAccount, TestAccountConfig, TestAccountManager};
+use super::indexer_helpers::wait_for_indexer_transaction;
 use crate::{AlgoConfig, ClientManager, Composer};
 use algod_client::AlgodClient;
 use algokit_transact::Transaction;
+use indexer_client::IndexerClient;
 
 pub struct AlgorandFixture {
     config: AlgoConfig,
@@ -12,6 +14,8 @@ pub struct AlgorandFixture {
 
 pub struct AlgorandTestContext {
     pub algod: Arc<AlgodClient>,
+
+    pub indexer: Arc<IndexerClient>,
 
     pub composer: Composer,
 
@@ -58,6 +62,10 @@ impl AlgorandFixture {
     pub async fn new_scope(&mut self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let algod = Arc::new(ClientManager::get_algod_client(&self.config.algod_config));
 
+        let indexer = Arc::new(ClientManager::get_indexer_client(
+            &self.config.indexer_config,
+        ));
+
         let mut account_manager = TestAccountManager::new(algod.clone());
 
         let test_account_config = TestAccountConfig {
@@ -76,6 +84,7 @@ impl AlgorandFixture {
 
         self.context = Some(AlgorandTestContext {
             algod,
+            indexer,
             composer,
             test_account,
             account_manager,
@@ -100,6 +109,17 @@ impl AlgorandFixture {
             .map_err(|e| format!("Failed to generate account: {}", e))?;
 
         Ok(account)
+    }
+}
+
+impl AlgorandTestContext {
+    /// Waits for a transaction to appear in the indexer
+    pub async fn wait_for_indexer_transaction(
+        &self,
+        transaction_id: &str,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        wait_for_indexer_transaction(&self.indexer, transaction_id, None).await?;
+        Ok(())
     }
 }
 

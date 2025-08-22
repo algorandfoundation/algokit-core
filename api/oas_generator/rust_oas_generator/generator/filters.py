@@ -7,6 +7,7 @@ generating Rust code from OpenAPI specifications.
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 # Semantic versioning constants
@@ -291,6 +292,29 @@ def detect_client_type(spec_title: str) -> str:
     return clean_word.title() if clean_word else "Api"
 
 
+def rust_path_params(path: str) -> str:
+    """Replace hyphens with underscores only within path parameter placeholders.
+
+    This filter processes OpenAPI paths to convert parameter names from kebab-case
+    to snake_case within {} placeholders, while leaving the rest of the path unchanged.
+
+    Args:
+        path: The OpenAPI path string (e.g., "/v2/accounts/{account-id}/transactions")
+
+    Returns:
+        Path with hyphens replaced by underscores only within {} placeholders.
+    """
+    if not path:
+        return ""
+
+    # Replace hyphens with underscores only within {} placeholders
+    def replace_param(match: re.Match[str]) -> str:
+        param_content = match.group(1)  # Content inside {}
+        return "{" + param_content.replace("-", "_") + "}"
+
+    return re.sub(r"\{([^}]+)\}", replace_param, path)
+
+
 # Register filters that will be available in Jinja templates
 FILTERS = {
     "rust_doc_comment": rust_doc_comment,
@@ -303,4 +327,5 @@ FILTERS = {
     "sanitize_rust_string_literal": sanitize_rust_string_literal,
     "http_method_enum": http_method_enum,
     "detect_client_type": detect_client_type,
+    "rust_path_params": rust_path_params,
 }

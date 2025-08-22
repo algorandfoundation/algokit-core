@@ -59,7 +59,7 @@ pub mod template_variables {
 
 /// Inner fee contract artifacts
 pub mod inner_fee_contract {
-    /// Inner fee coverage contract (Application JSON)
+    /// Inner fee coverage contract (ARC32)
     ///
     /// Contract for testing inner transaction fee coverage scenarios
     /// and budget management.
@@ -68,7 +68,7 @@ pub mod inner_fee_contract {
 
 /// Nested contract artifacts
 pub mod nested_contract {
-    /// Nested functionality contract (Application JSON)
+    /// Nested functionality contract (ARC32)
     ///
     /// Contract for testing nested application call scenarios
     /// and complex transaction composition.
@@ -151,4 +151,13 @@ pub mod nested_contract_calls {
     /// complex transaction composition patterns.
     pub const APPLICATION_ARC56: &str =
         include_str!("../contracts/nested_contract_calls/application.arc56.json");
+}
+
+/// Testing app contract artifacts
+pub mod testing_app {
+    /// General-purpose testing contract (ARC32)
+    ///
+    /// Contract with updatable/deletable template variables and
+    /// various methods for comprehensive app deployer testing.
+    pub const APPLICATION: &str = include_str!("../contracts/testing_app/application.json");
 }

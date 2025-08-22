@@ -1,3 +1,4 @@
+pub mod applications;
 pub mod clients;
 pub mod testing;
 pub mod transactions;

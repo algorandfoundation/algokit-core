@@ -45,7 +45,7 @@ pub async fn lookup_account_app_local_states(
     let p_next = next;
 
     let path = format!(
-        "/v2/accounts/{account_id}/apps_local_state",
+        "/v2/accounts/{account_id}/apps-local-state",
         account_id = crate::apis::urlencode(p_account_id)
     );
 

@@ -51,7 +51,7 @@ pub async fn search_for_block_headers(
     let p_expired = expired;
     let p_absent = absent;
 
-    let path = "/v2/block_headers".to_string();
+    let path = "/v2/block-headers".to_string();
 
     let mut query_params: HashMap<String, String> = HashMap::new();
     if let Some(value) = p_limit {

@@ -28,12 +28,19 @@ interface VendorExtensionTransform {
   removeSource?: boolean; // whether to remove the source property (default false)
 }
 
+interface RequiredFieldTransform {
+  schemaName: string; // e.g., "ApplicationParams" - The OpenAPI schema name
+  fieldName: string; // e.g., "approval-program" - The field name to transform
+  makeRequired: boolean; // true = add to required array, false = remove from required array
+}
+
 interface ProcessingConfig {
   sourceUrl: string;
   outputPath: string;
   converterEndpoint?: string;
   indent?: number;
   vendorExtensionTransforms?: VendorExtensionTransform[];
+  requiredFieldTransforms?: RequiredFieldTransform[];
 }
 
 // ===== TRANSFORMATIONS =====
@@ -207,7 +214,7 @@ function fixFieldNaming(spec: OpenAPISpec): number {
     if (obj.properties && typeof obj.properties === "object") {
       for (const [propName, propDef] of Object.entries(obj.properties as Record<string, any>)) {
         if (propDef && typeof propDef === "object") {
-          const rename = fieldRenames.find(r => r.from === propName);
+          const rename = fieldRenames.find((r) => r.from === propName);
           if (rename) {
             propDef["x-algokit-field-rename"] = rename.to;
             fixedCount++;
@@ -340,6 +347,62 @@ function fixBigInt(spec: OpenAPISpec): number {
   return fixedCount;
 }
 
+/**
+ * Transform required fields in schemas
+ *
+ * This function adds or removes specified fields from the 'required' array of OpenAPI schemas.
+ * If the required array becomes empty after removals, it's removed entirely.
+ */
+function transformRequiredFields(spec: OpenAPISpec, requiredFieldTransforms: RequiredFieldTransform[]): number {
+  let transformedCount = 0;
+
+  if (!spec.components?.schemas || !requiredFieldTransforms?.length) {
+    return transformedCount;
+  }
+
+  for (const config of requiredFieldTransforms) {
+    const schema = spec.components.schemas[config.schemaName];
+
+    if (!schema) {
+      console.warn(`⚠️  Schema ${config.schemaName} not found, skipping field transform for ${config.fieldName}`);
+      continue;
+    }
+
+    // Initialize required array if it doesn't exist and we're making a field required
+    if (config.makeRequired && !schema.required) {
+      schema.required = [];
+    }
+
+    if (config.makeRequired) {
+      // Make field required: add to required array if not already present
+      if (!schema.required.includes(config.fieldName)) {
+        schema.required.push(config.fieldName);
+        transformedCount++;
+        console.log(`ℹ️  Made ${config.fieldName} required in ${config.schemaName}`);
+      }
+    } else {
+      // Make field optional: remove from required array
+      if (schema.required && Array.isArray(schema.required)) {
+        const originalLength = schema.required.length;
+        schema.required = schema.required.filter((field: string) => field !== config.fieldName);
+
+        // If the required array is now empty, remove it entirely
+        if (schema.required.length === 0) {
+          delete schema.required;
+        }
+
+        const removedCount = originalLength - (schema.required?.length || 0);
+        if (removedCount > 0) {
+          transformedCount += removedCount;
+          console.log(`ℹ️  Made ${config.fieldName} optional in ${config.schemaName}`);
+        }
+      }
+    }
+  }
+
+  return transformedCount;
+}
+
 // ===== MAIN PROCESSOR =====
 
 class OpenAPIProcessor {
@@ -354,7 +417,7 @@ class OpenAPIProcessor {
       ["since eposh", "since epoch"],
       ["* update\\n* update\\n* delete", "* update\\n* delete"],
     ];
-    
+
     return patches.reduce((text, [find, replace]) => text.replaceAll(find, replace), content);
   }
 
@@ -454,19 +517,25 @@ class OpenAPIProcessor {
       const pydanticCount = fixPydanticRecursionError(spec);
       console.log(`ℹ️  Fixed ${pydanticCount} pydantic recursion errors`);
 
-       // 3. Fix field naming
-       const fieldNamingCount = fixFieldNaming(spec);
-       console.log(`ℹ️  Added field rename extensions to ${fieldNamingCount} properties`);
+      // 3. Fix field naming
+      const fieldNamingCount = fixFieldNaming(spec);
+      console.log(`ℹ️  Added field rename extensions to ${fieldNamingCount} properties`);
 
-       // 4. Fix TealValue bytes fields
-       const tealValueCount = fixTealValueBytes(spec);
-       console.log(`ℹ️  Added bytes base64 extensions to ${tealValueCount} TealValue.bytes properties`);
+      // 4. Fix TealValue bytes fields
+      const tealValueCount = fixTealValueBytes(spec);
+      console.log(`ℹ️  Added bytes base64 extensions to ${tealValueCount} TealValue.bytes properties`);
 
-       // 5. Fix bigint properties
-       const bigIntCount = fixBigInt(spec);
-       console.log(`ℹ️  Added x-algokit-bigint to ${bigIntCount} properties`);
+      // 5. Fix bigint properties
+      const bigIntCount = fixBigInt(spec);
+      console.log(`ℹ️  Added x-algokit-bigint to ${bigIntCount} properties`);
 
-       // 6. Transform vendor extensions if configured
+      // 6. Transform required fields if configured
+      let transformedFieldsCount = 0;
+      if (this.config.requiredFieldTransforms && this.config.requiredFieldTransforms.length > 0) {
+        transformedFieldsCount = transformRequiredFields(spec, this.config.requiredFieldTransforms);
+        console.log(`ℹ️  Transformed ${transformedFieldsCount} required field states`);
+      }
+
       if (this.config.vendorExtensionTransforms && this.config.vendorExtensionTransforms.length > 0) {
         const transformCounts = transformVendorExtensions(spec, this.config.vendorExtensionTransforms);
 
@@ -542,7 +611,7 @@ async function getLatestIndexerTag(): Promise<string> {
     }
 
     const release = await response.json();
-    
+
     console.log(`✅ Found latest indexer release tag: ${release.tag_name}`);
     return release.tag_name;
   } catch (error) {
@@ -556,17 +625,14 @@ async function getLatestIndexerTag(): Promise<string> {
  * Process specifications for both algod and indexer
  */
 async function processAlgorandSpecs() {
-  await Promise.all([
-    processAlgodSpec(),
-    processIndexerSpec()
-  ]);
+  await Promise.all([processAlgodSpec(), processIndexerSpec()]);
 }
 
 async function processAlgodSpec() {
   console.log("\n🔄 Processing Algod specification...");
-  
+
   const stableTag = await getLatestStableTag();
-  
+
   const config: ProcessingConfig = {
     sourceUrl: `https://raw.githubusercontent.com/algorand/go-algorand/${stableTag}/daemon/algod/api/algod.oas2.json`,
     outputPath: join(process.cwd(), "specs", "algod.oas3.json"),
@@ -607,12 +673,16 @@ async function processAlgodSpec() {
 
 async function processIndexerSpec() {
   console.log("\n🔄 Processing Indexer specification...");
-  
+
   const indexerTag = await getLatestIndexerTag();
-  
+
   const config: ProcessingConfig = {
     sourceUrl: `https://raw.githubusercontent.com/algorand/indexer/${indexerTag}/api/indexer.oas2.json`,
     outputPath: join(process.cwd(), "specs", "indexer.oas3.json"),
+    requiredFieldTransforms: [
+      { schemaName: "ApplicationParams", fieldName: "approval-program", makeRequired: false },
+      { schemaName: "ApplicationParams", fieldName: "clear-state-program", makeRequired: false },
+    ],
     vendorExtensionTransforms: [
       {
         sourceProperty: "x-algorand-format",
@@ -657,7 +727,7 @@ async function processAlgorandSpec(config: ProcessingConfig) {
 async function main() {
   try {
     const args = process.argv.slice(2);
-    
+
     // Support for individual spec processing or both
     if (args.includes("--algod-only")) {
       await processAlgodSpec();

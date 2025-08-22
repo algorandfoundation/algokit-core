@@ -62,15 +62,15 @@ pub struct AppInformation {
     /// The creator address of the app
     pub creator: String,
     /// Number of local state integers allocated
-    pub local_ints: u32,
+    pub local_ints: u64,
     /// Number of local state byte slices allocated
-    pub local_byte_slices: u32,
+    pub local_byte_slices: u64,
     /// Number of global state integers allocated
-    pub global_ints: u32,
+    pub global_ints: u64,
     /// Number of global state byte slices allocated
-    pub global_byte_slices: u32,
+    pub global_byte_slices: u64,
     /// Number of extra program pages (if any)
-    pub extra_program_pages: Option<u32>,
+    pub extra_program_pages: Option<u64>,
     /// The current global state of the app
     /// Keys are stored as Vec<u8> for binary data support, matching TypeScript UInt8Array typing
     pub global_state: HashMap<Vec<u8>, AppState>,
@@ -188,42 +188,34 @@ impl AppManager {
         Ok(AppInformation {
             app_id,
             app_address: Address::from_app_id(&app_id),
-            approval_program: Base64.decode(&app.params.approval_program).map_err(|e| {
-                AppManagerError::DecodingError {
-                    message: e.to_string(),
-                }
-            })?,
-            clear_state_program: Base64
-                .decode(&app.params.clear_state_program)
-                .map_err(|e| AppManagerError::DecodingError {
-                    message: e.to_string(),
-                })?,
+            approval_program: app.params.approval_program,
+            clear_state_program: app.params.clear_state_program,
             creator: app.params.creator,
             local_ints: app
                 .params
                 .local_state_schema
                 .as_ref()
-                .map(|s| s.num_uint as u32)
+                .map(|s| s.num_uint)
                 .unwrap_or(0),
             local_byte_slices: app
                 .params
                 .local_state_schema
                 .as_ref()
-                .map(|s| s.num_byte_slice as u32)
+                .map(|s| s.num_byte_slice)
                 .unwrap_or(0),
             global_ints: app
                 .params
                 .global_state_schema
                 .as_ref()
-                .map(|s| s.num_uint as u32)
+                .map(|s| s.num_uint)
                 .unwrap_or(0),
             global_byte_slices: app
                 .params
                 .global_state_schema
                 .as_ref()
-                .map(|s| s.num_byte_slice as u32)
+                .map(|s| s.num_byte_slice)
                 .unwrap_or(0),
-            extra_program_pages: app.params.extra_program_pages.map(|p| p as u32),
+            extra_program_pages: app.params.extra_program_pages,
             global_state: Self::decode_app_state(&app.params.global_state.unwrap_or_default())?,
         })
     }

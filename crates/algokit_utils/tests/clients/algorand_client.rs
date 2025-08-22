@@ -40,9 +40,6 @@ async fn test_algorand_client_initialization() {
 
     // Test from environment (should default to localnet if no env vars set)
     let _client_env = AlgorandClient::from_environment();
-
-    // All clients were successfully created without errors
-    assert!(true);
 }
 
 /// Test AlgorandClient with fixture integration

@@ -39,7 +39,7 @@ pub async fn wait_for_block(
 ) -> Result<WaitForBlock, Error> {
     let p_round = round;
 
-    let path = format!("/v2/status/wait_for_block_after/{round}", round = p_round);
+    let path = format!("/v2/status/wait-for-block-after/{round}", round = p_round);
 
     let query_params: HashMap<String, String> = HashMap::new();
 

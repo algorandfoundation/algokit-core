@@ -84,7 +84,7 @@ pub async fn {{ operation.rust_function_name }}(
     let p_{{ get_request_body_name(operation) }} = {{ get_request_body_name(operation) }};
     {% endif %}
 
-    {% set rust_path = operation.path.replace('-', '_') %}
+    {% set rust_path = operation.path | rust_path_params %}
     {% set path_params = get_path_parameters(operation) %}
     {% if path_params %}
     let path = format!("{{ rust_path }}", {% for p in path_params %}{{p.rust_name}}={% if p.rust_type == "String" %}crate::apis::urlencode(p_{{p.rust_name}}){% else %}p_{{p.rust_name}}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %});

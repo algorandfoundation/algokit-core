@@ -45,7 +45,7 @@ pub async fn lookup_account_created_assets(
     let p_next = next;
 
     let path = format!(
-        "/v2/accounts/{account_id}/created_assets",
+        "/v2/accounts/{account_id}/created-assets",
         account_id = crate::apis::urlencode(p_account_id)
     );
 

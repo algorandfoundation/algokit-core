@@ -22,13 +22,16 @@ pub struct ApplicationParams {
     #[serde(rename = "creator", skip_serializing_if = "Option::is_none")]
     pub creator: Option<String>,
     /// approval program.
-    #[serde_as(as = "serde_with::base64::Base64")]
-    #[serde(rename = "approval-program")]
-    pub approval_program: Vec<u8>,
+    #[serde_as(as = "Option<serde_with::base64::Base64>")]
+    #[serde(rename = "approval-program", skip_serializing_if = "Option::is_none")]
+    pub approval_program: Option<Vec<u8>>,
     /// clear state program.
-    #[serde_as(as = "serde_with::base64::Base64")]
-    #[serde(rename = "clear-state-program")]
-    pub clear_state_program: Vec<u8>,
+    #[serde_as(as = "Option<serde_with::base64::Base64>")]
+    #[serde(
+        rename = "clear-state-program",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub clear_state_program: Option<Vec<u8>>,
     /// the number of extra program pages available to this app.
     #[serde(
         rename = "extra-program-pages",
@@ -50,17 +53,8 @@ pub struct ApplicationParams {
 }
 
 impl ApplicationParams {
-    /// Constructor for ApplicationParams
-    pub fn new(approval_program: Vec<u8>, clear_state_program: Vec<u8>) -> ApplicationParams {
-        ApplicationParams {
-            approval_program,
-            clear_state_program,
-            creator: None,
-            extra_program_pages: None,
-            local_state_schema: None,
-            global_state_schema: None,
-            global_state: None,
-            version: None,
-        }
+    /// Default constructor for ApplicationParams
+    pub fn new() -> ApplicationParams {
+        ApplicationParams::default()
     }
 }
