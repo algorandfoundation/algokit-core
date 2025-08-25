@@ -20,19 +20,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-api-tools
-      
+
       - name: Store initial state for ${{ matrix.spec }}
         run: git status --porcelain > /tmp/initial_${{ matrix.spec }}_status.txt
-      
+
       - name: Convert ${{ matrix.spec }} OpenAPI specification
-        run: cargo api convert-openapi --${{ matrix.spec }}-only
-      
+        run: cargo api convert-${{ matrix.spec }}
+
       - name: Check for ${{ matrix.spec }} changes
         run: |
           git status --porcelain > /tmp/post_${{ matrix.spec }}_status.txt
           if [ -s /tmp/post_${{ matrix.spec }}_status.txt ]; then
             echo "❌ ${{ matrix.spec }} OpenAPI sync needed!"
-            echo "🔧 Run 'cargo api convert-openapi --${{ matrix.spec }}-only' locally and commit"
+            echo "🔧 Run 'cargo api convert-${{ matrix.spec }}' locally and commit"
             git diff
             exit 1
           else
