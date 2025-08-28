@@ -1,9 +1,11 @@
 use algokit_abi::{ABIType, abi_type::BitSize};
 use algokit_test_artifacts::template_variables;
-use algokit_utils::{clients::app_manager::*, testing::algorand_fixture};
+use algokit_utils::clients::app_manager::*;
 use base64::prelude::*;
 use rstest::*;
 use std::collections::HashMap;
+
+use crate::common::{AlgorandFixtureResult, TestResult, algorand_fixture};
 
 /// Test template variable replacement behavior
 #[rstest]
@@ -101,11 +103,11 @@ pushbytes "b64 //8=""#;
 }
 
 /// Test TEAL compilation and caching behavior
+#[rstest]
 #[tokio::test]
-async fn test_teal_compilation() {
-    let mut fixture = algorand_fixture().await.unwrap();
-    fixture.new_scope().await.unwrap();
-    let app_manager = AppManager::new(fixture.context().unwrap().algod.clone());
+async fn test_teal_compilation(#[future] algorand_fixture: AlgorandFixtureResult) -> TestResult {
+    let algorand_fixture = algorand_fixture.await?;
+    let app_manager = algorand_fixture.algorand_client.app();
 
     let teal = "#pragma version 3\npushint 1\nreturn";
     let result = app_manager.compile_teal(teal).await.unwrap();
@@ -131,14 +133,18 @@ async fn test_teal_compilation() {
     let different_teal = "#pragma version 3\npushint 2\nreturn";
     let different_result = app_manager.compile_teal(different_teal).await.unwrap();
     assert_ne!(result.compiled_hash, different_result.compiled_hash);
+
+    Ok(())
 }
 
 /// Test template compilation
+#[rstest]
 #[tokio::test]
-async fn test_template_compilation() {
-    let mut fixture = algorand_fixture().await.unwrap();
-    fixture.new_scope().await.unwrap();
-    let app_manager = AppManager::new(fixture.context().unwrap().algod.clone());
+async fn test_template_compilation(
+    #[future] algorand_fixture: AlgorandFixtureResult,
+) -> TestResult {
+    let algorand_fixture = algorand_fixture.await?;
+    let app_manager = algorand_fixture.algorand_client.app();
 
     let template_params = HashMap::from([("VALUE".to_string(), TealTemplateValue::Int(42))]);
     let result = app_manager
@@ -154,14 +160,16 @@ async fn test_template_compilation() {
     assert!(!result.teal.contains("TMPL_"));
     // Check deterministic compilation results for template with int 42
     assert_eq!(result.compiled_base64_to_bytes, vec![3, 129, 42, 67]);
+
+    Ok(())
 }
 
 /// Test deploy-time control
+#[rstest]
 #[tokio::test]
-async fn test_deploy_time_control() {
-    let mut fixture = algorand_fixture().await.unwrap();
-    fixture.new_scope().await.unwrap();
-    let app_manager = AppManager::new(fixture.context().unwrap().algod.clone());
+async fn test_deploy_time_control(#[future] algorand_fixture: AlgorandFixtureResult) -> TestResult {
+    let algorand_fixture = algorand_fixture.await?;
+    let app_manager = algorand_fixture.algorand_client.app();
 
     let template = format!(
         "#pragma version 3\npushint {}\npushint {}\nreturn",
@@ -180,14 +188,18 @@ async fn test_deploy_time_control() {
     assert!(result.teal.contains("pushint 1"));
     assert!(result.teal.contains("pushint 0"));
     assert!(!result.teal.contains("TMPL_"));
+
+    Ok(())
 }
 
 /// Test real contract compilation
+#[rstest]
 #[tokio::test]
-async fn test_real_contract_compilation() {
-    let mut fixture = algorand_fixture().await.unwrap();
-    fixture.new_scope().await.unwrap();
-    let app_manager = AppManager::new(fixture.context().unwrap().algod.clone());
+async fn test_real_contract_compilation(
+    #[future] algorand_fixture: AlgorandFixtureResult,
+) -> TestResult {
+    let algorand_fixture = algorand_fixture.await?;
+    let app_manager = algorand_fixture.algorand_client.app();
 
     let contract: serde_json::Value =
         serde_json::from_str(template_variables::APPLICATION_ARC56).unwrap();
@@ -231,6 +243,8 @@ async fn test_real_contract_compilation() {
         result.compiled_hash,
         "P2FNVZSIY7ETR6HLNUMUA7SXEK5ZHQBWLFH3T2IJKHBKHMLKA5KAIWQZFE"
     );
+
+    Ok(())
 }
 
 /// Test template substitution
@@ -293,11 +307,11 @@ NOTTMPL_STR // not replaced
 }
 
 /// Test compilation error handling
+#[rstest]
 #[tokio::test]
-async fn test_compilation_errors() {
-    let mut fixture = algorand_fixture().await.unwrap();
-    fixture.new_scope().await.unwrap();
-    let app_manager = AppManager::new(fixture.context().unwrap().algod.clone());
+async fn test_compilation_errors(#[future] algorand_fixture: AlgorandFixtureResult) -> TestResult {
+    let algorand_fixture = algorand_fixture.await?;
+    let app_manager = algorand_fixture.algorand_client.app();
 
     // Invalid TEAL should fail
     let result = app_manager
@@ -318,6 +332,8 @@ async fn test_compilation_errors() {
         Ok(compiled) => assert!(compiled.teal.contains("TMPL_MISSING")),
         Err(_) => {} // Both outcomes are acceptable
     }
+
+    Ok(())
 }
 
 /// Test that BoxIdentifier correctly handles binary data

@@ -20,10 +20,6 @@ pub trait TransactionSigner: Send + Sync {
     }
 }
 
-pub trait TransactionSignerGetter {
-    fn get_signer(&self, address: Address) -> Option<Arc<dyn TransactionSigner>>;
-}
-
 #[derive(Clone)]
 pub struct EmptySigner {}
 
@@ -49,12 +45,6 @@ impl TransactionSigner for EmptySigner {
                 }
             })
             .collect()
-    }
-}
-
-impl TransactionSignerGetter for EmptySigner {
-    fn get_signer(&self, _address: Address) -> Option<Arc<dyn TransactionSigner>> {
-        Some(Arc::new(self.clone()))
     }
 }
 

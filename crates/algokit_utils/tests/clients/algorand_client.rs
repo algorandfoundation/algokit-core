@@ -1,4 +1,4 @@
-use algokit_utils::{AlgorandClient, testing::algorand_fixture};
+use algokit_utils::AlgorandClient;
 
 /// Test basic functionality of AlgorandClient
 #[tokio::test]
@@ -46,9 +46,6 @@ async fn test_algorand_client_initialization() {
 #[tokio::test]
 async fn test_algorand_client_with_fixture() -> Result<(), Box<dyn std::error::Error + Send + Sync>>
 {
-    let mut fixture = algorand_fixture().await?;
-    fixture.new_scope().await?;
-
     // Use from_environment since the fixture sets up the environment properly
     let client = AlgorandClient::from_environment();
 

@@ -1,10 +1,12 @@
-use crate::common::init_test_logging;
+use crate::common::{
+    AlgorandFixture, AlgorandFixtureResult, LocalNetDispenser, TestResult, algorand_fixture,
+};
 use algokit_abi::abi_type::BitSize;
 use algokit_abi::{ABIMethod, ABIType, ABIValue};
 use algokit_test_artifacts::{inner_fee_contract, nested_contract};
-use algokit_transact::{Address, OnApplicationComplete, TransactionId};
+use algokit_transact::{Address, TransactionId};
 use algokit_utils::transactions::composer::{ResourcePopulation, SendParams};
-use algokit_utils::{AppCallParams, AppCreateParams, PaymentParams, testing::*};
+use algokit_utils::{AppCallParams, AppCreateParams, PaymentParams};
 use algokit_utils::{CommonParams, Composer};
 use base64::{Engine, prelude::BASE64_STANDARD};
 use rstest::*;
@@ -12,35 +14,34 @@ use serde::Deserialize;
 use std::str::FromStr;
 
 #[fixture]
-async fn setup(
+async fn fixture(
     #[default(3)] inner_fee_app_count: u8,
     #[default(0)] nested_app_count: u8,
-) -> SetupResult {
-    init_test_logging();
-    let mut fixture = algorand_fixture().await?;
-    fixture.new_scope().await?;
+    #[future] algorand_fixture: AlgorandFixtureResult,
+) -> FixtureResult {
+    let algorand_fixture = algorand_fixture.await?;
 
-    let context = fixture.context()?;
-    let sender_address = context.test_account.account()?.address();
+    let sender_address = algorand_fixture.test_account.account().address();
 
     let mut app_ids = Vec::new();
 
     for i in 1..=inner_fee_app_count {
-        let app_id = deploy_inner_fee_app(context, &format!("inner_fee_app_{}", i)).await?;
+        let app_id =
+            deploy_inner_fee_app(&algorand_fixture, &format!("inner_fee_app_{}", i)).await?;
         app_ids.push(app_id);
     }
 
     for i in 1..=nested_app_count {
-        let app_id = deploy_nested_app(context, &format!("nested_app_{}", i)).await?;
+        let app_id = deploy_nested_app(&algorand_fixture, &format!("nested_app_{}", i)).await?;
         app_ids.push(app_id);
     }
 
-    fund_app_accounts(context, &app_ids, 500_000).await?;
+    fund_app_accounts(&algorand_fixture, &app_ids, 500_000).await?;
 
-    Ok(TestData {
+    Ok(Fixture {
         sender_address,
         app_ids,
-        fixture,
+        algorand_fixture,
         method_selectors: MethodSelectors {
             no_op: ABIMethod::from_str("no_op()void")?.selector()?,
             send_inners_with_fees: ABIMethod::from_str(
@@ -67,17 +68,17 @@ async fn setup(
 async fn test_errors_when_no_max_fee_supplied(
     #[with(1)]
     #[future]
-    setup: SetupResult,
+    fixture: FixtureResult,
 ) -> TestResult {
-    let TestData {
+    let Fixture {
         sender_address,
         app_ids,
-        fixture,
+        algorand_fixture,
         method_selectors,
         abi_types: _,
-    } = setup.await?;
+    } = fixture.await?;
     let app_id = app_ids[0];
-    let mut composer = fixture.context()?.composer.clone();
+    let mut composer = algorand_fixture.algorand_client.new_group();
 
     let params = AppCallParams {
         common_params: CommonParams {
@@ -85,12 +86,8 @@ async fn test_errors_when_no_max_fee_supplied(
             ..Default::default()
         },
         app_id,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![method_selectors.no_op]),
-        account_references: None,
-        app_references: None,
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
 
     composer.add_app_call(params)?;
@@ -116,16 +113,16 @@ async fn test_errors_when_no_max_fee_supplied(
 async fn test_errors_when_inner_fees_not_covered_and_fee_coverage_disabled(
     #[with(3)]
     #[future]
-    setup: SetupResult,
+    fixture: FixtureResult,
 ) -> TestResult {
-    let TestData {
+    let Fixture {
         sender_address,
         app_ids,
-        fixture,
+        algorand_fixture,
         method_selectors,
         abi_types,
-    } = setup.await?;
-    let mut composer = fixture.context()?.composer.clone();
+    } = fixture.await?;
+    let mut composer = algorand_fixture.algorand_client.new_group();
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
 
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0]);
@@ -136,17 +133,14 @@ async fn test_errors_when_inner_fees_not_covered_and_fee_coverage_disabled(
             ..Default::default()
         },
         app_id: app_id_1,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
             abi_types.uint64.encode(&app_id_2.into())?,
             abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
-        account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
     composer.add_app_call(txn_params)?;
 
@@ -180,18 +174,18 @@ async fn test_errors_when_inner_fees_not_covered_and_fee_coverage_disabled(
 async fn test_does_not_alter_fee_when_no_inners(
     #[with(1)]
     #[future]
-    setup: SetupResult,
+    fixture: FixtureResult,
 ) -> TestResult {
-    let TestData {
+    let Fixture {
         sender_address,
         app_ids,
-        mut fixture,
+        algorand_fixture,
         method_selectors,
         abi_types: _,
-    } = setup.await?;
+    } = fixture.await?;
     let app_id = app_ids[0];
 
-    let mut composer = fixture.context()?.composer.clone();
+    let mut composer = algorand_fixture.algorand_client.new_group();
 
     let expected_fee = 1000u64;
 
@@ -202,12 +196,8 @@ async fn test_does_not_alter_fee_when_no_inners(
             ..Default::default()
         },
         app_id,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![method_selectors.no_op]),
-        account_references: None,
-        app_references: None,
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
     composer.add_app_call(txn_params.clone())?;
 
@@ -221,7 +211,12 @@ async fn test_does_not_alter_fee_when_no_inners(
         .fee
         .unwrap_or(0);
     assert_eq!(transaction_fee, expected_fee);
-    assert_min_fee(fixture.new_composer()?, &txn_params, transaction_fee).await;
+    assert_min_fee(
+        algorand_fixture.algorand_client.new_group(),
+        &txn_params,
+        transaction_fee,
+    )
+    .await;
 
     Ok(())
 }
@@ -232,16 +227,16 @@ async fn test_does_not_alter_fee_when_no_inners(
 async fn test_alters_fee_no_inner_fees_covered(
     #[with(3)]
     #[future]
-    setup: SetupResult,
+    fixture: FixtureResult,
 ) -> TestResult {
-    let TestData {
+    let Fixture {
         sender_address,
         app_ids,
-        mut fixture,
+        algorand_fixture,
         method_selectors,
         abi_types,
-    } = setup.await?;
-    let mut composer = fixture.context()?.composer.clone();
+    } = fixture.await?;
+    let mut composer = algorand_fixture.algorand_client.new_group();
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
     let expected_fee = 7000u64;
 
@@ -254,17 +249,14 @@ async fn test_alters_fee_no_inner_fees_covered(
             ..Default::default()
         },
         app_id: app_id_1,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
             abi_types.uint64.encode(&app_id_2.into())?,
             abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
-        account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
     composer.add_app_call(txn_params.clone())?;
 
@@ -278,7 +270,12 @@ async fn test_alters_fee_no_inner_fees_covered(
         .fee
         .unwrap_or(0);
     assert_eq!(transaction_fee, expected_fee);
-    assert_min_fee(fixture.new_composer()?, &txn_params, transaction_fee).await;
+    assert_min_fee(
+        algorand_fixture.algorand_client.new_group(),
+        &txn_params,
+        transaction_fee,
+    )
+    .await;
 
     Ok(())
 }
@@ -289,16 +286,16 @@ async fn test_alters_fee_no_inner_fees_covered(
 async fn test_alters_fee_all_inner_fees_covered(
     #[with(3)]
     #[future]
-    setup: SetupResult,
+    fixture: FixtureResult,
 ) -> TestResult {
-    let TestData {
+    let Fixture {
         sender_address,
         app_ids,
-        mut fixture,
+        algorand_fixture,
         method_selectors,
         abi_types,
-    } = setup.await?;
-    let mut composer = fixture.context()?.composer.clone();
+    } = fixture.await?;
+    let mut composer = algorand_fixture.algorand_client.new_group();
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
 
     let expected_fee = 1000u64;
@@ -312,17 +309,14 @@ async fn test_alters_fee_all_inner_fees_covered(
             ..Default::default()
         },
         app_id: app_id_1,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
             abi_types.uint64.encode(&app_id_2.into())?,
             abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
-        account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
     composer.add_app_call(txn_params.clone())?;
 
@@ -335,7 +329,12 @@ async fn test_alters_fee_all_inner_fees_covered(
         .map(|c| c.txn.transaction.header().fee.unwrap_or(0))
         .collect::<Vec<_>>();
     assert_eq!(actual_fees[0], expected_fee);
-    assert_min_fee(fixture.new_composer()?, &txn_params, expected_fee).await;
+    assert_min_fee(
+        algorand_fixture.algorand_client.new_group(),
+        &txn_params,
+        expected_fee,
+    )
+    .await;
 
     Ok(())
 }
@@ -346,16 +345,16 @@ async fn test_alters_fee_all_inner_fees_covered(
 async fn test_alters_fee_some_inner_fees_covered(
     #[with(3)]
     #[future]
-    setup: SetupResult,
+    fixture: FixtureResult,
 ) -> TestResult {
-    let TestData {
+    let Fixture {
         sender_address,
         app_ids,
-        mut fixture,
+        algorand_fixture,
         method_selectors,
         abi_types,
-    } = setup.await?;
-    let mut composer = fixture.context()?.composer.clone();
+    } = fixture.await?;
+    let mut composer = algorand_fixture.algorand_client.new_group();
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
 
     let expected_fee = 5300u64;
@@ -370,17 +369,14 @@ async fn test_alters_fee_some_inner_fees_covered(
             ..Default::default()
         },
         app_id: app_id_1,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
             abi_types.uint64.encode(&app_id_2.into())?,
             abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
-        account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
     composer.add_app_call(txn_params.clone())?;
 
@@ -393,7 +389,12 @@ async fn test_alters_fee_some_inner_fees_covered(
         .map(|c| c.txn.transaction.header().fee.unwrap_or(0))
         .collect::<Vec<_>>();
     assert_eq!(actual_fees[0], expected_fee);
-    assert_min_fee(fixture.new_composer()?, &txn_params, expected_fee).await;
+    assert_min_fee(
+        algorand_fixture.algorand_client.new_group(),
+        &txn_params,
+        expected_fee,
+    )
+    .await;
 
     Ok(())
 }
@@ -404,16 +405,16 @@ async fn test_alters_fee_some_inner_fees_covered(
 async fn test_alters_fee_some_inner_fees_surplus(
     #[with(3)]
     #[future]
-    setup: SetupResult,
+    fixture: FixtureResult,
 ) -> TestResult {
-    let TestData {
+    let Fixture {
         sender_address,
         app_ids,
-        mut fixture,
+        algorand_fixture,
         method_selectors,
         abi_types,
-    } = setup.await?;
-    let mut composer = fixture.context()?.composer.clone();
+    } = fixture.await?;
+    let mut composer = algorand_fixture.algorand_client.new_group();
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
 
     let expected_fee = 2000u64;
@@ -428,17 +429,14 @@ async fn test_alters_fee_some_inner_fees_surplus(
             ..Default::default()
         },
         app_id: app_id_1,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
             abi_types.uint64.encode(&app_id_2.into())?,
             abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
-        account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
     composer.add_app_call(txn_params.clone())?;
 
@@ -451,7 +449,12 @@ async fn test_alters_fee_some_inner_fees_surplus(
         .map(|c| c.txn.transaction.header().fee.unwrap_or(0))
         .collect::<Vec<_>>();
     assert_eq!(actual_fees[0], expected_fee);
-    assert_min_fee(fixture.new_composer()?, &txn_params, expected_fee).await;
+    assert_min_fee(
+        algorand_fixture.algorand_client.new_group(),
+        &txn_params,
+        expected_fee,
+    )
+    .await;
 
     Ok(())
 }
@@ -462,17 +465,17 @@ async fn test_alters_fee_some_inner_fees_surplus(
 async fn test_alters_fee_expensive_abi_method_calls(
     #[with(1)]
     #[future]
-    setup: SetupResult,
+    fixture: FixtureResult,
 ) -> TestResult {
-    let TestData {
+    let Fixture {
         sender_address,
         app_ids,
-        mut fixture,
+        algorand_fixture,
         method_selectors,
         abi_types,
-    } = setup.await?;
+    } = fixture.await?;
 
-    let mut composer = fixture.context()?.composer.clone();
+    let mut composer = algorand_fixture.algorand_client.new_group();
     let app_id = app_ids[0];
     let expected_fee = 10_000u64;
 
@@ -485,12 +488,9 @@ async fn test_alters_fee_expensive_abi_method_calls(
             ..Default::default()
         },
         app_id,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![method_selectors.burn_ops, op_budget_encoded]),
-        account_references: None,
         app_references: None,
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
     composer.add_app_call(params.clone())?;
 
@@ -504,7 +504,12 @@ async fn test_alters_fee_expensive_abi_method_calls(
         .collect();
     assert_eq!(actual_fees[0], expected_fee);
 
-    assert_min_fee(fixture.new_composer()?, &params, expected_fee).await;
+    assert_min_fee(
+        algorand_fixture.algorand_client.new_group(),
+        &params,
+        expected_fee,
+    )
+    .await;
 
     Ok(())
 }
@@ -515,16 +520,16 @@ async fn test_alters_fee_expensive_abi_method_calls(
 async fn test_errors_when_max_fee_too_small(
     #[with(3)]
     #[future]
-    setup: SetupResult,
+    fixture: FixtureResult,
 ) -> TestResult {
-    let TestData {
+    let Fixture {
         sender_address,
         app_ids,
-        fixture,
+        algorand_fixture,
         method_selectors,
         abi_types,
-    } = setup.await?;
-    let mut composer = fixture.context()?.composer.clone();
+    } = fixture.await?;
+    let mut composer = algorand_fixture.algorand_client.new_group();
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
     let expected_fee = 7000u64;
 
@@ -537,17 +542,14 @@ async fn test_errors_when_max_fee_too_small(
             ..Default::default()
         },
         app_id: app_id_1,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
             abi_types.uint64.encode(&app_id_2.into())?,
             abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
-        account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
     composer.add_app_call(params.clone())?;
 
@@ -573,16 +575,16 @@ async fn test_errors_when_max_fee_too_small(
 async fn test_errors_when_static_fee_too_small(
     #[with(3)]
     #[future]
-    setup: SetupResult,
+    fixture: FixtureResult,
 ) -> TestResult {
-    let TestData {
+    let Fixture {
         sender_address,
         app_ids,
-        fixture,
+        algorand_fixture,
         method_selectors,
         abi_types,
-    } = setup.await?;
-    let mut composer = fixture.context()?.composer.clone();
+    } = fixture.await?;
+    let mut composer = algorand_fixture.algorand_client.new_group();
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
     let expected_fee = 7000u64;
 
@@ -595,17 +597,14 @@ async fn test_errors_when_static_fee_too_small(
             ..Default::default()
         },
         app_id: app_id_1,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
             abi_types.uint64.encode(&app_id_2.into())?,
             abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
-        account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
     composer.add_app_call(params.clone())?;
 
@@ -631,16 +630,16 @@ async fn test_errors_when_static_fee_too_small(
 async fn test_does_not_alter_static_fee_with_surplus(
     #[with(3)]
     #[future]
-    setup: SetupResult,
+    fixture: FixtureResult,
 ) -> TestResult {
-    let TestData {
+    let Fixture {
         sender_address,
         app_ids,
-        fixture,
+        algorand_fixture,
         method_selectors,
         abi_types,
-    } = setup.await?;
-    let mut composer = fixture.context()?.composer.clone();
+    } = fixture.await?;
+    let mut composer = algorand_fixture.algorand_client.new_group();
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
     let expected_fee = 6000u64;
 
@@ -653,17 +652,14 @@ async fn test_does_not_alter_static_fee_with_surplus(
             ..Default::default()
         },
         app_id: app_id_1,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
             abi_types.uint64.encode(&app_id_2.into())?,
             abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
-        account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
 
     composer.add_app_call(app_call_params)?;
@@ -687,16 +683,16 @@ async fn test_does_not_alter_static_fee_with_surplus(
 async fn test_alters_fee_multiple_app_calls_in_group(
     #[with(3)]
     #[future]
-    setup: SetupResult,
+    fixture: FixtureResult,
 ) -> TestResult {
-    let TestData {
+    let Fixture {
         sender_address,
         app_ids,
-        mut fixture,
+        algorand_fixture,
         method_selectors,
         abi_types,
-    } = setup.await?;
-    let mut composer = fixture.context()?.composer.clone();
+    } = fixture.await?;
+    let mut composer = algorand_fixture.algorand_client.new_group();
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
 
     // Create an app call transaction that has varying inner fees
@@ -710,17 +706,14 @@ async fn test_alters_fee_multiple_app_calls_in_group(
             ..Default::default()
         },
         app_id: app_id_1,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees.clone(),
             abi_types.uint64.encode(&app_id_2.into())?,
             abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&txn_1_fee_tuple)?,
         ]),
-        account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
     composer.add_app_call(txn_1_params.clone())?;
 
@@ -735,17 +728,14 @@ async fn test_alters_fee_multiple_app_calls_in_group(
             ..Default::default()
         },
         app_id: app_id_1,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
             abi_types.uint64.encode(&app_id_2.into())?,
             abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&txn_2_fee_tuple)?,
         ]),
-        account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
     composer.add_app_call(txn_2_params.clone())?;
 
@@ -760,8 +750,18 @@ async fn test_alters_fee_multiple_app_calls_in_group(
     assert_eq!(actual_fees[0], txn_1_expected_fee);
     assert_eq!(actual_fees[1], txn_2_expected_fee);
 
-    assert_min_fee(fixture.new_composer()?, &txn_1_params, txn_1_expected_fee).await;
-    assert_min_fee(fixture.new_composer()?, &txn_2_params, txn_2_expected_fee).await;
+    assert_min_fee(
+        algorand_fixture.algorand_client.new_group(),
+        &txn_1_params,
+        txn_1_expected_fee,
+    )
+    .await;
+    assert_min_fee(
+        algorand_fixture.algorand_client.new_group(),
+        &txn_2_params,
+        txn_2_expected_fee,
+    )
+    .await;
 
     Ok(())
 }
@@ -772,16 +772,16 @@ async fn test_alters_fee_multiple_app_calls_in_group(
 async fn test_does_not_alter_fee_when_group_covers_inner_fees(
     #[with(3)]
     #[future]
-    setup: SetupResult,
+    fixture: FixtureResult,
 ) -> TestResult {
-    let TestData {
+    let Fixture {
         sender_address,
         app_ids,
-        fixture,
+        algorand_fixture,
         method_selectors,
         abi_types,
-    } = setup.await?;
-    let mut composer = fixture.context()?.composer.clone();
+    } = fixture.await?;
+    let mut composer = algorand_fixture.algorand_client.new_group();
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
 
     // Create a payment transaction that will cover the inner fees of transaction 2
@@ -806,17 +806,14 @@ async fn test_does_not_alter_fee_when_group_covers_inner_fees(
             ..Default::default()
         },
         app_id: app_id_1,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
             abi_types.uint64.encode(&app_id_2.into())?,
             abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
-        account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
     composer.add_app_call(txn_2_params)?;
 
@@ -841,16 +838,16 @@ async fn test_does_not_alter_fee_when_group_covers_inner_fees(
 async fn test_alters_fee_nested_abi_method_call(
     #[with(3, 1)]
     #[future]
-    setup: SetupResult,
+    fixture: FixtureResult,
 ) -> TestResult {
-    let TestData {
+    let Fixture {
         sender_address,
         app_ids,
-        fixture,
+        algorand_fixture,
         method_selectors,
         abi_types,
-    } = setup.await?;
-    let mut composer = fixture.context()?.composer.clone();
+    } = fixture.await?;
+    let mut composer = algorand_fixture.algorand_client.new_group();
     let [app_id_1, app_id_2, app_id_3, app_id_4] = [app_ids[0], app_ids[1], app_ids[2], app_ids[3]];
     let expected_fee = 2000u64;
 
@@ -875,17 +872,14 @@ async fn test_alters_fee_nested_abi_method_call(
             ..Default::default()
         },
         app_id: app_id_1,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
             abi_types.uint64.encode(&app_id_2.into())?,
             abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
-        account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
     composer.add_app_call(txn_2_params.clone())?;
 
@@ -897,12 +891,9 @@ async fn test_alters_fee_nested_abi_method_call(
             ..Default::default()
         },
         app_id: app_id_4,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![method_selectors.nested_txn_arg]),
-        account_references: None,
         app_references: None,
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
     composer.add_app_call(txn_3_params.clone())?;
 
@@ -927,16 +918,16 @@ async fn test_alters_fee_nested_abi_method_call(
 async fn test_errors_when_nested_max_fee_below_calculated(
     #[with(3, 1)]
     #[future]
-    setup: SetupResult,
+    fixture: FixtureResult,
 ) -> TestResult {
-    let TestData {
+    let Fixture {
         sender_address,
         app_ids,
-        fixture,
+        algorand_fixture,
         method_selectors,
         abi_types,
-    } = setup.await?;
-    let mut composer = fixture.context()?.composer.clone();
+    } = fixture.await?;
+    let mut composer = algorand_fixture.algorand_client.new_group();
     let [app_id_1, app_id_2, app_id_3, app_id_4] = [app_ids[0], app_ids[1], app_ids[2], app_ids[3]];
 
     // Create a payment transaction that will be used as a nested argument
@@ -961,17 +952,14 @@ async fn test_errors_when_nested_max_fee_below_calculated(
             ..Default::default()
         },
         app_id: app_id_1,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
             abi_types.uint64.encode(&app_id_2.into())?,
             abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
-        account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
     composer.add_app_call(txn_2_params)?;
 
@@ -983,12 +971,9 @@ async fn test_errors_when_nested_max_fee_below_calculated(
             ..Default::default()
         },
         app_id: app_id_4,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![method_selectors.nested_txn_arg]),
-        account_references: None,
         app_references: None,
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
     composer.add_app_call(txn_3_params)?;
 
@@ -1016,16 +1001,16 @@ async fn test_errors_when_nested_max_fee_below_calculated(
 async fn test_alters_fee_allocating_surplus_to_most_constrained(
     #[with(3)]
     #[future]
-    setup: SetupResult,
+    fixture: FixtureResult,
 ) -> TestResult {
-    let TestData {
+    let Fixture {
         sender_address,
         app_ids,
-        fixture,
+        algorand_fixture,
         method_selectors,
         abi_types,
-    } = setup.await?;
-    let mut composer = fixture.context()?.composer.clone();
+    } = fixture.await?;
+    let mut composer = algorand_fixture.algorand_client.new_group();
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
 
     // Create an app call transaction with inners that have no fees
@@ -1037,17 +1022,14 @@ async fn test_alters_fee_allocating_surplus_to_most_constrained(
             ..Default::default()
         },
         app_id: app_id_1,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees.clone(),
             abi_types.uint64.encode(&app_id_2.into())?,
             abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple_1)?,
         ]),
-        account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
     composer.add_app_call(txn_1_params)?;
 
@@ -1096,16 +1078,16 @@ async fn test_alters_fee_allocating_surplus_to_most_constrained(
 async fn test_alters_fee_large_surplus_pooling_to_lower_siblings(
     #[with(3)]
     #[future]
-    setup: SetupResult,
+    fixture: FixtureResult,
 ) -> TestResult {
-    let TestData {
+    let Fixture {
         sender_address,
         app_ids,
-        mut fixture,
+        algorand_fixture,
         method_selectors,
         abi_types,
-    } = setup.await?;
-    let mut composer = fixture.context()?.composer.clone();
+    } = fixture.await?;
+    let mut composer = algorand_fixture.algorand_client.new_group();
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
     let expected_fee = 7000u64;
 
@@ -1118,17 +1100,14 @@ async fn test_alters_fee_large_surplus_pooling_to_lower_siblings(
             ..Default::default()
         },
         app_id: app_id_1,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
             abi_types.uint64.encode(&app_id_2.into())?,
             abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
-        account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
     composer.add_app_call(txn_params.clone())?;
 
@@ -1141,7 +1120,12 @@ async fn test_alters_fee_large_surplus_pooling_to_lower_siblings(
         .map(|c| c.txn.transaction.header().fee.unwrap_or(0))
         .collect::<Vec<_>>();
     assert_eq!(actual_fees[0], expected_fee);
-    assert_min_fee(fixture.new_composer()?, &txn_params, expected_fee).await;
+    assert_min_fee(
+        algorand_fixture.algorand_client.new_group(),
+        &txn_params,
+        expected_fee,
+    )
+    .await;
 
     Ok(())
 }
@@ -1152,16 +1136,16 @@ async fn test_alters_fee_large_surplus_pooling_to_lower_siblings(
 async fn test_alters_fee_surplus_pooling_to_some_siblings(
     #[with(3)]
     #[future]
-    setup: SetupResult,
+    fixture: FixtureResult,
 ) -> TestResult {
-    let TestData {
+    let Fixture {
         sender_address,
         app_ids,
-        mut fixture,
+        algorand_fixture,
         method_selectors,
         abi_types,
-    } = setup.await?;
-    let mut composer = fixture.context()?.composer.clone();
+    } = fixture.await?;
+    let mut composer = algorand_fixture.algorand_client.new_group();
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
     let expected_fee = 6300u64;
 
@@ -1174,17 +1158,14 @@ async fn test_alters_fee_surplus_pooling_to_some_siblings(
             ..Default::default()
         },
         app_id: app_id_1,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
             abi_types.uint64.encode(&app_id_2.into())?,
             abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
-        account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
     composer.add_app_call(txn_params.clone())?;
 
@@ -1197,7 +1178,12 @@ async fn test_alters_fee_surplus_pooling_to_some_siblings(
         .map(|c| c.txn.transaction.header().fee.unwrap_or(0))
         .collect::<Vec<_>>();
     assert_eq!(actual_fees[0], expected_fee);
-    assert_min_fee(fixture.new_composer()?, &txn_params, expected_fee).await;
+    assert_min_fee(
+        algorand_fixture.algorand_client.new_group(),
+        &txn_params,
+        expected_fee,
+    )
+    .await;
 
     Ok(())
 }
@@ -1208,16 +1194,16 @@ async fn test_alters_fee_surplus_pooling_to_some_siblings(
 async fn test_alters_fee_large_surplus_no_pooling(
     #[with(3)]
     #[future]
-    setup: SetupResult,
+    fixture: FixtureResult,
 ) -> TestResult {
-    let TestData {
+    let Fixture {
         sender_address,
         app_ids,
-        mut fixture,
+        algorand_fixture,
         method_selectors,
         abi_types,
-    } = setup.await?;
-    let mut composer = fixture.context()?.composer.clone();
+    } = fixture.await?;
+    let mut composer = algorand_fixture.algorand_client.new_group();
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
     let expected_fee = 10_000u64;
 
@@ -1230,17 +1216,14 @@ async fn test_alters_fee_large_surplus_no_pooling(
             ..Default::default()
         },
         app_id: app_id_1,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
             abi_types.uint64.encode(&app_id_2.into())?,
             abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
-        account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
     composer.add_app_call(txn_params.clone())?;
 
@@ -1253,7 +1236,12 @@ async fn test_alters_fee_large_surplus_no_pooling(
         .map(|c| c.txn.transaction.header().fee.unwrap_or(0))
         .collect::<Vec<_>>();
     assert_eq!(actual_fees[0], expected_fee);
-    assert_min_fee(fixture.new_composer()?, &txn_params, expected_fee).await;
+    assert_min_fee(
+        algorand_fixture.algorand_client.new_group(),
+        &txn_params,
+        expected_fee,
+    )
+    .await;
 
     Ok(())
 }
@@ -1264,16 +1252,16 @@ async fn test_alters_fee_large_surplus_no_pooling(
 async fn test_alters_fee_multiple_surplus_poolings(
     #[with(3)]
     #[future]
-    setup: SetupResult,
+    fixture: FixtureResult,
 ) -> TestResult {
-    let TestData {
+    let Fixture {
         sender_address,
         app_ids,
-        mut fixture,
+        algorand_fixture,
         method_selectors,
         abi_types,
-    } = setup.await?;
-    let mut composer = fixture.context()?.composer.clone();
+    } = fixture.await?;
+    let mut composer = algorand_fixture.algorand_client.new_group();
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
     let expected_fee = 7100u64;
 
@@ -1307,17 +1295,14 @@ async fn test_alters_fee_multiple_surplus_poolings(
             ..Default::default()
         },
         app_id: app_id_1,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees_2,
             abi_types.uint64.encode(&app_id_2.into())?,
             abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_2_tuple.encode(&fees_tuple)?,
         ]),
-        account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
     composer.add_app_call(txn_params.clone())?;
 
@@ -1330,7 +1315,12 @@ async fn test_alters_fee_multiple_surplus_poolings(
         .map(|c| c.txn.transaction.header().fee.unwrap_or(0))
         .collect::<Vec<_>>();
     assert_eq!(actual_fees[0], expected_fee);
-    assert_min_fee(fixture.new_composer()?, &txn_params, expected_fee).await;
+    assert_min_fee(
+        algorand_fixture.algorand_client.new_group(),
+        &txn_params,
+        expected_fee,
+    )
+    .await;
 
     Ok(())
 }
@@ -1341,16 +1331,16 @@ async fn test_alters_fee_multiple_surplus_poolings(
 async fn test_errors_when_max_fee_below_calculated(
     #[with(3)]
     #[future]
-    setup: SetupResult,
+    fixture: FixtureResult,
 ) -> TestResult {
-    let TestData {
+    let Fixture {
         sender_address,
         app_ids,
-        fixture,
+        algorand_fixture,
         method_selectors,
         abi_types,
-    } = setup.await?;
-    let mut composer = fixture.context()?.composer.clone();
+    } = fixture.await?;
+    let mut composer = algorand_fixture.algorand_client.new_group();
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
 
     // Create an app call transaction that has no inner fees covered
@@ -1362,17 +1352,14 @@ async fn test_errors_when_max_fee_below_calculated(
             ..Default::default()
         },
         app_id: app_id_1,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
             abi_types.uint64.encode(&app_id_2.into())?,
             abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
-        account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
     composer.add_app_call(txn_1_params)?;
 
@@ -1385,12 +1372,9 @@ async fn test_errors_when_max_fee_below_calculated(
             ..Default::default()
         },
         app_id: app_id_1,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![method_selectors.no_op]),
-        account_references: None,
         app_references: None,
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
     composer.add_app_call(txn_2_params)?;
 
@@ -1416,16 +1400,16 @@ async fn test_errors_when_max_fee_below_calculated(
 async fn test_errors_when_static_fee_below_calculated(
     #[with(3)]
     #[future]
-    setup: SetupResult,
+    fixture: FixtureResult,
 ) -> TestResult {
-    let TestData {
+    let Fixture {
         sender_address,
         app_ids,
-        fixture,
+        algorand_fixture,
         method_selectors,
         abi_types,
-    } = setup.await?;
-    let mut composer = fixture.context()?.composer.clone();
+    } = fixture.await?;
+    let mut composer = algorand_fixture.algorand_client.new_group();
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
 
     // Create an app call transaction that has no inner fees covered
@@ -1437,17 +1421,14 @@ async fn test_errors_when_static_fee_below_calculated(
             ..Default::default()
         },
         app_id: app_id_1,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
             abi_types.uint64.encode(&app_id_2.into())?,
             abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
-        account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
     composer.add_app_call(params)?;
 
@@ -1460,12 +1441,9 @@ async fn test_errors_when_static_fee_below_calculated(
             ..Default::default()
         },
         app_id: app_id_1,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![method_selectors.no_op]),
-        account_references: None,
         app_references: None,
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
     composer.add_app_call(txn_2_params)?;
 
@@ -1491,16 +1469,16 @@ async fn test_errors_when_static_fee_below_calculated(
 async fn test_errors_when_static_fee_too_low_for_non_app_call(
     #[with(3)]
     #[future]
-    setup: SetupResult,
+    fixture: FixtureResult,
 ) -> TestResult {
-    let TestData {
+    let Fixture {
         sender_address,
         app_ids,
-        fixture,
+        algorand_fixture,
         method_selectors,
         abi_types,
-    } = setup.await?;
-    let mut composer = fixture.context()?.composer.clone();
+    } = fixture.await?;
+    let mut composer = algorand_fixture.algorand_client.new_group();
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0]);
 
@@ -1513,17 +1491,14 @@ async fn test_errors_when_static_fee_too_low_for_non_app_call(
             ..Default::default()
         },
         app_id: app_id_1,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees.clone(),
             abi_types.uint64.encode(&app_id_2.into())?,
             abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
-        account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
     composer.add_app_call(txn_1_params)?;
 
@@ -1535,17 +1510,14 @@ async fn test_errors_when_static_fee_too_low_for_non_app_call(
             ..Default::default()
         },
         app_id: app_id_1,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
             abi_types.uint64.encode(&app_id_2.into())?,
             abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
-        account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
     composer.add_app_call(txn_2_params)?;
 
@@ -1586,19 +1558,19 @@ async fn test_errors_when_static_fee_too_low_for_non_app_call(
 async fn test_readonly_fixed_opcode_budget(
     #[with(1)]
     #[future]
-    setup: SetupResult,
+    fixture: FixtureResult,
     #[case] cover_inner_fees: bool,
 ) -> TestResult {
     // This test verifies that readonly calls use the fixed max opcode budget and don't require inner transactions for op-ups,
     // regardless of coverAppCallInnerTransactionFees setting.
-    let TestData {
+    let Fixture {
         sender_address,
         app_ids,
-        fixture,
+        algorand_fixture,
         method_selectors,
         abi_types,
-    } = setup.await?;
-    let mut composer = fixture.context()?.composer.clone();
+    } = fixture.await?;
+    let mut composer = algorand_fixture.algorand_client.new_group();
     let app_id = app_ids[0];
 
     let op_budget_encoded = abi_types.uint64.encode(&ABIValue::from(6200u64))?; // This would normally require op-ups via inner transactions
@@ -1608,12 +1580,9 @@ async fn test_readonly_fixed_opcode_budget(
             ..Default::default()
         },
         app_id,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![method_selectors.burn_ops_readonly, op_budget_encoded]),
-        account_references: None,
         app_references: None,
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
     composer.add_app_call(txn_params)?;
 
@@ -1643,17 +1612,17 @@ async fn test_readonly_fixed_opcode_budget(
 async fn test_readonly_alters_fee_handling_inners(
     #[with(3)]
     #[future]
-    setup: SetupResult,
+    fixture: FixtureResult,
 ) -> TestResult {
     // TODO: When readonly support is added, some code will be need to force `send_inners_with_fees` to be marked as readonly.
-    let TestData {
+    let Fixture {
         sender_address,
         app_ids,
-        fixture,
+        algorand_fixture,
         method_selectors,
         abi_types,
-    } = setup.await?;
-    let mut composer = fixture.context()?.composer.clone();
+    } = fixture.await?;
+    let mut composer = algorand_fixture.algorand_client.new_group();
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
     let expected_fee = 12_000u64;
 
@@ -1668,17 +1637,14 @@ async fn test_readonly_alters_fee_handling_inners(
             ..Default::default()
         },
         app_id: app_id_1,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
             abi_types.uint64.encode(&app_id_2.into())?,
             abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
-        account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
     composer.add_app_call(txn_params)?;
 
@@ -1707,17 +1673,17 @@ async fn test_readonly_alters_fee_handling_inners(
 async fn test_readonly_errors_when_max_fee_too_small(
     #[with(3)]
     #[future]
-    setup: SetupResult,
+    fixture: FixtureResult,
 ) -> TestResult {
     // TODO: When readonly support is added, some code will be need to force `send_inners_with_fees` to be marked as readonly.
-    let TestData {
+    let Fixture {
         sender_address,
         app_ids,
-        fixture,
+        algorand_fixture,
         method_selectors,
         abi_types,
-    } = setup.await?;
-    let mut composer = fixture.context()?.composer.clone();
+    } = fixture.await?;
+    let mut composer = algorand_fixture.algorand_client.new_group();
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
 
     // This tuple represents partial inner fee coverage for readonly context
@@ -1729,17 +1695,14 @@ async fn test_readonly_errors_when_max_fee_too_small(
             ..Default::default()
         },
         app_id: app_id_1,
-        on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
             abi_types.uint64.encode(&app_id_2.into())?,
             abi_types.uint64.encode(&app_id_3.into())?,
             abi_types.fees_tuple.encode(&fees_tuple)?,
         ]),
-        account_references: None,
         app_references: Some(vec![app_id_2, app_id_3]),
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
     composer.add_app_call(txn_params)?;
 
@@ -1759,16 +1722,15 @@ async fn test_readonly_errors_when_max_fee_too_small(
     Ok(())
 }
 
-struct TestData {
+struct Fixture {
     sender_address: Address,
     app_ids: Vec<u64>,
-    fixture: AlgorandFixture,
+    algorand_fixture: AlgorandFixture,
     method_selectors: MethodSelectors,
     abi_types: ABITypes,
 }
 
-type SetupResult = Result<TestData, Box<dyn std::error::Error + Send + Sync>>;
-type TestResult = Result<(), Box<dyn std::error::Error + Send + Sync>>;
+type FixtureResult = Result<Fixture, Box<dyn std::error::Error + Send + Sync>>;
 
 struct MethodSelectors {
     no_op: Vec<u8>,
@@ -1826,15 +1788,21 @@ fn get_nested_app_teal_programs()
 }
 
 async fn deploy_inner_fee_app(
-    context: &AlgorandTestContext,
+    algorand_fixture: &AlgorandFixture,
     note: &str,
 ) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
     let (approval_teal, clear_state_teal) = get_inner_fee_teal_programs()?;
-    let approval_compile_result = context.algod.teal_compile(approval_teal, None).await?;
-    let clear_state_compile_result = context.algod.teal_compile(clear_state_teal, None).await?;
+    let approval_compile_result = algorand_fixture
+        .algod
+        .teal_compile(approval_teal, None)
+        .await?;
+    let clear_state_compile_result = algorand_fixture
+        .algod
+        .teal_compile(clear_state_teal, None)
+        .await?;
 
     deploy_app(
-        context,
+        algorand_fixture,
         approval_compile_result.result,
         clear_state_compile_result.result,
         None,
@@ -1844,18 +1812,24 @@ async fn deploy_inner_fee_app(
 }
 
 async fn deploy_nested_app(
-    context: &AlgorandTestContext,
+    algorand_fixture: &AlgorandFixture,
     note: &str,
 ) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
     let (approval_teal, clear_state_teal) = get_nested_app_teal_programs()?;
-    let approval_compile_result = context.algod.teal_compile(approval_teal, None).await?;
-    let clear_state_compile_result = context.algod.teal_compile(clear_state_teal, None).await?;
+    let approval_compile_result = algorand_fixture
+        .algod
+        .teal_compile(approval_teal, None)
+        .await?;
+    let clear_state_compile_result = algorand_fixture
+        .algod
+        .teal_compile(clear_state_teal, None)
+        .await?;
 
     let create_method = ABIMethod::from_str("createApplication()void")?;
     let create_method_selector = create_method.selector()?;
 
     deploy_app(
-        context,
+        algorand_fixture,
         approval_compile_result.result,
         clear_state_compile_result.result,
         Some(vec![create_method_selector]),
@@ -1865,7 +1839,7 @@ async fn deploy_nested_app(
 }
 
 async fn deploy_app(
-    context: &AlgorandTestContext,
+    algorand_fixture: &AlgorandFixture,
     approval_program: Vec<u8>,
     clear_state_program: Vec<u8>,
     args: Option<Vec<Vec<u8>>>,
@@ -1873,18 +1847,17 @@ async fn deploy_app(
 ) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
     let app_create_params = AppCreateParams {
         common_params: CommonParams {
-            sender: context.test_account.account()?.address(),
+            sender: algorand_fixture.test_account.account().address(),
             note: Some(note.as_bytes().to_vec()),
             ..Default::default()
         },
-        on_complete: OnApplicationComplete::NoOp,
         approval_program,
         clear_state_program,
         args,
         ..Default::default()
     };
 
-    let mut composer = context.composer.clone();
+    let mut composer = algorand_fixture.algorand_client.new_group();
     composer.add_app_create(app_create_params)?;
 
     let result = composer.send(None).await?;
@@ -1896,11 +1869,11 @@ async fn deploy_app(
 
 // Helper function to fund app accounts
 async fn fund_app_accounts(
-    context: &AlgorandTestContext,
+    algorand_fixture: &AlgorandFixture,
     app_ids: &Vec<u64>,
     amount: u64,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let mut dispenser = LocalNetDispenser::new(context.algod.clone());
+    let mut dispenser = LocalNetDispenser::new(algorand_fixture.algod.clone());
 
     for app_id in app_ids {
         let app_address = Address::from_app_id(app_id);

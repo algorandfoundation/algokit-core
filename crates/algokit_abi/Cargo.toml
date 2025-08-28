@@ -15,7 +15,7 @@ base64 = "0.21"
 algokit_test_artifacts = { path = "../algokit_test_artifacts" }
 
 [dev-dependencies]
-rstest = "0.25.0"
+rstest = { workspace = true }
 hex = "0.4"
 insta = { version = "1.43", features = ["json"] }
 algokit_test_artifacts = { path = "../algokit_test_artifacts" }

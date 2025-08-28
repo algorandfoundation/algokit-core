@@ -3,8 +3,10 @@ use crate::clients::asset_manager::AssetManager;
 use crate::clients::client_manager::ClientManager;
 use crate::clients::network_client::{AlgoConfig, AlgorandService};
 use crate::transactions::{Composer, TransactionCreator, TransactionSender};
+use crate::{AccountManager, ComposerError, TransactionSigner};
 use algod_client::models::TransactionParams;
-use std::sync::Arc;
+use algokit_transact::Address;
+use std::sync::{Arc, Mutex};
 
 pub struct AlgorandClient {
     client_manager: ClientManager,
@@ -12,46 +14,51 @@ pub struct AlgorandClient {
     app_manager: AppManager,
     transaction_sender: TransactionSender,
     transaction_creator: TransactionCreator,
+    account_manager: Arc<Mutex<AccountManager>>,
 }
 
 impl AlgorandClient {
-    fn new(config: AlgoConfig) -> Self {
+    pub fn new(config: &AlgoConfig) -> Self {
         let client_manager = ClientManager::new(config);
         let algod_client = client_manager.algod();
 
-        let asset_manager = AssetManager::new(algod_client.clone());
+        let account_manager = Arc::new(Mutex::new(AccountManager::new()));
+
+        let get_signer = {
+            let account_manager = account_manager.clone();
+            move |address| {
+                account_manager
+                    .lock()
+                    .unwrap()
+                    .get_signer(address)
+                    .map_err(|e| ComposerError::SigningError {
+                        message: e.to_string(),
+                    })
+            }
+        };
+        let new_group = {
+            let algod_client = algod_client.clone();
+            let get_signer = get_signer.clone();
+            move || Composer::new(algod_client.clone(), Arc::new(get_signer.clone()))
+        };
+
+        let algod_client_for_asset = algod_client.clone();
+        let asset_manager = AssetManager::new(algod_client_for_asset.clone(), new_group.clone());
         let app_manager = AppManager::new(algod_client.clone());
 
         // Create closure for new_group function
-        let algod_client_for_sender = algod_client.clone();
         let transaction_sender = TransactionSender::new(
-            move || {
-                Composer::new(
-                    algod_client_for_sender.clone(),
-                    // TODO: Replace EmptySigner with dynamic signer resolution once AccountManager
-                    // abstraction is implemented. Should resolve default signers from sender addresses
-                    // similar to py/ts utils implementation's get signer function.
-                    Arc::new(crate::transactions::EmptySigner {}),
-                )
-            },
+            new_group.clone(),
             asset_manager.clone(),
             app_manager.clone(),
         );
 
         // Create closure for TransactionCreator
-        let algod_client_for_creator = algod_client.clone();
-        let transaction_creator = TransactionCreator::new(move || {
-            Composer::new(
-                algod_client_for_creator.clone(),
-                // TODO: Replace EmptySigner with dynamic signer resolution once AccountManager
-                // abstraction is implemented. Should resolve default signers from sender addresses
-                // similar to py/ts utils implementation's get signer function.
-                Arc::new(crate::transactions::EmptySigner {}),
-            )
-        });
+        let transaction_creator = TransactionCreator::new(new_group.clone());
 
         Self {
             client_manager,
+            account_manager: account_manager.clone(),
             asset_manager,
             app_manager,
             transaction_sender,
@@ -91,41 +98,51 @@ impl AlgorandClient {
 
     /// Create a new transaction composer for building transaction groups
     pub fn new_group(&self) -> Composer {
-        // TODO: Replace EmptySigner with dynamic signer resolution once AccountManager
-        // abstraction is implemented. Should resolve default signers from sender addresses
-        // similar to py/ts utils implementation's get signer function.
-        Composer::new(
-            self.client_manager.algod().clone(),
-            Arc::new(crate::transactions::EmptySigner {}),
-        )
+        let get_signer = {
+            let account_manager = self.account_manager.clone();
+            move |address| {
+                account_manager
+                    .lock()
+                    .unwrap()
+                    .get_signer(address)
+                    .map_err(|e| ComposerError::SigningError {
+                        message: e.to_string(),
+                    })
+            }
+        };
+
+        Composer::new(self.client_manager.algod().clone(), Arc::new(get_signer))
     }
 
     pub fn default_localnet() -> Self {
-        Self::new(AlgoConfig {
+        Self::new(&AlgoConfig {
             algod_config: ClientManager::get_default_localnet_config(AlgorandService::Algod),
             indexer_config: ClientManager::get_default_localnet_config(AlgorandService::Indexer),
         })
     }
 
     pub fn testnet() -> Self {
-        Self::new(AlgoConfig {
+        Self::new(&AlgoConfig {
             algod_config: ClientManager::get_algonode_config("testnet", AlgorandService::Algod),
             indexer_config: ClientManager::get_algonode_config("testnet", AlgorandService::Indexer),
         })
     }
 
     pub fn mainnet() -> Self {
-        Self::new(AlgoConfig {
+        Self::new(&AlgoConfig {
             algod_config: ClientManager::get_algonode_config("mainnet", AlgorandService::Algod),
             indexer_config: ClientManager::get_algonode_config("mainnet", AlgorandService::Indexer),
         })
     }
 
     pub fn from_environment() -> Self {
-        Self::new(ClientManager::get_config_from_environment_or_localnet())
+        Self::new(&ClientManager::get_config_from_environment_or_localnet())
     }
 
-    pub fn from_config(config: AlgoConfig) -> Self {
-        Self::new(config)
+    pub fn set_signer(&mut self, sender: Address, signer: Arc<dyn TransactionSigner>) {
+        self.account_manager
+            .lock()
+            .unwrap()
+            .set_signer(sender, signer);
     }
 }

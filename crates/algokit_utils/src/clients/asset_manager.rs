@@ -4,10 +4,8 @@ use algokit_transact::Address;
 use snafu::Snafu;
 use std::{str::FromStr, sync::Arc};
 
-use crate::transactions::{
-    AssetOptInParams, AssetOptOutParams, CommonParams, Composer, ComposerError,
-    TransactionSignerGetter,
-};
+use crate::CommonParams;
+use crate::transactions::{AssetOptInParams, AssetOptOutParams, Composer, ComposerError};
 
 #[derive(Debug, Clone)]
 pub struct BulkAssetOptInOutResult {
@@ -155,11 +153,15 @@ pub struct AssetValidationError {
 #[derive(Clone)]
 pub struct AssetManager {
     algod_client: Arc<AlgodClient>,
+    new_group: Arc<dyn Fn() -> Composer>,
 }
 
 impl AssetManager {
-    pub fn new(algod_client: Arc<AlgodClient>) -> Self {
-        Self { algod_client }
+    pub fn new(algod_client: Arc<AlgodClient>, new_group: impl Fn() -> Composer + 'static) -> Self {
+        Self {
+            algod_client,
+            new_group: Arc::new(new_group),
+        }
     }
 
     /// Get asset information by asset ID
@@ -192,13 +194,12 @@ impl AssetManager {
         &self,
         account: &Address,
         asset_ids: &[u64],
-        signer_getter: Arc<dyn TransactionSignerGetter>,
     ) -> Result<Vec<BulkAssetOptInOutResult>, AssetManagerError> {
         if asset_ids.is_empty() {
             return Ok(Vec::new());
         }
 
-        let mut composer = Composer::new(self.algod_client.clone(), signer_getter);
+        let mut composer = (self.new_group)();
 
         // Add asset opt-in transactions for each asset
         for &asset_id in asset_ids {
@@ -239,7 +240,6 @@ impl AssetManager {
         account: &Address,
         asset_ids: &[u64],
         ensure_zero_balance: Option<bool>,
-        signer_getter: Arc<dyn TransactionSignerGetter>,
     ) -> Result<Vec<BulkAssetOptInOutResult>, AssetManagerError> {
         if asset_ids.is_empty() {
             return Ok(Vec::new());
@@ -275,7 +275,7 @@ impl AssetManager {
             asset_creators.push(creator);
         }
 
-        let mut composer = Composer::new(self.algod_client.clone(), signer_getter);
+        let mut composer = (self.new_group)();
 
         // Add asset opt-out transactions for each asset
         for (i, &asset_id) in asset_ids.iter().enumerate() {

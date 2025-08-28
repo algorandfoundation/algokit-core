@@ -231,6 +231,7 @@ lazy_static::lazy_static! {
     };
 }
 
+#[allow(clippy::enum_variant_names)]
 /// Error type for mnemonic operations
 #[derive(Debug)]
 pub enum MnemonicError {

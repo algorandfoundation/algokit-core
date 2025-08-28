@@ -177,6 +177,13 @@ mod tests {
     use crate::test_utils::{
         KeyRegistrationTransactionMother, TestDataMother, TransactionHeaderMother,
     };
+    use crate::{
+        AlgorandMsgpack, SignedTransaction, Transaction, Transactions,
+        constants::EMPTY_SIGNATURE,
+        test_utils::{AccountMother, TransactionMother},
+        traits::TransactionId,
+        transactions::FeeParams,
+    };
 
     #[test]
     fn test_validate_valid_online_key_registration() {
@@ -390,161 +397,147 @@ mod tests {
         );
     }
 
-    // Integration tests for encoding and transaction functionality
-    mod integration_tests {
-        use crate::{
-            AlgorandMsgpack, SignedTransaction, Transaction, Transactions,
-            constants::EMPTY_SIGNATURE,
-            test_utils::{
-                AccountMother, KeyRegistrationTransactionMother, TransactionHeaderMother,
-                TransactionMother,
-            },
-            traits::TransactionId,
-            transactions::FeeParams,
+    #[test]
+    fn test_online_key_registration_transaction_encoding() {
+        let tx_builder = KeyRegistrationTransactionMother::online_key_registration();
+        let key_reg_tx_fields = tx_builder.build_fields().unwrap();
+        let key_reg_tx = tx_builder.build().unwrap();
+
+        let encoded = key_reg_tx.encode().unwrap();
+        let decoded = Transaction::decode(&encoded).unwrap();
+        assert_eq!(decoded, key_reg_tx);
+        assert_eq!(decoded, Transaction::KeyRegistration(key_reg_tx_fields));
+
+        let signed_tx = SignedTransaction {
+            transaction: key_reg_tx.clone(),
+            signature: Some(EMPTY_SIGNATURE),
+            auth_address: None,
+            multisignature: None,
+        };
+        let encoded_stx = signed_tx.encode().unwrap();
+        let decoded_stx = SignedTransaction::decode(&encoded_stx).unwrap();
+        assert_eq!(decoded_stx, signed_tx);
+        assert_eq!(decoded_stx.transaction, key_reg_tx);
+
+        let raw_encoded = key_reg_tx.encode_raw().unwrap();
+        assert_eq!(encoded[0], b'T');
+        assert_eq!(encoded[1], b'X');
+        assert_eq!(encoded.len(), raw_encoded.len() + 2);
+        assert_eq!(encoded[2..], raw_encoded);
+    }
+
+    #[test]
+    fn test_offline_key_registration_transaction_encoding() {
+        let tx_builder = KeyRegistrationTransactionMother::offline_key_registration();
+        let key_reg_tx_fields = tx_builder.build_fields().unwrap();
+        let key_reg_tx = tx_builder.build().unwrap();
+
+        // Test focuses on encoding/decoding behavior, not transaction type categorization
+
+        let encoded = key_reg_tx.encode().unwrap();
+        let decoded = Transaction::decode(&encoded).unwrap();
+        assert_eq!(decoded, key_reg_tx);
+        assert_eq!(decoded, Transaction::KeyRegistration(key_reg_tx_fields));
+
+        let signed_tx = SignedTransaction {
+            transaction: key_reg_tx.clone(),
+            signature: Some(EMPTY_SIGNATURE),
+            auth_address: None,
+            multisignature: None,
+        };
+        let encoded_stx = signed_tx.encode().unwrap();
+        let decoded_stx = SignedTransaction::decode(&encoded_stx).unwrap();
+        assert_eq!(decoded_stx, signed_tx);
+        assert_eq!(decoded_stx.transaction, key_reg_tx);
+    }
+
+    #[test]
+    fn test_non_participation_key_registration_transaction_encoding() {
+        let tx_builder = KeyRegistrationTransactionMother::non_participation_key_registration();
+        let key_reg_tx_fields = tx_builder.build_fields().unwrap();
+        let key_reg_tx = tx_builder.build().unwrap();
+
+        // Verify non-participation flag is set correctly
+        assert_eq!(key_reg_tx_fields.non_participation, Some(true));
+
+        let encoded = key_reg_tx.encode().unwrap();
+        let decoded = Transaction::decode(&encoded).unwrap();
+        assert_eq!(decoded, key_reg_tx);
+        assert_eq!(decoded, Transaction::KeyRegistration(key_reg_tx_fields));
+    }
+
+    #[test]
+    fn test_key_registration_transaction_id() {
+        let tx_builder = KeyRegistrationTransactionMother::online_key_registration();
+        let key_reg_tx = tx_builder.build().unwrap();
+
+        let signed_tx = SignedTransaction {
+            transaction: key_reg_tx.clone(),
+            signature: Some(EMPTY_SIGNATURE),
+            auth_address: None,
+            multisignature: None,
         };
 
-        #[test]
-        fn test_online_key_registration_transaction_encoding() {
-            let tx_builder = KeyRegistrationTransactionMother::online_key_registration();
-            let key_reg_tx_fields = tx_builder.build_fields().unwrap();
-            let key_reg_tx = tx_builder.build().unwrap();
+        // Test that transaction ID can be generated
+        let tx_id = key_reg_tx.id().unwrap();
+        let tx_id_raw = key_reg_tx.id_raw().unwrap();
 
-            let encoded = key_reg_tx.encode().unwrap();
-            let decoded = Transaction::decode(&encoded).unwrap();
-            assert_eq!(decoded, key_reg_tx);
-            assert_eq!(decoded, Transaction::KeyRegistration(key_reg_tx_fields));
+        assert_eq!(signed_tx.id().unwrap(), tx_id);
+        assert_eq!(signed_tx.id_raw().unwrap(), tx_id_raw);
 
-            let signed_tx = SignedTransaction {
-                transaction: key_reg_tx.clone(),
-                signature: Some(EMPTY_SIGNATURE),
-                auth_address: None,
-                multisignature: None,
-            };
-            let encoded_stx = signed_tx.encode().unwrap();
-            let decoded_stx = SignedTransaction::decode(&encoded_stx).unwrap();
-            assert_eq!(decoded_stx, signed_tx);
-            assert_eq!(decoded_stx.transaction, key_reg_tx);
+        // Transaction ID should be non-empty
+        assert!(!tx_id.is_empty());
+        assert_ne!(tx_id_raw, [0u8; 32]);
+    }
 
-            let raw_encoded = key_reg_tx.encode_raw().unwrap();
-            assert_eq!(encoded[0], b'T');
-            assert_eq!(encoded[1], b'X');
-            assert_eq!(encoded.len(), raw_encoded.len() + 2);
-            assert_eq!(encoded[2..], raw_encoded);
-        }
+    #[test]
+    fn test_key_registration_fee_calculation() {
+        let key_reg_tx = KeyRegistrationTransactionMother::online_key_registration()
+            .build()
+            .unwrap();
 
-        #[test]
-        fn test_offline_key_registration_transaction_encoding() {
-            let tx_builder = KeyRegistrationTransactionMother::offline_key_registration();
-            let key_reg_tx_fields = tx_builder.build_fields().unwrap();
-            let key_reg_tx = tx_builder.build().unwrap();
+        let updated_transaction = key_reg_tx
+            .assign_fee(FeeParams {
+                fee_per_byte: 1,
+                min_fee: 1000,
+                extra_fee: None,
+                max_fee: None,
+            })
+            .unwrap();
 
-            // Test focuses on encoding/decoding behavior, not transaction type categorization
+        // Fee should be calculated based on transaction size
+        assert!(updated_transaction.header().fee.unwrap() >= 1000);
+    }
 
-            let encoded = key_reg_tx.encode().unwrap();
-            let decoded = Transaction::decode(&encoded).unwrap();
-            assert_eq!(decoded, key_reg_tx);
-            assert_eq!(decoded, Transaction::KeyRegistration(key_reg_tx_fields));
+    #[test]
+    fn test_key_registration_in_transaction_group() {
+        let header_builder = TransactionHeaderMother::testnet()
+            .sender(AccountMother::neil().address())
+            .first_valid(51532821)
+            .last_valid(51533021)
+            .to_owned();
 
-            let signed_tx = SignedTransaction {
-                transaction: key_reg_tx.clone(),
-                signature: Some(EMPTY_SIGNATURE),
-                auth_address: None,
-                multisignature: None,
-            };
-            let encoded_stx = signed_tx.encode().unwrap();
-            let decoded_stx = SignedTransaction::decode(&encoded_stx).unwrap();
-            assert_eq!(decoded_stx, signed_tx);
-            assert_eq!(decoded_stx.transaction, key_reg_tx);
-        }
+        let key_reg_tx = KeyRegistrationTransactionMother::online_key_registration()
+            .header(header_builder.build().unwrap())
+            .build()
+            .unwrap();
 
-        #[test]
-        fn test_non_participation_key_registration_transaction_encoding() {
-            let tx_builder = KeyRegistrationTransactionMother::non_participation_key_registration();
-            let key_reg_tx_fields = tx_builder.build_fields().unwrap();
-            let key_reg_tx = tx_builder.build().unwrap();
+        let payment_tx = TransactionMother::simple_payment()
+            .header(header_builder.build().unwrap())
+            .build()
+            .unwrap();
 
-            // Verify non-participation flag is set correctly
-            assert_eq!(key_reg_tx_fields.non_participation, Some(true));
+        let txs = vec![key_reg_tx, payment_tx];
+        let grouped_txs = txs.assign_group().unwrap();
 
-            let encoded = key_reg_tx.encode().unwrap();
-            let decoded = Transaction::decode(&encoded).unwrap();
-            assert_eq!(decoded, key_reg_tx);
-            assert_eq!(decoded, Transaction::KeyRegistration(key_reg_tx_fields));
-        }
+        assert_eq!(grouped_txs.len(), 2);
 
-        #[test]
-        fn test_key_registration_transaction_id() {
-            let tx_builder = KeyRegistrationTransactionMother::online_key_registration();
-            let key_reg_tx = tx_builder.build().unwrap();
+        // Both transactions should have the same group ID
+        let group_id = grouped_txs[0].header().group.unwrap();
+        assert_eq!(grouped_txs[1].header().group.unwrap(), group_id);
 
-            let signed_tx = SignedTransaction {
-                transaction: key_reg_tx.clone(),
-                signature: Some(EMPTY_SIGNATURE),
-                auth_address: None,
-                multisignature: None,
-            };
-
-            // Test that transaction ID can be generated
-            let tx_id = key_reg_tx.id().unwrap();
-            let tx_id_raw = key_reg_tx.id_raw().unwrap();
-
-            assert_eq!(signed_tx.id().unwrap(), tx_id);
-            assert_eq!(signed_tx.id_raw().unwrap(), tx_id_raw);
-
-            // Transaction ID should be non-empty
-            assert!(!tx_id.is_empty());
-            assert_ne!(tx_id_raw, [0u8; 32]);
-        }
-
-        #[test]
-        fn test_key_registration_fee_calculation() {
-            let key_reg_tx = KeyRegistrationTransactionMother::online_key_registration()
-                .build()
-                .unwrap();
-
-            let updated_transaction = key_reg_tx
-                .assign_fee(FeeParams {
-                    fee_per_byte: 1,
-                    min_fee: 1000,
-                    extra_fee: None,
-                    max_fee: None,
-                })
-                .unwrap();
-
-            // Fee should be calculated based on transaction size
-            assert!(updated_transaction.header().fee.unwrap() >= 1000);
-        }
-
-        #[test]
-        fn test_key_registration_in_transaction_group() {
-            let header_builder = TransactionHeaderMother::testnet()
-                .sender(AccountMother::neil().address())
-                .first_valid(51532821)
-                .last_valid(51533021)
-                .to_owned();
-
-            let key_reg_tx = KeyRegistrationTransactionMother::online_key_registration()
-                .header(header_builder.build().unwrap())
-                .build()
-                .unwrap();
-
-            let payment_tx = TransactionMother::simple_payment()
-                .header(header_builder.build().unwrap())
-                .build()
-                .unwrap();
-
-            let txs = vec![key_reg_tx, payment_tx];
-            let grouped_txs = txs.assign_group().unwrap();
-
-            assert_eq!(grouped_txs.len(), 2);
-
-            // Both transactions should have the same group ID
-            let group_id = grouped_txs[0].header().group.unwrap();
-            assert_eq!(grouped_txs[1].header().group.unwrap(), group_id);
-
-            // Group ID should be non-zero
-            assert_ne!(group_id, [0u8; 32]);
-        }
+        // Group ID should be non-zero
+        assert_ne!(group_id, [0u8; 32]);
     }
 
     #[test]

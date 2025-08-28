@@ -1,32 +1,35 @@
 use algokit_http_client::DefaultHttpClient;
 use algokit_transact::TransactionId;
-use algokit_utils::{ClientManager, CommonParams, PaymentParams, testing::*};
+use algokit_utils::{ClientManager, CommonParams, PaymentParams};
 use indexer_client::IndexerClient;
+use rstest::rstest;
 use std::sync::Arc;
 
-use crate::common::init_test_logging;
+use crate::common::{
+    TestResult,
+    fixture::{AlgorandFixtureResult, algorand_fixture},
+    indexer_helpers::wait_for_indexer_transaction,
+    logging::init_test_logging,
+};
 
+#[rstest]
 #[tokio::test]
-async fn finds_sent_transaction() {
-    init_test_logging();
+async fn finds_sent_transaction(#[future] algorand_fixture: AlgorandFixtureResult) -> TestResult {
+    let mut algorand_fixture = algorand_fixture.await?;
 
-    let mut fixture = algorand_fixture().await.unwrap();
-    fixture.new_scope().await.unwrap();
-
-    let receiver = fixture.generate_account(None).await.unwrap();
-    let context = fixture.context().unwrap();
-    let sender = context.test_account.account().unwrap();
+    let sender = algorand_fixture.test_account.account().address();
+    let receiver = algorand_fixture.generate_account(None).await?;
 
     let payment_params = PaymentParams {
         common_params: CommonParams {
-            sender: sender.address(),
+            sender: sender.clone(),
             ..Default::default()
         },
-        receiver: receiver.account().unwrap().address(),
+        receiver: receiver.account().address(),
         amount: 500_000,
     };
 
-    let mut composer = context.composer.clone();
+    let mut composer = algorand_fixture.algorand_client.new_group();
     composer.add_payment(payment_params).unwrap();
     let result = composer.send(None).await.unwrap();
     let txid = result.confirmations[0].txn.id().unwrap();
@@ -72,16 +75,18 @@ async fn finds_sent_transaction() {
     assert!(!response.transactions.is_empty());
     let found_tx = &response.transactions[0];
     assert_eq!(found_tx.id, Some(txid));
-    assert_eq!(found_tx.sender, sender.address().to_string());
+    assert_eq!(found_tx.sender, sender.to_string());
     assert_eq!(found_tx.tx_type, "pay");
 
     if let Some(payment_tx) = &found_tx.payment_transaction {
         assert_eq!(payment_tx.amount, 500_000);
         assert_eq!(
             payment_tx.receiver,
-            receiver.account().unwrap().address().to_string()
+            receiver.account().address().to_string()
         );
     }
+
+    Ok(())
 }
 
 #[tokio::test]

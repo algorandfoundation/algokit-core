@@ -3,7 +3,7 @@ use algokit_http_client::DefaultHttpClient;
 use algokit_utils::ClientManager;
 use std::sync::Arc;
 
-use crate::common::init_test_logging;
+use crate::common::logging::init_test_logging;
 
 #[tokio::test]
 async fn test_get_transaction_params() {

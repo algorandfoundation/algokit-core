@@ -8,7 +8,7 @@ use algod_client::{
 use algokit_transact::{SignedTransaction, test_utils::TransactionMother};
 use algokit_utils::ClientManager;
 
-use crate::common::init_test_logging;
+use crate::common::logging::init_test_logging;
 
 #[tokio::test]
 async fn test_simulate_transactions() {

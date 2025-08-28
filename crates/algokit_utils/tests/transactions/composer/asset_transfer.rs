@@ -1,94 +1,59 @@
-use crate::common::init_test_logging;
+use crate::common::{AlgorandFixtureResult, TestResult, algorand_fixture};
 use algokit_utils::{AssetCreateParams, CommonParams};
-use algokit_utils::{AssetOptInParams, AssetTransferParams, testing::*};
+use algokit_utils::{AssetOptInParams, AssetTransferParams};
+use rstest::*;
 use std::sync::Arc;
 
+#[rstest]
 #[tokio::test]
-async fn test_asset_transfer_transaction() {
-    init_test_logging();
+async fn test_asset_transfer_transaction(
+    #[future] algorand_fixture: AlgorandFixtureResult,
+) -> TestResult {
+    let mut algorand_fixture = algorand_fixture.await?;
+    let asset_creator_address = algorand_fixture.test_account.account().address();
 
-    let mut fixture = algorand_fixture().await.expect("Failed to create fixture");
+    let mut composer = algorand_fixture.algorand_client.new_group();
 
-    fixture
-        .new_scope()
-        .await
-        .expect("Failed to create new scope");
+    composer.add_asset_create(AssetCreateParams {
+        common_params: CommonParams {
+            sender: asset_creator_address.clone(),
+            ..Default::default()
+        },
+        total: 10,
+        decimals: Some(0),
+        default_frozen: Some(false),
+        ..Default::default()
+    })?;
 
-    let context = fixture.context().expect("Failed to get context");
-
-    let mut composer = context.composer.clone();
-
-    let asset_creator_address = context
-        .test_account
-        .account()
-        .expect("Failed to get sender account")
-        .address();
-
-    composer
-        .add_asset_create(AssetCreateParams {
-            common_params: CommonParams {
-                sender: asset_creator_address.clone(),
-                ..Default::default()
-            },
-            total: 10,
-            decimals: Some(0),
-            default_frozen: Some(false),
-            asset_name: None,
-            unit_name: None,
-            url: None,
-            metadata_hash: None,
-            manager: None,
-            reserve: None,
-            freeze: None,
-            clawback: None,
-        })
-        .expect("Failed to add asset create transaction");
-
-    let asset_create_result = composer
-        .send(None)
-        .await
-        .expect("Failed to send asset create");
+    let asset_create_result = composer.send(None).await?;
     let asset_id = asset_create_result.confirmations[0]
         .asset_id
-        .expect("Failed to get asset ID");
+        .ok_or("Failed to get asset ID")?;
 
-    let mut composer = context.composer.clone();
+    let mut composer = algorand_fixture.algorand_client.new_group();
 
-    let asset_receiver = fixture
-        .generate_account(None)
-        .await
-        .expect("Failed to generate asset receiver");
-    let asset_receive_address = asset_receiver
-        .account()
-        .expect("Failed to get receiver account")
-        .address();
+    let asset_receiver = algorand_fixture.generate_account(None).await?;
+    let asset_receive_address = asset_receiver.account().address();
 
-    composer
-        .add_asset_opt_in(AssetOptInParams {
-            common_params: CommonParams {
-                sender: asset_receive_address.clone(),
-                signer: Some(Arc::new(asset_receiver)),
-                ..Default::default()
-            },
-            asset_id,
-        })
-        .expect("Failed to add asset opt in transaction");
-    composer
-        .add_asset_transfer(AssetTransferParams {
-            common_params: CommonParams {
-                sender: asset_creator_address.clone(),
-                ..Default::default()
-            },
-            asset_id,
-            receiver: asset_receive_address.clone(),
-            amount: 1,
-        })
-        .expect("Failed to add asset transfer transaction");
+    composer.add_asset_opt_in(AssetOptInParams {
+        common_params: CommonParams {
+            sender: asset_receive_address.clone(),
+            signer: Some(Arc::new(asset_receiver)),
+            ..Default::default()
+        },
+        asset_id,
+    })?;
+    composer.add_asset_transfer(AssetTransferParams {
+        common_params: CommonParams {
+            sender: asset_creator_address.clone(),
+            ..Default::default()
+        },
+        asset_id,
+        receiver: asset_receive_address.clone(),
+        amount: 1,
+    })?;
 
-    let send_result = composer
-        .send(None)
-        .await
-        .expect("Failed to send transaction group");
+    let send_result = composer.send(None).await?;
 
     let asset_opt_in_transaction = &send_result.confirmations[0].txn.transaction;
     let asset_transfer_transaction = &send_result.confirmations[1].txn.transaction;
@@ -115,7 +80,7 @@ async fn test_asset_transfer_transaction() {
                 "Amount should be 0 for opt-in"
             );
         }
-        _ => panic!("Transaction should be an asset transfer transaction"),
+        _ => return Err("Transaction should be an asset transfer transaction".into()),
     }
     match asset_transfer_transaction {
         algokit_transact::Transaction::AssetTransfer(asset_transfer_fields) => {
@@ -133,6 +98,8 @@ async fn test_asset_transfer_transaction() {
             );
             assert_eq!(asset_transfer_fields.amount, 1, "Amount should be 1");
         }
-        _ => panic!("Transaction should be an asset transfer transaction"),
+        _ => return Err("Transaction should be an asset transfer transaction".into()),
     }
+
+    Ok(())
 }

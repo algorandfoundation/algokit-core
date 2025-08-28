@@ -1,30 +1,24 @@
 use algokit_transact::Address;
 use algokit_utils::{
-    clients::{
-        app_manager::AppManager,
-        asset_manager::{AssetManager, AssetManagerError},
-    },
-    testing::algorand_fixture,
-    transactions::{
-        AssetCreateParams, AssetOptInParams, CommonParams, Composer, EmptySigner, TransactionSender,
-    },
+    clients::asset_manager::AssetManagerError,
+    transactions::{AssetCreateParams, AssetOptInParams, CommonParams},
 };
 use rstest::*;
 use std::sync::Arc;
 
+use crate::common::{AlgorandFixture, AlgorandFixtureResult, TestResult, algorand_fixture};
+
 /// Test asset information retrieval
 #[rstest]
 #[tokio::test]
-async fn test_get_asset_by_id() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let mut fixture = algorand_fixture().await?;
-    fixture.new_scope().await?;
-    let context = fixture.context()?;
-    let asset_manager = AssetManager::new(context.algod.clone());
+async fn test_get_asset_by_id(#[future] algorand_fixture: AlgorandFixtureResult) -> TestResult {
+    let mut algorand_fixture = algorand_fixture.await?;
 
     // Create test asset
-    let (asset_id, _) = create_test_asset_with_creator(&mut fixture).await?;
+    let (asset_id, _) = create_test_asset_with_creator(&mut algorand_fixture).await?;
 
     // Test successful retrieval
+    let asset_manager = algorand_fixture.algorand_client.asset();
     let asset_info = asset_manager.get_by_id(asset_id).await?;
     assert_eq!(asset_info.asset_id, asset_id);
     assert_eq!(asset_info.total, 1000);
@@ -37,12 +31,11 @@ async fn test_get_asset_by_id() -> Result<(), Box<dyn std::error::Error + Send +
 
 #[rstest]
 #[tokio::test]
-async fn test_get_asset_by_id_nonexistent() -> Result<(), Box<dyn std::error::Error + Send + Sync>>
-{
-    let mut fixture = algorand_fixture().await?;
-    fixture.new_scope().await?;
-    let context = fixture.context()?;
-    let asset_manager = AssetManager::new(context.algod.clone());
+async fn test_get_asset_by_id_nonexistent(
+    #[future] algorand_fixture: AlgorandFixtureResult,
+) -> TestResult {
+    let algorand_fixture = algorand_fixture.await?;
+    let asset_manager = algorand_fixture.algorand_client.asset();
 
     // Test non-existent asset
     let result = asset_manager.get_by_id(999999999).await;
@@ -58,15 +51,15 @@ async fn test_get_asset_by_id_nonexistent() -> Result<(), Box<dyn std::error::Er
 /// Test account asset information retrieval
 #[rstest]
 #[tokio::test]
-async fn test_get_account_information() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let mut fixture = algorand_fixture().await?;
-    fixture.new_scope().await?;
-    let context = fixture.context()?;
-    let asset_manager = AssetManager::new(context.algod.clone());
+async fn test_get_account_information(
+    #[future] algorand_fixture: AlgorandFixtureResult,
+) -> TestResult {
+    let mut algorand_fixture = algorand_fixture.await?;
 
-    let (asset_id, creator_address) = create_test_asset_with_creator(&mut fixture).await?;
+    let (asset_id, creator_address) = create_test_asset_with_creator(&mut algorand_fixture).await?;
 
     // Test account information for asset creator (should be opted in by default)
+    let asset_manager = algorand_fixture.algorand_client.asset();
     let account_info = asset_manager
         .get_account_information(&creator_address, asset_id)
         .await?;
@@ -85,19 +78,19 @@ async fn test_get_account_information() -> Result<(), Box<dyn std::error::Error 
 
 #[rstest]
 #[tokio::test]
-async fn test_get_account_information_not_opted_in()
--> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let mut fixture = algorand_fixture().await?;
-    fixture.new_scope().await?;
-    let context = fixture.context()?;
-    let asset_manager = AssetManager::new(context.algod.clone());
+async fn test_get_account_information_not_opted_in(
+    #[future] algorand_fixture: AlgorandFixtureResult,
+) -> TestResult {
+    let mut algorand_fixture = algorand_fixture.await?;
 
-    let (asset_id, _) = create_test_asset_with_creator(&mut fixture).await?;
-    let test_account = fixture.generate_account(None).await?;
+    let (asset_id, _) = create_test_asset_with_creator(&mut algorand_fixture).await?;
+    let test_account = algorand_fixture.generate_account(None).await?;
+
+    let asset_manager = algorand_fixture.algorand_client.asset();
 
     // Test account information for non-opted-in account should return error
     let result = asset_manager
-        .get_account_information(&test_account.account()?.address(), asset_id)
+        .get_account_information(&test_account.account().address(), asset_id)
         .await;
 
     // For non-opted-in accounts, algod returns 404 which becomes an AlgodClientError
@@ -112,20 +105,10 @@ async fn test_get_account_information_not_opted_in()
 
 /// Helper function to create a test asset and return both asset ID and creator address
 async fn create_test_asset_with_creator(
-    fixture: &mut algokit_utils::testing::AlgorandFixture,
+    fixture: &mut AlgorandFixture,
 ) -> Result<(u64, Address), Box<dyn std::error::Error + Send + Sync>> {
     let creator = fixture.generate_account(None).await?;
-    let creator_address = creator.account()?.address();
-    let context = fixture.context()?;
-    let algod_client = context.algod.clone();
-    let sender = TransactionSender::new(
-        {
-            let client = algod_client.clone();
-            move || Composer::new(client.clone(), Arc::new(EmptySigner {}))
-        },
-        AssetManager::new(algod_client.clone()),
-        AppManager::new(algod_client.clone()),
-    );
+    let creator_address = creator.account().address();
 
     let params = AssetCreateParams {
         common_params: CommonParams {
@@ -140,7 +123,11 @@ async fn create_test_asset_with_creator(
         ..Default::default()
     };
 
-    let result = sender.asset_create(params, None).await?;
+    let result = fixture
+        .algorand_client
+        .send()
+        .asset_create(params, None)
+        .await?;
 
     let asset_id = result.asset_id;
     Ok((asset_id, creator_address))
@@ -148,7 +135,7 @@ async fn create_test_asset_with_creator(
 
 /// Helper function to create multiple test assets
 async fn create_multiple_test_assets(
-    fixture: &mut algokit_utils::testing::AlgorandFixture,
+    fixture: &mut AlgorandFixture,
     count: usize,
 ) -> Result<Vec<(u64, Address)>, Box<dyn std::error::Error + Send + Sync>> {
     let mut assets = Vec::new();
@@ -161,27 +148,21 @@ async fn create_multiple_test_assets(
 /// Test bulk opt-in functionality
 #[rstest]
 #[tokio::test]
-async fn test_bulk_opt_in_success() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let mut fixture = algorand_fixture().await?;
-    fixture.new_scope().await?;
-    let context = fixture.context()?;
-    let asset_manager = AssetManager::new(context.algod.clone());
+async fn test_bulk_opt_in_success(#[future] algorand_fixture: AlgorandFixtureResult) -> TestResult {
+    let mut algorand_fixture = algorand_fixture.await?;
 
     // Create multiple test assets
-    let assets = create_multiple_test_assets(&mut fixture, 3).await?;
+    let assets = create_multiple_test_assets(&mut algorand_fixture, 3).await?;
     let asset_ids: Vec<u64> = assets.iter().map(|(id, _)| *id).collect();
 
     // Create a test account that will opt into the assets
-    let opt_in_account = fixture.generate_account(None).await?;
-    let opt_in_address = opt_in_account.account()?.address();
+    let opt_in_account = algorand_fixture.generate_account(None).await?;
+    let opt_in_address = opt_in_account.account().address();
 
     // Perform bulk opt-in
+    let asset_manager = algorand_fixture.algorand_client.asset();
     let results = asset_manager
-        .bulk_opt_in(
-            &opt_in_address,
-            &asset_ids,
-            Arc::new(opt_in_account.clone()),
-        )
+        .bulk_opt_in(&opt_in_address, &asset_ids)
         .await?;
 
     // Verify results
@@ -210,18 +191,16 @@ async fn test_bulk_opt_in_success() -> Result<(), Box<dyn std::error::Error + Se
 /// Test bulk opt-in with empty asset list
 #[rstest]
 #[tokio::test]
-async fn test_bulk_opt_in_empty_list() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let mut fixture = algorand_fixture().await?;
-    fixture.new_scope().await?;
-    let context = fixture.context()?;
-    let asset_manager = AssetManager::new(context.algod.clone());
+async fn test_bulk_opt_in_empty_list(
+    #[future] algorand_fixture: AlgorandFixtureResult,
+) -> TestResult {
+    let mut algorand_fixture = algorand_fixture.await?;
 
-    let test_account = fixture.generate_account(None).await?;
-    let test_address = test_account.account()?.address();
+    let test_account = algorand_fixture.generate_account(None).await?;
+    let test_address = test_account.account().address();
 
-    let results = asset_manager
-        .bulk_opt_in(&test_address, &[], Arc::new(test_account))
-        .await?;
+    let asset_manager = algorand_fixture.algorand_client.asset();
+    let results = asset_manager.bulk_opt_in(&test_address, &[]).await?;
 
     assert!(results.is_empty());
     Ok(())
@@ -230,24 +209,23 @@ async fn test_bulk_opt_in_empty_list() -> Result<(), Box<dyn std::error::Error +
 /// Test bulk opt-out functionality
 #[rstest]
 #[tokio::test]
-async fn test_bulk_opt_out_success() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let mut fixture = algorand_fixture().await?;
-    fixture.new_scope().await?;
+async fn test_bulk_opt_out_success(
+    #[future] algorand_fixture: AlgorandFixtureResult,
+) -> TestResult {
+    let mut algorand_fixture = algorand_fixture.await?;
 
     // Create test assets
-    let assets = create_multiple_test_assets(&mut fixture, 2).await?;
+    let assets = create_multiple_test_assets(&mut algorand_fixture, 2).await?;
     let asset_ids: Vec<u64> = assets.iter().map(|(id, _)| *id).collect();
 
     // Create and opt-in an account
-    let test_account = fixture.generate_account(None).await?;
-    let test_address = test_account.account()?.address();
+    let test_account = algorand_fixture.generate_account(None).await?;
+    let test_address = test_account.account().address();
 
-    let context = fixture.context()?;
-    let asset_manager = AssetManager::new(context.algod.clone());
+    let asset_manager = algorand_fixture.algorand_client.asset();
 
     // First, opt into the assets individually using the Composer
-    let algod_client = context.algod.clone();
-    let mut composer = Composer::new(algod_client.clone(), Arc::new(test_account.clone()));
+    let mut composer = algorand_fixture.algorand_client.new_group();
 
     for &asset_id in &asset_ids {
         let opt_in_params = AssetOptInParams {
@@ -277,12 +255,7 @@ async fn test_bulk_opt_out_success() -> Result<(), Box<dyn std::error::Error + S
 
     // Now perform bulk opt-out
     let results = asset_manager
-        .bulk_opt_out(
-            &test_address,
-            &asset_ids,
-            Some(true),
-            Arc::new(test_account.clone()),
-        )
+        .bulk_opt_out(&test_address, &asset_ids, Some(true))
         .await?;
 
     // Verify results
@@ -307,18 +280,16 @@ async fn test_bulk_opt_out_success() -> Result<(), Box<dyn std::error::Error + S
 /// Test bulk opt-out with empty list
 #[rstest]
 #[tokio::test]
-async fn test_bulk_opt_out_empty_list() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let mut fixture = algorand_fixture().await?;
-    fixture.new_scope().await?;
-    let context = fixture.context()?;
-    let asset_manager = AssetManager::new(context.algod.clone());
+async fn test_bulk_opt_out_empty_list(
+    #[future] algorand_fixture: AlgorandFixtureResult,
+) -> TestResult {
+    let mut algorand_fixture = algorand_fixture.await?;
 
-    let test_account = fixture.generate_account(None).await?;
-    let test_address = test_account.account()?.address();
+    let test_account = algorand_fixture.generate_account(None).await?;
+    let test_address = test_account.account().address();
 
-    let results = asset_manager
-        .bulk_opt_out(&test_address, &[], None, Arc::new(test_account))
-        .await?;
+    let asset_manager = algorand_fixture.algorand_client.asset();
+    let results = asset_manager.bulk_opt_out(&test_address, &[], None).await?;
 
     assert!(results.is_empty());
     Ok(())
@@ -327,26 +298,19 @@ async fn test_bulk_opt_out_empty_list() -> Result<(), Box<dyn std::error::Error 
 /// Test bulk opt-out with non-zero balance (should fail)
 #[rstest]
 #[tokio::test]
-async fn test_bulk_opt_out_non_zero_balance() -> Result<(), Box<dyn std::error::Error + Send + Sync>>
-{
-    let mut fixture = algorand_fixture().await?;
-    fixture.new_scope().await?;
+async fn test_bulk_opt_out_non_zero_balance(
+    #[future] algorand_fixture: AlgorandFixtureResult,
+) -> TestResult {
+    let mut algorand_fixture = algorand_fixture.await?;
 
     // Create a test asset
-    let (asset_id, creator_address) = create_test_asset_with_creator(&mut fixture).await?;
+    let (asset_id, creator_address) = create_test_asset_with_creator(&mut algorand_fixture).await?;
 
-    let context = fixture.context()?;
-    let asset_manager = AssetManager::new(context.algod.clone());
+    let asset_manager = algorand_fixture.algorand_client.asset();
 
     // The creator account has the entire supply (1000), so it has non-zero balance
-    let creator_account = fixture.generate_account(None).await?;
     let result = asset_manager
-        .bulk_opt_out(
-            &creator_address,
-            &[asset_id],
-            Some(true),
-            Arc::new(creator_account),
-        )
+        .bulk_opt_out(&creator_address, &[asset_id], Some(true))
         .await;
 
     // Should fail due to non-zero balance
@@ -362,23 +326,21 @@ async fn test_bulk_opt_out_non_zero_balance() -> Result<(), Box<dyn std::error::
 /// Test bulk opt-out without balance check
 #[rstest]
 #[tokio::test]
-async fn test_bulk_opt_out_without_balance_check()
--> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let mut fixture = algorand_fixture().await?;
-    fixture.new_scope().await?;
+async fn test_bulk_opt_out_without_balance_check(
+    #[future] algorand_fixture: AlgorandFixtureResult,
+) -> TestResult {
+    let mut algorand_fixture = algorand_fixture.await?;
 
     // Create a test asset
-    let (asset_id, _) = create_test_asset_with_creator(&mut fixture).await?;
+    let (asset_id, _) = create_test_asset_with_creator(&mut algorand_fixture).await?;
 
     // Create a test account and opt it in
-    let test_account = fixture.generate_account(None).await?;
-    let test_address = test_account.account()?.address();
+    let test_account = algorand_fixture.generate_account(None).await?;
+    let test_address = test_account.account().address();
 
-    let context = fixture.context()?;
-    let asset_manager = AssetManager::new(context.algod.clone());
+    let asset_manager = algorand_fixture.algorand_client.asset();
 
-    let algod_client = context.algod.clone();
-    let mut composer = Composer::new(algod_client.clone(), Arc::new(test_account.clone()));
+    let mut composer = algorand_fixture.algorand_client.new_group();
 
     let opt_in_params = AssetOptInParams {
         common_params: CommonParams {
@@ -393,12 +355,7 @@ async fn test_bulk_opt_out_without_balance_check()
 
     // Opt out without balance check (ensure_zero_balance = false)
     let results = asset_manager
-        .bulk_opt_out(
-            &test_address,
-            &[asset_id],
-            Some(false),
-            Arc::new(test_account),
-        )
+        .bulk_opt_out(&test_address, &[asset_id], Some(false))
         .await?;
 
     assert_eq!(results.len(), 1);

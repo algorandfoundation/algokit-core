@@ -1,3 +1,4 @@
+pub mod account_manager;
 pub mod algorand_client;
 pub mod app_manager;
 pub mod asset_manager;
@@ -5,6 +6,7 @@ pub mod client_manager;
 pub mod network_client;
 
 // Re-export commonly used client types
+pub use account_manager::AccountManager;
 pub use algorand_client::AlgorandClient;
 pub use app_manager::{AppManager, AppManagerError};
 pub use asset_manager::{

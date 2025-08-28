@@ -1,48 +1,35 @@
-use std::sync::Arc;
-
-use crate::common::init_test_logging;
-use algokit_abi::{ABIReferenceValue, ABIValue, Arc56Contract};
+use crate::common::{
+    AlgorandFixture, AlgorandFixtureResult, TestAccountConfig, TestResult, algorand_fixture,
+    deploy_arc56_contract,
+};
+use algokit_abi::{ABIMethod, ABIReferenceValue, ABIReturn, ABIValue, Arc56Contract};
 use algokit_test_artifacts::sandbox;
 use algokit_transact::{
     Address, OnApplicationComplete, PaymentTransactionFields, StateSchema, Transaction,
     TransactionHeader, TransactionId,
 };
-use algokit_utils::{AppCallMethodCallParams, AssetCreateParams, CommonParams};
+use algokit_utils::{AppCallMethodCallParams, AssetCreateParams, CommonParams, ComposerError};
 use algokit_utils::{
     AppCallParams, AppCreateParams, AppDeleteParams, AppMethodCallArg, AppUpdateParams,
-    PaymentParams, testing::*,
+    PaymentParams,
 };
-use base64::prelude::*;
 use num_bigint::BigUint;
 use rstest::*;
+use std::sync::Arc;
 
+#[rstest]
 #[tokio::test]
-async fn test_app_call_transaction() {
-    init_test_logging();
+async fn test_app_call_transaction(
+    #[future] algorand_fixture: AlgorandFixtureResult,
+) -> TestResult {
+    let algorand_fixture = algorand_fixture.await?;
+    let sender_address = algorand_fixture.test_account.account().address();
 
-    let mut fixture = algorand_fixture().await.expect("Failed to create fixture");
-
-    fixture
-        .new_scope()
-        .await
-        .expect("Failed to create new scope");
-
-    let context = fixture.context().expect("Failed to get context");
-    let sender_addr = context
-        .test_account
-        .account()
-        .expect("Failed to get sender account")
-        .address();
-
-    let app_id = create_test_app(context, sender_addr.clone())
-        .await
-        .expect("Failed to create test app");
-
-    println!("Created test app with ID: {}", app_id);
+    let app_id = create_test_app(&algorand_fixture, &sender_address).await?;
 
     let app_call_params = AppCallParams {
         common_params: CommonParams {
-            sender: sender_addr.clone(),
+            sender: sender_address.clone(),
             ..Default::default()
         },
         app_id,
@@ -54,12 +41,10 @@ async fn test_app_call_transaction() {
         box_references: None,
     };
 
-    let mut composer = context.composer.clone();
-    composer
-        .add_app_call(app_call_params)
-        .expect("Failed to add app call");
+    let mut composer = algorand_fixture.algorand_client.new_group();
+    composer.add_app_call(app_call_params)?;
 
-    let result = composer.send(None).await.expect("Failed to send app call");
+    let result = composer.send(None).await?;
     let confirmation = &result.confirmations[0];
 
     assert!(
@@ -81,56 +66,35 @@ async fn test_app_call_transaction() {
                 OnApplicationComplete::NoOp,
                 "On Complete should match"
             );
+            Ok(())
         }
-        _ => panic!("Transaction should be an app call transaction"),
+        _ => Err("Transaction should be an app call transaction".into()),
     }
 }
 
+#[rstest]
 #[tokio::test]
-async fn test_app_create_transaction() {
-    init_test_logging();
-
-    let mut fixture = algorand_fixture().await.expect("Failed to create fixture");
-
-    fixture
-        .new_scope()
-        .await
-        .expect("Failed to create new scope");
-
-    let context = fixture.context().expect("Failed to get context");
-    let sender_addr = context
-        .test_account
-        .account()
-        .expect("Failed to get sender account")
-        .address();
+async fn test_app_create_transaction(
+    #[future] algorand_fixture: AlgorandFixtureResult,
+) -> TestResult {
+    let algorand_fixture = algorand_fixture.await?;
+    let sender_address = algorand_fixture.test_account.account().address();
 
     let app_create_params = AppCreateParams {
         common_params: CommonParams {
-            sender: sender_addr.clone(),
+            sender: sender_address.clone(),
             ..Default::default()
         },
-        on_complete: OnApplicationComplete::NoOp,
         approval_program: HELLO_WORLD_APPROVAL_PROGRAM.to_vec(),
         clear_state_program: HELLO_WORLD_CLEAR_STATE_PROGRAM.to_vec(),
-        global_state_schema: None,
-        local_state_schema: None,
-        extra_program_pages: None,
         args: Some(vec![b"Create".to_vec()]),
-        account_references: None,
-        app_references: None,
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
 
-    let mut composer = context.composer.clone();
-    composer
-        .add_app_create(app_create_params)
-        .expect("Failed to add app create");
+    let mut composer = algorand_fixture.algorand_client.new_group();
+    composer.add_app_create(app_create_params)?;
 
-    let result = composer
-        .send(None)
-        .await
-        .expect("Failed to send app create");
+    let result = composer.send(None).await?;
     let confirmation = &result.confirmations[0];
 
     assert!(
@@ -165,55 +129,36 @@ async fn test_app_create_transaction() {
                 Some(HELLO_WORLD_CLEAR_STATE_PROGRAM.to_vec()),
                 "Clear state program should match"
             );
+            Ok(())
         }
-        _ => panic!("Transaction should be an app call transaction"),
+        _ => Err("Transaction should be an app call transaction".into()),
     }
 }
 
+#[rstest]
 #[tokio::test]
-async fn test_app_delete_transaction() {
-    init_test_logging();
+async fn test_app_delete_transaction(
+    #[future] algorand_fixture: AlgorandFixtureResult,
+) -> TestResult {
+    let algorand_fixture = algorand_fixture.await?;
+    let sender_address = algorand_fixture.test_account.account().address();
 
-    let mut fixture = algorand_fixture().await.expect("Failed to create fixture");
-
-    fixture
-        .new_scope()
-        .await
-        .expect("Failed to create new scope");
-
-    let context = fixture.context().expect("Failed to get context");
-    let sender_addr = context
-        .test_account
-        .account()
-        .expect("Failed to get sender account")
-        .address();
-
-    let app_id = create_test_app(context, sender_addr.clone())
-        .await
-        .expect("Failed to create test app");
+    let app_id = create_test_app(&algorand_fixture, &sender_address).await?;
 
     let app_delete_params = AppDeleteParams {
         common_params: CommonParams {
-            sender: sender_addr.clone(),
+            sender: sender_address.clone(),
             ..Default::default()
         },
         app_id,
         args: Some(vec![b"Delete".to_vec()]),
-        account_references: None,
-        app_references: None,
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
 
-    let mut composer = context.composer.clone();
-    composer
-        .add_app_delete(app_delete_params)
-        .expect("Failed to add app delete");
+    let mut composer = algorand_fixture.algorand_client.new_group();
+    composer.add_app_delete(app_delete_params)?;
 
-    let result = composer
-        .send(None)
-        .await
-        .expect("Failed to send app delete");
+    let result = composer.send(None).await?;
     let confirmation = &result.confirmations[0];
 
     assert!(
@@ -238,57 +183,38 @@ async fn test_app_delete_transaction() {
                 OnApplicationComplete::DeleteApplication,
                 "On Complete should be DeleteApplication"
             );
+            Ok(())
         }
-        _ => panic!("Transaction should be an app delete transaction"),
+        _ => Err("Transaction should be an app delete transaction".into()),
     }
 }
 
+#[rstest]
 #[tokio::test]
-async fn test_app_update_transaction() {
-    init_test_logging();
+async fn test_app_update_transaction(
+    #[future] algorand_fixture: AlgorandFixtureResult,
+) -> TestResult {
+    let algorand_fixture = algorand_fixture.await?;
+    let sender_address = algorand_fixture.test_account.account().address();
 
-    let mut fixture = algorand_fixture().await.expect("Failed to create fixture");
-
-    fixture
-        .new_scope()
-        .await
-        .expect("Failed to create new scope");
-
-    let context = fixture.context().expect("Failed to get context");
-    let sender_addr = context
-        .test_account
-        .account()
-        .expect("Failed to get sender account")
-        .address();
-
-    let app_id = create_test_app(context, sender_addr.clone())
-        .await
-        .expect("Failed to create test app");
+    let app_id = create_test_app(&algorand_fixture, &sender_address).await?;
 
     let app_update_params = AppUpdateParams {
         common_params: CommonParams {
-            sender: sender_addr.clone(),
+            sender: sender_address.clone(),
             ..Default::default()
         },
         app_id,
         approval_program: HELLO_WORLD_CLEAR_STATE_PROGRAM.to_vec(), // Update the approval program
         clear_state_program: HELLO_WORLD_CLEAR_STATE_PROGRAM.to_vec(),
         args: Some(vec![b"Update".to_vec()]),
-        account_references: None,
-        app_references: None,
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
 
-    let mut composer = context.composer.clone();
-    composer
-        .add_app_update(app_update_params)
-        .expect("Failed to add app update");
+    let mut composer = algorand_fixture.algorand_client.new_group();
+    composer.add_app_update(app_update_params)?;
 
-    let result = composer
-        .send(None)
-        .await
-        .expect("Failed to send app update");
+    let result = composer.send(None).await?;
 
     let confirmation = &result.confirmations[0];
 
@@ -323,30 +249,25 @@ async fn test_app_update_transaction() {
                 Some(HELLO_WORLD_CLEAR_STATE_PROGRAM.to_vec()),
                 "Clear state program should match"
             );
+            Ok(())
         }
-        _ => panic!("Transaction should be an app update transaction"),
+        _ => Err("Transaction should be an app update transaction".into()),
     }
 }
 
 #[rstest]
 #[tokio::test]
-async fn test_hello_world_app_method_call(#[future] setup: SetupResult) -> TestResult {
-    let TestData {
+async fn test_hello_world_app_method_call(
+    #[future] arc56_algorand_fixture: Arc56AppFixtureResult,
+) -> TestResult {
+    let Arc56AppFixture {
         sender_address: sender_addr,
         app_id,
         arc56_contract,
-        fixture,
-    } = setup.await?;
+        algorand_fixture,
+    } = arc56_algorand_fixture.await?;
 
-    let context = fixture.context()?;
-
-    let abi_method = arc56_contract
-        .methods
-        .iter()
-        .find(|m| m.name == "hello_world")
-        .expect("Failed to find hello_world method")
-        .try_into()
-        .expect("Failed to convert ARC56 method to ABI method");
+    let abi_method = get_abi_method(&arc56_contract, "hello_world")?;
 
     let args = vec![AppMethodCallArg::ABIValue(ABIValue::String(
         "world".to_string(),
@@ -360,53 +281,37 @@ async fn test_hello_world_app_method_call(#[future] setup: SetupResult) -> TestR
         app_id,
         method: abi_method,
         args,
-        account_references: None,
-        app_references: None,
-        asset_references: None,
-        box_references: None,
-        on_complete: OnApplicationComplete::NoOp,
+        ..Default::default()
     };
 
-    let mut composer = context.composer.clone();
+    let mut composer = algorand_fixture.algorand_client.new_group();
     composer.add_app_call_method_call(method_call_params)?;
 
     let result = composer.send(None).await?;
-
-    let abi_return = match &result.abi_returns[0] {
-        Ok(Some(abi_return)) => abi_return,
-        Ok(None) => panic!("ABI return should be Some"),
-        Err(e) => panic!("ABI return should be Ok: {:?}", e),
-    };
+    let abi_return = get_abi_return(&result.abi_returns, 0)?;
 
     match &abi_return.return_value {
         ABIValue::String(value) => {
             assert_eq!(value, "Hello, world",);
+            Ok(())
         }
-        _ => panic!("Invalid return type"),
+        _ => Err("Invalid return type".into()),
     }
-
-    Ok(())
 }
 
 #[rstest]
 #[tokio::test]
-async fn test_add_app_call_method_call(#[future] setup: SetupResult) -> TestResult {
-    let TestData {
+async fn test_add_app_call_method_call(
+    #[future] arc56_algorand_fixture: Arc56AppFixtureResult,
+) -> TestResult {
+    let Arc56AppFixture {
         sender_address: sender_addr,
         app_id,
         arc56_contract,
-        fixture,
-    } = setup.await?;
+        algorand_fixture,
+    } = arc56_algorand_fixture.await?;
 
-    let context = fixture.context()?;
-
-    let abi_method = arc56_contract
-        .methods
-        .iter()
-        .find(|m| m.name == "add")
-        .expect("Failed to find add method")
-        .try_into()
-        .expect("Failed to convert ARC56 method to ABI method");
+    let abi_method = get_abi_method(&arc56_contract, "add")?;
 
     let args = vec![
         AppMethodCallArg::ABIValue(ABIValue::Uint(BigUint::from(1u8))),
@@ -421,53 +326,38 @@ async fn test_add_app_call_method_call(#[future] setup: SetupResult) -> TestResu
         app_id,
         method: abi_method,
         args,
-        account_references: None,
-        app_references: None,
-        asset_references: None,
-        box_references: None,
-        on_complete: OnApplicationComplete::NoOp,
+        ..Default::default()
     };
 
-    let mut composer = context.composer.clone();
+    let mut composer = algorand_fixture.algorand_client.new_group();
     composer.add_app_call_method_call(method_call_params)?;
 
     let result = composer.send(None).await?;
 
-    let abi_return = match &result.abi_returns[0] {
-        Ok(Some(abi_return)) => abi_return,
-        Ok(None) => panic!("ABI return should be Some"),
-        Err(e) => panic!("ABI return should be Ok: {:?}", e),
-    };
+    let abi_return = get_abi_return(&result.abi_returns, 0)?;
 
     match &abi_return.return_value {
         ABIValue::Uint(value) => {
             assert_eq!(*value, BigUint::from(3u8));
+            Ok(())
         }
-        _ => panic!("Invalid return type"),
+        _ => Err("Invalid return type".into()),
     }
-
-    Ok(())
 }
 
 #[rstest]
 #[tokio::test]
-async fn test_echo_byte_app_call_method_call(#[future] setup: SetupResult) -> TestResult {
-    let TestData {
+async fn test_echo_byte_app_call_method_call(
+    #[future] arc56_algorand_fixture: Arc56AppFixtureResult,
+) -> TestResult {
+    let Arc56AppFixture {
         sender_address: sender_addr,
         app_id,
         arc56_contract,
-        fixture,
-    } = setup.await?;
+        algorand_fixture,
+    } = arc56_algorand_fixture.await?;
 
-    let context = fixture.context()?;
-
-    let abi_method = arc56_contract
-        .methods
-        .iter()
-        .find(|m| m.name == "echo_bytes")
-        .expect("Failed to find echo_bytes method")
-        .try_into()
-        .expect("Failed to convert ARC56 method to ABI method");
+    let abi_method = get_abi_method(&arc56_contract, "echo_bytes")?;
 
     let test_array = vec![
         ABIValue::Byte(1u8),
@@ -487,53 +377,38 @@ async fn test_echo_byte_app_call_method_call(#[future] setup: SetupResult) -> Te
         app_id,
         method: abi_method,
         args,
-        account_references: None,
-        app_references: None,
-        asset_references: None,
-        box_references: None,
-        on_complete: OnApplicationComplete::NoOp,
+        ..Default::default()
     };
 
-    let mut composer = context.composer.clone();
+    let mut composer = algorand_fixture.algorand_client.new_group();
     composer.add_app_call_method_call(method_call_params)?;
 
     let result = composer.send(None).await?;
 
-    let abi_return = match &result.abi_returns[0] {
-        Ok(Some(abi_return)) => abi_return,
-        Ok(None) => panic!("ABI return should be Some"),
-        Err(e) => panic!("ABI return should be Ok: {:?}", e),
-    };
+    let abi_return = get_abi_return(&result.abi_returns, 0)?;
 
     match &abi_return.return_value {
         ABIValue::Array(value) => {
             assert_eq!(*value, test_array);
+            Ok(())
         }
-        _ => panic!("Invalid return type"),
+        _ => Err("Invalid return type".into()),
     }
-
-    Ok(())
 }
 
 #[rstest]
 #[tokio::test]
-async fn test_echo_static_array_app_call_method_call(#[future] setup: SetupResult) -> TestResult {
-    let TestData {
+async fn test_echo_static_array_app_call_method_call(
+    #[future] arc56_algorand_fixture: Arc56AppFixtureResult,
+) -> TestResult {
+    let Arc56AppFixture {
         sender_address: sender_addr,
         app_id,
         arc56_contract,
-        fixture,
-    } = setup.await?;
+        algorand_fixture,
+    } = arc56_algorand_fixture.await?;
 
-    let context = fixture.context()?;
-
-    let abi_method = arc56_contract
-        .methods
-        .iter()
-        .find(|m| m.name == "echo_static_array")
-        .expect("Failed to find echo_static_array method")
-        .try_into()
-        .expect("Failed to convert ARC56 method to ABI method");
+    let abi_method = get_abi_method(&arc56_contract, "echo_static_array")?;
 
     let test_array = vec![
         ABIValue::Uint(BigUint::from(1u8)),
@@ -553,53 +428,38 @@ async fn test_echo_static_array_app_call_method_call(#[future] setup: SetupResul
         app_id,
         method: abi_method,
         args,
-        account_references: None,
-        app_references: None,
-        asset_references: None,
-        box_references: None,
-        on_complete: OnApplicationComplete::NoOp,
+        ..Default::default()
     };
 
-    let mut composer = context.composer.clone();
+    let mut composer = algorand_fixture.algorand_client.new_group();
     composer.add_app_call_method_call(method_call_params)?;
 
     let result = composer.send(None).await?;
 
-    let abi_return = match &result.abi_returns[0] {
-        Ok(Some(abi_return)) => abi_return,
-        Ok(None) => panic!("ABI return should be Some"),
-        Err(e) => panic!("ABI return should be Ok: {:?}", e),
-    };
+    let abi_return = get_abi_return(&result.abi_returns, 0)?;
 
     match &abi_return.return_value {
         ABIValue::Array(value) => {
             assert_eq!(*value, test_array);
+            Ok(())
         }
-        _ => panic!("Invalid return type"),
+        _ => Err("Invalid return type".into()),
     }
-
-    Ok(())
 }
 
 #[rstest]
 #[tokio::test]
-async fn test_echo_dynamic_array_app_call_method_call(#[future] setup: SetupResult) -> TestResult {
-    let TestData {
+async fn test_echo_dynamic_array_app_call_method_call(
+    #[future] arc56_algorand_fixture: Arc56AppFixtureResult,
+) -> TestResult {
+    let Arc56AppFixture {
         sender_address: sender_addr,
         app_id,
         arc56_contract,
-        fixture,
-    } = setup.await?;
+        algorand_fixture,
+    } = arc56_algorand_fixture.await?;
 
-    let context = fixture.context()?;
-
-    let abi_method = arc56_contract
-        .methods
-        .iter()
-        .find(|m| m.name == "echo_dynamic_array")
-        .expect("Failed to find echo_dynamic_array method")
-        .try_into()
-        .expect("Failed to convert ARC56 method to ABI method");
+    let abi_method = get_abi_method(&arc56_contract, "echo_dynamic_array")?;
 
     let test_array = vec![
         ABIValue::Uint(BigUint::from(10u8)),
@@ -618,55 +478,38 @@ async fn test_echo_dynamic_array_app_call_method_call(#[future] setup: SetupResu
         app_id,
         method: abi_method,
         args,
-        account_references: None,
-        app_references: None,
-        asset_references: None,
-        box_references: None,
-        on_complete: OnApplicationComplete::NoOp,
+        ..Default::default()
     };
 
-    let mut composer = context.composer.clone();
+    let mut composer = algorand_fixture.algorand_client.new_group();
     composer.add_app_call_method_call(method_call_params)?;
 
     let result = composer.send(None).await?;
 
-    let abi_return = match &result.abi_returns[0] {
-        Ok(Some(abi_return)) => abi_return,
-        Ok(None) => panic!("ABI return should be Some"),
-        Err(e) => panic!("ABI return should be Ok: {:?}", e),
-    };
+    let abi_return = get_abi_return(&result.abi_returns, 0)?;
 
     match &abi_return.return_value {
         ABIValue::Array(value) => {
             assert_eq!(*value, test_array, "Return array should match input array");
+            Ok(())
         }
-        _ => panic!("Return value should be an array"),
+        _ => Err("Return value should be an array".into()),
     }
-
-    Ok(())
 }
 
 #[rstest]
 #[tokio::test]
 async fn test_nest_array_and_tuple_app_call_method_call(
-    #[future] setup: SetupResult,
+    #[future] arc56_algorand_fixture: Arc56AppFixtureResult,
 ) -> TestResult {
-    let TestData {
+    let Arc56AppFixture {
         sender_address: sender_addr,
         app_id,
         arc56_contract,
-        fixture,
-    } = setup.await?;
+        algorand_fixture,
+    } = arc56_algorand_fixture.await?;
 
-    let context = fixture.context()?;
-
-    let abi_method = arc56_contract
-        .methods
-        .iter()
-        .find(|m| m.name == "nest_array_and_tuple")
-        .expect("Failed to find nest_array_and_tuple method")
-        .try_into()
-        .expect("Failed to convert ARC56 method to ABI method");
+    let abi_method = get_abi_method(&arc56_contract, "nest_array_and_tuple")?;
 
     let nested_array = vec![
         ABIValue::Array(vec![
@@ -701,23 +544,15 @@ async fn test_nest_array_and_tuple_app_call_method_call(
         app_id,
         method: abi_method,
         args,
-        account_references: None,
-        app_references: None,
-        asset_references: None,
-        box_references: None,
-        on_complete: OnApplicationComplete::NoOp,
+        ..Default::default()
     };
 
-    let mut composer = context.composer.clone();
+    let mut composer = algorand_fixture.algorand_client.new_group();
     composer.add_app_call_method_call(method_call_params)?;
 
     let result = composer.send(None).await?;
 
-    let abi_return = match &result.abi_returns[0] {
-        Ok(Some(abi_return)) => abi_return,
-        Ok(None) => panic!("ABI return should be Some"),
-        Err(e) => panic!("ABI return should be Ok: {:?}", e),
-    };
+    let abi_return = get_abi_return(&result.abi_returns, 0)?;
 
     match &abi_return.return_value {
         ABIValue::Array(returned_tuple) => {
@@ -734,8 +569,8 @@ async fn test_nest_array_and_tuple_app_call_method_call(
                         "Returned nested array should match input"
                     );
                 }
-                _ => panic!("First element should be a nested array"),
-            }
+                _ => return Err("First element should be a nested array".into()),
+            };
 
             match &returned_tuple[1] {
                 ABIValue::Array(returned_inner_tuple) => {
@@ -743,48 +578,35 @@ async fn test_nest_array_and_tuple_app_call_method_call(
                         *returned_inner_tuple,
                         match &tuple_arg {
                             ABIValue::Array(t) => t.clone(),
-                            _ => panic!("tuple_arg should be an array"),
+                            _ => return Err("tuple_arg should be an array".into()),
                         },
                         "Returned inner tuple should match input"
                     );
                 }
-                _ => panic!("Second element should be a tuple"),
-            }
+                _ => return Err("Second element should be a tuple".into()),
+            };
+            Ok(())
         }
-        _ => panic!("Return value should be a tuple"),
+        _ => Err("Return value should be a tuple".into()),
     }
-
-    Ok(())
 }
 
 #[rstest]
 #[tokio::test]
-async fn test_get_pay_txn_amount_app_call_method_call(#[future] setup: SetupResult) -> TestResult {
-    let TestData {
+async fn test_get_pay_txn_amount_app_call_method_call(
+    #[future] arc56_algorand_fixture: Arc56AppFixtureResult,
+) -> TestResult {
+    let Arc56AppFixture {
         sender_address: sender_addr,
         app_id,
         arc56_contract,
-        mut fixture,
-    } = setup.await?;
+        mut algorand_fixture,
+    } = arc56_algorand_fixture.await?;
 
-    let receiver = fixture
-        .generate_account(None)
-        .await
-        .expect("Failed to create receiver account");
-    let receiver_addr = receiver
-        .account()
-        .expect("Failed to get receiver account")
-        .address();
+    let receiver = algorand_fixture.generate_account(None).await?;
+    let receiver_addr = receiver.account().address();
 
-    let context = fixture.context()?;
-
-    let abi_method = arc56_contract
-        .methods
-        .iter()
-        .find(|m| m.name == "get_pay_txn_amount")
-        .expect("Failed to find get_pay_txn_amount method")
-        .try_into()
-        .expect("Failed to convert ARC56 method to ABI method");
+    let abi_method = get_abi_method(&arc56_contract, "get_pay_txn_amount")?;
 
     let payment_amount = 1_234_567u64;
     let args = vec![AppMethodCallArg::Payment(PaymentParams {
@@ -804,23 +626,15 @@ async fn test_get_pay_txn_amount_app_call_method_call(#[future] setup: SetupResu
         app_id,
         method: abi_method,
         args,
-        account_references: None,
-        app_references: None,
-        asset_references: None,
-        box_references: None,
-        on_complete: OnApplicationComplete::NoOp,
+        ..Default::default()
     };
 
-    let mut composer = context.composer.clone();
+    let mut composer = algorand_fixture.algorand_client.new_group();
     composer.add_app_call_method_call(method_call_params)?;
 
     let result = composer.send(None).await?;
 
-    let abi_return = match &result.abi_returns[0] {
-        Ok(Some(abi_return)) => abi_return,
-        Ok(None) => panic!("ABI return should be Some"),
-        Err(e) => panic!("ABI return should be Ok: {:?}", e),
-    };
+    let abi_return = get_abi_return(&result.abi_returns, 0)?;
 
     match &abi_return.return_value {
         ABIValue::Uint(returned_amount) => {
@@ -829,52 +643,31 @@ async fn test_get_pay_txn_amount_app_call_method_call(#[future] setup: SetupResu
                 BigUint::from(payment_amount),
                 "Returned amount should match payment amount"
             );
+            Ok(())
         }
-        _ => panic!("Return value should be a UInt"),
+        _ => Err("Return value should be a UInt".into()),
     }
-
-    Ok(())
 }
 
 #[rstest]
 #[tokio::test]
 async fn test_get_pay_txn_amount_app_call_method_call_using_a_different_signer(
-    #[future] setup: SetupResult,
+    #[future] arc56_algorand_fixture: Arc56AppFixtureResult,
 ) -> TestResult {
-    let TestData {
+    let Arc56AppFixture {
         sender_address: sender_addr,
         app_id,
         arc56_contract,
-        mut fixture,
-    } = setup.await?;
+        mut algorand_fixture,
+    } = arc56_algorand_fixture.await?;
 
-    let receiver = fixture
-        .generate_account(None)
-        .await
-        .expect("Failed to create receiver account");
-    let receiver_addr = receiver
-        .account()
-        .expect("Failed to get receiver account")
-        .address();
+    let receiver = algorand_fixture.generate_account(None).await?;
+    let receiver_addr = receiver.account().address();
 
-    let alice = fixture
-        .generate_account(None)
-        .await
-        .expect("Failed to create Alice account");
-    let alice_addr = alice
-        .account()
-        .expect("Failed to get Alice account")
-        .address();
+    let alice = algorand_fixture.generate_account(None).await?;
+    let alice_addr = alice.account().address();
 
-    let context = fixture.context()?;
-
-    let abi_method = arc56_contract
-        .methods
-        .iter()
-        .find(|m| m.name == "get_pay_txn_amount")
-        .expect("Failed to find get_pay_txn_amount method")
-        .try_into()
-        .expect("Failed to convert ARC56 method to ABI method");
+    let abi_method = get_abi_method(&arc56_contract, "get_pay_txn_amount")?;
 
     let payment_amount = 1_234_567u64;
     let alice_signer = Arc::new(alice.clone());
@@ -896,23 +689,15 @@ async fn test_get_pay_txn_amount_app_call_method_call_using_a_different_signer(
         app_id,
         method: abi_method,
         args,
-        account_references: None,
-        app_references: None,
-        asset_references: None,
-        box_references: None,
-        on_complete: OnApplicationComplete::NoOp,
+        ..Default::default()
     };
 
-    let mut composer = context.composer.clone();
+    let mut composer = algorand_fixture.algorand_client.new_group();
     composer.add_app_call_method_call(method_call_params)?;
 
     let result = composer.send(None).await?;
 
-    let abi_return = match &result.abi_returns[0] {
-        Ok(Some(abi_return)) => abi_return,
-        Ok(None) => panic!("ABI return should be Some"),
-        Err(e) => panic!("ABI return should be Ok: {:?}", e),
-    };
+    let abi_return = get_abi_return(&result.abi_returns, 0)?;
 
     match &abi_return.return_value {
         ABIValue::Uint(returned_amount) => {
@@ -921,54 +706,34 @@ async fn test_get_pay_txn_amount_app_call_method_call_using_a_different_signer(
                 BigUint::from(payment_amount),
                 "Returned amount should match payment amount"
             );
+            Ok(())
         }
-        _ => panic!("Return value should be a UInt"),
+        _ => Err("Return value should be a UInt".into()),
     }
-
-    Ok(())
 }
 
 #[rstest]
 #[tokio::test]
 async fn test_get_returned_value_of_app_call_txn_app_call_method_call(
-    #[future] setup: SetupResult,
+    #[future] arc56_algorand_fixture: Arc56AppFixtureResult,
 ) -> TestResult {
-    let TestData {
+    let Arc56AppFixture {
         sender_address: sender_addr,
         app_id,
         arc56_contract,
-        mut fixture,
-    } = setup.await?;
+        mut algorand_fixture,
+    } = arc56_algorand_fixture.await?;
 
-    let receiver = fixture
-        .generate_account(None)
-        .await
-        .expect("Failed to create receiver account");
-    let receiver_addr = receiver
-        .account()
-        .expect("Failed to get receiver account")
-        .address();
+    let receiver = algorand_fixture.generate_account(None).await?;
+    let receiver_addr = receiver.account().address();
 
-    let context = fixture.context()?;
+    let get_pay_txn_amount_method = get_abi_method(&arc56_contract, "get_pay_txn_amount")?;
 
-    let get_pay_txn_amount_method = arc56_contract
-        .methods
-        .iter()
-        .find(|m| m.name == "get_pay_txn_amount")
-        .expect("Failed to find get_pay_txn_amount method")
-        .try_into()
-        .expect("Failed to convert ARC56 method to ABI method");
-
-    let get_returned_value_of_app_call_txn_method = arc56_contract
-        .methods
-        .iter()
-        .find(|m| m.name == "get_returned_value_of_app_call_txn")
-        .expect("Failed to find get_returned_value_of_app_call_txn method")
-        .try_into()
-        .expect("Failed to convert ARC56 method to ABI method");
+    let get_returned_value_of_app_call_txn_method =
+        get_abi_method(&arc56_contract, "get_returned_value_of_app_call_txn")?;
 
     let payment_amount = 2_500_000u64;
-    let mut composer = context.composer.clone();
+    let mut composer = algorand_fixture.algorand_client.new_group();
 
     let first_method_call_params = AppCallMethodCallParams {
         common_params: CommonParams {
@@ -985,11 +750,7 @@ async fn test_get_returned_value_of_app_call_txn_app_call_method_call(
             receiver: receiver_addr,
             amount: payment_amount,
         })],
-        account_references: None,
-        app_references: None,
-        asset_references: None,
-        box_references: None,
-        on_complete: OnApplicationComplete::NoOp,
+        ..Default::default()
     };
 
     let second_method_call_params = AppCallMethodCallParams {
@@ -1002,22 +763,14 @@ async fn test_get_returned_value_of_app_call_txn_app_call_method_call(
         args: vec![AppMethodCallArg::AppCallMethodCall(
             first_method_call_params,
         )],
-        account_references: None,
-        app_references: None,
-        asset_references: None,
-        box_references: None,
-        on_complete: OnApplicationComplete::NoOp,
+        ..Default::default()
     };
 
     composer.add_app_call_method_call(second_method_call_params)?;
 
     let result = composer.send(None).await?;
 
-    let abi_return = match &result.abi_returns[0] {
-        Ok(Some(abi_return)) => abi_return,
-        Ok(None) => panic!("ABI return should be Some"),
-        Err(e) => panic!("ABI return should be Ok: {:?}", e),
-    };
+    let abi_return = get_abi_return(&result.abi_returns, 0)?;
 
     match &abi_return.return_value {
         ABIValue::Uint(returned_amount) => {
@@ -1026,54 +779,34 @@ async fn test_get_returned_value_of_app_call_txn_app_call_method_call(
                 BigUint::from(payment_amount),
                 "Returned amount should match payment amount"
             );
+            Ok(())
         }
-        _ => panic!("Return value should be a UInt"),
+        _ => Err("Return value should be a UInt".into()),
     }
-
-    Ok(())
 }
 
 #[rstest]
 #[tokio::test]
 async fn test_get_returned_value_of_nested_app_call_method_calls(
-    #[future] setup: SetupResult,
+    #[future] arc56_algorand_fixture: Arc56AppFixtureResult,
 ) -> TestResult {
-    let TestData {
+    let Arc56AppFixture {
         sender_address: sender_addr,
         app_id,
         arc56_contract,
-        mut fixture,
-    } = setup.await?;
+        mut algorand_fixture,
+    } = arc56_algorand_fixture.await?;
 
-    let receiver = fixture
-        .generate_account(None)
-        .await
-        .expect("Failed to create receiver account");
-    let receiver_addr = receiver
-        .account()
-        .expect("Failed to get receiver account")
-        .address();
+    let receiver = algorand_fixture.generate_account(None).await?;
+    let receiver_addr = receiver.account().address();
 
-    let context = fixture.context()?;
+    let get_pay_txn_amount_method = get_abi_method(&arc56_contract, "get_pay_txn_amount")?;
 
-    let get_pay_txn_amount_method = arc56_contract
-        .methods
-        .iter()
-        .find(|m| m.name == "get_pay_txn_amount")
-        .expect("Failed to find get_pay_txn_amount method")
-        .try_into()
-        .expect("Failed to convert ARC56 method to ABI method");
-
-    let get_pay_txns_amount_sum_method = arc56_contract
-        .methods
-        .iter()
-        .find(|m| m.name == "get_pay_txns_amount_sum")
-        .expect("Failed to find get_pay_txns_amount_sum method")
-        .try_into()
-        .expect("Failed to convert ARC56 method to ABI method");
+    let get_pay_txns_amount_sum_method =
+        get_abi_method(&arc56_contract, "get_pay_txns_amount_sum")?;
 
     let payment_amount = 5_000u64;
-    let mut composer = context.composer.clone();
+    let mut composer = algorand_fixture.algorand_client.new_group();
 
     let get_pay_txn_amount_method_call_params = AppCallMethodCallParams {
         common_params: CommonParams {
@@ -1090,11 +823,7 @@ async fn test_get_returned_value_of_nested_app_call_method_calls(
             receiver: receiver_addr.clone(),
             amount: payment_amount,
         })],
-        account_references: None,
-        app_references: None,
-        asset_references: None,
-        box_references: None,
-        on_complete: OnApplicationComplete::NoOp,
+        ..Default::default()
     };
 
     let get_pay_txns_amount_sum_method_method_call_params = AppCallMethodCallParams {
@@ -1117,22 +846,14 @@ async fn test_get_returned_value_of_nested_app_call_method_calls(
             AppMethodCallArg::TransactionPlaceholder,
             AppMethodCallArg::AppCallMethodCall(get_pay_txn_amount_method_call_params),
         ],
-        account_references: None,
-        app_references: None,
-        asset_references: None,
-        box_references: None,
-        on_complete: OnApplicationComplete::NoOp,
+        ..Default::default()
     };
 
     composer.add_app_call_method_call(get_pay_txns_amount_sum_method_method_call_params)?;
 
     let result = composer.send(None).await?;
 
-    let abi_return = match &result.abi_returns[1] {
-        Ok(Some(abi_return)) => abi_return,
-        Ok(None) => panic!("ABI return should be Some"),
-        Err(e) => panic!("ABI return should be Ok: {:?}", e),
-    };
+    let abi_return = get_abi_return(&result.abi_returns, 1)?;
 
     let expected_result = BigUint::from(15_000u64);
     match &abi_return.return_value {
@@ -1141,40 +862,36 @@ async fn test_get_returned_value_of_nested_app_call_method_calls(
                 *returned_amount, expected_result,
                 "Returned amount should match payment amount"
             );
+            Ok(())
         }
-        _ => panic!("Return value should be a UInt"),
+        _ => Err("Return value should be a UInt".into()),
     }
-
-    Ok(())
 }
 
-struct TestData {
+struct Arc56AppFixture {
     sender_address: Address,
     app_id: u64,
     arc56_contract: Arc56Contract,
-    fixture: AlgorandFixture,
+    algorand_fixture: AlgorandFixture,
 }
 
-type SetupResult = Result<TestData, Box<dyn std::error::Error + Send + Sync>>;
-type TestResult = Result<(), Box<dyn std::error::Error + Send + Sync>>;
+type Arc56AppFixtureResult = Result<Arc56AppFixture, Box<dyn std::error::Error + Send + Sync>>;
 
 #[fixture]
-async fn setup() -> SetupResult {
-    init_test_logging();
-    let mut fixture = algorand_fixture().await?;
-    fixture.new_scope().await?;
-
-    let context = fixture.context()?;
-    let sender_address = context.test_account.account()?.address();
+async fn arc56_algorand_fixture(
+    #[future] algorand_fixture: AlgorandFixtureResult,
+) -> Arc56AppFixtureResult {
+    let algorand_fixture = algorand_fixture.await?;
+    let sender_address = algorand_fixture.test_account.account().address();
 
     let arc56_contract: Arc56Contract = serde_json::from_str(sandbox::APPLICATION_ARC56)?;
-    let app_id = deploy_app(context, sender_address.clone(), arc56_contract.clone()).await;
+    let app_id = deploy_arc56_contract(&algorand_fixture, &sender_address, &arc56_contract).await?;
 
-    Ok(TestData {
+    Ok(Arc56AppFixture {
         sender_address,
         app_id,
         arc56_contract,
-        fixture,
+        algorand_fixture,
     })
 }
 
@@ -1185,13 +902,15 @@ const HELLO_WORLD_APPROVAL_PROGRAM: [u8; 18] = [
 // Raw (non ABI) hello world clear state program
 const HELLO_WORLD_CLEAR_STATE_PROGRAM: [u8; 4] = [10, 129, 1, 67];
 
-async fn create_test_app(context: &AlgorandTestContext, sender: Address) -> Option<u64> {
+async fn create_test_app(
+    algorand_fixture: &AlgorandFixture,
+    sender: &Address,
+) -> Result<u64, ComposerError> {
     let app_create_params = AppCreateParams {
         common_params: CommonParams {
             sender: sender.clone(),
             ..Default::default()
         },
-        on_complete: OnApplicationComplete::NoOp,
         approval_program: HELLO_WORLD_APPROVAL_PROGRAM.to_vec(),
         clear_state_program: HELLO_WORLD_CLEAR_STATE_PROGRAM.to_vec(),
         global_state_schema: Some(StateSchema {
@@ -1202,110 +921,40 @@ async fn create_test_app(context: &AlgorandTestContext, sender: Address) -> Opti
             num_uints: 1,
             num_byte_slices: 1,
         }),
-        extra_program_pages: None,
         args: Some(vec![b"Create".to_vec()]),
-        account_references: None,
-        app_references: None,
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
 
-    let mut composer = context.composer.clone();
+    let mut composer = algorand_fixture.algorand_client.new_group();
 
-    composer
-        .add_app_create(app_create_params)
-        .expect("Failed to add app create");
+    composer.add_app_create(app_create_params)?;
 
-    let result = composer
-        .send(None)
-        .await
-        .expect("Failed to send app create");
+    let result = composer.send(None).await?;
 
-    result.confirmations[0].app_id
-}
-
-async fn deploy_app(
-    context: &AlgorandTestContext,
-    sender: Address,
-    arc56_contract: Arc56Contract,
-) -> u64 {
-    let teal_source = arc56_contract.source.expect("No source found in app spec");
-
-    let approval_bytes = BASE64_STANDARD
-        .decode(teal_source.approval)
-        .expect("Failed to decode approval program from base64");
-
-    let clear_state_bytes = BASE64_STANDARD
-        .decode(teal_source.clear)
-        .expect("Failed to decode clear state program from base64");
-
-    let approval_compile_result = context
-        .algod
-        .teal_compile(approval_bytes, None)
-        .await
-        .expect("Failed to compile approval program");
-    let clear_state_compile_result = context
-        .algod
-        .teal_compile(clear_state_bytes, None)
-        .await
-        .expect("Failed to compile clear state program");
-
-    let app_create_params = AppCreateParams {
-        common_params: CommonParams {
-            sender: sender.clone(),
-            ..Default::default()
-        },
-        on_complete: OnApplicationComplete::NoOp,
-        approval_program: approval_compile_result.result,
-        clear_state_program: clear_state_compile_result.result,
-        global_state_schema: None,
-        local_state_schema: None,
-        extra_program_pages: None,
-        args: None,
-        account_references: None,
-        app_references: None,
-        asset_references: None,
-        box_references: None,
-    };
-
-    let mut composer = context.composer.clone();
-    composer
-        .add_app_create(app_create_params)
-        .expect("Failed to add app create");
-
-    let result = composer
-        .send(None)
-        .await
-        .expect("Failed to send app create");
-
-    result.confirmations[0].app_id.expect("No app ID returned")
+    Ok(result.confirmations[0]
+        .app_id
+        .expect("App Id must be returned"))
 }
 
 #[rstest]
 #[tokio::test]
 async fn test_more_than_15_args_with_ref_types_app_call_method_call(
-    #[future] setup: SetupResult,
+    #[future] arc56_algorand_fixture: Arc56AppFixtureResult,
 ) -> TestResult {
-    let TestData {
+    let Arc56AppFixture {
         sender_address: sender_addr,
         app_id,
         arc56_contract,
-        mut fixture,
-    } = setup.await?;
+        mut algorand_fixture,
+    } = arc56_algorand_fixture.await?;
 
-    let receiver = fixture
+    let receiver = algorand_fixture
         .generate_account(Some(TestAccountConfig {
             initial_funds: 0u64,
             ..Default::default()
         }))
-        .await
-        .expect("Failed to create receiver account");
-    let receiver_addr = receiver
-        .account()
-        .expect("Failed to get receiver account")
-        .address();
-
-    let context = fixture.context()?;
+        .await?;
+    let receiver_addr = receiver.account().address();
 
     let asset_create_params = AssetCreateParams {
         common_params: CommonParams {
@@ -1325,32 +974,17 @@ async fn test_more_than_15_args_with_ref_types_app_call_method_call(
         clawback: Some(sender_addr.clone()),
     };
 
-    let mut asset_composer = context.composer.clone();
-    asset_composer
-        .add_asset_create(asset_create_params)
-        .expect("Failed to add asset create");
+    let mut asset_composer = algorand_fixture.algorand_client.new_group();
+    asset_composer.add_asset_create(asset_create_params)?;
 
-    let asset_result = asset_composer
-        .send(None)
-        .await
-        .expect("Failed to send asset create");
+    let asset_result = asset_composer.send(None).await?;
     let asset_id = asset_result.confirmations[0]
         .asset_id
         .expect("No asset ID returned");
 
-    let abi_method = arc56_contract
-        .methods
-        .iter()
-        .find(|m| m.name == "more_than_15_args_with_ref_types")
-        .expect("Failed to find method")
-        .try_into()
-        .expect("Failed to convert ARC56 method to ABI method");
+    let abi_method = get_abi_method(&arc56_contract, "more_than_15_args_with_ref_types")?;
 
-    let tx_params = context
-        .algod
-        .transaction_params()
-        .await
-        .expect("Failed to get transaction params");
+    let tx_params = algorand_fixture.algod.transaction_params().await?;
 
     let payment_amount = 200_000u64;
     let genesis_hash: Option<[u8; 32]> = tx_params.genesis_hash.try_into().ok();
@@ -1406,28 +1040,15 @@ async fn test_more_than_15_args_with_ref_types_app_call_method_call(
         app_id,
         method: abi_method,
         args,
-        account_references: None,
-        app_references: None,
-        asset_references: None,
-        box_references: None,
-        on_complete: OnApplicationComplete::NoOp,
+        ..Default::default()
     };
 
-    let mut composer = context.composer.clone();
-    composer
-        .add_app_call_method_call(method_call_params)
-        .expect("Failed to add method call");
+    let mut composer = algorand_fixture.algorand_client.new_group();
+    composer.add_app_call_method_call(method_call_params)?;
 
-    let result = composer
-        .send(None)
-        .await
-        .expect("Failed to send transaction");
+    let result = composer.send(None).await?;
 
-    let abi_return = match &result.abi_returns[0] {
-        Ok(Some(abi_return)) => abi_return,
-        Ok(None) => panic!("ABI return should be Some"),
-        Err(e) => panic!("ABI return should be Ok: {:?}", e),
-    };
+    let abi_return = get_abi_return(&result.abi_returns, 0)?;
 
     match &abi_return.return_value {
         ABIValue::Array(returned_tuple) => {
@@ -1445,7 +1066,7 @@ async fn test_more_than_15_args_with_ref_types_app_call_method_call(
                         "Returned asset ID should match created asset"
                     );
                 }
-                _ => panic!("First element should be asset ID"),
+                _ => return Err("First element should be asset ID".into()),
             }
 
             match &returned_tuple[1] {
@@ -1456,14 +1077,14 @@ async fn test_more_than_15_args_with_ref_types_app_call_method_call(
                         "Returned app ID should match deployed app"
                     );
                 }
-                _ => panic!("Second element should be app ID"),
+                _ => return Err("Second element should be app ID".into()),
             }
 
             match &returned_tuple[2] {
                 ABIValue::Uint(returned_balance) => {
                     assert_eq!(*returned_balance, BigUint::from(payment_amount),);
                 }
-                _ => panic!("Third element should be account balance"),
+                _ => return Err("Third element should be account balance".into()),
             }
 
             match &returned_tuple[3] {
@@ -1486,20 +1107,20 @@ async fn test_more_than_15_args_with_ref_types_app_call_method_call(
                     let returned_txn_id: Vec<u8> = txn_id_bytes
                         .iter()
                         .map(|byte_abi_value| match byte_abi_value {
-                            ABIValue::Byte(b) => *b,
-                            _ => panic!("Transaction ID bytes should be ABIValue::Byte"),
+                            ABIValue::Byte(b) => Ok(*b),
+                            _ => Err("Transaction ID bytes should be ABIValue::Byte"),
                         })
-                        .collect();
+                        .collect::<Result<Vec<_>, _>>()?;
 
                     assert_eq!(
                         returned_txn_id, actual_txn_id,
                         "Returned transaction ID should match actual transaction ID"
                     );
                 }
-                _ => panic!("Fourth element should be transaction ID bytes"),
+                _ => return Err("Fourth element should be transaction ID bytes".into()),
             }
         }
-        _ => panic!("Return value should be a tuple"),
+        _ => return Err("Return value should be a tuple".into()),
     }
 
     Ok(())
@@ -1507,23 +1128,17 @@ async fn test_more_than_15_args_with_ref_types_app_call_method_call(
 
 #[rstest]
 #[tokio::test]
-async fn test_more_than_15_args_app_call_method_call(#[future] setup: SetupResult) -> TestResult {
-    let TestData {
+async fn test_more_than_15_args_app_call_method_call(
+    #[future] arc56_algorand_fixture: Arc56AppFixtureResult,
+) -> TestResult {
+    let Arc56AppFixture {
         sender_address: sender_addr,
         app_id,
         arc56_contract,
-        fixture,
-    } = setup.await?;
+        algorand_fixture,
+    } = arc56_algorand_fixture.await?;
 
-    let context = fixture.context()?;
-
-    let abi_method = arc56_contract
-        .methods
-        .iter()
-        .find(|m| m.name == "more_than_15_args")
-        .expect("Failed to find method")
-        .try_into()
-        .expect("Failed to convert ARC56 method to ABI method");
+    let abi_method = get_abi_method(&arc56_contract, "more_than_15_args")?;
 
     let mut args = vec![];
     for i in 1..=18 {
@@ -1540,23 +1155,15 @@ async fn test_more_than_15_args_app_call_method_call(#[future] setup: SetupResul
         app_id,
         method: abi_method,
         args,
-        account_references: None,
-        app_references: None,
-        asset_references: None,
-        box_references: None,
-        on_complete: OnApplicationComplete::NoOp,
+        ..Default::default()
     };
 
-    let mut composer = context.composer.clone();
+    let mut composer = algorand_fixture.algorand_client.new_group();
     composer.add_app_call_method_call(method_call_params)?;
 
     let result = composer.send(None).await?;
 
-    let abi_return = match &result.abi_returns[0] {
-        Ok(Some(abi_return)) => abi_return,
-        Ok(None) => panic!("ABI return should be Some"),
-        Err(e) => panic!("ABI return should be Ok: {:?}", e),
-    };
+    let abi_return = get_abi_return(&result.abi_returns, 0)?;
 
     match &abi_return.return_value {
         ABIValue::Array(returned_array) => {
@@ -1577,48 +1184,35 @@ async fn test_more_than_15_args_app_call_method_call(#[future] setup: SetupResul
                             i + 1
                         );
                     }
-                    _ => panic!("Array element {} should be UInt64", i),
+                    _ => return Err(format!("Array element {} should be UInt64", i).into()),
                 }
             }
         }
-        _ => panic!("Return value should be a dynamic array"),
+        _ => return Err("Return value should be a dynamic array".into()),
     }
 
     Ok(())
 }
 
+#[rstest]
 #[tokio::test]
-async fn test_app_call_validation_errors() {
-    init_test_logging();
-
-    let mut fixture = algorand_fixture().await.expect("Failed to create fixture");
-    fixture
-        .new_scope()
-        .await
-        .expect("Failed to create new scope");
-    let context = fixture.context().expect("Failed to get context");
-    let sender_addr: Address = context
-        .test_account
-        .account()
-        .expect("Failed to get sender address")
-        .into();
+async fn test_app_call_validation_errors(
+    #[future] algorand_fixture: AlgorandFixtureResult,
+) -> TestResult {
+    let algorand_fixture = algorand_fixture.await?;
+    let sender_address = algorand_fixture.test_account.account().address();
 
     // Test app call with invalid app_id (0)
     let invalid_app_call_params = AppCallParams {
         common_params: CommonParams {
-            sender: sender_addr.clone(),
+            sender: sender_address,
             ..Default::default()
         },
         app_id: 0, // Invalid: should be > 0 for app calls (0 is for app creation)
-        on_complete: OnApplicationComplete::NoOp,
-        args: None,
-        account_references: None,
-        app_references: None,
-        asset_references: None,
-        box_references: None,
+        ..Default::default()
     };
 
-    let mut composer = context.composer.clone();
+    let mut composer = algorand_fixture.algorand_client.new_group();
     composer
         .add_app_call(invalid_app_call_params)
         .expect("Adding invalid app call should succeed at composer level");
@@ -1645,4 +1239,36 @@ async fn test_app_call_validation_errors() {
         "Error should contain validation failure details: {}",
         error_string
     );
+
+    Ok(())
+}
+
+fn get_abi_method(
+    arc56_contract: &Arc56Contract,
+    name: &str,
+) -> Result<ABIMethod, Box<dyn std::error::Error + Send + Sync>> {
+    let method = arc56_contract
+        .methods
+        .iter()
+        .find(|m| m.name == name)
+        .ok_or_else(|| format!("Failed to find {} method", name))?
+        .try_into()
+        .map_err(|e| format!("Failed to convert ARC56 method to ABI method: {}", e))?;
+    Ok(method)
+}
+
+fn get_abi_return(
+    abi_returns: &[Result<Option<ABIReturn>, ComposerError>],
+    index: usize,
+) -> Result<&ABIReturn, Box<dyn std::error::Error + Send + Sync>> {
+    if index >= abi_returns.len() {
+        return Err("Index out of range".into());
+    }
+
+    let abi_result = &abi_returns[index];
+    match abi_result {
+        Ok(Some(abi_return)) => Ok(abi_return),
+        Ok(None) => Err("ABI result expected".into()),
+        Err(e) => Err(format!("Failed to parse ABI result: {}", e).into()),
+    }
 }

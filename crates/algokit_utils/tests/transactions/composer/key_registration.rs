@@ -1,29 +1,18 @@
-use algokit_utils::testing::*;
+use crate::common::{AlgorandFixtureResult, TestResult, algorand_fixture};
 use algokit_utils::{
     CommonParams, NonParticipationKeyRegistrationParams, OfflineKeyRegistrationParams,
     OnlineKeyRegistrationParams,
 };
 use base64::{Engine, engine::general_purpose};
+use rstest::*;
 
-use crate::common::init_test_logging;
-
+#[rstest]
 #[tokio::test]
-async fn test_offline_key_registration_transaction() {
-    init_test_logging();
-
-    let mut fixture = algorand_fixture().await.expect("Failed to create fixture");
-
-    fixture
-        .new_scope()
-        .await
-        .expect("Failed to create new scope");
-
-    let context = fixture.context().expect("Failed to get context");
-    let sender_addr = context
-        .test_account
-        .account()
-        .expect("Failed to get sender account")
-        .address();
+async fn test_offline_key_registration_transaction(
+    #[future] algorand_fixture: AlgorandFixtureResult,
+) -> TestResult {
+    let algorand_fixture = algorand_fixture.await?;
+    let sender_addr = algorand_fixture.test_account.account().address();
 
     let offline_key_reg_params = OfflineKeyRegistrationParams {
         common_params: CommonParams {
@@ -33,15 +22,10 @@ async fn test_offline_key_registration_transaction() {
         non_participation: Some(false),
     };
 
-    let mut composer = context.composer.clone();
-    composer
-        .add_offline_key_registration(offline_key_reg_params)
-        .expect("Failed to add offline key registration");
+    let mut composer = algorand_fixture.algorand_client.new_group();
+    composer.add_offline_key_registration(offline_key_reg_params)?;
 
-    let result = composer
-        .send(None)
-        .await
-        .expect("Failed to send offline key registration");
+    let result = composer.send(None).await?;
     let confirmation = &result.confirmations[0];
     // Assert transaction was confirmed
     assert!(
@@ -70,15 +54,14 @@ async fn test_offline_key_registration_transaction() {
                 "Non participation should be None for offline registration"
             );
         }
-        _ => panic!("Transaction should be a key registration transaction"),
+        _ => return Err("Transaction should be a key registration transaction".into()),
     }
 
     // Verify account participation status
-    let account_info = context
+    let account_info = algorand_fixture
         .algod
         .account_information(&sender_addr.to_string(), None, None)
-        .await
-        .expect("Failed to get account information");
+        .await?;
 
     // For offline registration, participation should be empty/none
     assert!(
@@ -89,52 +72,37 @@ async fn test_offline_key_registration_transaction() {
                 .is_none_or(|p| p.vote_participation_key.is_empty()),
         "Account should not have participation keys after going offline"
     );
+
+    Ok(())
 }
 
+#[rstest]
 #[tokio::test]
-async fn test_non_participation_key_registration_transaction() {
-    init_test_logging();
-
-    let mut fixture = algorand_fixture().await.expect("Failed to create fixture");
-
-    fixture
-        .new_scope()
-        .await
-        .expect("Failed to create new scope");
-
-    let context = fixture.context().expect("Failed to get context");
-    let sender_addr = context
-        .test_account
-        .account()
-        .expect("Failed to get sender account")
-        .address();
+async fn test_non_participation_key_registration_transaction(
+    #[future] algorand_fixture: AlgorandFixtureResult,
+) -> TestResult {
+    let algorand_fixture = algorand_fixture.await?;
+    let sender_addr = algorand_fixture.test_account.account().address();
 
     // Use real participation keys for initial online registration
     let vote_key = general_purpose::STANDARD
-        .decode("G/lqTV6MKspW6J8wH2d8ZliZ5XZVZsruqSBJMwLwlmo=")
-        .expect("Failed to decode vote key")
+        .decode("G/lqTV6MKspW6J8wH2d8ZliZ5XZVZsruqSBJMwLwlmo=")?
         .try_into()
-        .expect("Vote key should be 32 bytes");
+        .map_err(|_| "Vote key should be 32 bytes")?;
 
     let selection_key = general_purpose::STANDARD
-        .decode("LrpLhvzr+QpN/bivh6IPpOaKGbGzTTB5lJtVfixmmgk=")
-        .expect("Failed to decode selection key")
+        .decode("LrpLhvzr+QpN/bivh6IPpOaKGbGzTTB5lJtVfixmmgk=")?
         .try_into()
-        .expect("Selection key should be 32 bytes");
+        .map_err(|_| "Selection key should be 32 bytes")?;
 
     let state_proof_key = general_purpose::STANDARD.decode(
         "RpUpNWfZMjZ1zOOjv3MF2tjO714jsBt0GKnNsw0ihJ4HSZwci+d9zvUi3i67LwFUJgjQ5Dz4zZgHgGduElnmSA==",
-    )
-    .expect("Failed to decode state proof key")
+    )?
     .try_into()
-    .expect("State proof key should be 64 bytes");
+    .map_err(|_| "State proof key should be 64 bytes")?;
 
     // Step 1: First make the account online to demonstrate the permanent nature of non-participation
-    let params1 = context
-        .algod
-        .transaction_params()
-        .await
-        .expect("Failed to get transaction params");
+    let params1 = algorand_fixture.algod.transaction_params().await?;
 
     let vote_first = params1.last_round;
     let vote_last = vote_first + 10_000_000;
@@ -152,15 +120,10 @@ async fn test_non_participation_key_registration_transaction() {
         state_proof_key: Some(state_proof_key),
     };
 
-    let mut composer = context.composer.clone();
-    composer
-        .add_online_key_registration(online_key_reg_params)
-        .expect("Failed to add online key registration");
+    let mut composer = algorand_fixture.algorand_client.new_group();
+    composer.add_online_key_registration(online_key_reg_params)?;
 
-    let online_result = composer
-        .send(None)
-        .await
-        .expect("Failed to send online key registration");
+    let online_result = composer.send(None).await?;
 
     assert!(
         online_result.confirmations[0].confirmed_round.is_some(),
@@ -168,11 +131,10 @@ async fn test_non_participation_key_registration_transaction() {
     );
 
     // Verify account is now online
-    let account_info = context
+    let account_info = algorand_fixture
         .algod
         .account_information(&sender_addr.to_string(), None, None)
-        .await
-        .expect("Failed to get account information");
+        .await?;
 
     assert!(
         account_info.participation.is_some(),
@@ -187,15 +149,10 @@ async fn test_non_participation_key_registration_transaction() {
         },
     };
 
-    let mut composer2 = context.composer.clone();
-    composer2
-        .add_non_participation_key_registration(non_participation_params)
-        .expect("Failed to add non participation key registration");
+    let mut composer2 = algorand_fixture.algorand_client.new_group();
+    composer2.add_non_participation_key_registration(non_participation_params)?;
 
-    let result = composer2
-        .send(None)
-        .await
-        .expect("Failed to send non participation key registration");
+    let result = composer2.send(None).await?;
     let confirmation = &result.confirmations[0];
 
     // Assert transaction was confirmed
@@ -226,15 +183,14 @@ async fn test_non_participation_key_registration_transaction() {
                 "Non participation should be true"
             );
         }
-        _ => panic!("Transaction should be a key registration transaction"),
+        _ => return Err("Transaction should be a key registration transaction".into()),
     }
 
     // Verify account participation status
-    let account_info = context
+    let account_info = algorand_fixture
         .algod
         .account_information(&sender_addr.to_string(), None, None)
-        .await
-        .expect("Failed to get account information");
+        .await?;
 
     // For non-participation, participation should be empty/none
     assert!(
@@ -247,11 +203,7 @@ async fn test_non_participation_key_registration_transaction() {
     );
 
     // Step 3: Verify that once marked as non-participating, account cannot be brought back online
-    let params3 = context
-        .algod
-        .transaction_params()
-        .await
-        .expect("Failed to get transaction params");
+    let params3 = algorand_fixture.algod.transaction_params().await?;
 
     let vote_first_3 = params3.last_round;
     let vote_last_3 = vote_first_3 + 10_000_000;
@@ -269,10 +221,8 @@ async fn test_non_participation_key_registration_transaction() {
         state_proof_key: Some(state_proof_key),
     };
 
-    let mut composer3 = context.composer.clone();
-    composer3
-        .add_online_key_registration(try_online_again_params)
-        .expect("Failed to add second online key registration");
+    let mut composer3 = algorand_fixture.algorand_client.new_group();
+    composer3.add_online_key_registration(try_online_again_params)?;
 
     // This should fail because the account is permanently marked as non-participating
     let online_again_result = composer3.send(None).await;
@@ -293,51 +243,36 @@ async fn test_non_participation_key_registration_transaction() {
         "Error should indicate the account cannot participate: {}",
         error_message
     );
+
+    Ok(())
 }
 
+#[rstest]
 #[tokio::test]
-async fn test_online_key_registration_transaction() {
-    init_test_logging();
-
-    let mut fixture = algorand_fixture().await.expect("Failed to create fixture");
-
-    fixture
-        .new_scope()
-        .await
-        .expect("Failed to create new scope");
-
-    let context = fixture.context().expect("Failed to get context");
-    let sender_addr = context
-        .test_account
-        .account()
-        .expect("Failed to get sender account")
-        .address();
+async fn test_online_key_registration_transaction(
+    #[future] algorand_fixture: AlgorandFixtureResult,
+) -> TestResult {
+    let algorand_fixture = algorand_fixture.await?;
+    let sender_addr = algorand_fixture.test_account.account().address();
 
     let vote_key = general_purpose::STANDARD
-        .decode("G/lqTV6MKspW6J8wH2d8ZliZ5XZVZsruqSBJMwLwlmo=")
-        .expect("Failed to decode vote key")
+        .decode("G/lqTV6MKspW6J8wH2d8ZliZ5XZVZsruqSBJMwLwlmo=")?
         .try_into()
-        .expect("Vote key should be 32 bytes");
+        .map_err(|_| "Vote key should be 32 bytes")?;
 
     let selection_key = general_purpose::STANDARD
-        .decode("LrpLhvzr+QpN/bivh6IPpOaKGbGzTTB5lJtVfixmmgk=")
-        .expect("Failed to decode selection key")
+        .decode("LrpLhvzr+QpN/bivh6IPpOaKGbGzTTB5lJtVfixmmgk=")?
         .try_into()
-        .expect("Selection key should be 32 bytes");
+        .map_err(|_| "Selection key should be 32 bytes")?;
 
     let state_proof_key = general_purpose::STANDARD.decode(
         "RpUpNWfZMjZ1zOOjv3MF2tjO714jsBt0GKnNsw0ihJ4HSZwci+d9zvUi3i67LwFUJgjQ5Dz4zZgHgGduElnmSA==",
-    )
-    .expect("Failed to decode state proof key")
+    )?
     .try_into()
-    .expect("State proof key should be 64 bytes");
+    .map_err(|_| "State proof key should be 64 bytes")?;
 
     // Get fresh suggested params to use proper voting rounds
-    let params = context
-        .algod
-        .transaction_params()
-        .await
-        .expect("Failed to get transaction params");
+    let params = algorand_fixture.algod.transaction_params().await?;
 
     let vote_first = params.last_round;
     let vote_last = vote_first + 10_000_000;
@@ -355,16 +290,11 @@ async fn test_online_key_registration_transaction() {
         state_proof_key: Some(state_proof_key),
     };
 
-    let mut composer = context.composer.clone();
-    composer
-        .add_online_key_registration(online_key_reg_params)
-        .expect("Failed to add online key registration");
+    let mut composer = algorand_fixture.algorand_client.new_group();
+    composer.add_online_key_registration(online_key_reg_params)?;
 
     // Submit the transaction - should succeed with proper keys and voting rounds
-    let result = composer
-        .send(None)
-        .await
-        .expect("Failed to send online key registration");
+    let result = composer.send(None).await?;
     let confirmation = &result.confirmations[0];
 
     // Assert transaction was confirmed
@@ -416,15 +346,14 @@ async fn test_online_key_registration_transaction() {
                 "Non participation should be None for online registration"
             );
         }
-        _ => panic!("Transaction should be a key registration transaction"),
+        _ => return Err("Transaction should be a key registration transaction".into()),
     }
 
     // Verify account participation status
-    let account_info = context
+    let account_info = algorand_fixture
         .algod
         .account_information(&sender_addr.to_string(), None, None)
-        .await
-        .expect("Failed to get account information");
+        .await?;
 
     // For online registration, participation should contain the keys
     if let Some(participation) = account_info.participation {
@@ -440,6 +369,10 @@ async fn test_online_key_registration_transaction() {
             "Vote participation key should match submitted key"
         );
     } else {
-        panic!("Account should have participation information after online key registration");
+        return Err(
+            "Account should have participation information after online key registration".into(),
+        );
     }
+
+    Ok(())
 }
