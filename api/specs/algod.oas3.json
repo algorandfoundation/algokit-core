@@ -5510,14 +5510,14 @@
           "num-uint": {
             "type": "integer",
             "description": "\\[nui\\] num of uints.",
-            "format": "uint64",
-            "x-algokit-bigint": true
+            "minimum": 0,
+            "maximum": 64
           },
           "num-byte-slice": {
             "type": "integer",
             "description": "\\[nbs\\] num of byte slices.",
-            "format": "uint64",
-            "x-algokit-bigint": true
+            "minimum": 0,
+            "maximum": 64
           }
         },
         "description": "Specifies maximums on the number of each type that may be stored."
@@ -5734,9 +5734,7 @@
         "properties": {
           "action": {
             "type": "integer",
-            "description": "\\[at\\] delta action.",
-            "format": "uint64",
-            "x-algokit-bigint": true
+            "description": "\\[at\\] delta action."
           },
           "bytes": {
             "type": "string",
@@ -5800,8 +5798,8 @@
           "extra-program-pages": {
             "type": "integer",
             "description": "\\[epp\\] the amount of extra program pages available to this app.",
-            "format": "uint64",
-            "x-algokit-bigint": true
+            "minimum": 0,
+            "maximum": 3
           },
           "local-state-schema": {
             "$ref": "#/components/schemas/ApplicationStateSchema"

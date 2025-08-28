@@ -121,7 +121,7 @@ pub struct DeployAppCreateParams {
     pub box_references: Option<Vec<algokit_transact::BoxReference>>,
     pub global_state_schema: Option<algokit_transact::StateSchema>,
     pub local_state_schema: Option<algokit_transact::StateSchema>,
-    pub extra_program_pages: Option<u64>,
+    pub extra_program_pages: Option<u32>,
 }
 
 impl Default for DeployAppCreateParams {
@@ -158,7 +158,7 @@ pub struct DeployAppCreateMethodCallParams {
     pub box_references: Option<Vec<algokit_transact::BoxReference>>,
     pub global_state_schema: Option<algokit_transact::StateSchema>,
     pub local_state_schema: Option<algokit_transact::StateSchema>,
-    pub extra_program_pages: Option<u64>,
+    pub extra_program_pages: Option<u32>,
 }
 
 impl Default for DeployAppCreateMethodCallParams {

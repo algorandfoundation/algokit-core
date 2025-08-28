@@ -34,6 +34,12 @@ interface RequiredFieldTransform {
   makeRequired: boolean; // true = add to required array, false = remove from required array
 }
 
+interface FieldTransform {
+  fieldName: string; // e.g., "action"
+  removeItems?: string[]; // properties to remove from the target property, e.g., ["format"]
+  addItems?: Record<string, any>; // properties to add to the target property, e.g., {"x-custom": true}
+}
+
 interface ProcessingConfig {
   sourceUrl: string;
   outputPath: string;
@@ -41,6 +47,7 @@ interface ProcessingConfig {
   indent?: number;
   vendorExtensionTransforms?: VendorExtensionTransform[];
   requiredFieldTransforms?: RequiredFieldTransform[];
+  fieldTransforms?: FieldTransform[];
 }
 
 // ===== TRANSFORMATIONS =====
@@ -348,6 +355,63 @@ function fixBigInt(spec: OpenAPISpec): number {
 }
 
 /**
+ * Transform specific properties by removing configured items and/or adding new items
+ */
+function transformProperties(spec: OpenAPISpec, transforms: FieldTransform[]): number {
+  let transformedCount = 0;
+
+  if (!transforms?.length) {
+    return transformedCount;
+  }
+
+  const processObject = (obj: any, currentPath: string[] = []): void => {
+    if (!obj || typeof obj !== "object") return;
+
+    if (Array.isArray(obj)) {
+      obj.forEach((item, index) => processObject(item, [...currentPath, index.toString()]));
+      return;
+    }
+
+    // Check each configured transformation
+    for (const transform of transforms) {
+      const targetPath = `properties.${transform.fieldName}`;
+      const fullPath = currentPath.join(".");
+
+      // Check if current path matches the target property path
+      if (fullPath.endsWith(targetPath)) {
+        // Remove specified items from this property
+        if (transform.removeItems) {
+          for (const itemToRemove of transform.removeItems) {
+            if (obj.hasOwnProperty(itemToRemove)) {
+              delete obj[itemToRemove];
+              transformedCount++;
+            }
+          }
+        }
+
+        // Add specified items to this property
+        if (transform.addItems) {
+          for (const [key, value] of Object.entries(transform.addItems)) {
+            obj[key] = value;
+            transformedCount++;
+          }
+        }
+      }
+    }
+
+    // Recursively process nested objects
+    for (const [key, value] of Object.entries(obj)) {
+      if (value && typeof value === "object") {
+        processObject(value, [...currentPath, key]);
+      }
+    }
+  };
+
+  processObject(spec);
+  return transformedCount;
+}
+
+/**
  * Transform required fields in schemas
  *
  * This function adds or removes specified fields from the 'required' array of OpenAPI schemas.
@@ -536,6 +600,14 @@ class OpenAPIProcessor {
         console.log(`ℹ️  Transformed ${transformedFieldsCount} required field states`);
       }
 
+       // 7. Transform properties if configured
+       let transformedPropertiesCount = 0;
+       if (this.config.fieldTransforms && this.config.fieldTransforms.length > 0) {
+         transformedPropertiesCount = transformProperties(spec, this.config.fieldTransforms);
+         console.log(`ℹ️  Applied ${transformedPropertiesCount} property transformations (additions/removals)`);
+       }
+
+      // 8. Transform vendor extensions if configured
       if (this.config.vendorExtensionTransforms && this.config.vendorExtensionTransforms.length > 0) {
         const transformCounts = transformVendorExtensions(spec, this.config.vendorExtensionTransforms);
 
@@ -636,6 +708,36 @@ async function processAlgodSpec() {
   const config: ProcessingConfig = {
     sourceUrl: `https://raw.githubusercontent.com/algorand/go-algorand/${stableTag}/daemon/algod/api/algod.oas2.json`,
     outputPath: join(process.cwd(), "specs", "algod.oas3.json"),
+    fieldTransforms: [
+      {
+        fieldName: "action",
+        removeItems: ["format"]
+      },
+      {
+        fieldName: "num-uint",
+        removeItems: ["format"],
+        addItems: {
+          "minimum": 0,
+          "maximum": 64,
+        }
+      },
+      {
+        fieldName: "num-byte-slice",
+        removeItems: ["format"],
+        addItems: {
+          "minimum": 0,
+          "maximum": 64,
+        }
+      },
+      {
+        fieldName: "extra-program-pages",
+        removeItems: ["format"],
+        addItems: {
+          "minimum": 0,
+          "maximum": 3,
+        }
+      }
+    ],
     vendorExtensionTransforms: [
       {
         sourceProperty: "x-algorand-format",
@@ -682,6 +784,31 @@ async function processIndexerSpec() {
     requiredFieldTransforms: [
       { schemaName: "ApplicationParams", fieldName: "approval-program", makeRequired: false },
       { schemaName: "ApplicationParams", fieldName: "clear-state-program", makeRequired: false },
+    ],
+    fieldTransforms: [
+      {
+        fieldName: "num-uint",
+        removeItems: ["x-algorand-format"],
+        addItems: {
+          "minimum": 0,
+          "maximum": 64,
+        }
+      },
+      {
+        fieldName: "num-byte-slice",
+        removeItems: ["x-algorand-format"],
+        addItems: {
+          "minimum": 0,
+          "maximum": 64,
+        }
+      },
+      {
+        fieldName: "extra-program-pages",
+        addItems: {
+          "minimum": 0,
+          "maximum": 3,
+        }
+      }
     ],
     vendorExtensionTransforms: [
       {

@@ -46,7 +46,7 @@ pub struct AppCallTransactionFields {
     /// and clear state program may not exceed 2048*(1+extra_program_pages) bytes.
     /// Currently, the maximum value is 3.
     /// This cannot be changed after creation.
-    extra_program_pages: Option<u64>,
+    extra_program_pages: Option<u32>,
 
     /// Transaction specific arguments available in the app's
     /// approval program and clear state program.
@@ -258,10 +258,10 @@ impl From<OnApplicationComplete> for algokit_transact::OnApplicationComplete {
 #[ffi_record]
 pub struct StateSchema {
     /// Maximum number of integer values that may be stored.
-    num_uints: u64,
+    num_uints: u32,
 
     /// Maximum number of byte slice values that may be stored.
-    num_byte_slices: u64,
+    num_byte_slices: u32,
 }
 
 impl From<algokit_transact::StateSchema> for StateSchema {

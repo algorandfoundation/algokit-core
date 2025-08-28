@@ -62,15 +62,15 @@ pub struct AppInformation {
     /// The creator address of the app
     pub creator: String,
     /// Number of local state integers allocated
-    pub local_ints: u64,
+    pub local_ints: u32,
     /// Number of local state byte slices allocated
-    pub local_byte_slices: u64,
+    pub local_byte_slices: u32,
     /// Number of global state integers allocated
-    pub global_ints: u64,
+    pub global_ints: u32,
     /// Number of global state byte slices allocated
-    pub global_byte_slices: u64,
+    pub global_byte_slices: u32,
     /// Number of extra program pages (if any)
-    pub extra_program_pages: Option<u64>,
+    pub extra_program_pages: Option<u32>,
     /// The current global state of the app
     /// Keys are stored as Vec<u8> for binary data support, matching TypeScript UInt8Array typing
     pub global_state: HashMap<Vec<u8>, AppState>,

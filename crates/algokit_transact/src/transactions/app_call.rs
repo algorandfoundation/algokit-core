@@ -72,13 +72,13 @@ pub struct StateSchema {
     #[serde(rename = "nui")]
     #[serde(skip_serializing_if = "is_zero")]
     #[serde(default)]
-    pub num_uints: u64,
+    pub num_uints: u32,
 
     /// Maximum number of byte slice values that may be stored.
     #[serde(rename = "nbs")]
     #[serde(skip_serializing_if = "is_zero")]
     #[serde(default)]
-    pub num_byte_slices: u64,
+    pub num_byte_slices: u32,
 }
 
 impl MsgPackEmpty for StateSchema {
@@ -195,7 +195,7 @@ pub struct AppCallTransactionFields {
     #[serde(skip_serializing_if = "is_zero_opt")]
     #[serde(default)]
     #[builder(default)]
-    pub extra_program_pages: Option<u64>,
+    pub extra_program_pages: Option<u32>,
 
     /// Transaction specific arguments available in the app's
     /// approval program and clear state program.

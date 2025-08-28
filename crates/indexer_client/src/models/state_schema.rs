@@ -15,15 +15,15 @@ use serde::{Deserialize, Serialize};
 pub struct StateSchema {
     /// Maximum number of TEAL uints that may be stored in the key/value store.
     #[serde(rename = "num-uint")]
-    pub num_uint: u64,
+    pub num_uint: u32,
     /// Maximum number of TEAL byte slices that may be stored in the key/value store.
     #[serde(rename = "num-byte-slice")]
-    pub num_byte_slice: u64,
+    pub num_byte_slice: u32,
 }
 
 impl StateSchema {
     /// Constructor for StateSchema
-    pub fn new(num_uint: u64, num_byte_slice: u64) -> StateSchema {
+    pub fn new(num_uint: u32, num_byte_slice: u32) -> StateSchema {
         StateSchema {
             num_uint,
             num_byte_slice,

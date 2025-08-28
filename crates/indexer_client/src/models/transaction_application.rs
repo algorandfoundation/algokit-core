@@ -65,7 +65,7 @@ pub struct TransactionApplication {
         rename = "extra-program-pages",
         skip_serializing_if = "Option::is_none"
     )]
-    pub extra_program_pages: Option<u64>,
+    pub extra_program_pages: Option<u32>,
     /// \[aprv\] the lowest application version for which this transaction should immediately fail. 0 indicates that no version check should be performed.
     #[serde(rename = "reject-version", skip_serializing_if = "Option::is_none")]
     pub reject_version: Option<u64>,

@@ -29,7 +29,6 @@ pub use payment::{PaymentTransactionBuilder, PaymentTransactionFields};
 
 use crate::constants::{
     ALGORAND_SIGNATURE_BYTE_LENGTH, ALGORAND_SIGNATURE_ENCODING_INCR, HASH_BYTES_LENGTH,
-    MAX_TX_GROUP_SIZE,
 };
 use crate::error::AlgoKitTransactError;
 use crate::traits::{AlgorandMsgpack, EstimateTransactionSize, TransactionId, Transactions};
@@ -238,21 +237,6 @@ impl Transactions for &[Transaction] {
     /// # Returns
     /// A result containing the transactions with group assign or an error if grouping fails.
     fn assign_group(self) -> Result<Vec<Transaction>, AlgoKitTransactError> {
-        if self.len() > MAX_TX_GROUP_SIZE {
-            return Err(AlgoKitTransactError::InputError {
-                message: format!(
-                    "Transaction group size exceeds the max limit of {}",
-                    MAX_TX_GROUP_SIZE
-                ),
-            });
-        }
-
-        if self.is_empty() {
-            return Err(AlgoKitTransactError::InputError {
-                message: String::from("Transaction group size cannot be 0"),
-            });
-        }
-
         let group_id = compute_group_id(self)?;
         Ok(self
             .iter()
@@ -297,7 +281,7 @@ impl Transaction {
 #[cfg(test)]
 mod transaction_tests {
     use crate::{
-        EMPTY_SIGNATURE,
+        EMPTY_SIGNATURE, MAX_TX_GROUP_SIZE,
         test_utils::{TransactionGroupMother, TransactionHeaderMother, TransactionMother},
     };
     use base64::{Engine, prelude::BASE64_STANDARD};

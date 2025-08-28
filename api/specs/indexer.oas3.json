@@ -3319,11 +3319,15 @@
         "properties": {
           "num-uint": {
             "type": "integer",
-            "description": "number of uints."
+            "description": "number of uints.",
+            "minimum": 0,
+            "maximum": 64
           },
           "num-byte-slice": {
             "type": "integer",
-            "description": "number of byte slices."
+            "description": "number of byte slices.",
+            "minimum": 0,
+            "maximum": 64
           }
         },
         "description": "Specifies maximums on the number of each type that may be stored."
@@ -3467,7 +3471,9 @@
           },
           "extra-program-pages": {
             "type": "integer",
-            "description": "the number of extra program pages available to this app."
+            "description": "the number of extra program pages available to this app.",
+            "minimum": 0,
+            "maximum": 3
           },
           "local-state-schema": {
             "$ref": "#/components/schemas/ApplicationStateSchema"
@@ -4093,12 +4099,14 @@
           "num-uint": {
             "type": "integer",
             "description": "Maximum number of TEAL uints that may be stored in the key/value store.",
-            "x-algokit-bigint": true
+            "minimum": 0,
+            "maximum": 64
           },
           "num-byte-slice": {
             "type": "integer",
             "description": "Maximum number of TEAL byte slices that may be stored in the key/value store.",
-            "x-algokit-bigint": true
+            "minimum": 0,
+            "maximum": 64
           }
         },
         "description": "Represents a \\[apls\\] local-state or \\[apgs\\] global-state schema. These schemas determine how much storage may be used in a local-state or global-state for an application. The more space used, the larger minimum balance must be maintained in the account holding the data."
@@ -4353,7 +4361,9 @@
           },
           "extra-program-pages": {
             "type": "integer",
-            "description": "\\[epp\\] specifies the additional app program len requested in pages."
+            "description": "\\[epp\\] specifies the additional app program len requested in pages.",
+            "minimum": 0,
+            "maximum": 3
           },
           "reject-version": {
             "type": "integer",

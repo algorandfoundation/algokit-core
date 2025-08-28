@@ -126,7 +126,7 @@ pub struct AppCreateParams {
     /// and clear state program may not exceed 2048*(1+extra_program_pages) bytes.
     /// Currently, the maximum value is 3.
     /// This cannot be changed after creation.
-    pub extra_program_pages: Option<u64>,
+    pub extra_program_pages: Option<u32>,
     /// Transaction specific arguments available in the app's
     /// approval program and clear state program.
     pub args: Option<Vec<Vec<u8>>>,
@@ -285,7 +285,7 @@ where
     /// and clear state program may not exceed 2048*(1+extra_program_pages) bytes.
     /// Currently, the maximum value is 3.
     /// This cannot be changed after creation.
-    pub extra_program_pages: Option<u64>,
+    pub extra_program_pages: Option<u32>,
     /// The ABI method to call.
     pub method: ABIMethod,
     /// Transaction specific arguments available in the app's

@@ -15,15 +15,15 @@ use serde::{Deserialize, Serialize};
 pub struct ApplicationStateSchema {
     /// number of uints.
     #[serde(rename = "num-uint")]
-    pub num_uint: u64,
+    pub num_uint: u32,
     /// number of byte slices.
     #[serde(rename = "num-byte-slice")]
-    pub num_byte_slice: u64,
+    pub num_byte_slice: u32,
 }
 
 impl ApplicationStateSchema {
     /// Constructor for ApplicationStateSchema
-    pub fn new(num_uint: u64, num_byte_slice: u64) -> ApplicationStateSchema {
+    pub fn new(num_uint: u32, num_byte_slice: u32) -> ApplicationStateSchema {
         ApplicationStateSchema {
             num_uint,
             num_byte_slice,

@@ -2,7 +2,9 @@ use crate::constants::{
     ALGORAND_CHECKSUM_BYTE_LENGTH, ALGORAND_PUBLIC_KEY_BYTE_LENGTH, Byte32, HASH_BYTES_LENGTH,
 };
 use crate::traits::MsgPackEmpty;
-use crate::{Address, AlgoKitTransactError, AlgorandMsgpack, Transaction, TransactionId};
+use crate::{
+    Address, AlgoKitTransactError, AlgorandMsgpack, MAX_TX_GROUP_SIZE, Transaction, TransactionId,
+};
 use serde::{Deserialize, Serialize};
 use serde_with::{Bytes, serde_as, skip_serializing_none};
 use sha2::{Digest, Sha512_256};
@@ -102,6 +104,21 @@ pub fn hash(bytes: &Vec<u8>) -> Byte32 {
 }
 
 pub fn compute_group_id(txs: &[Transaction]) -> Result<Byte32, AlgoKitTransactError> {
+    if txs.is_empty() {
+        return Err(AlgoKitTransactError::InputError {
+            message: String::from("Transaction group size cannot be 0"),
+        });
+    }
+
+    if txs.len() > MAX_TX_GROUP_SIZE {
+        return Err(AlgoKitTransactError::InputError {
+            message: format!(
+                "Transaction group size exceeds the max limit of {}",
+                MAX_TX_GROUP_SIZE
+            ),
+        });
+    }
+
     let tx_hashes: Result<Vec<Byte32>, AlgoKitTransactError> = txs
         .iter()
         .map(|tx| {

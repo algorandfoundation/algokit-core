@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 pub struct EvalDelta {
     /// \[at\] delta action.
     #[serde(rename = "action")]
-    pub action: u64,
+    pub action: u32,
     /// \[bs\] bytes value.
     #[serde(rename = "bytes", skip_serializing_if = "Option::is_none")]
     pub bytes: Option<String>,
@@ -32,7 +32,7 @@ impl AlgorandMsgpack for EvalDelta {
 
 impl EvalDelta {
     /// Constructor for EvalDelta
-    pub fn new(action: u64) -> EvalDelta {
+    pub fn new(action: u32) -> EvalDelta {
         EvalDelta {
             action,
             bytes: None,

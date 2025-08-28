@@ -37,7 +37,7 @@ pub struct ApplicationParams {
         rename = "extra-program-pages",
         skip_serializing_if = "Option::is_none"
     )]
-    pub extra_program_pages: Option<u64>,
+    pub extra_program_pages: Option<u32>,
     #[serde(rename = "local-state-schema", skip_serializing_if = "Option::is_none")]
     pub local_state_schema: Option<ApplicationStateSchema>,
     #[serde(
