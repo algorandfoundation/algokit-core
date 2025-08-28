@@ -97,6 +97,8 @@ impl ABIValue {
 
 #[cfg(test)]
 mod tests {
+    use rstest::rstest;
+
     use super::*;
 
     #[test]
@@ -108,32 +110,26 @@ mod tests {
         assert_eq!(value, ABIValue::Bool(false));
     }
 
-    #[test]
-    fn test_from_uint_types() {
-        let value = ABIValue::from(42u8);
-        assert_eq!(value, ABIValue::Uint(BigUint::from(42u8)));
-
-        let value = ABIValue::from(1000u16);
-        assert_eq!(value, ABIValue::Uint(BigUint::from(1000u16)));
-
-        let value = ABIValue::from(100000u32);
-        assert_eq!(value, ABIValue::Uint(BigUint::from(100000u32)));
-
-        let value = ABIValue::from(10000000000u64);
-        assert_eq!(value, ABIValue::Uint(BigUint::from(10000000000u64)));
-
-        let value = ABIValue::from(340282366920938463463374607431768211455u128);
-        assert_eq!(
-            value,
-            ABIValue::Uint(BigUint::from(340282366920938463463374607431768211455u128))
-        );
-
-        let value = ABIValue::from(12345usize);
-        assert_eq!(value, ABIValue::Uint(BigUint::from(12345usize)));
-
-        let big_value = BigUint::from(999999u64);
-        let value = ABIValue::from(big_value.clone());
-        assert_eq!(value, ABIValue::Uint(big_value));
+    #[rstest]
+    #[case(ABIValue::from(42u8), ABIValue::Uint(BigUint::from(42u8)))]
+    #[case(ABIValue::from(1000u16), ABIValue::Uint(BigUint::from(1000u16)))]
+    #[case(ABIValue::from(100000u32), ABIValue::Uint(BigUint::from(100000u32)))]
+    #[case(
+        ABIValue::from(10000000000u64),
+        ABIValue::Uint(BigUint::from(10000000000u64))
+    )]
+    #[case(
+        ABIValue::from(340282366920938463463374607431768211455u128),
+        ABIValue::Uint(BigUint::from(340282366920938463463374607431768211455u128))
+    )]
+    #[case(ABIValue::from(12345usize), ABIValue::Uint(BigUint::from(12345usize)))]
+    #[case(ABIValue::from(100000u32), ABIValue::Uint(BigUint::from(100000u32)))]
+    #[case(
+        ABIValue::from(BigUint::from(999999u64)),
+        ABIValue::Uint(BigUint::from(999999u64))
+    )]
+    fn test_from_uint_types(#[case] abi_value_1: ABIValue, #[case] abi_value_2: ABIValue) {
+        assert_eq!(abi_value_1, abi_value_2);
     }
 
     #[test]

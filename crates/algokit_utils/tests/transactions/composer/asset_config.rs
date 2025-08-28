@@ -1,30 +1,19 @@
+use crate::common::{AlgorandFixture, AlgorandFixtureResult, TestResult, algorand_fixture};
 use algokit_transact::Address;
-use algokit_utils::testing::*;
 use algokit_utils::{AssetCreateParams, AssetDestroyParams, AssetReconfigureParams, CommonParams};
+use rstest::*;
 
-use crate::common::init_test_logging;
-
+#[rstest]
 #[tokio::test]
-async fn test_asset_create_transaction() {
-    init_test_logging();
-
-    let mut fixture = algorand_fixture().await.expect("Failed to create fixture");
-
-    fixture
-        .new_scope()
-        .await
-        .expect("Failed to create new scope");
-
-    let context = fixture.context().expect("Failed to get context");
-    let sender_addr: Address = context
-        .test_account
-        .account()
-        .expect("Failed to get sender address")
-        .into();
+async fn test_asset_create_transaction(
+    #[future] algorand_fixture: AlgorandFixtureResult,
+) -> TestResult {
+    let algorand_fixture = algorand_fixture.await?;
+    let sender_address = algorand_fixture.test_account.account().address();
 
     let asset_create_params = AssetCreateParams {
         common_params: CommonParams {
-            sender: sender_addr.clone(),
+            sender: sender_address.clone(),
             ..Default::default()
         },
         total: 1_000_000,
@@ -34,21 +23,16 @@ async fn test_asset_create_transaction() {
         unit_name: Some("TEST".to_string()),
         url: Some("https://example.com".to_string()),
         metadata_hash: None,
-        manager: Some(sender_addr.clone()),
-        reserve: Some(sender_addr.clone()),
-        freeze: Some(sender_addr.clone()),
-        clawback: Some(sender_addr),
+        manager: Some(sender_address.clone()),
+        reserve: Some(sender_address.clone()),
+        freeze: Some(sender_address.clone()),
+        clawback: Some(sender_address),
     };
 
-    let mut composer = context.composer.clone();
-    composer
-        .add_asset_create(asset_create_params)
-        .expect("Failed to add asset create");
+    let mut composer = algorand_fixture.algorand_client.new_group();
+    composer.add_asset_create(asset_create_params)?;
 
-    let result = composer
-        .send(None)
-        .await
-        .expect("Failed to send asset create");
+    let result = composer.send(None).await?;
     let confirmation = &result.confirmations[0];
 
     // Assert transaction was confirmed
@@ -89,43 +73,29 @@ async fn test_asset_create_transaction() {
                 Some("TEST".to_string()),
                 "Unit name should match"
             );
+            Ok(())
         }
-        _ => panic!("Transaction should be an asset config transaction"),
+        _ => Err("Transaction should be an asset config transaction".into()),
     }
 }
 
+#[rstest]
 #[tokio::test]
-async fn test_asset_reconfigure_transaction() {
-    init_test_logging();
+async fn test_asset_reconfigure_transaction(
+    #[future] algorand_fixture: Result<AlgorandFixture, Box<dyn std::error::Error + Send + Sync>>,
+) -> TestResult {
+    let mut algorand_fixture = algorand_fixture.await?;
+    let sender_address = algorand_fixture.test_account.account().address();
 
-    let mut fixture = algorand_fixture().await.expect("Failed to create fixture");
-
-    fixture
-        .new_scope()
-        .await
-        .expect("Failed to create new scope");
-
-    let new_manager = fixture
+    let new_manager_addr: Address = algorand_fixture
         .generate_account(None)
-        .await
-        .expect("Failed to create new manager");
-
-    let new_manager_addr: Address = new_manager
+        .await?
         .account()
-        .expect("Failed to get new manager account")
         .address();
-
-    let context = fixture.context().expect("Failed to get context");
-    let sender_addr = context
-        .test_account
-        .account()
-        .expect("Failed to get sender account")
-        .address();
-
     // First create an asset to reconfigure
     let asset_create_params = AssetCreateParams {
         common_params: CommonParams {
-            sender: sender_addr.clone(),
+            sender: sender_address.clone(),
             ..Default::default()
         },
         total: 1_000_000,
@@ -135,29 +105,24 @@ async fn test_asset_reconfigure_transaction() {
         unit_name: Some("RECONF".to_string()),
         url: None,
         metadata_hash: None,
-        manager: Some(sender_addr.clone()),
+        manager: Some(sender_address.clone()),
         reserve: None,
         freeze: None,
         clawback: None,
     };
 
-    let mut composer = context.composer.clone();
-    composer
-        .add_asset_create(asset_create_params)
-        .expect("Failed to add asset create");
+    let mut composer = algorand_fixture.algorand_client.new_group();
+    composer.add_asset_create(asset_create_params)?;
 
-    let create_result = composer
-        .send(None)
-        .await
-        .expect("Failed to send asset create");
+    let create_result = composer.send(None).await?;
     let asset_id = create_result.confirmations[0]
         .asset_id
-        .expect("Failed to get asset ID");
+        .ok_or("Failed to get asset ID")?;
 
     // Now reconfigure the asset
     let asset_reconfigure_params = AssetReconfigureParams {
         common_params: CommonParams {
-            sender: sender_addr,
+            sender: sender_address,
             ..Default::default()
         },
         asset_id,
@@ -167,15 +132,10 @@ async fn test_asset_reconfigure_transaction() {
         clawback: None,
     };
 
-    let mut composer = context.composer.clone();
-    composer
-        .add_asset_reconfigure(asset_reconfigure_params)
-        .expect("Failed to add asset reconfigure");
+    let mut composer = algorand_fixture.algorand_client.new_group();
+    composer.add_asset_reconfigure(asset_reconfigure_params)?;
 
-    let result = composer
-        .send(None)
-        .await
-        .expect("Failed to send asset reconfigure");
+    let result = composer.send(None).await?;
 
     let confirmation = &result.confirmations[0];
 
@@ -198,33 +158,23 @@ async fn test_asset_reconfigure_transaction() {
                 Some(new_manager_addr.clone()),
                 "Manager should be updated"
             );
+            Ok(())
         }
-        _ => panic!("Transaction should be an asset config transaction"),
+        _ => Err("Transaction should be an asset config transaction".into()),
     }
 }
 
+#[rstest]
 #[tokio::test]
-async fn test_asset_destroy_transaction() {
-    init_test_logging();
-
-    let mut fixture = algorand_fixture().await.expect("Failed to create fixture");
-
-    fixture
-        .new_scope()
-        .await
-        .expect("Failed to create new scope");
-
-    let context = fixture.context().expect("Failed to get context");
-    let sender_addr = context
-        .test_account
-        .account()
-        .expect("Failed to get sender account")
-        .address();
-
+async fn test_asset_destroy_transaction(
+    #[future] algorand_fixture: Result<AlgorandFixture, Box<dyn std::error::Error + Send + Sync>>,
+) -> TestResult {
+    let algorand_fixture = algorand_fixture.await?;
+    let sender_address = algorand_fixture.test_account.account().address();
     // First create an asset to destroy
     let asset_create_params = AssetCreateParams {
         common_params: CommonParams {
-            sender: sender_addr.clone(),
+            sender: sender_address.clone(),
             ..Default::default()
         },
         total: 1_000,
@@ -234,43 +184,33 @@ async fn test_asset_destroy_transaction() {
         unit_name: Some("DEST".to_string()),
         url: None,
         metadata_hash: None,
-        manager: Some(sender_addr.clone()),
+        manager: Some(sender_address.clone()),
         reserve: None,
         freeze: None,
         clawback: None,
     };
 
-    let mut composer = context.composer.clone();
-    composer
-        .add_asset_create(asset_create_params)
-        .expect("Failed to add asset create");
+    let mut composer = algorand_fixture.algorand_client.new_group();
+    composer.add_asset_create(asset_create_params)?;
 
-    let create_result = composer
-        .send(None)
-        .await
-        .expect("Failed to send asset create");
+    let create_result = composer.send(None).await?;
     let asset_id = create_result.confirmations[0]
         .asset_id
-        .expect("Failed to get asset ID");
+        .ok_or("Failed to get asset ID")?;
 
     // Now destroy the asset
     let asset_destroy_params = AssetDestroyParams {
         common_params: CommonParams {
-            sender: sender_addr,
+            sender: sender_address,
             ..Default::default()
         },
         asset_id,
     };
 
-    let mut composer = context.composer.clone();
-    composer
-        .add_asset_destroy(asset_destroy_params)
-        .expect("Failed to add asset destroy");
+    let mut composer = algorand_fixture.algorand_client.new_group();
+    composer.add_asset_destroy(asset_destroy_params)?;
 
-    let result = composer
-        .send(None)
-        .await
-        .expect("Failed to send asset destroy");
+    let result = composer.send(None).await?;
     let confirmation = &result.confirmations[0];
 
     // Assert transaction was confirmed
@@ -282,28 +222,20 @@ async fn test_asset_destroy_transaction() {
         confirmation.confirmed_round.unwrap() > 0,
         "Confirmed round should be greater than 0"
     );
+    Ok(())
 }
 
+#[rstest]
 #[tokio::test]
-async fn test_asset_create_validation_errors() {
-    init_test_logging();
-
-    let mut fixture = algorand_fixture().await.expect("Failed to create fixture");
-    fixture
-        .new_scope()
-        .await
-        .expect("Failed to create new scope");
-    let context = fixture.context().expect("Failed to get context");
-    let sender_addr: Address = context
-        .test_account
-        .account()
-        .expect("Failed to get sender address")
-        .into();
-
+async fn test_asset_create_validation_errors(
+    #[future] algorand_fixture: Result<AlgorandFixture, Box<dyn std::error::Error + Send + Sync>>,
+) -> TestResult {
+    let algorand_fixture = algorand_fixture.await?;
+    let sender_address = algorand_fixture.test_account.account().address();
     // Test asset creation with multiple validation errors
     let invalid_asset_create_params = AssetCreateParams {
         common_params: CommonParams {
-            sender: sender_addr.clone(),
+            sender: sender_address.clone(),
             ..Default::default()
         },
         total: 0,           // Invalid: should be > 0 (will be caught by transact validation)
@@ -313,38 +245,36 @@ async fn test_asset_create_validation_errors() {
         unit_name: Some("VERYLONGUNITNAME".to_string()), // Invalid: should be <= 8 bytes
         url: Some(format!("https://{}", "a".repeat(100))), // Invalid: should be <= 96 bytes
         metadata_hash: None,
-        manager: Some(sender_addr.clone()),
+        manager: Some(sender_address.clone()),
         reserve: None,
         freeze: None,
         clawback: None,
     };
 
-    let mut composer = context.composer.clone();
-    composer
-        .add_asset_create(invalid_asset_create_params)
-        .expect("Adding invalid asset create should succeed at composer level");
+    let mut composer = algorand_fixture.algorand_client.new_group();
+    composer.add_asset_create(invalid_asset_create_params)?;
 
     // The validation should fail when building the transaction group
     let result = composer.build(None).await;
 
     // The build should return an error due to validation failures
-    assert!(
-        result.is_err(),
-        "Build with invalid asset create parameters should fail"
-    );
+    match result {
+        Ok(_) => Err("Build with invalid asset create parameters should fail".into()),
+        Err(error) => {
+            let error_string = error.to_string();
 
-    let error = result.unwrap_err();
-    let error_string = error.to_string();
-
-    // Check that the error contains validation-related messages from the transact crate
-    assert!(
-        error_string.contains("validation")
-            || error_string.contains("Total")
-            || error_string.contains("Decimals")
-            || error_string.contains("Asset name")
-            || error_string.contains("Unit name")
-            || error_string.contains("URL"),
-        "Error should contain validation failure details: {}",
-        error_string
-    );
+            // Check that the error contains validation-related messages from the transact crate
+            assert!(
+                error_string.contains("validation")
+                    || error_string.contains("Total")
+                    || error_string.contains("Decimals")
+                    || error_string.contains("Asset name")
+                    || error_string.contains("Unit name")
+                    || error_string.contains("URL"),
+                "Error should contain validation failure details: {}",
+                error_string
+            );
+            Ok(())
+        }
+    }
 }

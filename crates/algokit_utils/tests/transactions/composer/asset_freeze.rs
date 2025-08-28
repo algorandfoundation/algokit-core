@@ -1,17 +1,17 @@
+use crate::common::{AlgorandFixtureResult, TestResult, algorand_fixture};
 use algokit_transact::Transaction;
+use algokit_utils::CommonParams;
 use algokit_utils::transactions::AssetOptInParams;
-use algokit_utils::{CommonParams, Composer};
-use algokit_utils::{
-    testing::*,
-    transactions::{
-        AssetCreateParams, AssetFreezeParams, AssetTransferParams, AssetUnfreezeParams,
-    },
+use algokit_utils::transactions::{
+    AssetCreateParams, AssetFreezeParams, AssetTransferParams, AssetUnfreezeParams,
 };
+use rstest::*;
 
-use crate::common::init_test_logging;
-
+#[rstest]
 #[tokio::test]
-async fn test_asset_freeze_unfreeze() {
+async fn test_asset_freeze_unfreeze(
+    #[future] algorand_fixture: AlgorandFixtureResult,
+) -> TestResult {
     // This integration test validates the complete asset freeze/unfreeze cycle by:
     //
     // SETUP PHASE:
@@ -31,36 +31,15 @@ async fn test_asset_freeze_unfreeze() {
     // 10. Verify account holding shows asset is no longer frozen via algod API
     // 11. Prove unfreeze works by successfully transferring the asset
 
-    init_test_logging();
-
-    let mut fixture = algorand_fixture().await.expect("Failed to create fixture");
-    fixture
-        .new_scope()
-        .await
-        .expect("Failed to create new scope");
+    let mut algorand_fixture = algorand_fixture.await?;
+    let asset_creator_addr = algorand_fixture.test_account.account().address();
 
     // Create a target account to hold the asset
-    let target_account = fixture
-        .generate_account(None)
-        .await
-        .expect("Failed to create target account");
-    let target_addr = target_account
-        .account()
-        .expect("Failed to get target account")
-        .address();
-
-    let context = fixture.context().expect("Failed to get context");
-    let asset_creator_account = context
-        .test_account
-        .account()
-        .expect("Failed to get asset creator account");
-    let asset_creator_addr = asset_creator_account.address();
+    let target_account = algorand_fixture.generate_account(None).await?;
+    let target_addr = target_account.account().address();
 
     // Create a composer for the target account that can send transactions
-    let target_composer = Composer::new(
-        context.algod.clone(),
-        std::sync::Arc::new(target_account.clone()),
-    );
+    let target_composer = algorand_fixture.algorand_client.new_group();
 
     // SETUP PHASE
 
@@ -83,15 +62,10 @@ async fn test_asset_freeze_unfreeze() {
         clawback: None,
     };
 
-    let mut composer = context.composer.clone();
-    composer
-        .add_asset_create(asset_create_params)
-        .expect("Failed to add asset create");
+    let mut composer = algorand_fixture.algorand_client.new_group();
+    composer.add_asset_create(asset_create_params)?;
 
-    let create_result = composer
-        .send(None)
-        .await
-        .expect("Failed to send asset create");
+    let create_result = composer.send(None).await?;
     let asset_id = create_result.confirmations[0]
         .asset_id
         .expect("Failed to get asset ID");
@@ -106,21 +80,14 @@ async fn test_asset_freeze_unfreeze() {
     };
 
     let mut composer = target_composer.clone();
-    composer
-        .add_asset_opt_in(asset_opt_in_params)
-        .expect("Failed to add asset opt-in");
+    composer.add_asset_opt_in(asset_opt_in_params)?;
 
-    let opt_in_result = composer
-        .send(None)
-        .await
-        .expect("Failed to send asset opt-in");
+    let opt_in_result = composer.send(None).await?;
 
     assert!(
         opt_in_result.confirmations[0].confirmed_round.is_some(),
         "Asset opt-in should be confirmed"
     );
-
-    println!("Target account opted into asset");
 
     // Step 3: Send some asset units to the target account
     let asset_transfer_params = AssetTransferParams {
@@ -133,22 +100,15 @@ async fn test_asset_freeze_unfreeze() {
         receiver: target_addr.clone(),
     };
 
-    let mut composer = context.composer.clone();
-    composer
-        .add_asset_transfer(asset_transfer_params)
-        .expect("Failed to add asset transfer");
+    let mut composer = algorand_fixture.algorand_client.new_group();
+    composer.add_asset_transfer(asset_transfer_params)?;
 
-    let transfer_result = composer
-        .send(None)
-        .await
-        .expect("Failed to send asset transfer");
+    let transfer_result = composer.send(None).await?;
 
     assert!(
         transfer_result.confirmations[0].confirmed_round.is_some(),
         "Asset transfer should be confirmed"
     );
-
-    println!("Transferred 1000 asset units to target account");
 
     // FREEZE PHASE
 
@@ -162,15 +122,10 @@ async fn test_asset_freeze_unfreeze() {
         target_address: target_addr.clone(),
     };
 
-    let mut composer = context.composer.clone();
-    composer
-        .add_asset_freeze(asset_freeze_params)
-        .expect("Failed to add asset freeze");
+    let mut composer = algorand_fixture.algorand_client.new_group();
+    composer.add_asset_freeze(asset_freeze_params)?;
 
-    let freeze_result = composer
-        .send(None)
-        .await
-        .expect("Failed to send asset freeze");
+    let freeze_result = composer.send(None).await?;
 
     // Step 5: Verify freeze transaction was confirmed and has correct structure
     let freeze_confirmation = &freeze_result.confirmations[0];
@@ -189,17 +144,14 @@ async fn test_asset_freeze_unfreeze() {
             assert_eq!(txn.freeze_target, target_addr, "Freeze target should match");
             assert!(txn.frozen, "Asset should be frozen");
         }
-        _ => panic!("Transaction should be an AssetFreeze transaction"),
+        _ => return Err("Transaction should be an AssetFreeze transaction".into()),
     }
 
-    println!("Asset frozen for target account");
-
     // Step 6: Verify account holding shows asset is frozen via algod API
-    let account_info = context
+    let account_info = algorand_fixture
         .algod
         .account_information(&target_addr.to_string(), None, None)
-        .await
-        .expect("Failed to get account information");
+        .await?;
 
     let assets = account_info.assets.expect("Account should have assets");
 
@@ -213,8 +165,6 @@ async fn test_asset_freeze_unfreeze() {
         "Asset should be frozen in account holding"
     );
 
-    println!("Verified asset is frozen in account holding");
-
     // Step 7: Prove freeze works by attempting transfer (should fail)
     let attempt_transfer_params = AssetTransferParams {
         common_params: CommonParams {
@@ -227,9 +177,7 @@ async fn test_asset_freeze_unfreeze() {
     };
 
     let mut composer = target_composer.clone();
-    composer
-        .add_asset_transfer(attempt_transfer_params)
-        .expect("Failed to add asset transfer attempt");
+    composer.add_asset_transfer(attempt_transfer_params)?;
 
     let transfer_attempt_result = composer.send(None).await;
 
@@ -245,8 +193,6 @@ async fn test_asset_freeze_unfreeze() {
         error_message
     );
 
-    println!("Confirmed that frozen asset cannot be transferred");
-
     // UNFREEZE PHASE
 
     // Step 8: Unfreeze the asset for the target account
@@ -259,15 +205,10 @@ async fn test_asset_freeze_unfreeze() {
         target_address: target_addr.clone(),
     };
 
-    let mut composer = context.composer.clone();
-    composer
-        .add_asset_unfreeze(asset_unfreeze_params)
-        .expect("Failed to add asset unfreeze");
+    let mut composer = algorand_fixture.algorand_client.new_group();
+    composer.add_asset_unfreeze(asset_unfreeze_params)?;
 
-    let unfreeze_result = composer
-        .send(None)
-        .await
-        .expect("Failed to send asset unfreeze");
+    let unfreeze_result = composer.send(None).await?;
 
     // Step 9: Verify unfreeze transaction was confirmed and has correct structure
     let unfreeze_confirmation = &unfreeze_result.confirmations[0];
@@ -286,17 +227,14 @@ async fn test_asset_freeze_unfreeze() {
             assert_eq!(txn.freeze_target, target_addr, "Freeze target should match");
             assert!(!txn.frozen, "Asset should be unfrozen");
         }
-        _ => panic!("Transaction should be an AssetFreeze transaction"),
+        _ => return Err("Transaction should be an AssetFreeze transaction".into()),
     }
 
-    println!("Asset unfrozen for target account");
-
     // Step 10: Verify account holding shows asset is no longer frozen via algod API
-    let account_info_after = context
+    let account_info_after = algorand_fixture
         .algod
         .account_information(&target_addr.to_string(), None, None)
-        .await
-        .expect("Failed to get account information after unfreeze");
+        .await?;
 
     let assets_after = account_info_after
         .assets
@@ -312,8 +250,6 @@ async fn test_asset_freeze_unfreeze() {
         "Asset should no longer be frozen in account holding"
     );
 
-    println!("Verified asset is no longer frozen in account holding");
-
     // Step 11: Prove unfreeze works by successfully transferring the asset
     let test_transfer_params = AssetTransferParams {
         common_params: CommonParams {
@@ -326,14 +262,9 @@ async fn test_asset_freeze_unfreeze() {
     };
 
     let mut composer = target_composer.clone();
-    composer
-        .add_asset_transfer(test_transfer_params)
-        .expect("Failed to add test asset transfer");
+    composer.add_asset_transfer(test_transfer_params)?;
 
-    let test_transfer_result = composer
-        .send(None)
-        .await
-        .expect("Failed to send test asset transfer - asset should be unfrozen");
+    let test_transfer_result = composer.send(None).await?;
 
     assert!(
         test_transfer_result.confirmations[0]
@@ -342,5 +273,5 @@ async fn test_asset_freeze_unfreeze() {
         "Test asset transfer should be confirmed, proving asset is unfrozen"
     );
 
-    println!("Successfully transferred asset, confirming it's unfrozen");
+    Ok(())
 }

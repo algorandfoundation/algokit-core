@@ -55,7 +55,7 @@ use super::asset_transfer::{
     AssetClawbackParams, AssetOptInParams, AssetOptOutParams, AssetTransferParams,
     build_asset_clawback, build_asset_opt_in, build_asset_opt_out, build_asset_transfer,
 };
-use super::common::{CommonParams, TransactionSigner, TransactionSignerGetter};
+use super::common::{CommonParams, TransactionSigner};
 use super::key_registration::{
     NonParticipationKeyRegistrationParams, OfflineKeyRegistrationParams,
     OnlineKeyRegistrationParams,
@@ -387,20 +387,19 @@ impl ComposerTransaction {
     }
 }
 
+pub type SignerGetter =
+    Arc<dyn Fn(Address) -> Result<Arc<dyn TransactionSigner>, ComposerError> + Send + Sync>;
 #[derive(Clone)]
 pub struct Composer {
     transactions: Vec<ComposerTransaction>,
     algod_client: Arc<AlgodClient>,
-    signer_getter: Arc<dyn TransactionSignerGetter>,
+    signer_getter: SignerGetter,
     built_group: Option<Vec<TransactionWithSigner>>,
     signed_group: Option<Vec<SignedTransaction>>,
 }
 
 impl Composer {
-    pub fn new(
-        algod_client: Arc<AlgodClient>,
-        signer_getter: Arc<dyn TransactionSignerGetter>,
-    ) -> Self {
+    pub fn new(algod_client: Arc<AlgodClient>, signer_getter: SignerGetter) -> Self {
         Composer {
             transactions: Vec::new(),
             algod_client,
@@ -417,7 +416,7 @@ impl Composer {
         Composer {
             transactions: Vec::new(),
             algod_client: Arc::new(AlgodClient::testnet()),
-            signer_getter: Arc::new(EmptySigner {}),
+            signer_getter: Arc::new(|_| Ok(Arc::new(EmptySigner {}))),
             built_group: None,
             signed_group: None,
         }
@@ -847,10 +846,6 @@ impl Composer {
 
     pub fn transactions(&self) -> &Vec<ComposerTransaction> {
         &self.transactions
-    }
-
-    fn get_signer(&self, address: Address) -> Option<Arc<dyn TransactionSigner>> {
-        self.signer_getter.get_signer(address)
     }
 
     async fn analyze_group_requirements(
@@ -1922,10 +1917,7 @@ impl Composer {
                     transaction_signer
                 } else {
                     let sender_address = txn.header().sender.clone();
-                    self.get_signer(sender_address.clone())
-                        .ok_or(ComposerError::SigningError {
-                            message: format!("No signer found for address: {}", sender_address),
-                        })?
+                    (self.signer_getter)(sender_address.clone())?
                 };
                 Ok(TransactionWithSigner {
                     transaction: txn,

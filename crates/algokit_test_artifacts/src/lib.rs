@@ -161,3 +161,18 @@ pub mod testing_app {
     /// various methods for comprehensive app deployer testing.
     pub const APPLICATION: &str = include_str!("../contracts/testing_app/application.json");
 }
+
+/// Resource population contract artifacts
+pub mod resource_population {
+    /// Resource population testing contract (ARC32) targeting AVM V8
+    ///
+    /// Contract for testing complex resource population scenarios.
+    pub const APPLICATION_V8: &str =
+        include_str!("../contracts/resource_population/ResourcePackerv8.arc32.json");
+
+    /// Resource population testing contract (ARC32) targeting AVM V9
+    ///
+    /// Contract for testing complex resource population scenarios.
+    pub const APPLICATION_V9: &str =
+        include_str!("../contracts/resource_population/ResourcePackerv9.arc32.json");
+}

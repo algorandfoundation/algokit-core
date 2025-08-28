@@ -16,7 +16,7 @@ pub struct ClientManager {
 }
 
 impl ClientManager {
-    pub fn new(config: AlgoConfig) -> Self {
+    pub fn new(config: &AlgoConfig) -> Self {
         Self {
             algod: Arc::new(Self::get_algod_client(&config.algod_config)),
             indexer: Arc::new(Self::get_indexer_client(&config.indexer_config)),
@@ -232,7 +232,7 @@ mod tests {
                 token: None,
             },
         };
-        let manager = ClientManager::new(config);
+        let manager = ClientManager::new(&config);
 
         // Cache should be initially empty
         let cache = manager.cached_network_details.try_read().unwrap();
@@ -253,7 +253,7 @@ mod tests {
                 token: None,
             },
         };
-        let manager = ClientManager::new(config);
+        let manager = ClientManager::new(&config);
 
         // Both calls should fail
         assert!(manager.network().await.is_err());

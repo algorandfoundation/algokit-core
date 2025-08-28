@@ -203,7 +203,7 @@ pub struct AppUpdateParams {
 }
 
 /// Parameters for app method call transactions.
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Clone)]
 pub struct AppCallMethodCallParams<T = AppMethodCallArg>
 where
     T: ValidMethodCallArg,
@@ -231,6 +231,25 @@ where
     pub box_references: Option<Vec<BoxReference>>,
     /// Defines what additional actions occur with the transaction.
     pub on_complete: OnApplicationComplete,
+}
+
+impl<T> Default for AppCallMethodCallParams<T>
+where
+    T: ValidMethodCallArg,
+{
+    fn default() -> Self {
+        Self {
+            common_params: CommonParams::default(),
+            app_id: 0,
+            method: ABIMethod::default(),
+            args: Vec::new(),
+            account_references: None,
+            app_references: None,
+            asset_references: None,
+            box_references: None,
+            on_complete: OnApplicationComplete::NoOp,
+        }
+    }
 }
 
 /// Parameters for app create method call transactions.

@@ -26,6 +26,7 @@ tsify-next = { version = "0.5.4", features = ["js"] }
 js-sys = { version = "0.3.77" }
 base32 = { version = "0.5.1" }
 sha2 = { version = "0.10.8" }
+rstest = { version = "0.25.0" }
 
 [workspace.metadata.bin]
 polytest = { version = "0.3.0", locked = true }

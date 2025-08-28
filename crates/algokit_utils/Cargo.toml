@@ -42,8 +42,8 @@ lazy_static = "1.4"
 num-bigint = "0.4"
 
 [dev-dependencies]
-env_logger = "0.11"
 tokio = { version = "1.45.1", features = ["full", "test-util", "time"] }
 tokio-test = "^0.4"
-rstest = "0.25.0"
 algokit_test_artifacts = { path = "../algokit_test_artifacts" }
+env_logger = "0.11"
+rstest = { workspace = true }
