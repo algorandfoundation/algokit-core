@@ -631,11 +631,11 @@ impl Composer {
     fn add_app_method_call_internal(
         &mut self,
         args: &[AppMethodCallArg],
-        create_transaction: impl FnOnce() -> ComposerTransaction,
+        transaction: ComposerTransaction,
     ) -> Result<(), ComposerError> {
         let mut composer_transactions =
             Self::extract_composer_transactions_from_app_method_call_params(args);
-        composer_transactions.push(create_transaction());
+        composer_transactions.push(transaction);
 
         if self.transactions.len() + composer_transactions.len() > MAX_TX_GROUP_SIZE {
             return Err(ComposerError::GroupSizeError);
@@ -652,36 +652,40 @@ impl Composer {
         &mut self,
         params: AppCallMethodCallParams,
     ) -> Result<(), ComposerError> {
-        self.add_app_method_call_internal(&params.args, || {
-            ComposerTransaction::AppCallMethodCall((&params).into())
-        })
+        self.add_app_method_call_internal(
+            &params.args,
+            ComposerTransaction::AppCallMethodCall((&params).into()),
+        )
     }
 
     pub fn add_app_create_method_call(
         &mut self,
         params: AppCreateMethodCallParams,
     ) -> Result<(), ComposerError> {
-        self.add_app_method_call_internal(&params.args, || {
-            ComposerTransaction::AppCreateMethodCall((&params).into())
-        })
+        self.add_app_method_call_internal(
+            &params.args,
+            ComposerTransaction::AppCreateMethodCall((&params).into()),
+        )
     }
 
     pub fn add_app_update_method_call(
         &mut self,
         params: AppUpdateMethodCallParams,
     ) -> Result<(), ComposerError> {
-        self.add_app_method_call_internal(&params.args, || {
-            ComposerTransaction::AppUpdateMethodCall((&params).into())
-        })
+        self.add_app_method_call_internal(
+            &params.args,
+            ComposerTransaction::AppUpdateMethodCall((&params).into()),
+        )
     }
 
     pub fn add_app_delete_method_call(
         &mut self,
         params: AppDeleteMethodCallParams,
     ) -> Result<(), ComposerError> {
-        self.add_app_method_call_internal(&params.args, || {
-            ComposerTransaction::AppDeleteMethodCall((&params).into())
-        })
+        self.add_app_method_call_internal(
+            &params.args,
+            ComposerTransaction::AppDeleteMethodCall((&params).into()),
+        )
     }
 
     fn parse_abi_return_values(
