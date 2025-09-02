@@ -1,6 +1,6 @@
 use algokit_http_client::DefaultHttpClient;
 use algokit_transact::{OnApplicationComplete, StateSchema};
-use algokit_utils::{AppCreateParams, ClientManager, CommonParams};
+use algokit_utils::{AppCreateParams, ClientManager, CommonTransactionParams};
 use indexer_client::{IndexerClient, apis::Error as IndexerError};
 use rstest::rstest;
 use std::sync::Arc;
@@ -21,7 +21,7 @@ const HELLO_WORLD_CLEAR_STATE_PROGRAM: [u8; 4] = [10, 129, 1, 67];
 async fn create_app(algorand_fixture: &AlgorandFixture) -> Option<u64> {
     let sender = algorand_fixture.test_account.account().address();
     let params = AppCreateParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender,
             ..Default::default()
         },

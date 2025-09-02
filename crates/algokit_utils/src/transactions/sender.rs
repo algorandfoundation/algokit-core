@@ -3,7 +3,7 @@ use super::{
         AppCallMethodCallParams, AppCallParams, AppCreateMethodCallParams, AppCreateParams,
         AppDeleteMethodCallParams, AppDeleteParams, AppUpdateMethodCallParams, AppUpdateParams,
     },
-    asset_config::{AssetCreateParams, AssetDestroyParams, AssetReconfigureParams},
+    asset_config::{AssetConfigParams, AssetCreateParams, AssetDestroyParams},
     asset_freeze::{AssetFreezeParams, AssetUnfreezeParams},
     asset_transfer::{AssetOptInParams, AssetOptOutParams, AssetTransferParams},
     composer::{Composer, ComposerError, SendParams},
@@ -204,7 +204,7 @@ impl TransactionSender {
         let composer_results = composer.send(send_params).await?;
 
         let group_id = composer_results
-            .group_id
+            .group
             .map(hex::encode)
             .unwrap_or_else(|| "".to_string());
 
@@ -395,39 +395,13 @@ impl TransactionSender {
     }
 
     /// Send asset opt-out transaction.
+    /// When no close remainder to address is specified, the asset creator will be resolved and used.
     pub async fn asset_opt_out(
         &self,
         params: AssetOptOutParams,
         send_params: Option<SendParams>,
         ensure_zero_balance: Option<bool>,
     ) -> Result<SendTransactionResult, TransactionSenderError> {
-        // Resolve close_remainder_to to asset creator if not specified
-        let params = if params.close_remainder_to.is_none() {
-            let asset_info = self
-                .asset_manager
-                .get_by_id(params.asset_id)
-                .await
-                .map_err(|e| TransactionSenderError::ValidationError {
-                    message: format!("Failed to get asset {} information: {}", params.asset_id, e),
-                })?;
-
-            let creator = Address::from_str(&asset_info.creator).map_err(|e| {
-                TransactionSenderError::ValidationError {
-                    message: format!(
-                        "Invalid creator address for asset {}: {}",
-                        params.asset_id, e
-                    ),
-                }
-            })?;
-
-            AssetOptOutParams {
-                close_remainder_to: Some(creator),
-                ..params
-            }
-        } else {
-            params
-        };
-
         if ensure_zero_balance.unwrap_or(true) {
             // Ensure account has zero balance before opting out
             let account_info = self
@@ -456,6 +430,33 @@ impl TransactionSender {
             }
         }
 
+        // Resolve close_remainder_to to asset creator if not specified
+        let params = if params.close_remainder_to.is_none() {
+            let asset_info = self
+                .asset_manager
+                .get_by_id(params.asset_id)
+                .await
+                .map_err(|e| TransactionSenderError::ValidationError {
+                    message: format!("Failed to get asset {} information: {}", params.asset_id, e),
+                })?;
+
+            let creator = Address::from_str(&asset_info.creator).map_err(|e| {
+                TransactionSenderError::ValidationError {
+                    message: format!(
+                        "Invalid creator address for asset {}: {}",
+                        params.asset_id, e
+                    ),
+                }
+            })?;
+
+            AssetOptOutParams {
+                close_remainder_to: Some(creator),
+                ..params
+            }
+        } else {
+            params
+        };
+
         self.send_single_transaction(send_params, |composer| composer.add_asset_opt_out(params))
             .await
     }
@@ -480,13 +481,11 @@ impl TransactionSender {
     /// Send asset configuration transaction.
     pub async fn asset_config(
         &self,
-        params: AssetReconfigureParams,
+        params: AssetConfigParams,
         send_params: Option<SendParams>,
     ) -> Result<SendTransactionResult, TransactionSenderError> {
-        self.send_single_transaction(send_params, |composer| {
-            composer.add_asset_reconfigure(params)
-        })
-        .await
+        self.send_single_transaction(send_params, |composer| composer.add_asset_config(params))
+            .await
     }
 
     /// Send asset destroy transaction.

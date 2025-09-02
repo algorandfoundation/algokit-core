@@ -9,7 +9,7 @@ pub mod test_account;
 
 use algokit_abi::Arc56Contract;
 use algokit_transact::Address;
-use algokit_utils::{AppCreateParams, CommonParams};
+use algokit_utils::{AppCreateParams, CommonTransactionParams};
 use base64::prelude::*;
 
 pub use fixture::{AlgorandFixture, AlgorandFixtureResult, algorand_fixture};
@@ -39,7 +39,7 @@ pub async fn deploy_arc56_contract(
     let clear_state_compile_result = fixture.algod.teal_compile(clear_state_bytes, None).await?;
 
     let app_create_params = AppCreateParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender.clone(),
             ..Default::default()
         },

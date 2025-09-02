@@ -6,7 +6,7 @@ use algokit_utils::applications::{
     OnSchemaBreak, OnUpdate, UpdateParams,
 };
 use algokit_utils::clients::app_manager::{AppManager, DeploymentMetadata, TealTemplateValue};
-use algokit_utils::{AppCreateParams, CommonParams, TransactionSender};
+use algokit_utils::{AppCreateParams, CommonTransactionParams, TransactionSender};
 use algokit_utils::{AssetManager, SendParams};
 use base64::{Engine, prelude::BASE64_STANDARD};
 use rstest::*;
@@ -219,7 +219,7 @@ async fn test_created_updated_and_deleted_apps_are_retrieved_by_name_with_deploy
 
     // Delete app 3
     let delete_params = algokit_utils::AppDeleteParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: test_account.clone(),
             ..Default::default()
         },
@@ -1107,7 +1107,7 @@ async fn get_testing_app_deploy_params(
         on_schema_break,
         on_update,
         create_params: CreateParams::AppCreateCall(DeployAppCreateParams {
-            common_params: CommonParams {
+            common_params: CommonTransactionParams {
                 sender: sender.clone(),
                 ..Default::default()
             },
@@ -1121,14 +1121,14 @@ async fn get_testing_app_deploy_params(
             ..Default::default()
         }),
         update_params: UpdateParams::AppUpdateCall(DeployAppUpdateParams {
-            common_params: CommonParams {
+            common_params: CommonTransactionParams {
                 sender: sender.clone(),
                 ..Default::default()
             },
             ..Default::default()
         }),
         delete_params: DeleteParams::AppDeleteCall(DeployAppDeleteParams {
-            common_params: CommonParams {
+            common_params: CommonTransactionParams {
                 sender: sender.clone(),
                 ..Default::default()
             },
@@ -1192,7 +1192,7 @@ async fn get_testing_app_create_params(
     let note = format!("ALGOKIT_DEPLOYER:j{}", note_data);
 
     Ok(AppCreateParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender.clone(),
             note: Some(note.into_bytes()),
             ..Default::default()

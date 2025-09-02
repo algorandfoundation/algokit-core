@@ -74,7 +74,7 @@ impl AssetConfigTransactionMother {
             .to_owned()
     }
 
-    pub fn asset_reconfigure() -> AssetConfigTransactionBuilder {
+    pub fn asset_config() -> AssetConfigTransactionBuilder {
         // mainnet - GAMRAG3KCG23U2HOELJF32OQAWAISLIFBB5RLDDDYHUSOZNYN7MQ
         let sender = "EHYQCYHUC6CIWZLBX5TDTLVJ4SSVE4RRTMKFDCG4Z4Q7QSQ2XWIQPMKBPU"
             .parse::<KeyPairAccount>()

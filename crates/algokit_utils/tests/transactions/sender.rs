@@ -7,8 +7,8 @@ use algokit_test_artifacts::sandbox;
 use algokit_transact::{Address, OnApplicationComplete};
 use algokit_utils::transactions::{
     AppCallMethodCallParams, AppCreateParams, AppMethodCallArg, AssetCreateParams,
-    AssetOptInParams, AssetOptOutParams, AssetTransferParams, CommonParams, PaymentParams,
-    TransactionSenderError,
+    AssetOptInParams, AssetOptOutParams, AssetTransferParams, CommonTransactionParams,
+    PaymentParams, TransactionSenderError,
 };
 use rstest::*;
 use std::sync::Arc;
@@ -24,7 +24,7 @@ async fn test_payment_returns_rich_result(
     let receiver = algorand_fixture.generate_account(None).await?;
 
     let params = PaymentParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_address,
             ..Default::default()
         },
@@ -59,7 +59,7 @@ async fn test_zero_amount_payment_allowed(
     let receiver = algorand_fixture.generate_account(None).await?;
 
     let params = PaymentParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_address,
             ..Default::default()
         },
@@ -99,7 +99,7 @@ async fn test_asset_create_extracts_asset_id(
     let sender_address = algorand_fixture.test_account.account().address();
 
     let params = AssetCreateParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_address,
             ..Default::default()
         },
@@ -134,7 +134,7 @@ async fn test_app_create_extracts_app_id(
     let sender_address: Address = algorand_fixture.test_account.account().address();
 
     let params = AppCreateParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_address,
             ..Default::default()
         },
@@ -180,7 +180,7 @@ async fn test_abi_method_returns_enhanced_processing(
         .try_into()?;
 
     let params = AppCallMethodCallParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_address,
             ..Default::default()
         },
@@ -233,7 +233,7 @@ async fn test_asset_opt_out_uses_asset_manager_coordination(
     .await?;
 
     let params = AssetOptOutParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: opt_out_address,
             signer: Some(Arc::new(opt_out_account)),
             ..Default::default()
@@ -278,7 +278,7 @@ async fn test_asset_opt_out_with_balance_validation(
     .await?;
 
     let transfer_params = AssetTransferParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_address.clone(),
             ..Default::default()
         },
@@ -294,7 +294,7 @@ async fn test_asset_opt_out_with_balance_validation(
 
     // Attempt opt-out with non-zero balance
     let params = AssetOptOutParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: opt_out_address,
             signer: Some(Arc::new(opt_out_account)),
             ..Default::default()
@@ -333,7 +333,7 @@ async fn test_validation_error_propagation(
 
     // Try to opt out of non-existent asset - this triggers validation
     let params = AssetOptOutParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: opt_out_address,
             signer: Some(Arc::new(opt_out_account)),
             ..Default::default()
@@ -369,7 +369,7 @@ async fn test_transaction_confirmation_integration(
     let receiver = algorand_fixture.generate_account(None).await?;
 
     let params = PaymentParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_address,
             ..Default::default()
         },
@@ -446,7 +446,7 @@ async fn create_test_asset(
     sender_address: &Address,
 ) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
     let params = AssetCreateParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_address.clone(),
             ..Default::default()
         },
@@ -472,7 +472,7 @@ async fn opt_in_to_asset(
     account: TestAccount,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let params = AssetOptInParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: address,
             signer: Some(Arc::new(account)),
             ..Default::default()

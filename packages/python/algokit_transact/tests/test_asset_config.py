@@ -20,7 +20,7 @@ from . import TEST_DATA
 # Polytest Group: Transaction Tests
 txn_test_data = {
     "asset create": TEST_DATA.asset_create,
-    "asset reconfigure": TEST_DATA.asset_reconfigure,
+    "asset config": TEST_DATA.asset_config,
     "asset destroy": TEST_DATA.asset_destroy,
 }
 

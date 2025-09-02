@@ -1,6 +1,6 @@
 use crate::common::{AlgorandFixtureResult, TestResult, algorand_fixture};
 use algokit_transact::Transaction;
-use algokit_utils::CommonParams;
+use algokit_utils::CommonTransactionParams;
 use algokit_utils::transactions::AssetOptInParams;
 use algokit_utils::transactions::{
     AssetCreateParams, AssetFreezeParams, AssetTransferParams, AssetUnfreezeParams,
@@ -45,7 +45,7 @@ async fn test_asset_freeze_unfreeze(
 
     // Step 1: Create an asset with the asset creator account set as the freeze account
     let asset_create_params = AssetCreateParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: asset_creator_addr.clone(),
             ..Default::default()
         },
@@ -72,7 +72,7 @@ async fn test_asset_freeze_unfreeze(
 
     // Step 2: Target account opts into the asset
     let asset_opt_in_params = AssetOptInParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: target_addr.clone(),
             ..Default::default()
         },
@@ -91,7 +91,7 @@ async fn test_asset_freeze_unfreeze(
 
     // Step 3: Send some asset units to the target account
     let asset_transfer_params = AssetTransferParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: asset_creator_addr.clone(),
             ..Default::default()
         },
@@ -114,7 +114,7 @@ async fn test_asset_freeze_unfreeze(
 
     // Step 4: Freeze the asset for the target account
     let asset_freeze_params = AssetFreezeParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: asset_creator_addr.clone(),
             ..Default::default()
         },
@@ -167,7 +167,7 @@ async fn test_asset_freeze_unfreeze(
 
     // Step 7: Prove freeze works by attempting transfer (should fail)
     let attempt_transfer_params = AssetTransferParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: target_addr.clone(),
             ..Default::default()
         },
@@ -197,7 +197,7 @@ async fn test_asset_freeze_unfreeze(
 
     // Step 8: Unfreeze the asset for the target account
     let asset_unfreeze_params = AssetUnfreezeParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: asset_creator_addr.clone(),
             ..Default::default()
         },
@@ -252,7 +252,7 @@ async fn test_asset_freeze_unfreeze(
 
     // Step 11: Prove unfreeze works by successfully transferring the asset
     let test_transfer_params = AssetTransferParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: target_addr.clone(),
             ..Default::default()
         },

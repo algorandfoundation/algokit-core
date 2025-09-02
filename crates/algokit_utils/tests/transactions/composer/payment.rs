@@ -1,4 +1,4 @@
-use algokit_utils::{AccountCloseParams, CommonParams, PaymentParams};
+use algokit_utils::{AccountCloseParams, CommonTransactionParams, PaymentParams};
 use rstest::*;
 use std::sync::Arc;
 
@@ -16,7 +16,7 @@ async fn test_basic_payment_transaction(
     let receiver_account = receiver.account();
 
     let payment_params = PaymentParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_address,
             ..Default::default()
         },
@@ -55,7 +55,7 @@ async fn test_basic_account_close_transaction(
     let close_remainder_to_addr = close_remainder_to.account().address();
 
     let account_close_params = AccountCloseParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_address.clone(),
             ..Default::default()
         },
@@ -109,7 +109,7 @@ async fn test_payment_transactions_with_signers(
     // Add two payment transactions with the same signer
     for i in 0..2 {
         let payment_params = PaymentParams {
-            common_params: CommonParams {
+            common_params: CommonTransactionParams {
                 sender: sender_addr.clone(),
                 signer: Some(signer.clone()),
                 ..Default::default()

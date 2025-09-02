@@ -8,7 +8,9 @@ use algokit_transact::{
     Address, OnApplicationComplete, PaymentTransactionFields, StateSchema, Transaction,
     TransactionHeader, TransactionId,
 };
-use algokit_utils::{AppCallMethodCallParams, AssetCreateParams, CommonParams, ComposerError};
+use algokit_utils::{
+    AppCallMethodCallParams, AssetCreateParams, CommonTransactionParams, ComposerError,
+};
 use algokit_utils::{
     AppCallParams, AppCreateParams, AppDeleteParams, AppMethodCallArg, AppUpdateParams,
     PaymentParams,
@@ -28,7 +30,7 @@ async fn test_app_call_transaction(
     let app_id = create_test_app(&algorand_fixture, &sender_address).await?;
 
     let app_call_params = AppCallParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_address.clone(),
             ..Default::default()
         },
@@ -81,7 +83,7 @@ async fn test_app_create_transaction(
     let sender_address = algorand_fixture.test_account.account().address();
 
     let app_create_params = AppCreateParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_address.clone(),
             ..Default::default()
         },
@@ -146,7 +148,7 @@ async fn test_app_delete_transaction(
     let app_id = create_test_app(&algorand_fixture, &sender_address).await?;
 
     let app_delete_params = AppDeleteParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_address.clone(),
             ..Default::default()
         },
@@ -200,7 +202,7 @@ async fn test_app_update_transaction(
     let app_id = create_test_app(&algorand_fixture, &sender_address).await?;
 
     let app_update_params = AppUpdateParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_address.clone(),
             ..Default::default()
         },
@@ -274,7 +276,7 @@ async fn test_hello_world_app_method_call(
     ))];
 
     let method_call_params = AppCallMethodCallParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_addr.clone(),
             ..Default::default()
         },
@@ -319,7 +321,7 @@ async fn test_add_app_call_method_call(
     ];
 
     let method_call_params = AppCallMethodCallParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_addr.clone(),
             ..Default::default()
         },
@@ -370,7 +372,7 @@ async fn test_echo_byte_app_call_method_call(
     ))];
 
     let method_call_params = AppCallMethodCallParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_addr.clone(),
             ..Default::default()
         },
@@ -421,7 +423,7 @@ async fn test_echo_static_array_app_call_method_call(
     ))];
 
     let method_call_params = AppCallMethodCallParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_addr.clone(),
             ..Default::default()
         },
@@ -471,7 +473,7 @@ async fn test_echo_dynamic_array_app_call_method_call(
     ))];
 
     let method_call_params = AppCallMethodCallParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_addr.clone(),
             ..Default::default()
         },
@@ -537,7 +539,7 @@ async fn test_nest_array_and_tuple_app_call_method_call(
     ];
 
     let method_call_params = AppCallMethodCallParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_addr.clone(),
             ..Default::default()
         },
@@ -610,7 +612,7 @@ async fn test_get_pay_txn_amount_app_call_method_call(
 
     let payment_amount = 1_234_567u64;
     let args = vec![AppMethodCallArg::Payment(PaymentParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_addr.clone(),
             ..Default::default()
         },
@@ -619,7 +621,7 @@ async fn test_get_pay_txn_amount_app_call_method_call(
     })];
 
     let method_call_params = AppCallMethodCallParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_addr.clone(),
             ..Default::default()
         },
@@ -672,7 +674,7 @@ async fn test_get_pay_txn_amount_app_call_method_call_using_a_different_signer(
     let payment_amount = 1_234_567u64;
     let alice_signer = Arc::new(alice.clone());
     let args = vec![AppMethodCallArg::Payment(PaymentParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: alice_addr.clone(), // Alice sends and signs the payment
             signer: Some(alice_signer),
             ..Default::default()
@@ -682,7 +684,7 @@ async fn test_get_pay_txn_amount_app_call_method_call_using_a_different_signer(
     })];
 
     let method_call_params = AppCallMethodCallParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_addr.clone(), // Default test account still makes the method call
             ..Default::default()
         },
@@ -736,14 +738,14 @@ async fn test_get_returned_value_of_app_call_txn_app_call_method_call(
     let mut composer = algorand_fixture.algorand_client.new_group();
 
     let first_method_call_params = AppCallMethodCallParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_addr.clone(),
             ..Default::default()
         },
         app_id,
         method: get_pay_txn_amount_method,
         args: vec![AppMethodCallArg::Payment(PaymentParams {
-            common_params: CommonParams {
+            common_params: CommonTransactionParams {
                 sender: sender_addr.clone(),
                 ..Default::default()
             },
@@ -754,7 +756,7 @@ async fn test_get_returned_value_of_app_call_txn_app_call_method_call(
     };
 
     let second_method_call_params = AppCallMethodCallParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_addr.clone(),
             ..Default::default()
         },
@@ -809,14 +811,14 @@ async fn test_get_returned_value_of_nested_app_call_method_calls(
     let mut composer = algorand_fixture.algorand_client.new_group();
 
     let get_pay_txn_amount_method_call_params = AppCallMethodCallParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_addr.clone(),
             ..Default::default()
         },
         app_id,
         method: get_pay_txn_amount_method,
         args: vec![AppMethodCallArg::Payment(PaymentParams {
-            common_params: CommonParams {
+            common_params: CommonTransactionParams {
                 sender: sender_addr.clone(),
                 ..Default::default()
             },
@@ -827,7 +829,7 @@ async fn test_get_returned_value_of_nested_app_call_method_calls(
     };
 
     let get_pay_txns_amount_sum_method_method_call_params = AppCallMethodCallParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_addr.clone(),
             ..Default::default()
         },
@@ -835,7 +837,7 @@ async fn test_get_returned_value_of_nested_app_call_method_calls(
         method: get_pay_txns_amount_sum_method,
         args: vec![
             AppMethodCallArg::Payment(PaymentParams {
-                common_params: CommonParams {
+                common_params: CommonTransactionParams {
                     sender: sender_addr.clone(),
                     note: Some("second txn".as_bytes().to_vec()),
                     ..Default::default()
@@ -907,7 +909,7 @@ async fn create_test_app(
     sender: &Address,
 ) -> Result<u64, ComposerError> {
     let app_create_params = AppCreateParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender.clone(),
             ..Default::default()
         },
@@ -957,7 +959,7 @@ async fn test_more_than_15_args_with_ref_types_app_call_method_call(
     let receiver_addr = receiver.account().address();
 
     let asset_create_params = AssetCreateParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_addr.clone(),
             ..Default::default()
         },
@@ -1033,7 +1035,7 @@ async fn test_more_than_15_args_with_ref_types_app_call_method_call(
     )));
 
     let method_call_params = AppCallMethodCallParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_addr.clone(),
             ..Default::default()
         },
@@ -1148,7 +1150,7 @@ async fn test_more_than_15_args_app_call_method_call(
     }
 
     let method_call_params = AppCallMethodCallParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_addr.clone(),
             ..Default::default()
         },
@@ -1204,7 +1206,7 @@ async fn test_app_call_validation_errors(
 
     // Test app call with invalid app_id (0)
     let invalid_app_call_params = AppCallParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_address,
             ..Default::default()
         },

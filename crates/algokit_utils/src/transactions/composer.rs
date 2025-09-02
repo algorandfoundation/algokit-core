@@ -45,8 +45,8 @@ use super::app_call::{
     build_app_create_call, build_app_delete_call, build_app_update_call,
 };
 use super::asset_config::{
-    AssetCreateParams, AssetDestroyParams, AssetReconfigureParams, build_asset_create,
-    build_asset_destroy, build_asset_reconfigure,
+    AssetConfigParams, AssetCreateParams, AssetDestroyParams, build_asset_config,
+    build_asset_create, build_asset_destroy,
 };
 use super::asset_freeze::{
     AssetFreezeParams, AssetUnfreezeParams, build_asset_freeze, build_asset_unfreeze,
@@ -55,7 +55,7 @@ use super::asset_transfer::{
     AssetClawbackParams, AssetOptInParams, AssetOptOutParams, AssetTransferParams,
     build_asset_clawback, build_asset_opt_in, build_asset_opt_out, build_asset_transfer,
 };
-use super::common::{CommonParams, TransactionSigner};
+use super::common::{CommonTransactionParams, TransactionSigner};
 use super::key_registration::{
     NonParticipationKeyRegistrationParams, OfflineKeyRegistrationParams,
     OnlineKeyRegistrationParams,
@@ -153,7 +153,7 @@ impl From<AlgoKitTransactError> for ComposerError {
 
 #[derive(Debug)]
 pub struct SendTransactionComposerResults {
-    pub group_id: Option<Byte32>,
+    pub group: Option<Byte32>,
     pub transaction_ids: Vec<String>,
     pub confirmations: Vec<PendingTransactionResponse>,
     pub abi_returns: Vec<Result<Option<ABIReturn>, ComposerError>>,
@@ -161,7 +161,7 @@ pub struct SendTransactionComposerResults {
 
 #[derive(Debug, Clone)]
 pub struct SendParams {
-    pub max_rounds_to_wait_for_confirmation: Option<u64>,
+    pub max_rounds_to_wait_for_confirmation: Option<u32>,
     pub cover_app_call_inner_transaction_fees: bool,
     pub populate_app_call_resources: ResourcePopulation,
 }
@@ -293,7 +293,7 @@ pub enum ComposerTransaction {
     AssetOptOut(AssetOptOutParams),
     AssetClawback(AssetClawbackParams),
     AssetCreate(AssetCreateParams),
-    AssetReconfigure(AssetReconfigureParams),
+    AssetConfig(AssetConfigParams),
     AssetDestroy(AssetDestroyParams),
     AssetFreeze(AssetFreezeParams),
     AssetUnfreeze(AssetUnfreezeParams),
@@ -311,7 +311,7 @@ pub enum ComposerTransaction {
 }
 
 impl ComposerTransaction {
-    pub fn common_params(&self) -> CommonParams {
+    pub fn common_params(&self) -> CommonTransactionParams {
         match self {
             ComposerTransaction::Payment(payment_params) => payment_params.common_params.clone(),
             ComposerTransaction::AccountClose(account_close_params) => {
@@ -332,8 +332,8 @@ impl ComposerTransaction {
             ComposerTransaction::AssetCreate(asset_create_params) => {
                 asset_create_params.common_params.clone()
             }
-            ComposerTransaction::AssetReconfigure(asset_reconfigure_params) => {
-                asset_reconfigure_params.common_params.clone()
+            ComposerTransaction::AssetConfig(asset_config_params) => {
+                asset_config_params.common_params.clone()
             }
             ComposerTransaction::AssetDestroy(asset_destroy_params) => {
                 asset_destroy_params.common_params.clone()
@@ -367,11 +367,13 @@ impl ComposerTransaction {
             ComposerTransaction::NonParticipationKeyRegistration(non_participation_params) => {
                 non_participation_params.common_params.clone()
             }
-            ComposerTransaction::TransactionWithSigner(txn_with_signer) => CommonParams {
-                signer: Some(txn_with_signer.signer.clone()),
-                ..CommonParams::default()
-            },
-            _ => CommonParams::default(),
+            ComposerTransaction::TransactionWithSigner(txn_with_signer) => {
+                CommonTransactionParams {
+                    signer: Some(txn_with_signer.signer.clone()),
+                    ..CommonTransactionParams::default()
+                }
+            }
+            _ => CommonTransactionParams::default(),
         }
     }
 
@@ -443,132 +445,85 @@ impl Composer {
         }
     }
 
-    pub fn add_payment(&mut self, payment_params: PaymentParams) -> Result<(), ComposerError> {
-        self.push(ComposerTransaction::Payment(payment_params))
+    pub fn add_payment(&mut self, params: PaymentParams) -> Result<(), ComposerError> {
+        self.push(ComposerTransaction::Payment(params))
     }
 
-    pub fn add_account_close(
-        &mut self,
-        account_close_params: AccountCloseParams,
-    ) -> Result<(), ComposerError> {
-        self.push(ComposerTransaction::AccountClose(account_close_params))
+    pub fn add_account_close(&mut self, params: AccountCloseParams) -> Result<(), ComposerError> {
+        self.push(ComposerTransaction::AccountClose(params))
     }
 
-    pub fn add_asset_transfer(
-        &mut self,
-        asset_transfer_params: AssetTransferParams,
-    ) -> Result<(), ComposerError> {
-        self.push(ComposerTransaction::AssetTransfer(asset_transfer_params))
+    pub fn add_asset_transfer(&mut self, params: AssetTransferParams) -> Result<(), ComposerError> {
+        self.push(ComposerTransaction::AssetTransfer(params))
     }
 
-    pub fn add_asset_opt_in(
-        &mut self,
-        asset_opt_in_params: AssetOptInParams,
-    ) -> Result<(), ComposerError> {
-        self.push(ComposerTransaction::AssetOptIn(asset_opt_in_params))
+    pub fn add_asset_opt_in(&mut self, params: AssetOptInParams) -> Result<(), ComposerError> {
+        self.push(ComposerTransaction::AssetOptIn(params))
     }
 
-    pub fn add_asset_opt_out(
-        &mut self,
-        asset_opt_out_params: AssetOptOutParams,
-    ) -> Result<(), ComposerError> {
-        self.push(ComposerTransaction::AssetOptOut(asset_opt_out_params))
+    pub fn add_asset_opt_out(&mut self, params: AssetOptOutParams) -> Result<(), ComposerError> {
+        self.push(ComposerTransaction::AssetOptOut(params))
     }
 
-    pub fn add_asset_clawback(
-        &mut self,
-        asset_clawback_params: AssetClawbackParams,
-    ) -> Result<(), ComposerError> {
-        self.push(ComposerTransaction::AssetClawback(asset_clawback_params))
+    pub fn add_asset_clawback(&mut self, params: AssetClawbackParams) -> Result<(), ComposerError> {
+        self.push(ComposerTransaction::AssetClawback(params))
     }
 
-    pub fn add_asset_create(
-        &mut self,
-        asset_create_params: AssetCreateParams,
-    ) -> Result<(), ComposerError> {
-        self.push(ComposerTransaction::AssetCreate(asset_create_params))
+    pub fn add_asset_create(&mut self, params: AssetCreateParams) -> Result<(), ComposerError> {
+        self.push(ComposerTransaction::AssetCreate(params))
     }
 
-    pub fn add_asset_reconfigure(
-        &mut self,
-        asset_reconfigure_params: AssetReconfigureParams,
-    ) -> Result<(), ComposerError> {
-        self.push(ComposerTransaction::AssetReconfigure(
-            asset_reconfigure_params,
-        ))
+    pub fn add_asset_config(&mut self, params: AssetConfigParams) -> Result<(), ComposerError> {
+        self.push(ComposerTransaction::AssetConfig(params))
     }
 
-    pub fn add_asset_destroy(
-        &mut self,
-        asset_destroy_params: AssetDestroyParams,
-    ) -> Result<(), ComposerError> {
-        self.push(ComposerTransaction::AssetDestroy(asset_destroy_params))
+    pub fn add_asset_destroy(&mut self, params: AssetDestroyParams) -> Result<(), ComposerError> {
+        self.push(ComposerTransaction::AssetDestroy(params))
     }
 
-    pub fn add_asset_freeze(
-        &mut self,
-        asset_freeze_params: AssetFreezeParams,
-    ) -> Result<(), ComposerError> {
-        self.push(ComposerTransaction::AssetFreeze(asset_freeze_params))
+    pub fn add_asset_freeze(&mut self, params: AssetFreezeParams) -> Result<(), ComposerError> {
+        self.push(ComposerTransaction::AssetFreeze(params))
     }
 
-    pub fn add_asset_unfreeze(
-        &mut self,
-        asset_unfreeze_params: AssetUnfreezeParams,
-    ) -> Result<(), ComposerError> {
-        self.push(ComposerTransaction::AssetUnfreeze(asset_unfreeze_params))
+    pub fn add_asset_unfreeze(&mut self, params: AssetUnfreezeParams) -> Result<(), ComposerError> {
+        self.push(ComposerTransaction::AssetUnfreeze(params))
     }
 
     pub fn add_online_key_registration(
         &mut self,
-        online_key_reg_params: OnlineKeyRegistrationParams,
+        params: OnlineKeyRegistrationParams,
     ) -> Result<(), ComposerError> {
-        self.push(ComposerTransaction::OnlineKeyRegistration(
-            online_key_reg_params,
-        ))
+        self.push(ComposerTransaction::OnlineKeyRegistration(params))
     }
 
     pub fn add_offline_key_registration(
         &mut self,
-        offline_key_reg_params: OfflineKeyRegistrationParams,
+        params: OfflineKeyRegistrationParams,
     ) -> Result<(), ComposerError> {
-        self.push(ComposerTransaction::OfflineKeyRegistration(
-            offline_key_reg_params,
-        ))
+        self.push(ComposerTransaction::OfflineKeyRegistration(params))
     }
 
     pub fn add_non_participation_key_registration(
         &mut self,
-        non_participation_params: NonParticipationKeyRegistrationParams,
+        params: NonParticipationKeyRegistrationParams,
     ) -> Result<(), ComposerError> {
-        self.push(ComposerTransaction::NonParticipationKeyRegistration(
-            non_participation_params,
-        ))
+        self.push(ComposerTransaction::NonParticipationKeyRegistration(params))
     }
 
-    pub fn add_app_call(&mut self, app_call_params: AppCallParams) -> Result<(), ComposerError> {
-        self.push(ComposerTransaction::AppCall(app_call_params))
+    pub fn add_app_call(&mut self, params: AppCallParams) -> Result<(), ComposerError> {
+        self.push(ComposerTransaction::AppCall(params))
     }
 
-    pub fn add_app_create(
-        &mut self,
-        app_create_params: AppCreateParams,
-    ) -> Result<(), ComposerError> {
-        self.push(ComposerTransaction::AppCreateCall(app_create_params))
+    pub fn add_app_create(&mut self, params: AppCreateParams) -> Result<(), ComposerError> {
+        self.push(ComposerTransaction::AppCreateCall(params))
     }
 
-    pub fn add_app_update(
-        &mut self,
-        app_update_params: AppUpdateParams,
-    ) -> Result<(), ComposerError> {
-        self.push(ComposerTransaction::AppUpdateCall(app_update_params))
+    pub fn add_app_update(&mut self, params: AppUpdateParams) -> Result<(), ComposerError> {
+        self.push(ComposerTransaction::AppUpdateCall(params))
     }
 
-    pub fn add_app_delete(
-        &mut self,
-        app_delete_params: AppDeleteParams,
-    ) -> Result<(), ComposerError> {
-        self.push(ComposerTransaction::AppDeleteCall(app_delete_params))
+    pub fn add_app_delete(&mut self, params: AppDeleteParams) -> Result<(), ComposerError> {
+        self.push(ComposerTransaction::AppDeleteCall(params))
     }
 
     fn extract_composer_transactions_from_app_method_call_params(
@@ -608,9 +563,8 @@ impl Composer {
                 AppMethodCallArg::AssetCreate(params) => {
                     composer_transactions.push(ComposerTransaction::AssetCreate(params.clone()));
                 }
-                AppMethodCallArg::AssetReconfigure(params) => {
-                    composer_transactions
-                        .push(ComposerTransaction::AssetReconfigure(params.clone()));
+                AppMethodCallArg::AssetConfig(params) => {
+                    composer_transactions.push(ComposerTransaction::AssetConfig(params.clone()));
                 }
                 AppMethodCallArg::AssetDestroy(params) => {
                     composer_transactions.push(ComposerTransaction::AssetDestroy(params.clone()));
@@ -807,51 +761,26 @@ impl Composer {
         }
     }
 
-    pub fn add_transaction(&mut self, transaction: Transaction) -> Result<(), ComposerError> {
-        self.push(ComposerTransaction::Transaction(transaction))
-    }
-
-    pub fn add_transactions(
+    pub fn add_transaction(
         &mut self,
-        transactions: Vec<Transaction>,
+        transaction: Transaction,
+        signer: Option<Arc<dyn TransactionSigner>>,
     ) -> Result<(), ComposerError> {
-        if self.transactions.len() + transactions.len() > MAX_TX_GROUP_SIZE {
-            return Err(ComposerError::GroupSizeError);
+        match signer {
+            Some(signer) => self.push(ComposerTransaction::TransactionWithSigner(
+                TransactionWithSigner {
+                    transaction,
+                    signer,
+                },
+            )),
+            None => self.push(ComposerTransaction::Transaction(transaction)),
         }
-
-        transactions
-            .into_iter()
-            .try_for_each(|transaction| self.add_transaction(transaction))
-    }
-
-    pub fn add_transaction_with_signer(
-        &mut self,
-        transaction: TransactionWithSigner,
-    ) -> Result<(), ComposerError> {
-        self.push(ComposerTransaction::TransactionWithSigner(transaction))
-    }
-
-    pub fn add_transactions_with_signers(
-        &mut self,
-        transactions: Vec<TransactionWithSigner>,
-    ) -> Result<(), ComposerError> {
-        if self.transactions.len() + transactions.len() > MAX_TX_GROUP_SIZE {
-            return Err(ComposerError::GroupSizeError);
-        }
-
-        transactions
-            .into_iter()
-            .try_for_each(|transaction| self.add_transaction_with_signer(transaction))
-    }
-
-    pub fn transactions(&self) -> &Vec<ComposerTransaction> {
-        &self.transactions
     }
 
     async fn analyze_group_requirements(
         &self,
         suggested_params: &TransactionParams,
-        default_validity_window: &u64,
+        default_validity_window: &u32,
         build_params: &BuildParams,
     ) -> Result<GroupAnalysis, ComposerError> {
         let mut app_call_indexes_without_max_fees = Vec::new();
@@ -1066,10 +995,9 @@ impl Composer {
     }
 
     fn build_transaction_header(
-        &self,
-        common_params: &CommonParams,
+        common_params: &CommonTransactionParams,
         suggested_params: &TransactionParams,
-        default_validity_window: u64,
+        default_validity_window: u32,
     ) -> Result<TransactionHeader, ComposerError> {
         let first_valid = common_params
             .first_valid_round
@@ -1095,21 +1023,23 @@ impl Composer {
             last_valid: common_params.last_valid_round.unwrap_or_else(|| {
                 common_params
                     .validity_window
-                    .map(|window| first_valid + window)
-                    .unwrap_or(first_valid + default_validity_window)
+                    .map(|window| first_valid + window as u64)
+                    .unwrap_or(first_valid + default_validity_window as u64)
             }),
             group: None,
         })
     }
 
     async fn get_suggested_params(&self) -> Result<TransactionParams, ComposerError> {
+        // TODO: Add caching with expiration
+        // TODO: This has a different structure to the SuggestedParams in SDK, should we match the format?
         Ok(self.algod_client.transaction_params().await?)
     }
 
     async fn build_transactions(
         &self,
         suggested_params: &TransactionParams,
-        default_validity_window: &u64,
+        default_validity_window: &u32,
         group_analysis: Option<GroupAnalysis>,
     ) -> Result<Vec<Transaction>, ComposerError> {
         let mut transactions = self
@@ -1117,7 +1047,7 @@ impl Composer {
             .iter()
             .map(|ctxn| -> Result<Transaction, ComposerError> {
                 let common_params = ctxn.common_params();
-                let header = self.build_transaction_header(
+                let header = Self::build_transaction_header(
                     &common_params,
                     suggested_params,
                     *default_validity_window,
@@ -1149,9 +1079,7 @@ impl Composer {
                         .map_err(|e| ComposerError::TransactionError {
                             message: e.to_string(),
                         })?,
-                    ComposerTransaction::AssetReconfigure(params) => {
-                        build_asset_reconfigure(params, header)
-                    }
+                    ComposerTransaction::AssetConfig(params) => build_asset_config(params, header),
                     ComposerTransaction::AssetDestroy(params) => {
                         build_asset_destroy(params, header)
                     }
@@ -1860,6 +1788,14 @@ impl Composer {
         Ok(())
     }
 
+    fn get_default_validity_window(genesis_id: &str) -> u32 {
+        if genesis_id_is_localnet(genesis_id) {
+            1000 // LocalNet gets bigger window to avoid dead transactions
+        } else {
+            10 // Standard default validity window
+        }
+    }
+
     pub async fn build(
         &mut self,
         params: Option<BuildParams>,
@@ -1869,12 +1805,8 @@ impl Composer {
         }
 
         let suggested_params = self.get_suggested_params().await?;
-        // Determine validity window: default 10 rounds, but 1000 for LocalNet
-        let default_validity_window = if genesis_id_is_localnet(&suggested_params.genesis_id) {
-            1000 // LocalNet gets bigger window to avoid dead transactions
-        } else {
-            10 // Standard default validity window
-        };
+        let default_validity_window =
+            Self::get_default_validity_window(&suggested_params.genesis_id);
 
         let group_analysis = match params.as_ref() {
             Some(params)
@@ -1932,6 +1864,9 @@ impl Composer {
             return Ok(group);
         }
 
+        // TODO: Should gather signatures invoke build?
+        // This makes it possible to build, then send, however use different args between the two calls?
+
         let transactions_with_signers =
             self.built_group.as_ref().ok_or(ComposerError::StateError {
                 message: "Cannot gather signatures before building the transaction group"
@@ -1950,14 +1885,15 @@ impl Composer {
             transactions.push(txn_with_signer.transaction.to_owned());
         }
 
-        let mut signed_transactions = vec![None; transactions_with_signers.len()];
+        let mut signed_transactions: Vec<Option<SignedTransaction>> =
+            vec![None; transactions_with_signers.len()];
 
         for (_signer_ptr, indices) in signer_groups {
             // Get the signer from the first transaction with this signer
             let signer = &transactions_with_signers[indices[0]].signer;
 
             // Sign all transactions for this signer
-            let signed_txns = signer
+            let signed_txns: Vec<SignedTransaction> = signer
                 .sign_transactions(&transactions, &indices)
                 .await
                 .map_err(|e| ComposerError::SigningError {
@@ -1969,25 +1905,37 @@ impl Composer {
             }
         }
 
-        let signed_transactions: Result<Vec<SignedTransaction>, _> = signed_transactions
-            .into_iter()
-            .enumerate()
-            .map(|(i, signed_transaction)| {
-                signed_transaction.ok_or_else(|| ComposerError::SigningError {
-                    message: format!("Transaction at index {} was not signed", i),
-                })
-            })
-            .collect();
+        let (signed_transactions, unsigned_indexes) =
+            signed_transactions.into_iter().enumerate().fold(
+                (Vec::<SignedTransaction>::new(), Vec::<usize>::new()),
+                |mut acc, (i, stx)| {
+                    match stx {
+                        Some(stx) => acc.0.push(stx),
+                        None => acc.1.push(i),
+                    }
+                    acc
+                },
+            );
 
-        self.signed_group = Some(signed_transactions?);
+        if !unsigned_indexes.is_empty()
+            || transactions_with_signers.len() != signed_transactions.len()
+        {
+            return Err(ComposerError::SigningError {
+                message: format!(
+                    "Transactions at indexes {:?} were not signed",
+                    unsigned_indexes
+                ),
+            });
+        }
 
+        self.signed_group = Some(signed_transactions);
         Ok(self.signed_group.as_ref().unwrap())
     }
 
     async fn wait_for_confirmation(
         &self,
         tx_id: &str,
-        max_rounds: u64,
+        max_rounds_to_wait: u32,
     ) -> Result<PendingTransactionResponse, ComposerError> {
         let status =
             self.algod_client
@@ -2000,7 +1948,7 @@ impl Composer {
         let start_round = status.last_round + 1;
         let mut current_round = start_round;
 
-        while current_round < start_round + max_rounds {
+        while current_round < start_round + max_rounds_to_wait as u64 {
             match self
                 .algod_client
                 .pending_transaction_information(tx_id, Some(Format::Msgpack))
@@ -2010,7 +1958,11 @@ impl Composer {
                     // Check for pool errors first - transaction was kicked out of pool
                     if !response.pool_error.is_empty() {
                         return Err(ComposerError::PoolError {
-                            message: response.pool_error.clone(),
+                            message: format!(
+                                "Transaction {} was rejected; pool error: {}",
+                                tx_id,
+                                response.pool_error.clone()
+                            ),
                         });
                     }
 
@@ -2047,7 +1999,7 @@ impl Composer {
         Err(ComposerError::MaxWaitRoundExpired {
             message: format!(
                 "Transaction {} unconfirmed after {} rounds",
-                tx_id, max_rounds
+                tx_id, max_rounds_to_wait
             ),
         })
     }
@@ -2060,10 +2012,10 @@ impl Composer {
 
         self.build(build_params).await?;
 
-        let group_id = {
+        let group = {
             let transactions_with_signers =
                 self.built_group.as_ref().ok_or(ComposerError::StateError {
-                    message: "No transactions built".to_string(),
+                    message: "No transactions to send".to_string(),
                 })?;
 
             if transactions_with_signers.is_empty() {
@@ -2080,7 +2032,7 @@ impl Composer {
             .signed_group
             .as_ref()
             .ok_or(ComposerError::StateError {
-                message: "No signed transactions".to_string(),
+                message: "No signed transactions to send".to_string(),
             })?;
 
         let wait_rounds = if let Some(max_rounds_to_wait_for_confirmation) =
@@ -2088,14 +2040,8 @@ impl Composer {
         {
             max_rounds_to_wait_for_confirmation
         } else {
-            let first_round: u64 = signed_transactions
-                .iter()
-                .map(|signed_transaction| signed_transaction.transaction.header().first_valid)
-                .min()
-                .ok_or(ComposerError::StateError {
-                    message: "Failed to calculate first valid round".to_string(),
-                })?;
-
+            let suggested_params = self.get_suggested_params().await?;
+            let first_round: u64 = suggested_params.last_round; // The last round seen, so is the first round valid
             let last_round: u64 = signed_transactions
                 .iter()
                 .map(|signed_transaction| signed_transaction.transaction.header().last_valid)
@@ -2103,8 +2049,11 @@ impl Composer {
                 .ok_or(ComposerError::StateError {
                     message: "Failed to calculate last valid round".to_string(),
                 })?;
-
-            last_round - first_round
+            (last_round - first_round)
+                .try_into()
+                .unwrap_or(Self::get_default_validity_window(
+                    &suggested_params.genesis_id,
+                ))
         };
 
         // Encode each signed transaction and concatenate them
@@ -2142,7 +2091,7 @@ impl Composer {
         let abi_returns = self.parse_abi_return_values(&confirmations);
 
         Ok(SendTransactionComposerResults {
-            group_id,
+            group,
             transaction_ids,
             confirmations,
             abi_returns,
@@ -2175,7 +2124,7 @@ mod tests {
     fn test_add_transaction() {
         let mut composer = Composer::testnet();
         let txn = TransactionMother::simple_payment().build().unwrap();
-        assert!(composer.add_transaction(txn).is_ok());
+        assert!(composer.add_transaction(txn, None).is_ok());
     }
 
     #[test]
@@ -2183,10 +2132,10 @@ mod tests {
         let mut composer = Composer::testnet();
         for _ in 0..16 {
             let txn = TransactionMother::simple_payment().build().unwrap();
-            assert!(composer.add_transaction(txn).is_ok());
+            assert!(composer.add_transaction(txn, None).is_ok());
         }
         let txn = TransactionMother::simple_payment().build().unwrap();
-        assert!(composer.add_transaction(txn).is_err());
+        assert!(composer.add_transaction(txn, None).is_err());
     }
 
     #[tokio::test]
@@ -2206,7 +2155,7 @@ mod tests {
     fn test_add_payment() {
         let mut composer = Composer::testnet();
         let payment_params = PaymentParams {
-            common_params: CommonParams {
+            common_params: CommonTransactionParams {
                 sender: AccountMother::account().address(),
                 signer: None,
                 rekey_to: None,
@@ -2230,7 +2179,7 @@ mod tests {
         let mut composer = Composer::testnet();
 
         let payment_params = PaymentParams {
-            common_params: CommonParams {
+            common_params: CommonTransactionParams {
                 sender: AccountMother::account().address(),
                 signer: None,
                 rekey_to: None,
@@ -2257,7 +2206,7 @@ mod tests {
     async fn test_single_transaction_no_group() {
         let mut composer = Composer::testnet();
         let payment_params = PaymentParams {
-            common_params: CommonParams {
+            common_params: CommonTransactionParams {
                 sender: AccountMother::account().address(),
                 signer: None,
                 rekey_to: None,
@@ -2290,7 +2239,7 @@ mod tests {
 
         for _ in 0..2 {
             let payment_params = PaymentParams {
-                common_params: CommonParams {
+                common_params: CommonTransactionParams {
                     sender: AccountMother::account().address(),
                     signer: None,
                     rekey_to: None,
@@ -2320,7 +2269,7 @@ mod tests {
         }
 
         // All transactions should have the same group ID
-        let group_id = built_group[0].transaction.header().group.as_ref().unwrap();
+        let group = built_group[0].transaction.header().group.as_ref().unwrap();
         for transaction_with_signer in &built_group[1..] {
             assert_eq!(
                 transaction_with_signer
@@ -2329,7 +2278,7 @@ mod tests {
                     .group
                     .as_ref()
                     .unwrap(),
-                group_id
+                group
             );
         }
     }

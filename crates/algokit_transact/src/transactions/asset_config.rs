@@ -378,7 +378,7 @@ impl AssetConfigTransactionFields {
         }
     }
 
-    pub fn validate_for_reconfigure(&self) -> Result<(), Vec<TransactionValidationError>> {
+    pub fn validate_for_configure(&self) -> Result<(), Vec<TransactionValidationError>> {
         let mut errors = Vec::new();
 
         if self.total.is_some() {
@@ -467,7 +467,7 @@ impl Validate for AssetConfigTransactionFields {
 
                 match has_asset_params {
                     true => self
-                        .validate_for_reconfigure()
+                        .validate_for_configure()
                         .map_err(|errors| errors.iter().map(|e| e.to_string()).collect()),
                     false => Ok(()),
                 }
@@ -541,7 +541,7 @@ mod tests {
     // Asset Reconfigure Validation Tests
 
     #[test]
-    fn test_validate_valid_asset_reconfigure() {
+    fn test_validate_valid_asset_config() {
         let asset_config = AssetConfigTransactionFields {
             header: TransactionHeaderMother::example().build().unwrap(),
             asset_id: 123,                                   // Existing asset
@@ -585,7 +585,7 @@ mod tests {
     }
 
     #[test]
-    fn test_validate_asset_reconfigure_multiple_immutable_field_errors() {
+    fn test_validate_asset_config_multiple_immutable_field_errors() {
         let asset_config = AssetConfigTransactionFields {
             header: TransactionHeaderMother::example().build().unwrap(),
             asset_id: 123,                                  // Existing asset
@@ -628,8 +628,8 @@ mod tests {
     }
 
     #[test]
-    fn test_asset_reconfigure_snapshot() {
-        let data = TestDataMother::asset_reconfigure();
+    fn test_asset_config_snapshot() {
+        let data = TestDataMother::asset_config();
         assert_eq!(
             data.id,
             String::from("GAMRAG3KCG23U2HOELJF32OQAWAISLIFBB5RLDDDYHUSOZNYN7MQ")

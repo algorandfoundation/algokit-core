@@ -32,7 +32,7 @@ use crate::constants::{
 };
 use crate::error::AlgoKitTransactError;
 use crate::traits::{AlgorandMsgpack, EstimateTransactionSize, TransactionId, Transactions};
-use crate::utils::{compute_group_id, is_zero_addr_opt};
+use crate::utils::{compute_group, is_zero_addr_opt};
 use crate::{Address, MultisigSignature};
 use serde::{Deserialize, Serialize};
 use serde_with::{Bytes, serde_as};
@@ -237,12 +237,12 @@ impl Transactions for &[Transaction] {
     /// # Returns
     /// A result containing the transactions with group assign or an error if grouping fails.
     fn assign_group(self) -> Result<Vec<Transaction>, AlgoKitTransactError> {
-        let group_id = compute_group_id(self)?;
+        let group = compute_group(self)?;
         Ok(self
             .iter()
             .map(|tx| {
                 let mut tx = tx.clone();
-                tx.header_mut().group = Some(group_id);
+                tx.header_mut().group = Some(group);
                 tx
             })
             .collect())

@@ -1,7 +1,7 @@
 use algokit_transact::Address;
 use algokit_utils::{
     clients::asset_manager::AssetManagerError,
-    transactions::{AssetCreateParams, AssetOptInParams, CommonParams},
+    transactions::{AssetCreateParams, AssetOptInParams, CommonTransactionParams},
 };
 use rstest::*;
 use std::sync::Arc;
@@ -111,7 +111,7 @@ async fn create_test_asset_with_creator(
     let creator_address = creator.account().address();
 
     let params = AssetCreateParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: creator_address.clone(),
             signer: Some(Arc::new(creator.clone())),
             ..Default::default()
@@ -229,7 +229,7 @@ async fn test_bulk_opt_out_success(
 
     for &asset_id in &asset_ids {
         let opt_in_params = AssetOptInParams {
-            common_params: CommonParams {
+            common_params: CommonTransactionParams {
                 sender: test_address.clone(),
                 signer: Some(Arc::new(test_account.clone())),
                 ..Default::default()
@@ -343,7 +343,7 @@ async fn test_bulk_opt_out_without_balance_check(
     let mut composer = algorand_fixture.algorand_client.new_group();
 
     let opt_in_params = AssetOptInParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: test_address.clone(),
             signer: Some(Arc::new(test_account.clone())),
             ..Default::default()

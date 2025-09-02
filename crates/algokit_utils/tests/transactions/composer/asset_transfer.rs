@@ -1,5 +1,5 @@
 use crate::common::{AlgorandFixtureResult, TestResult, algorand_fixture};
-use algokit_utils::{AssetCreateParams, CommonParams};
+use algokit_utils::{AssetCreateParams, CommonTransactionParams};
 use algokit_utils::{AssetOptInParams, AssetTransferParams};
 use rstest::*;
 use std::sync::Arc;
@@ -15,7 +15,7 @@ async fn test_asset_transfer_transaction(
     let mut composer = algorand_fixture.algorand_client.new_group();
 
     composer.add_asset_create(AssetCreateParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: asset_creator_address.clone(),
             ..Default::default()
         },
@@ -36,7 +36,7 @@ async fn test_asset_transfer_transaction(
     let asset_receive_address = asset_receiver.account().address();
 
     composer.add_asset_opt_in(AssetOptInParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: asset_receive_address.clone(),
             signer: Some(Arc::new(asset_receiver)),
             ..Default::default()
@@ -44,7 +44,7 @@ async fn test_asset_transfer_transaction(
         asset_id,
     })?;
     composer.add_asset_transfer(AssetTransferParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: asset_creator_address.clone(),
             ..Default::default()
         },

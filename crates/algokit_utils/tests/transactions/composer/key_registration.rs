@@ -1,6 +1,6 @@
 use crate::common::{AlgorandFixtureResult, TestResult, algorand_fixture};
 use algokit_utils::{
-    CommonParams, NonParticipationKeyRegistrationParams, OfflineKeyRegistrationParams,
+    CommonTransactionParams, NonParticipationKeyRegistrationParams, OfflineKeyRegistrationParams,
     OnlineKeyRegistrationParams,
 };
 use base64::{Engine, engine::general_purpose};
@@ -15,11 +15,10 @@ async fn test_offline_key_registration_transaction(
     let sender_addr = algorand_fixture.test_account.account().address();
 
     let offline_key_reg_params = OfflineKeyRegistrationParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_addr.clone(),
             ..Default::default()
         },
-        non_participation: Some(false),
     };
 
     let mut composer = algorand_fixture.algorand_client.new_group();
@@ -108,7 +107,7 @@ async fn test_non_participation_key_registration_transaction(
     let vote_last = vote_first + 10_000_000;
 
     let online_key_reg_params = OnlineKeyRegistrationParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_addr.clone(),
             ..Default::default()
         },
@@ -143,7 +142,7 @@ async fn test_non_participation_key_registration_transaction(
 
     // Step 2: Mark account as permanently non-participating
     let non_participation_params = NonParticipationKeyRegistrationParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_addr.clone(),
             ..Default::default()
         },
@@ -209,7 +208,7 @@ async fn test_non_participation_key_registration_transaction(
     let vote_last_3 = vote_first_3 + 10_000_000;
 
     let try_online_again_params = OnlineKeyRegistrationParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_addr.clone(),
             ..Default::default()
         },
@@ -278,7 +277,7 @@ async fn test_online_key_registration_transaction(
     let vote_last = vote_first + 10_000_000;
 
     let online_key_reg_params = OnlineKeyRegistrationParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_addr.clone(),
             ..Default::default()
         },

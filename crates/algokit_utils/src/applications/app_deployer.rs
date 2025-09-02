@@ -4,8 +4,8 @@ use crate::clients::app_manager::{
 use crate::transactions::{TransactionSender, TransactionSenderError};
 use crate::{
     AppCreateMethodCallParams, AppCreateParams, AppDeleteMethodCallParams, AppDeleteParams,
-    AppMethodCallArg, AppUpdateMethodCallParams, AppUpdateParams, CommonParams, ComposerError,
-    SendParams, SendTransactionComposerResults,
+    AppMethodCallArg, AppUpdateMethodCallParams, AppUpdateParams, CommonTransactionParams,
+    ComposerError, SendParams, SendTransactionComposerResults,
 };
 use algokit_transact::{Address, OnApplicationComplete};
 use base64::{Engine as _, engine::general_purpose};
@@ -110,7 +110,7 @@ pub struct AppLookup {
 /// Parameters for the create transaction with program variants
 #[derive(Debug, Clone)]
 pub struct DeployAppCreateParams {
-    pub common_params: CommonParams,
+    pub common_params: CommonTransactionParams,
     pub on_complete: OnApplicationComplete,
     pub approval_program: AppProgram,
     pub clear_state_program: AppProgram,
@@ -146,7 +146,7 @@ impl Default for DeployAppCreateParams {
 /// Parameters for the create method call with program variants
 #[derive(Debug, Clone)]
 pub struct DeployAppCreateMethodCallParams {
-    pub common_params: CommonParams,
+    pub common_params: CommonTransactionParams,
     pub on_complete: OnApplicationComplete,
     pub approval_program: AppProgram,
     pub clear_state_program: AppProgram,
@@ -187,7 +187,7 @@ impl Default for DeployAppCreateMethodCallParams {
 }
 #[derive(Debug, Clone, Default)]
 pub struct DeployAppUpdateParams {
-    pub common_params: CommonParams,
+    pub common_params: CommonTransactionParams,
     pub args: Option<Vec<Vec<u8>>>,
     pub account_references: Option<Vec<Address>>,
     pub app_references: Option<Vec<u64>>,
@@ -198,7 +198,7 @@ pub struct DeployAppUpdateParams {
 /// Parameters for the update method call
 #[derive(Debug, Clone)]
 pub struct DeployAppUpdateMethodCallParams {
-    pub common_params: CommonParams,
+    pub common_params: CommonTransactionParams,
     pub method: algokit_abi::ABIMethod,
     pub args: Vec<AppMethodCallArg>,
     pub account_references: Option<Vec<Address>>,
@@ -229,7 +229,7 @@ impl Default for DeployAppUpdateMethodCallParams {
 /// Parameters for the delete transaction
 #[derive(Debug, Clone, Default)]
 pub struct DeployAppDeleteParams {
-    pub common_params: CommonParams,
+    pub common_params: CommonTransactionParams,
     pub args: Option<Vec<Vec<u8>>>,
     pub account_references: Option<Vec<Address>>,
     pub app_references: Option<Vec<u64>>,
@@ -240,7 +240,7 @@ pub struct DeployAppDeleteParams {
 /// Parameters for the delete method call
 #[derive(Debug, Clone)]
 pub struct DeployAppDeleteMethodCallParams {
-    pub common_params: CommonParams,
+    pub common_params: CommonTransactionParams,
     pub method: algokit_abi::ABIMethod,
     pub args: Vec<AppMethodCallArg>,
     pub account_references: Option<Vec<Address>>,
@@ -1019,7 +1019,7 @@ impl AppDeployer {
         Ok(AppDeployResult::Create {
             app: app_metadata,
             result: SendTransactionComposerResults {
-                group_id: None,
+                group: None,
                 transaction_ids: result.common_params.tx_ids.clone(),
                 confirmations: vec![result.common_params.confirmation.clone()],
                 abi_returns: vec![Ok(result.abi_return.clone())],
@@ -1101,7 +1101,7 @@ impl AppDeployer {
         Ok(AppDeployResult::Update {
             app: app_metadata,
             result: SendTransactionComposerResults {
-                group_id: None,
+                group: None,
                 transaction_ids: result.common_params.tx_ids.clone(),
                 confirmations: vec![result.common_params.confirmation.clone()],
                 abi_returns: vec![Ok(result.abi_return.clone())],

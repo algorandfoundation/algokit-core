@@ -103,7 +103,7 @@ pub fn hash(bytes: &Vec<u8>) -> Byte32 {
     hash_bytes
 }
 
-pub fn compute_group_id(txs: &[Transaction]) -> Result<Byte32, AlgoKitTransactError> {
+pub fn compute_group(txs: &[Transaction]) -> Result<Byte32, AlgoKitTransactError> {
     if txs.is_empty() {
         return Err(AlgoKitTransactError::InputError {
             message: String::from("Transaction group size cannot be 0"),

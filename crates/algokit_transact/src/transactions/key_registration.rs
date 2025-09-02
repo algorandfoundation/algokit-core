@@ -533,11 +533,11 @@ mod tests {
         assert_eq!(grouped_txs.len(), 2);
 
         // Both transactions should have the same group ID
-        let group_id = grouped_txs[0].header().group.unwrap();
-        assert_eq!(grouped_txs[1].header().group.unwrap(), group_id);
+        let group = grouped_txs[0].header().group.unwrap();
+        assert_eq!(grouped_txs[1].header().group.unwrap(), group);
 
-        // Group ID should be non-zero
-        assert_ne!(group_id, [0u8; 32]);
+        // Group should be non-zero
+        assert_ne!(group, [0u8; 32]);
     }
 
     #[test]

@@ -1,16 +1,15 @@
 use crate::{
-    AccountCloseParams, AssetClawbackParams, AssetCreateParams, AssetDestroyParams,
-    AssetFreezeParams, AssetOptInParams, AssetOptOutParams, AssetReconfigureParams,
+    AccountCloseParams, AssetClawbackParams, AssetConfigParams, AssetCreateParams,
+    AssetDestroyParams, AssetFreezeParams, AssetOptInParams, AssetOptOutParams,
     AssetTransferParams, AssetUnfreezeParams, NonParticipationKeyRegistrationParams,
     OfflineKeyRegistrationParams, OnlineKeyRegistrationParams, PaymentParams,
     TransactionWithSigner,
 };
 
-use super::common::CommonParams;
+use super::common::CommonTransactionParams;
 use super::composer::ComposerError;
 use algokit_abi::{
-    ABIMethod, ABIMethodArg, ABIMethodArgType, ABIReferenceValue, ABIType, ABIValue,
-    abi_type::BitSize,
+    ABIMethod, ABIMethodArgType, ABIReferenceValue, ABIType, ABIValue, abi_type::BitSize,
 };
 use algokit_transact::{
     Address, AppCallTransactionBuilder, AppCallTransactionFields, BoxReference,
@@ -34,7 +33,7 @@ pub enum AppMethodCallArg {
     AssetOptOut(AssetOptOutParams),
     AssetClawback(AssetClawbackParams),
     AssetCreate(AssetCreateParams),
-    AssetReconfigure(AssetReconfigureParams),
+    AssetConfig(AssetConfigParams),
     AssetDestroy(AssetDestroyParams),
     AssetFreeze(AssetFreezeParams),
     AssetUnfreeze(AssetUnfreezeParams),
@@ -70,10 +69,11 @@ pub trait ValidMethodCallArg: sealed::ValidMethodCallArgSealed {}
 impl ValidMethodCallArg for AppMethodCallArg {}
 impl ValidMethodCallArg for ProcessedAppMethodCallArg {}
 
-/// Parameters for app call transactions.
+/// Parameters for creating an app call transaction.
 #[derive(Debug, Default, Clone)]
 pub struct AppCallParams {
-    pub common_params: CommonParams,
+    /// Common parameters used across all transaction types
+    pub common_params: CommonTransactionParams,
     /// ID of the app being called.
     pub app_id: u64,
     /// Defines what additional actions occur with the transaction.
@@ -96,10 +96,11 @@ pub struct AppCallParams {
     pub box_references: Option<Vec<BoxReference>>,
 }
 
-/// Parameters for app create transactions.
+/// Parameters for creating an app create transaction.
 #[derive(Debug, Default, Clone)]
 pub struct AppCreateParams {
-    pub common_params: CommonParams,
+    /// Common parameters used across all transaction types
+    pub common_params: CommonTransactionParams,
     /// Defines what additional actions occur with the transaction.
     pub on_complete: OnApplicationComplete,
     /// Logic executed for every app call transaction, except when
@@ -145,10 +146,11 @@ pub struct AppCreateParams {
     pub box_references: Option<Vec<BoxReference>>,
 }
 
-/// Parameters for app delete transactions.
+/// Parameters for creating an app delete transaction.
 #[derive(Debug, Default, Clone)]
 pub struct AppDeleteParams {
-    pub common_params: CommonParams,
+    /// Common parameters used across all transaction types
+    pub common_params: CommonTransactionParams,
     /// ID of the app being deleted.
     pub app_id: u64,
     /// Transaction specific arguments available in the app's
@@ -169,10 +171,11 @@ pub struct AppDeleteParams {
     pub box_references: Option<Vec<BoxReference>>,
 }
 
-/// Parameters for app update transactions.
+/// Parameters for creating an app update transaction.
 #[derive(Debug, Default, Clone)]
 pub struct AppUpdateParams {
-    pub common_params: CommonParams,
+    /// Common parameters used across all transaction types
+    pub common_params: CommonTransactionParams,
     /// ID of the app being updated.
     pub app_id: u64,
     /// Logic executed for every app call transaction, except when
@@ -202,13 +205,14 @@ pub struct AppUpdateParams {
     pub box_references: Option<Vec<BoxReference>>,
 }
 
-/// Parameters for app method call transactions.
+/// Parameters for creating an app method call transaction.
 #[derive(Debug, Clone)]
 pub struct AppCallMethodCallParams<T = AppMethodCallArg>
 where
     T: ValidMethodCallArg,
 {
-    pub common_params: CommonParams,
+    /// Common parameters used across all transaction types
+    pub common_params: CommonTransactionParams,
     /// ID of the app being called.
     pub app_id: u64,
     /// The ABI method to call.
@@ -239,7 +243,7 @@ where
 {
     fn default() -> Self {
         Self {
-            common_params: CommonParams::default(),
+            common_params: CommonTransactionParams::default(),
             app_id: 0,
             method: ABIMethod::default(),
             args: Vec::new(),
@@ -252,13 +256,14 @@ where
     }
 }
 
-/// Parameters for app create method call transactions.
+/// Parameters for creating an app create method call transaction.
 #[derive(Debug, Default, Clone)]
 pub struct AppCreateMethodCallParams<T = AppMethodCallArg>
 where
     T: ValidMethodCallArg,
 {
-    pub common_params: CommonParams,
+    /// Common parameters used across all transaction types
+    pub common_params: CommonTransactionParams,
     /// Defines what additional actions occur with the transaction.
     pub on_complete: OnApplicationComplete,
     /// Logic executed for every app call transaction, except when
@@ -306,13 +311,14 @@ where
     pub box_references: Option<Vec<BoxReference>>,
 }
 
-/// Parameters for app update method call transactions.
+/// Parameters for creating an app update method call transaction.
 #[derive(Debug, Default, Clone)]
 pub struct AppUpdateMethodCallParams<T = AppMethodCallArg>
 where
     T: ValidMethodCallArg,
 {
-    pub common_params: CommonParams,
+    /// Common parameters used across all transaction types
+    pub common_params: CommonTransactionParams,
     /// ID of the app being updated.
     pub app_id: u64,
     /// Logic executed for every app call transaction, except when
@@ -344,13 +350,14 @@ where
     pub box_references: Option<Vec<BoxReference>>,
 }
 
-/// Parameters for app delete method call transactions.
+/// Parameters for creating an app delete method call transaction.
 #[derive(Debug, Default, Clone)]
 pub struct AppDeleteMethodCallParams<T = AppMethodCallArg>
 where
     T: ValidMethodCallArg,
 {
-    pub common_params: CommonParams,
+    /// Common parameters used across all transaction types
+    pub common_params: CommonTransactionParams,
     /// ID of the app being deleted.
     pub app_id: u64,
     /// The ABI method to call.
@@ -677,8 +684,8 @@ fn calculate_method_arg_reference_array_index(
     }
 }
 
-fn encode_arguments(
-    method_args: &[ABIMethodArg],
+fn encode_method_arguments(
+    method: &ABIMethod,
     args: &[ProcessedAppMethodCallArg],
     sender: &Address,
     app_id: u64,
@@ -686,7 +693,18 @@ fn encode_arguments(
     app_references: &[u64],
     asset_references: &[u64],
 ) -> Result<Vec<Vec<u8>>, ComposerError> {
-    let abi_types = method_args
+    let mut encoded_args = Vec::<Vec<u8>>::new();
+
+    // Insert method selector at the front
+    let method_selector = method
+        .selector()
+        .map_err(|e| ComposerError::ABIEncodingError {
+            message: format!("Failed to get method selector: {}", e),
+        })?;
+    encoded_args.push(method_selector);
+
+    let abi_types = method
+        .args
         .iter()
         .filter_map(|arg| {
             match &arg.arg_type {
@@ -730,21 +748,23 @@ fn encode_arguments(
     // Apply ARC-4 tuple packing for methods with more than 14 arguments
     // 14 instead of 15 in the ARC-4 because the first argument (method selector) is added later on
     if abi_types.len() > ARGS_TUPLE_PACKING_THRESHOLD {
-        encode_args_with_tuple_packing(&abi_types, &abi_values)
+        encoded_args.extend(encode_args_with_tuple_packing(&abi_types, &abi_values)?);
     } else {
-        encode_args_individually(&abi_types, &abi_values)
+        encoded_args.extend(encode_args_individually(&abi_types, &abi_values)?);
     }
+
+    Ok(encoded_args)
 }
 
 fn encode_args_with_tuple_packing(
     abi_types: &[ABIType],
     abi_values: &[ABIValue],
 ) -> Result<Vec<Vec<u8>>, ComposerError> {
-    // Encode first 13 arguments individually
-    let the_first_13_abi_types = &abi_types[..ARGS_TUPLE_PACKING_THRESHOLD];
-    let the_first_13_abi_values = &abi_values[..ARGS_TUPLE_PACKING_THRESHOLD];
+    // Encode first 14 arguments individually
+    let first_14_abi_types = &abi_types[..ARGS_TUPLE_PACKING_THRESHOLD];
+    let first_14_abi_values = &abi_values[..ARGS_TUPLE_PACKING_THRESHOLD];
     let encoded_args: &mut Vec<Vec<u8>> =
-        &mut encode_args_individually(the_first_13_abi_types, the_first_13_abi_values)?;
+        &mut encode_args_individually(first_14_abi_types, first_14_abi_values)?;
 
     // Pack remaining arguments into tuple at position 14
     let remaining_abi_types = &abi_types[ARGS_TUPLE_PACKING_THRESHOLD..];
@@ -890,8 +910,8 @@ where
         &mut asset_references,
     )?;
 
-    let mut encoded_args = encode_arguments(
-        &params.method().args,
+    let encoded_args = encode_method_arguments(
+        params.method(),
         params.args(),
         &header.sender,
         params.app_id(),
@@ -899,16 +919,6 @@ where
         &app_references,
         &asset_references,
     )?;
-
-    // Insert method selector at the front
-    let method_selector =
-        params
-            .method()
-            .selector()
-            .map_err(|e| ComposerError::ABIEncodingError {
-                message: format!("Failed to get method selector: {}", e),
-            })?;
-    encoded_args.insert(0, method_selector);
 
     Ok(transaction_builder(
         header,

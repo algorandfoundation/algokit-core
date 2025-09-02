@@ -447,8 +447,8 @@ impl TestDataMother {
         TransactionTestData::new(transaction, SIGNING_PRIVATE_KEY)
     }
 
-    pub fn asset_reconfigure() -> TransactionTestData {
-        let transaction = AssetConfigTransactionMother::asset_reconfigure()
+    pub fn asset_config() -> TransactionTestData {
+        let transaction = AssetConfigTransactionMother::asset_config()
             .build()
             .unwrap();
         TransactionTestData::new(transaction, SIGNING_PRIVATE_KEY)
@@ -515,7 +515,7 @@ impl TestDataMother {
             "app_call": Self::app_call().as_json(&transform),
             "asset_create": Self::asset_create().as_json(&transform),
             "asset_destroy": Self::asset_destroy().as_json(&transform),
-            "asset_reconfigure": Self::asset_reconfigure().as_json(&transform),
+            "asset_config": Self::asset_config().as_json(&transform),
             "online_key_registration": Self::online_key_registration().as_json(&transform),
             "offline_key_registration": Self::offline_key_registration().as_json(&transform),
             "non_participation_key_registration": Self::non_participation_key_registration().as_json(&transform),

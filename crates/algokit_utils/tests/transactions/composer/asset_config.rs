@@ -1,6 +1,8 @@
 use crate::common::{AlgorandFixture, AlgorandFixtureResult, TestResult, algorand_fixture};
 use algokit_transact::Address;
-use algokit_utils::{AssetCreateParams, AssetDestroyParams, AssetReconfigureParams, CommonParams};
+use algokit_utils::{
+    AssetConfigParams, AssetCreateParams, AssetDestroyParams, CommonTransactionParams,
+};
 use rstest::*;
 
 #[rstest]
@@ -12,7 +14,7 @@ async fn test_asset_create_transaction(
     let sender_address = algorand_fixture.test_account.account().address();
 
     let asset_create_params = AssetCreateParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_address.clone(),
             ..Default::default()
         },
@@ -81,7 +83,7 @@ async fn test_asset_create_transaction(
 
 #[rstest]
 #[tokio::test]
-async fn test_asset_reconfigure_transaction(
+async fn test_asset_config_transaction(
     #[future] algorand_fixture: Result<AlgorandFixture, Box<dyn std::error::Error + Send + Sync>>,
 ) -> TestResult {
     let mut algorand_fixture = algorand_fixture.await?;
@@ -94,7 +96,7 @@ async fn test_asset_reconfigure_transaction(
         .address();
     // First create an asset to reconfigure
     let asset_create_params = AssetCreateParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_address.clone(),
             ..Default::default()
         },
@@ -120,8 +122,8 @@ async fn test_asset_reconfigure_transaction(
         .ok_or("Failed to get asset ID")?;
 
     // Now reconfigure the asset
-    let asset_reconfigure_params = AssetReconfigureParams {
-        common_params: CommonParams {
+    let asset_config_params = AssetConfigParams {
+        common_params: CommonTransactionParams {
             sender: sender_address,
             ..Default::default()
         },
@@ -133,7 +135,7 @@ async fn test_asset_reconfigure_transaction(
     };
 
     let mut composer = algorand_fixture.algorand_client.new_group();
-    composer.add_asset_reconfigure(asset_reconfigure_params)?;
+    composer.add_asset_config(asset_config_params)?;
 
     let result = composer.send(None).await?;
 
@@ -173,7 +175,7 @@ async fn test_asset_destroy_transaction(
     let sender_address = algorand_fixture.test_account.account().address();
     // First create an asset to destroy
     let asset_create_params = AssetCreateParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_address.clone(),
             ..Default::default()
         },
@@ -200,7 +202,7 @@ async fn test_asset_destroy_transaction(
 
     // Now destroy the asset
     let asset_destroy_params = AssetDestroyParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_address,
             ..Default::default()
         },
@@ -234,7 +236,7 @@ async fn test_asset_create_validation_errors(
     let sender_address = algorand_fixture.test_account.account().address();
     // Test asset creation with multiple validation errors
     let invalid_asset_create_params = AssetCreateParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_address.clone(),
             ..Default::default()
         },

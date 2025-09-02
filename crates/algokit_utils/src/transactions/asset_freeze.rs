@@ -1,30 +1,30 @@
 use algokit_transact::{Address, AssetFreezeTransactionFields, Transaction, TransactionHeader};
 
-use super::common::CommonParams;
+use super::common::CommonTransactionParams;
 
-/// Parameters to freeze an asset for a target account.
+/// Parameters for creating an asset freeze transaction.
 #[derive(Debug, Default, Clone)]
 pub struct AssetFreezeParams {
-    /// Common transaction parameters.
-    pub common_params: CommonParams,
+    /// Common parameters used across all transaction types
+    pub common_params: CommonTransactionParams,
 
-    /// The ID of the asset being frozen.
+    /// The ID of the asset to freeze
     pub asset_id: u64,
 
-    /// The target account whose asset holdings will be frozen.
+    /// The address of the account to freeze
     pub target_address: Address,
 }
 
-/// Parameters to unfreeze an asset for a target account.
+/// Parameters for creating an asset unfreeze transaction.
 #[derive(Debug, Default, Clone)]
 pub struct AssetUnfreezeParams {
-    /// Common transaction parameters.
-    pub common_params: CommonParams,
+    /// Common parameters used across all transaction types
+    pub common_params: CommonTransactionParams,
 
-    /// The ID of the asset being unfrozen.
+    /// The ID of the asset to unfreeze
     pub asset_id: u64,
 
-    /// The target account whose asset holdings will be unfrozen.
+    /// The address of the account to unfreeze
     pub target_address: Address,
 }
 

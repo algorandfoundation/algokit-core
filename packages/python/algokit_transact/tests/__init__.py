@@ -37,7 +37,7 @@ class TestData:
     opt_in_asset_transfer: TransactionTestData
     asset_create: TransactionTestData
     asset_destroy: TransactionTestData
-    asset_reconfigure: TransactionTestData
+    asset_config: TransactionTestData
     asset_freeze: TransactionTestData
     asset_unfreeze: TransactionTestData
     app_call: TransactionTestData

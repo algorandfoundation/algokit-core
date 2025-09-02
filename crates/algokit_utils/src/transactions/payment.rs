@@ -1,16 +1,14 @@
 use algokit_transact::{Address, PaymentTransactionFields, Transaction, TransactionHeader};
 
-use super::common::CommonParams;
+use super::common::CommonTransactionParams;
 
 /// Parameters for creating a payment transaction
 #[derive(Debug, Default, Clone)]
 pub struct PaymentParams {
-    /// Common transaction parameters.
-    pub common_params: CommonParams,
-
+    /// Common parameters used across all transaction types
+    pub common_params: CommonTransactionParams,
     /// The address of the account receiving the ALGO payment.
     pub receiver: Address,
-
     /// The amount of microALGO to send.
     ///
     /// Specified in microALGO (1 ALGO = 1,000,000 microALGO).
@@ -20,10 +18,11 @@ pub struct PaymentParams {
 /// Parameters for creating an account close transaction.
 #[derive(Debug, Default, Clone)]
 pub struct AccountCloseParams {
-    /// Common transaction parameters.
-    pub common_params: CommonParams,
-
-    /// The address to receive the remaining funds.
+    /// Common parameters used across all transaction types
+    pub common_params: CommonTransactionParams,
+    /// Close the sender account and send the remaining balance to this address
+    ///
+    /// *Warning:* Be careful this can lead to loss of funds if not used correctly.
     pub close_remainder_to: Address,
 }
 

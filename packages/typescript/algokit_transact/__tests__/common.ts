@@ -69,7 +69,7 @@ export const testData =
       | "optInAssetTransfer"
       | "assetCreate"
       | "assetDestroy"
-      | "assetReconfigure"
+      | "assetConfig"
       | "appCall"
       | "appCreate"
       | "appUpdate"
