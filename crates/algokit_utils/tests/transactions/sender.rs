@@ -171,7 +171,6 @@ async fn test_abi_method_returns_enhanced_processing(
     let arc56_contract: Arc56Contract = serde_json::from_str(sandbox::APPLICATION_ARC56)?;
     let app_id = deploy_arc56_contract(&algorand_fixture, &sender_address, &arc56_contract).await?;
 
-    let arc56_contract: Arc56Contract = serde_json::from_str(sandbox::APPLICATION_ARC56)?;
     let method = arc56_contract
         .methods
         .iter()

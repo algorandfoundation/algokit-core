@@ -3,7 +3,7 @@ use crate::common::{
     deploy_arc56_contract,
 };
 use algokit_abi::{ABIMethod, ABIReferenceValue, ABIReturn, ABIValue, Arc56Contract};
-use algokit_test_artifacts::sandbox;
+use algokit_test_artifacts::{nested_contract, sandbox};
 use algokit_transact::{
     Address, OnApplicationComplete, PaymentTransactionFields, StateSchema, Transaction,
     TransactionHeader, TransactionId,
@@ -15,8 +15,11 @@ use algokit_utils::{
     AppCallParams, AppCreateParams, AppDeleteParams, AppMethodCallArg, AppUpdateParams,
     PaymentParams,
 };
+use base64::{Engine, prelude::BASE64_STANDARD};
 use num_bigint::BigUint;
 use rstest::*;
+use serde::Deserialize;
+use std::str::FromStr;
 use std::sync::Arc;
 
 #[rstest]
@@ -1273,4 +1276,161 @@ fn get_abi_return(
         Ok(None) => Err("ABI result expected".into()),
         Err(e) => Err(format!("Failed to parse ABI result: {}", e).into()),
     }
+}
+
+#[rstest]
+#[tokio::test]
+async fn test_double_nested(#[future] algorand_fixture: AlgorandFixtureResult) -> TestResult {
+    let mut algorand_fixture = algorand_fixture.await?;
+    let mut composer = algorand_fixture.algorand_client.new_group();
+
+    let sender_address = algorand_fixture.test_account.account().address();
+    let receiver = algorand_fixture.generate_account(None).await?;
+    let receiver_address = receiver.account().address();
+
+    let app_id = deploy_nested_app(&algorand_fixture).await?;
+
+    let first_txn_arg = AppCallMethodCallParams {
+        common_params: CommonParams {
+            sender: sender_address.clone(),
+            note: Some("first_txn_arg".as_bytes().to_vec()),
+            ..Default::default()
+        },
+        app_id,
+        method: ABIMethod::from_str("txnArg(pay)address")?,
+        args: vec![AppMethodCallArg::Payment(PaymentParams {
+            common_params: CommonParams {
+                sender: sender_address.clone(),
+                ..Default::default()
+            },
+            receiver: receiver_address.clone(),
+            amount: 2_500_000u64,
+        })],
+        ..Default::default()
+    };
+
+    let second_txn_arg = AppCallMethodCallParams {
+        common_params: CommonParams {
+            sender: sender_address.clone(),
+            note: Some("second_txn_arg".as_bytes().to_vec()),
+            ..Default::default()
+        },
+        app_id,
+        method: ABIMethod::from_str("txnArg(pay)address")?,
+        args: vec![AppMethodCallArg::Payment(PaymentParams {
+            common_params: CommonParams {
+                sender: sender_address.clone(),
+                ..Default::default()
+            },
+            receiver: receiver_address.clone(),
+            amount: 1_500_000u64,
+        })],
+        ..Default::default()
+    };
+
+    let method_call_params = AppCallMethodCallParams {
+        common_params: CommonParams {
+            sender: sender_address.clone(),
+            ..Default::default()
+        },
+        app_id,
+        method: ABIMethod::from_str("doubleNestedTxnArg(pay,appl,pay,appl)uint64")?,
+        args: vec![
+            AppMethodCallArg::AppCallMethodCall(first_txn_arg),
+            AppMethodCallArg::AppCallMethodCall(second_txn_arg),
+        ],
+        ..Default::default()
+    };
+
+    composer.add_app_call_method_call(method_call_params)?;
+    let result: algokit_utils::SendTransactionComposerResults = composer.send(None).await?;
+
+    let abi_return_0 = get_abi_return(&result.abi_returns, 0)?;
+    if let ABIValue::Address(value) = &abi_return_0.return_value {
+        assert_eq!(
+            *value,
+            sender_address.as_str(),
+            "Returned address should match with sender address"
+        );
+    } else {
+        return Err("First return value should be an Address".into());
+    }
+
+    // Second assertion
+    let abi_return_1 = get_abi_return(&result.abi_returns, 1)?;
+    if let ABIValue::Address(value) = &abi_return_1.return_value {
+        assert_eq!(
+            *value,
+            sender_address.as_str(),
+            "Returned address should match with sender address"
+        );
+    } else {
+        return Err("Second return value should be an Address".into());
+    }
+
+    // Third assertion
+    let abi_return_2 = get_abi_return(&result.abi_returns, 2)?;
+    if let ABIValue::Uint(value) = &abi_return_2.return_value {
+        assert_eq!(
+            *value,
+            BigUint::from(app_id),
+            "Returned value should match with app ID"
+        );
+    } else {
+        return Err("Third return value should be a Uint".into());
+    }
+
+    Ok(())
+}
+
+#[derive(Deserialize)]
+struct TealSource {
+    approval: String,
+    clear: String,
+}
+
+#[derive(Deserialize)]
+struct Arc32AppSpec {
+    source: Option<TealSource>,
+}
+
+async fn deploy_nested_app(
+    algorand_fixture: &AlgorandFixture,
+) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
+    let app_spec: Arc32AppSpec = serde_json::from_str(nested_contract::APPLICATION)?;
+    let teal_source = app_spec.source.unwrap();
+    let approval_bytes = BASE64_STANDARD.decode(teal_source.approval)?;
+    let clear_state_bytes = BASE64_STANDARD.decode(teal_source.clear)?;
+
+    let approval_compile_result = algorand_fixture
+        .algod
+        .teal_compile(approval_bytes, None)
+        .await?;
+    let clear_state_compile_result = algorand_fixture
+        .algod
+        .teal_compile(clear_state_bytes, None)
+        .await?;
+
+    let create_method = ABIMethod::from_str("createApplication()void")?;
+    let create_method_selector = create_method.selector()?;
+
+    let app_create_params = AppCreateParams {
+        common_params: CommonParams {
+            sender: algorand_fixture.test_account.account().address(),
+            ..Default::default()
+        },
+        approval_program: approval_compile_result.result,
+        clear_state_program: clear_state_compile_result.result,
+        args: Some(vec![create_method_selector]),
+        ..Default::default()
+    };
+
+    let mut composer = algorand_fixture.algorand_client.new_group();
+    composer.add_app_create(app_create_params)?;
+
+    let result = composer.send(None).await?;
+
+    result.confirmations[0]
+        .app_id
+        .ok_or_else(|| "No app id returned".into())
 }
