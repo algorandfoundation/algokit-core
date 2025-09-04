@@ -19,7 +19,7 @@ pub struct MultisigSubsignature {
     /// Address of the participant.
     address: String,
     /// Optional signature bytes for the participant.
-    signature: Option<ByteBuf>,
+    signature: Option<Vec<u8>>,
 }
 
 impl From<algokit_transact::MultisigSignature> for MultisigSignature {
@@ -52,7 +52,7 @@ impl From<algokit_transact::MultisigSubsignature> for MultisigSubsignature {
     fn from(value: algokit_transact::MultisigSubsignature) -> Self {
         Self {
             address: value.address.as_str(),
-            signature: value.signature.map(|sig| sig.to_vec().into()),
+            signature: value.signature.map(|sig| sig.to_vec()),
         }
     }
 }
@@ -67,7 +67,7 @@ impl TryFrom<MultisigSubsignature> for algokit_transact::MultisigSubsignature {
             address,
             signature: value
                 .signature
-                .map(|sig| bytebuf_to_bytes(&sig))
+                .map(|sig| vec_to_array(&sig, "signature"))
                 .transpose()
                 .map_err(|e| AlgoKitTransactError::DecodingError {
                     message: format!("Error while decoding a subsignature: {}", e),

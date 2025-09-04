@@ -1291,7 +1291,7 @@ async fn test_double_nested(#[future] algorand_fixture: AlgorandFixtureResult) -
     let app_id = deploy_nested_app(&algorand_fixture).await?;
 
     let first_txn_arg = AppCallMethodCallParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_address.clone(),
             note: Some("first_txn_arg".as_bytes().to_vec()),
             ..Default::default()
@@ -1299,7 +1299,7 @@ async fn test_double_nested(#[future] algorand_fixture: AlgorandFixtureResult) -
         app_id,
         method: ABIMethod::from_str("txnArg(pay)address")?,
         args: vec![AppMethodCallArg::Payment(PaymentParams {
-            common_params: CommonParams {
+            common_params: CommonTransactionParams {
                 sender: sender_address.clone(),
                 ..Default::default()
             },
@@ -1310,7 +1310,7 @@ async fn test_double_nested(#[future] algorand_fixture: AlgorandFixtureResult) -
     };
 
     let second_txn_arg = AppCallMethodCallParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_address.clone(),
             note: Some("second_txn_arg".as_bytes().to_vec()),
             ..Default::default()
@@ -1318,7 +1318,7 @@ async fn test_double_nested(#[future] algorand_fixture: AlgorandFixtureResult) -
         app_id,
         method: ABIMethod::from_str("txnArg(pay)address")?,
         args: vec![AppMethodCallArg::Payment(PaymentParams {
-            common_params: CommonParams {
+            common_params: CommonTransactionParams {
                 sender: sender_address.clone(),
                 ..Default::default()
             },
@@ -1329,7 +1329,7 @@ async fn test_double_nested(#[future] algorand_fixture: AlgorandFixtureResult) -
     };
 
     let method_call_params = AppCallMethodCallParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: sender_address.clone(),
             ..Default::default()
         },
@@ -1415,7 +1415,7 @@ async fn deploy_nested_app(
     let create_method_selector = create_method.selector()?;
 
     let app_create_params = AppCreateParams {
-        common_params: CommonParams {
+        common_params: CommonTransactionParams {
             sender: algorand_fixture.test_account.account().address(),
             ..Default::default()
         },

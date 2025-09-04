@@ -8,7 +8,6 @@ crate-type = ["lib", "cdylib", "staticlib"]
 
 [features]
 default = ["ffi_uniffi"]
-ffi_wasm = ["dep:wasm-bindgen", "dep:tsify-next", "dep:js-sys"]
 ffi_uniffi = ["dep:uniffi"]
 
 [dependencies]
@@ -22,17 +21,13 @@ serde_bytes = "0.11.15"
 serde_json = "1.0.133"
 base64 = "0.22.1"
 
-tsify-next = { workspace = true, optional = true }
 uniffi = { workspace = true, features = [
   "scaffolding-ffi-buffer-fns",
 ], optional = true }
-wasm-bindgen = { workspace = true, optional = true }
-js-sys = { workspace = true, optional = true }
 pretty_assertions = "1.4.1"
 
 
 [dev-dependencies]
-wasm-pack = "0.13.1"
 uniffi = { workspace = true, features = ["bindgen-tests"] }
 
 [build-dependencies]
@@ -46,6 +41,3 @@ serde = { version = "1.0.216", features = ["derive"] }
 serde_bytes = "0.11.15"
 serde_json = "1.0.133"
 base64 = "0.22.1"
-tsify-next = { workspace = true, optional = true }
-js-sys = { workspace = true, optional = true }
-wasm-bindgen = { workspace = true, optional = true }

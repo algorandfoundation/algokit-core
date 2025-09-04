@@ -19,13 +19,13 @@ pub struct AppCallTransactionFields {
     ///
     /// Approval programs may reject the transaction.
     /// Only required for app creation and update transactions.
-    approval_program: Option<ByteBuf>,
+    approval_program: Option<Vec<u8>>,
 
     /// Logic executed for app call transactions with on-completion set to "clear".
     ///
     /// Clear state programs cannot reject the transaction.
     /// Only required for app creation and update transactions.
-    clear_state_program: Option<ByteBuf>,
+    clear_state_program: Option<Vec<u8>>,
 
     /// Holds the maximum number of global state values.
     ///
@@ -50,7 +50,7 @@ pub struct AppCallTransactionFields {
 
     /// Transaction specific arguments available in the app's
     /// approval program and clear state program.
-    args: Option<Vec<ByteBuf>>,
+    args: Option<Vec<Vec<u8>>>,
 
     /// List of accounts in addition to the sender that may be accessed
     /// from the app's approval program and clear state program.
@@ -75,14 +75,12 @@ impl From<algokit_transact::AppCallTransactionFields> for AppCallTransactionFiel
         Self {
             app_id: tx.app_id,
             on_complete: tx.on_complete.into(),
-            approval_program: tx.approval_program.map(Into::into),
-            clear_state_program: tx.clear_state_program.map(Into::into),
+            approval_program: tx.approval_program,
+            clear_state_program: tx.clear_state_program,
             global_state_schema: tx.global_state_schema.map(Into::into),
             local_state_schema: tx.local_state_schema.map(Into::into),
             extra_program_pages: tx.extra_program_pages,
-            args: tx
-                .args
-                .map(|args| args.into_iter().map(Into::into).collect()),
+            args: tx.args.map(|args| args.into_iter().collect()),
             account_references: tx
                 .account_references
                 .map(|addrs| addrs.into_iter().map(|addr| addr.as_str()).collect()),
@@ -112,14 +110,12 @@ impl TryFrom<Transaction> for algokit_transact::AppCallTransactionFields {
             header,
             app_id: data.app_id,
             on_complete: data.on_complete.into(),
-            approval_program: data.approval_program.map(ByteBuf::into_vec),
-            clear_state_program: data.clear_state_program.map(ByteBuf::into_vec),
+            approval_program: data.approval_program,
+            clear_state_program: data.clear_state_program,
             global_state_schema: data.global_state_schema.map(Into::into),
             local_state_schema: data.local_state_schema.map(Into::into),
             extra_program_pages: data.extra_program_pages,
-            args: data
-                .args
-                .map(|args| args.into_iter().map(ByteBuf::into_vec).collect()),
+            args: data.args,
             account_references: data
                 .account_references
                 .map(|addrs| {
@@ -157,14 +153,14 @@ pub struct BoxReference {
     app_id: u64,
 
     /// Name of the box.
-    name: ByteBuf,
+    name: Vec<u8>,
 }
 
 impl From<algokit_transact::BoxReference> for BoxReference {
     fn from(value: algokit_transact::BoxReference) -> Self {
         Self {
             app_id: value.app_id,
-            name: value.name.into(),
+            name: value.name,
         }
     }
 }
@@ -173,7 +169,7 @@ impl From<BoxReference> for algokit_transact::BoxReference {
     fn from(val: BoxReference) -> Self {
         algokit_transact::BoxReference {
             app_id: val.app_id,
-            name: val.name.into_vec(),
+            name: val.name,
         }
     }
 }
@@ -182,8 +178,6 @@ impl From<BoxReference> for algokit_transact::BoxReference {
 ///
 /// These values define what additional actions occur with the transaction.
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-#[cfg_attr(feature = "ffi_wasm", derive(Tsify))]
-#[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Enum))]
 pub enum OnApplicationComplete {
     /// NoOp indicates that an app transaction will simply call its

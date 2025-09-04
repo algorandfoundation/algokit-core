@@ -546,7 +546,7 @@ fn normalise_json(value: serde_json::Value) -> serde_json::Value {
                         || v.is_number()
                             && v.as_u64() == Some(0)
                             && !ZERO_VALUE_EXCLUDED_FIELDS
-                                // Convert to snake case because when building for FFI WASM the field names are in camelCase
+                                // Convert to snake case because when building for FFI the field names may be in camelCase
                                 .contains(&k.to_case(Case::Snake).as_str()))
                 })
                 .map(|(k, v)| (k.to_case(Case::Camel), normalise_json(v)))

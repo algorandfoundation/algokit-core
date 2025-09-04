@@ -4,7 +4,7 @@ set -e
 
 echo "=== Running all tests as done in CI ==="
 
-echo "1-4. Running sanity checks (formatting, clippy, cargo check, WASM check, basic tests)..."
+echo "1-4. Running sanity checks (formatting, clippy, cargo check, basic tests)..."
 ./scripts/sanity.sh
 
 echo "5. Comprehensive Rust tests..."
@@ -23,4 +23,4 @@ poetry install --with test
 poetry run pytest
 cd ../../..
 
-echo "=== All tests completed successfully! ===" 
+echo "=== All tests completed successfully! ==="

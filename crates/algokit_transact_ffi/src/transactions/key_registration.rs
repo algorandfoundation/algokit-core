@@ -4,19 +4,16 @@
 //! transactions that can be used across language bindings.
 use crate::*;
 
-#[cfg(feature = "ffi_wasm")]
-use tsify_next::Tsify;
-
 #[ffi_record]
 pub struct KeyRegistrationTransactionFields {
     /// Root participation public key (32 bytes)
-    pub vote_key: Option<ByteBuf>,
+    pub vote_key: Option<Vec<u8>>,
 
     /// VRF public key (32 bytes)
-    pub selection_key: Option<ByteBuf>,
+    pub selection_key: Option<Vec<u8>>,
 
     /// State proof key (64 bytes)
-    pub state_proof_key: Option<ByteBuf>,
+    pub state_proof_key: Option<Vec<u8>>,
 
     /// First round for which the participation key is valid
     pub vote_first: Option<u64>,
@@ -34,11 +31,9 @@ pub struct KeyRegistrationTransactionFields {
 impl From<algokit_transact::KeyRegistrationTransactionFields> for KeyRegistrationTransactionFields {
     fn from(tx: algokit_transact::KeyRegistrationTransactionFields) -> Self {
         Self {
-            vote_key: tx.vote_key.map(|bytes| ByteBuf::from(bytes.to_vec())),
-            selection_key: tx.selection_key.map(|bytes| ByteBuf::from(bytes.to_vec())),
-            state_proof_key: tx
-                .state_proof_key
-                .map(|bytes| ByteBuf::from(bytes.to_vec())),
+            vote_key: tx.vote_key.map(Into::into),
+            selection_key: tx.selection_key.map(Into::into),
+            state_proof_key: tx.state_proof_key.map(Into::into),
             vote_first: tx.vote_first,
             vote_last: tx.vote_last,
             vote_key_dilution: tx.vote_key_dilution,
@@ -66,15 +61,15 @@ impl TryFrom<crate::Transaction> for algokit_transact::KeyRegistrationTransactio
             header,
             vote_key: data
                 .vote_key
-                .map(|buf| bytebuf_to_bytes::<32>(&buf))
+                .map(|buf| vec_to_array::<32>(&buf, "vote key"))
                 .transpose()?,
             selection_key: data
                 .selection_key
-                .map(|buf| bytebuf_to_bytes::<32>(&buf))
+                .map(|buf| vec_to_array::<32>(&buf, "selection key"))
                 .transpose()?,
             state_proof_key: data
                 .state_proof_key
-                .map(|buf| bytebuf_to_bytes::<64>(&buf))
+                .map(|buf| vec_to_array::<64>(&buf, "state proof key"))
                 .transpose()?,
             vote_first: data.vote_first,
             vote_last: data.vote_last,

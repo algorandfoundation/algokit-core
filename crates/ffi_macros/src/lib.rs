@@ -1,6 +1,5 @@
 #![crate_type = "proc-macro"]
 
-use convert_case::{Case, Casing};
 use proc_macro::TokenStream;
 use quote::{ToTokens, quote};
 use syn::{Field, Fields, ItemEnum, ItemFn, ItemStruct, Type, TypePath, parse_macro_input};
@@ -8,7 +7,6 @@ use syn::{Field, Fields, ItemEnum, ItemFn, ItemStruct, Type, TypePath, parse_mac
 #[proc_macro_attribute]
 pub fn ffi_func(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as ItemFn);
-    let js_name = &input.sig.ident.to_string().to_case(Case::Camel);
     let vis = &input.vis;
     let attrs = &input.attrs;
     let sig = &input.sig;
@@ -16,7 +14,6 @@ pub fn ffi_func(_attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let output = quote! {
         #(#attrs)*
-        #[cfg_attr(feature = "ffi_wasm", wasm_bindgen(js_name = #js_name))]
         #[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
         #vis #sig #body
     };
@@ -38,12 +35,6 @@ pub fn ffi_record(_attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let struct_attrs = quote! {
         #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-        #[cfg_attr(feature = "ffi_wasm", derive(Tsify))]
-        #[cfg_attr(
-            feature = "ffi_wasm",
-            tsify(into_wasm_abi, from_wasm_abi, large_number_types_as_bigints)
-        )]
-        #[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
         #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
     };
 
@@ -62,12 +53,6 @@ pub fn ffi_enum(_attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let enum_attrs = quote! {
         #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-        #[cfg_attr(feature = "ffi_wasm", derive(Tsify))]
-        #[cfg_attr(
-            feature = "ffi_wasm",
-            tsify(into_wasm_abi, from_wasm_abi, large_number_types_as_bigints)
-        )]
-        #[cfg_attr(feature = "ffi_wasm", serde(rename_all = "camelCase"))]
         #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Enum))]
     };
 
@@ -90,10 +75,6 @@ fn is_option_type(field: &Field) -> bool {
 }
 
 fn add_option_field_attributes(field: &mut Field) {
-    let wasm_attr: syn::Attribute =
-        syn::parse_quote!(#[cfg_attr(feature = "ffi_wasm", tsify(optional))]);
-    field.attrs.push(wasm_attr);
-
     let field_name = field.ident.to_token_stream().to_string();
 
     if field_name != "genesis_id" && field_name != "genesis_hash" {

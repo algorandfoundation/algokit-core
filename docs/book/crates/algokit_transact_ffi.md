@@ -13,7 +13,6 @@ Foreign Function Interface bindings for `algokit_transact`, enabling usage from 
 ## Features
 
 - `ffi_uniffi` (default) - UniFFI-based bindings
-- `ffi_wasm` - WebAssembly/JavaScript bindings
 
 ## Crate Types
 
@@ -22,21 +21,11 @@ Built as both:
 - `cdylib` - Dynamic library for FFI
 - `staticlib` - Static library for embedding
 
-## Architecture
-
-The FFI layer uses several approaches:
-
-1. **UniFFI** - Generates bindings automatically from Rust definitions
-2. **wasm-bindgen** - Provides seamless WebAssembly integration
-3. **Custom macros** - Uses `ffi_macros` for specialized binding generation
-
 ## Key Dependencies
 
 - `algokit_transact` - Core functionality
 - `ffi_macros` - Procedural macros for FFI code generation
 - `uniffi` - Multi-language binding generation
-- `wasm-bindgen` - WebAssembly bindings
-- `tsify-next` - TypeScript type generation
 
 ## API Documentation
 
@@ -50,12 +39,6 @@ The complete API documentation with all FFI types, functions, and binding exampl
 
 ```bash
 cargo build --package algokit_transact_ffi --features ffi_uniffi
-```
-
-### WebAssembly Bindings
-
-```bash
-cargo build --package algokit_transact_ffi --features ffi_wasm
 ```
 
 ## Language Support
@@ -82,10 +65,4 @@ cargo build --package algokit_transact_ffi --features ffi_wasm
 
 ```bash
 cargo test --package algokit_transact_ffi
-```
-
-For WASM-specific tests:
-
-```bash
-wasm-pack test --node
 ```

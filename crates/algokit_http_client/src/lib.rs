@@ -14,9 +14,6 @@ pub enum HttpError {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Enum))]
-#[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
-#[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
-#[cfg_attr(feature = "ffi_wasm", derive(serde::Serialize, serde::Deserialize))]
 pub enum HttpMethod {
     Get,
     Post,
@@ -43,22 +40,17 @@ impl HttpMethod {
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
-#[cfg_attr(feature = "ffi_wasm", derive(tsify_next::Tsify))]
-#[cfg_attr(feature = "ffi_wasm", tsify(into_wasm_abi, from_wasm_abi))]
-#[cfg_attr(feature = "ffi_wasm", derive(serde::Serialize, serde::Deserialize))]
 pub struct HttpResponse {
     pub body: Vec<u8>,
     pub headers: HashMap<String, String>,
 }
 
-#[cfg(not(feature = "ffi_wasm"))]
 #[cfg_attr(feature = "ffi_uniffi", uniffi::export(with_foreign))]
 #[async_trait]
 /// This trait must be implemented by any HTTP client that is used by our Rust crates.
 /// It is assumed the implementing type will provide the hostname, port, headers, etc. as needed for each request.
 ///
 /// By default, this trait requires the implementing type to be `Send + Sync`.
-/// For WASM targets, enable the `ffi_wasm` feature to use a different implementation that is compatible with WASM.
 pub trait HttpClient: Send + Sync {
     async fn request(
         &self,
@@ -117,8 +109,7 @@ impl DefaultHttpClient {
 }
 
 #[cfg(feature = "default_client")]
-#[cfg_attr(feature = "ffi_wasm", async_trait(?Send))]
-#[cfg_attr(not(feature = "ffi_wasm"), async_trait)]
+#[async_trait]
 impl HttpClient for DefaultHttpClient {
     async fn request(
         &self,
@@ -187,96 +178,5 @@ impl HttpClient for DefaultHttpClient {
             body,
             headers: response_headers,
         })
-    }
-}
-
-// WASM-specific implementations
-#[cfg(feature = "ffi_wasm")]
-use wasm_bindgen::prelude::*;
-
-#[cfg(feature = "ffi_wasm")]
-use js_sys::Uint8Array;
-
-#[cfg(feature = "ffi_wasm")]
-use tsify_next::Tsify;
-
-#[cfg(feature = "ffi_wasm")]
-#[async_trait(?Send)]
-pub trait HttpClient {
-    async fn request(
-        &self,
-        method: HttpMethod,
-        path: String,
-        query: Option<HashMap<String, String>>,
-        body: Option<Vec<u8>>,
-        headers: Option<HashMap<String, String>>,
-    ) -> Result<HttpResponse, HttpError>;
-}
-
-#[wasm_bindgen]
-#[cfg(feature = "ffi_wasm")]
-extern "C" {
-    /// The interface for the JavaScript-based HTTP client that will be used in WASM environments.
-    ///
-    /// This mirrors the `HttpClient` trait, but wasm-bindgen doesn't support foreign traits so we define it separately.
-    pub type WasmHttpClient;
-
-    #[wasm_bindgen(method, catch)]
-    async fn request(
-        this: &WasmHttpClient,
-        method: &str,
-        path: &str,
-        query: &JsValue,
-        body: &JsValue,
-        headers: &JsValue,
-    ) -> Result<JsValue, JsValue>;
-}
-
-#[cfg(feature = "ffi_wasm")]
-#[async_trait(?Send)]
-impl HttpClient for WasmHttpClient {
-    async fn request(
-        &self,
-        method: HttpMethod,
-        path: String,
-        query: Option<HashMap<String, String>>,
-        body: Option<Vec<u8>>,
-        headers: Option<HashMap<String, String>>,
-    ) -> Result<HttpResponse, HttpError> {
-        let query_js = match query {
-            Some(q) => serde_wasm_bindgen::to_value(&q).unwrap_or(JsValue::NULL),
-            None => JsValue::NULL,
-        };
-
-        let body_js = match body {
-            Some(b) => {
-                let array = Uint8Array::new_with_length(b.len() as u32);
-                array.copy_from(&b);
-                array.into()
-            }
-            None => JsValue::NULL,
-        };
-
-        let headers_js = match headers {
-            Some(h) => serde_wasm_bindgen::to_value(&h).unwrap_or(JsValue::NULL),
-            None => JsValue::NULL,
-        };
-
-        let result = self
-            .request(method.as_str(), &path, &query_js, &body_js, &headers_js)
-            .await
-            .map_err(|e| HttpError::RequestError {
-                message: e.as_string().unwrap_or(
-                    "A HTTP error occurred in JavaScript, but it cannot be converted to a string"
-                        .to_string(),
-                ),
-            })?;
-
-        // Parse the response from JavaScript
-        let response = HttpResponse::from_js(result).map_err(|e| HttpError::RequestError {
-            message: format!("Failed to parse response: {:?}", e),
-        })?;
-
-        Ok(response)
     }
 }

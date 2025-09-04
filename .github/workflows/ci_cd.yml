@@ -41,8 +41,6 @@ jobs:
         run: cargo clippy -- -D warnings
       - name: Check
         run: cargo check
-      - name: Check WASM
-        run: cargo check --no-default-features --features ffi_wasm
 
       - name: Start localnet
         run: algokit localnet start
@@ -63,24 +61,9 @@ jobs:
       - id: set_ffi_packages
         run: echo 'ffi_packages=["algokit_transact"]' >> $GITHUB_OUTPUT
 
-  typescript_wasm_ci_cd:
-    needs: setup
-    uses: ./.github/workflows/typescript_wasm_ci_cd.yml
-    strategy:
-      matrix:
-        crate: ${{ fromJSON(needs.setup.outputs.ffi_packages) }}
-    with:
-      crate: ${{ matrix.crate }}
-      release: ${{ github.event_name == 'push' }}
-    secrets:
-      BOT_ID: ${{ secrets.BOT_ID }}
-      BOT_SK: ${{ secrets.BOT_SK }}
-      NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This is used because the GitHub NPM package registry doesn't support GitHub App tokens
-
   python_uniffi_ci_cd:
     needs:
       - setup
-      - typescript_wasm_ci_cd
     uses: ./.github/workflows/python_uniffi_ci_cd.yml
     strategy:
       matrix:

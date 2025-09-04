@@ -6,7 +6,7 @@ This is a cargo workspace for Rust implementations of core Algorand functionalit
 
 ### Idiomatic Rust
 
-The core library should be idiomatic Rust. This is essential for maintainability and ease of use. This may result in some extra wrappers around the Rust library for the WASM and FFI bindings because the foreign languages and/or their binding generators might not support all the Rust features.
+The core library should be idiomatic Rust. This is essential for maintainability and ease of use. This may result in some extra wrappers around the Rust library for the FFI bindings because the foreign languages and/or their binding generators might not support all the Rust features.
 
 ### Foreign Interface Consistency
 

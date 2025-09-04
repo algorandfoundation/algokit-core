@@ -27,15 +27,6 @@ repos:
         types: [rust]
         require_serial: true
         pass_filenames: false
-      - id: cargo-check-wasm
-        name: cargo-check-wasm
-        description: "Run 'cargo check' for WASM features"
-        entry: cargo check
-        language: system
-        types: [rust]
-        args: [--no-default-features, --features, ffi_wasm]
-        require_serial: true
-        pass_filenames: false
       - id: cargo-test
         name: cargo-test
         description: "Run 'cargo test' to execute all tests"

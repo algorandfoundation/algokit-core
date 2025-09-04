@@ -20,8 +20,6 @@ This crate provides three key procedural macros:
 
 Automatically applies the necessary attributes for function export:
 
-- Converts function names to camelCase for JavaScript bindings
-- Adds `wasm_bindgen` attributes for WebAssembly
 - Adds `uniffi::export` attributes for UniFFI bindings
 
 ### `#[ffi_record]`
@@ -98,9 +96,9 @@ The complete API documentation with all macro definitions and usage examples.
 When modifying the macros:
 
 1. Test with all FFI targets (WebAssembly, UniFFI)
-2. Verify generated code compiles correctly
-3. Update tests for new functionality
-4. Ensure backward compatibility
+1. Verify generated code compiles correctly
+1. Update tests for new functionality
+1. Ensure backward compatibility
 
 ## Testing
 

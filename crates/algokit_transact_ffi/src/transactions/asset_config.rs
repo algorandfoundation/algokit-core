@@ -75,7 +75,7 @@ pub struct AssetConfigTransactionFields {
     /// The format of this metadata is up to the application.
     ///
     /// This field can only be specified upon asset creation.
-    metadata_hash: Option<ByteBuf>,
+    metadata_hash: Option<Vec<u8>>,
 
     /// The address of the optional account that can manage the configuration of the asset and destroy it.
     ///
@@ -124,7 +124,7 @@ impl From<algokit_transact::AssetConfigTransactionFields> for AssetConfigTransac
             asset_name: tx.asset_name,
             unit_name: tx.unit_name,
             url: tx.url,
-            metadata_hash: tx.metadata_hash.map(|h| h.to_vec().into()),
+            metadata_hash: tx.metadata_hash.map(|h| h.to_vec()),
             manager: tx.manager.map(|addr| addr.as_str()),
             reserve: tx.reserve.map(|addr| addr.as_str()),
             freeze: tx.freeze.map(|addr| addr.as_str()),
@@ -148,7 +148,7 @@ impl TryFrom<Transaction> for algokit_transact::AssetConfigTransactionFields {
 
         let metadata_hash = data
             .metadata_hash
-            .map(|buf| bytebuf_to_bytes::<32>(&buf))
+            .map(|buf| vec_to_array::<32>(&buf, "metadata hash"))
             .transpose()?;
 
         let transaction_fields = algokit_transact::AssetConfigTransactionFields {
