@@ -7,6 +7,8 @@ use super::indexer_helpers::wait_for_indexer_transaction;
 use super::test_account::{NetworkType, TestAccount, TestAccountConfig};
 use algod_client::AlgodClient;
 use algokit_transact::Transaction;
+use algokit_utils::clients::algorand_client::AlgorandClientParams;
+use algokit_utils::transactions::TransactionComposerConfig;
 use algokit_utils::{AlgoConfig, AlgorandClient, ClientManager};
 use indexer_client::IndexerClient;
 use rstest::*;
@@ -29,12 +31,16 @@ pub struct TransactionResult {
 
 impl AlgorandFixture {
     pub async fn new(
-        config: &AlgoConfig,
+        params: &AlgorandClientParams,
     ) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
-        let algod = Arc::new(ClientManager::get_algod_client(&config.algod_config));
-        let indexer = Arc::new(ClientManager::get_indexer_client(&config.indexer_config));
+        let algod = Arc::new(ClientManager::get_algod_client(
+            &params.client_config.algod_config,
+        ));
+        let indexer = Arc::new(ClientManager::get_indexer_client(
+            &params.client_config.indexer_config,
+        ));
 
-        let mut algorand_client = AlgorandClient::new(config);
+        let mut algorand_client = AlgorandClient::new(params);
 
         let test_account = Self::generate_account_internal(
             algod.clone(),
@@ -115,16 +121,13 @@ impl AlgorandFixture {
 }
 
 #[fixture]
-pub async fn algorand_fixture() -> Result<AlgorandFixture, Box<dyn std::error::Error + Send + Sync>>
-{
-    init_test_logging();
-    let config = ClientManager::get_config_from_environment_or_localnet();
-    AlgorandFixture::new(&config).await
-}
-
-pub async fn algorand_fixture_with_config(
-    config: AlgoConfig,
-) -> Result<AlgorandFixture, Box<dyn std::error::Error + Send + Sync>> {
-    init_test_logging();
-    AlgorandFixture::new(&config).await
+pub async fn algorand_fixture(
+    #[default(None)] composer_config: Option<TransactionComposerConfig>,
+) -> AlgorandFixtureResult {
+    let client_config = ClientManager::get_config_from_environment_or_localnet();
+    AlgorandFixture::new(&AlgorandClientParams {
+        client_config,
+        composer_config,
+    })
+    .await
 }

@@ -17,7 +17,7 @@ use algod_client::{
         TransactionParams,
     },
 };
-use algokit_abi::{ABIMethod, ABIReturn};
+use algokit_abi::{ABIError, ABIMethod, ABIReturn};
 use algokit_transact::{
     Address, AlgoKitTransactError, AlgorandMsgpack, Byte32, EMPTY_SIGNATURE, FeeParams,
     MAX_ACCOUNT_REFERENCES, MAX_OVERALL_REFERENCES, MAX_TX_GROUP_SIZE, SignedTransaction,
@@ -62,8 +62,6 @@ use super::key_registration::{
 };
 use super::payment::{AccountCloseParams, PaymentParams};
 
-const COVER_APP_CALL_INNER_TRANSACTION_FEES_DEFAULT: bool = false;
-
 // ABI return values are stored in logs with the prefix 0x151f7c75
 const ABI_RETURN_PREFIX: &[u8] = &[0x15, 0x1f, 0x7c, 0x75];
 
@@ -103,7 +101,7 @@ impl Default for ResourcePopulation {
 
 /// Types of resources that can be populated at the group level
 #[derive(Debug, Clone)]
-enum GroupResourceType {
+enum GroupResourceToPopulate {
     Account(String),
     App(u64),
     Asset(u64),
@@ -156,49 +154,25 @@ pub struct SendTransactionComposerResults {
     pub group: Option<Byte32>,
     pub transaction_ids: Vec<String>,
     pub confirmations: Vec<PendingTransactionResponse>,
-    pub abi_returns: Vec<Result<Option<ABIReturn>, ComposerError>>,
+    pub abi_returns: Vec<ABIReturn>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
+pub struct TransactionComposerConfig {
+    pub cover_app_call_inner_transaction_fees: bool,
+    pub populate_app_call_resources: ResourcePopulation,
+}
+
+#[derive(Clone)]
+pub struct ComposerParams {
+    pub algod_client: Arc<AlgodClient>,
+    pub signer_getter: SignerGetter,
+    pub composer_config: Option<TransactionComposerConfig>,
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct SendParams {
     pub max_rounds_to_wait_for_confirmation: Option<u32>,
-    pub cover_app_call_inner_transaction_fees: bool,
-    pub populate_app_call_resources: ResourcePopulation,
-}
-
-impl Default for SendParams {
-    fn default() -> Self {
-        Self {
-            max_rounds_to_wait_for_confirmation: None,
-            cover_app_call_inner_transaction_fees: COVER_APP_CALL_INNER_TRANSACTION_FEES_DEFAULT,
-            populate_app_call_resources: ResourcePopulation::default(),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct BuildParams {
-    pub cover_app_call_inner_transaction_fees: bool,
-    pub populate_app_call_resources: ResourcePopulation,
-}
-
-impl Default for BuildParams {
-    fn default() -> Self {
-        Self {
-            cover_app_call_inner_transaction_fees: COVER_APP_CALL_INNER_TRANSACTION_FEES_DEFAULT,
-            populate_app_call_resources: ResourcePopulation::default(),
-        }
-    }
-}
-
-impl From<&SendParams> for BuildParams {
-    fn from(send_params: &SendParams) -> Self {
-        BuildParams {
-            cover_app_call_inner_transaction_fees: send_params
-                .cover_app_call_inner_transaction_fees,
-            populate_app_call_resources: send_params.populate_app_call_resources.clone(),
-        }
-    }
 }
 
 #[derive(Debug)]
@@ -381,44 +355,58 @@ impl ComposerTransaction {
             _ => static_fee,
         }
     }
+
+    pub fn is_app_call(&self) -> bool {
+        matches!(
+            self,
+            ComposerTransaction::AppCall(_)
+                | ComposerTransaction::AppCreateCall(_)
+                | ComposerTransaction::AppUpdateCall(_)
+                | ComposerTransaction::AppDeleteCall(_)
+                | ComposerTransaction::AppCallMethodCall(_)
+                | ComposerTransaction::AppCreateMethodCall(_)
+                | ComposerTransaction::AppUpdateMethodCall(_)
+                | ComposerTransaction::AppDeleteMethodCall(_)
+                | ComposerTransaction::Transaction(Transaction::AppCall(_))
+                | ComposerTransaction::TransactionWithSigner(TransactionWithSigner {
+                    transaction: Transaction::AppCall(_),
+                    ..
+                })
+        )
+    }
 }
 
 pub type SignerGetter =
     Arc<dyn Fn(Address) -> Result<Arc<dyn TransactionSigner>, ComposerError> + Send + Sync>;
 #[derive(Clone)]
 pub struct Composer {
-    transactions: Vec<ComposerTransaction>,
     algod_client: Arc<AlgodClient>,
     signer_getter: SignerGetter,
+    composer_config: TransactionComposerConfig,
+    transactions: Vec<ComposerTransaction>,
     built_group: Option<Vec<TransactionWithSigner>>,
     signed_group: Option<Vec<SignedTransaction>>,
 }
 
 impl Composer {
-    pub fn new(algod_client: Arc<AlgodClient>, signer_getter: SignerGetter) -> Self {
+    pub fn new(params: ComposerParams) -> Self {
         Composer {
+            algod_client: params.algod_client,
+            signer_getter: params.signer_getter,
+            composer_config: params.composer_config.unwrap_or_default(),
             transactions: Vec::new(),
-            algod_client,
-            signer_getter,
-            built_group: None,
-            signed_group: None,
-        }
-    }
-
-    #[cfg(feature = "default_http_client")]
-    pub fn testnet() -> Self {
-        use crate::EmptySigner;
-
-        Composer {
-            transactions: Vec::new(),
-            algod_client: Arc::new(AlgodClient::testnet()),
-            signer_getter: Arc::new(|_| Ok(Arc::new(EmptySigner {}))),
             built_group: None,
             signed_group: None,
         }
     }
 
     fn push(&mut self, txn: ComposerTransaction) -> Result<(), ComposerError> {
+        if self.built_group.is_some() {
+            return Err(ComposerError::StateError {
+                message: String::from("Cannot add new transactions after building"),
+            });
+        }
+
         if self.transactions.len() >= MAX_TX_GROUP_SIZE {
             return Err(ComposerError::GroupSizeError);
         }
@@ -691,7 +679,7 @@ impl Composer {
     fn parse_abi_return_values(
         &self,
         confirmations: &[PendingTransactionResponse],
-    ) -> Vec<Result<Option<ABIReturn>, ComposerError>> {
+    ) -> Vec<ABIReturn> {
         let mut abi_returns = Vec::new();
 
         for (i, confirmation) in confirmations.iter().enumerate() {
@@ -710,34 +698,51 @@ impl Composer {
         &self,
         confirmation: &PendingTransactionResponse,
         method: &ABIMethod,
-    ) -> Result<Option<ABIReturn>, ComposerError> {
+    ) -> ABIReturn {
         // Check if method has return type
         let return_type = match method.returns.as_ref() {
             Some(return_type) => return_type,
-            None => return Ok(None), // Method has no return type
+            None => {
+                return ABIReturn {
+                    method: method.clone(),
+                    raw_return_value: vec![],
+                    return_value: None,
+                    decode_error: None,
+                };
+            } // Method has no return type
         };
 
         // Non-void method - must examine the last log
         let last_log = match confirmation.logs.as_ref().and_then(|logs| logs.last()) {
             Some(log) => log,
             None => {
-                return Err(ComposerError::ABIDecodingError {
-                    message: format!(
-                        "No logs found for method {} which requires a return type",
-                        method.name
-                    ),
-                });
+                return ABIReturn {
+                    method: method.clone(),
+                    raw_return_value: vec![],
+                    return_value: None,
+                    decode_error: Some(ABIError::DecodingError {
+                        message: format!(
+                            "No logs found for method {} which requires a return type",
+                            method.name
+                        ),
+                    }),
+                };
             }
         };
 
         // Check if the last log entry has the ABI return prefix
         if !last_log.starts_with(ABI_RETURN_PREFIX) {
-            return Err(ComposerError::ABIDecodingError {
-                message: format!(
-                    "Transaction log for method {} doesn't match with ABI return value format",
-                    method.name
-                ),
-            });
+            return ABIReturn {
+                method: method.clone(),
+                raw_return_value: vec![],
+                return_value: None,
+                decode_error: Some(ABIError::DecodingError {
+                    message: format!(
+                        "Transaction log for method {} doesn't match with ABI return value format",
+                        method.name
+                    ),
+                }),
+            };
         }
 
         // Extract the return value bytes (skip the prefix)
@@ -745,17 +750,23 @@ impl Composer {
 
         // Decode the return value using the method's return type
         match return_type.decode(return_bytes) {
-            Ok(return_value) => Ok(Some(ABIReturn {
+            Ok(return_value) => ABIReturn {
                 method: method.clone(),
                 raw_return_value: return_bytes.to_vec(),
-                return_value,
-            })),
-            Err(e) => Err(ComposerError::ABIDecodingError {
-                message: format!(
-                    "Failed to decode ABI return value for method {}: {}",
-                    method.name, e
-                ),
-            }),
+                return_value: Some(return_value),
+                decode_error: None,
+            },
+            Err(e) => ABIReturn {
+                method: method.clone(),
+                raw_return_value: vec![],
+                return_value: None,
+                decode_error: Some(ABIError::DecodingError {
+                    message: format!(
+                        "Failed to decode ABI return value for method {}: {}",
+                        method.name, e
+                    ),
+                }),
+            },
         }
     }
 
@@ -764,6 +775,13 @@ impl Composer {
         transaction: Transaction,
         signer: Option<Arc<dyn TransactionSigner>>,
     ) -> Result<(), ComposerError> {
+        if let Some(group) = &transaction.header().group {
+            if group != &[0u8; 32] {
+                return Err(ComposerError::TransactionError {
+                    message: "Cannot add a transaction with nonzero group".to_string(),
+                });
+            }
+        }
         match signer {
             Some(signer) => self.push(ComposerTransaction::TransactionWithSigner(
                 TransactionWithSigner {
@@ -779,7 +797,7 @@ impl Composer {
         &self,
         suggested_params: &TransactionParams,
         default_validity_window: &u32,
-        build_params: &BuildParams,
+        composer_config: &TransactionComposerConfig,
     ) -> Result<GroupAnalysis, ComposerError> {
         let mut app_call_indexes_without_max_fees = Vec::new();
 
@@ -787,7 +805,7 @@ impl Composer {
             .build_transactions(suggested_params, default_validity_window, None)
             .await?;
 
-        let mut transactions = built_transactions
+        let mut transactions_to_simulate = built_transactions
             .iter()
             .enumerate()
             .map(|(group_index, txn)| {
@@ -795,7 +813,7 @@ impl Composer {
                 let mut txn_to_simulate = txn.clone();
                 let txn_header = txn_to_simulate.header_mut();
                 txn_header.group = None;
-                if build_params.cover_app_call_inner_transaction_fees {
+                if composer_config.cover_app_call_inner_transaction_fees {
                     if let Transaction::AppCall(_) = txn {
                         match ctxn.logical_max_fee() {
                             Some(logical_max_fee) => txn_header.fee = Some(logical_max_fee),
@@ -808,26 +826,15 @@ impl Composer {
             .collect::<Vec<_>>();
 
         // Regroup the transactions, as the transactions have likely been adjusted
-        if transactions.len() > 1 {
-            transactions =
-                transactions
-                    .assign_group()
-                    .map_err(|e| ComposerError::TransactionError {
-                        message: format!("Failed to assign group: {}", e),
-                    })?;
+        if transactions_to_simulate.len() > 1 {
+            transactions_to_simulate = transactions_to_simulate.assign_group().map_err(|e| {
+                ComposerError::TransactionError {
+                    message: format!("Failed to assign group: {}", e),
+                }
+            })?;
         }
 
-        let signed_transactions = transactions
-            .into_iter()
-            .map(|txn| SignedTransaction {
-                transaction: txn,
-                signature: Some(EMPTY_SIGNATURE),
-                auth_address: None,
-                multisignature: None,
-            })
-            .collect();
-
-        if build_params.cover_app_call_inner_transaction_fees
+        if composer_config.cover_app_call_inner_transaction_fees
             && !app_call_indexes_without_max_fees.is_empty()
         {
             return Err(ComposerError::StateError {
@@ -842,6 +849,16 @@ impl Composer {
             });
         }
 
+        let signed_transactions = transactions_to_simulate
+            .into_iter()
+            .map(|txn| SignedTransaction {
+                transaction: txn,
+                signature: Some(EMPTY_SIGNATURE),
+                auth_address: None,
+                multisignature: None,
+            })
+            .collect();
+
         let txn_group = SimulateRequestTransactionGroup {
             txns: signed_transactions,
         };
@@ -853,17 +870,16 @@ impl Composer {
             ..Default::default()
         };
 
-        let response = self
+        let response: algod_client::models::SimulateTransaction = self
             .algod_client
             .simulate_transaction(simulate_request, Some(Format::Msgpack))
             .await
             .map_err(|e| ComposerError::AlgodClientError { source: e })?;
-
         let group_response = &response.txn_groups[0];
 
         // Handle any simulation failures
         if let Some(failure_message) = &group_response.failure_message {
-            if build_params.cover_app_call_inner_transaction_fees
+            if composer_config.cover_app_call_inner_transaction_fees
                 && failure_message.contains("fee too small")
             {
                 return Err(ComposerError::StateError {
@@ -898,7 +914,7 @@ impl Composer {
             .map(|(group_index, simulate_txn_result)| {
                 let btxn = &built_transactions[group_index];
 
-                let required_fee_delta = if build_params.cover_app_call_inner_transaction_fees {
+                let required_fee_delta = if composer_config.cover_app_call_inner_transaction_fees {
                     let min_txn_fee: u64 = btxn
                         .calculate_fee(FeeParams {
                             fee_per_byte: suggested_params.fee,
@@ -933,7 +949,7 @@ impl Composer {
 
                 Ok(TransactionAnalysis {
                     required_fee_delta,
-                    unnamed_resources_accessed: if build_params
+                    unnamed_resources_accessed: if composer_config
                         .populate_app_call_resources
                         .is_enabled()
                     {
@@ -947,7 +963,8 @@ impl Composer {
 
         Ok(GroupAnalysis {
             transactions: txn_analysis_results?,
-            unnamed_resources_accessed: if build_params.populate_app_call_resources.is_enabled() {
+            unnamed_resources_accessed: if composer_config.populate_app_call_resources.is_enabled()
+            {
                 group_response.unnamed_resources_accessed.clone()
             } else {
                 None
@@ -1031,7 +1048,6 @@ impl Composer {
 
     async fn get_suggested_params(&self) -> Result<TransactionParams, ComposerError> {
         // TODO: Add caching with expiration
-        // TODO: This has a different structure to the SuggestedParams in SDK, should we match the format?
         Ok(self.algod_client.transaction_params().await?)
     }
 
@@ -1207,12 +1223,13 @@ impl Composer {
                     }
 
                     // If there is any additional fee deficit, the transaction must cover it by modifying the fee
-                    if let Some(FeeDelta::Deficit(deficit_amount)) = additional_fee_delta {
+                    if let Some(FeeDelta::Deficit(additional_deficit_amount)) = additional_fee_delta
+                    {
                         match transactions[group_index] {
                             Transaction::AppCall(_) => {
                                 let txn_header = transactions[group_index].header_mut();
                                 let current_fee = txn_header.fee.unwrap_or(0);
-                                let transaction_fee = current_fee + deficit_amount;
+                                let transaction_fee = current_fee + additional_deficit_amount;
 
                                 let logical_max_fee =
                                     self.transactions[group_index].logical_max_fee();
@@ -1235,7 +1252,7 @@ impl Composer {
                                 return Err(ComposerError::TransactionError {
                                     message: format!(
                                         "An additional fee of {} µALGO is required for non app call transaction {}",
-                                        deficit_amount, group_index
+                                        additional_deficit_amount, group_index
                                     ),
                                 });
                             }
@@ -1270,7 +1287,11 @@ impl Composer {
                         let mut accounts_count = 0;
                         let mut apps_count = 0;
                         let mut assets_count = 0;
-                        let mut boxes_count = 0;
+                        let boxes_count = app_call
+                            .box_references
+                            .as_ref()
+                            .map(|b| b.len())
+                            .unwrap_or(0);
 
                         // Populate accounts at the transaction level, apps, assets, and boxes from unnamed resources
                         if let Some(ref accessed_accounts) = resources_accessed.accounts {
@@ -1309,23 +1330,6 @@ impl Composer {
                                 }
                             }
                             assets_count = assets.len();
-                        }
-
-                        // Populate boxes at the transaction level
-                        if let Some(ref accessed_boxes) = resources_accessed.boxes {
-                            let boxes = app_call.box_references.get_or_insert_with(Vec::new);
-                            for box_ref in accessed_boxes {
-                                if !boxes
-                                    .iter()
-                                    .any(|b| b.app_id == box_ref.app && b.name == box_ref.name)
-                                {
-                                    boxes.push(algokit_transact::BoxReference {
-                                        app_id: box_ref.app,
-                                        name: box_ref.name.clone(),
-                                    });
-                                }
-                            }
-                            boxes_count = boxes.len();
                         }
 
                         //Validate reference limits
@@ -1388,7 +1392,7 @@ impl Composer {
 
                 Composer::populate_group_resource(
                     transactions,
-                    &GroupResourceType::AppLocal(app_local),
+                    &GroupResourceToPopulate::AppLocal(app_local),
                 )?;
 
                 // Remove resources from remaining if we're adding them here
@@ -1404,7 +1408,7 @@ impl Composer {
 
                 Composer::populate_group_resource(
                     transactions,
-                    &GroupResourceType::AssetHolding(asset_holding),
+                    &GroupResourceToPopulate::AssetHolding(asset_holding),
                 )?;
 
                 // Remove resources from remaining if we're adding them here
@@ -1415,14 +1419,20 @@ impl Composer {
 
         // Process accounts next because account limit is 4
         for account in remaining_accounts {
-            Composer::populate_group_resource(transactions, &GroupResourceType::Account(account))?;
+            Composer::populate_group_resource(
+                transactions,
+                &GroupResourceToPopulate::Account(account),
+            )?;
         }
 
         // Process boxes
         for box_ref in remaining_boxes {
             let box_ref_app = box_ref.app;
 
-            Composer::populate_group_resource(transactions, &GroupResourceType::Box(box_ref))?;
+            Composer::populate_group_resource(
+                transactions,
+                &GroupResourceToPopulate::Box(box_ref),
+            )?;
 
             // Remove apps as resource if we're adding it here
             remaining_apps.retain(|app| *app != box_ref_app);
@@ -1430,18 +1440,24 @@ impl Composer {
 
         // Process assets
         for asset in remaining_assets {
-            Composer::populate_group_resource(transactions, &GroupResourceType::Asset(asset))?;
+            Composer::populate_group_resource(
+                transactions,
+                &GroupResourceToPopulate::Asset(asset),
+            )?;
         }
 
         // Process remaining apps
         for app in remaining_apps {
-            Composer::populate_group_resource(transactions, &GroupResourceType::App(app))?;
+            Composer::populate_group_resource(transactions, &GroupResourceToPopulate::App(app))?;
         }
 
         // Handle extra box refs
         if let Some(extra_box_refs) = group_resources.extra_box_refs {
             for _ in 0..extra_box_refs {
-                Composer::populate_group_resource(transactions, &GroupResourceType::ExtraBoxRef)?;
+                Composer::populate_group_resource(
+                    transactions,
+                    &GroupResourceToPopulate::ExtraBoxRef,
+                )?;
             }
         }
 
@@ -1481,14 +1497,14 @@ impl Composer {
     /// Helper function to populate a specific resource into a transaction group
     fn populate_group_resource(
         transactions: &mut [Transaction],
-        resource: &GroupResourceType,
+        resource: &GroupResourceToPopulate,
     ) -> Result<(), ComposerError> {
         // For asset holdings and app locals, first try to find a transaction that already has the account available
         match resource {
-            GroupResourceType::AssetHolding(_) | GroupResourceType::AppLocal(_) => {
+            GroupResourceToPopulate::AssetHolding(_) | GroupResourceToPopulate::AppLocal(_) => {
                 let account = match resource {
-                    GroupResourceType::AssetHolding(asset_holding) => &asset_holding.account,
-                    GroupResourceType::AppLocal(app_local) => &app_local.account,
+                    GroupResourceToPopulate::AssetHolding(asset_holding) => &asset_holding.account,
+                    GroupResourceToPopulate::AppLocal(app_local) => &app_local.account,
                     _ => unreachable!(),
                 };
 
@@ -1528,13 +1544,13 @@ impl Composer {
                 if let Some(group_index) = group_index {
                     if let Transaction::AppCall(ref mut app_call) = transactions[group_index] {
                         match resource {
-                            GroupResourceType::AssetHolding(asset_holding) => {
+                            GroupResourceToPopulate::AssetHolding(asset_holding) => {
                                 let assets = app_call.asset_references.get_or_insert_with(Vec::new);
                                 if !assets.contains(&asset_holding.asset) {
                                     assets.push(asset_holding.asset);
                                 }
                             }
-                            GroupResourceType::AppLocal(app_local) => {
+                            GroupResourceToPopulate::AppLocal(app_local) => {
                                 let apps = app_call.app_references.get_or_insert_with(Vec::new);
                                 if !apps.contains(&app_local.app) {
                                     apps.push(app_local.app);
@@ -1566,12 +1582,12 @@ impl Composer {
                         }
 
                         match resource {
-                            GroupResourceType::AssetHolding(asset_holding) => {
+                            GroupResourceToPopulate::AssetHolding(asset_holding) => {
                                 if let Some(ref assets) = app_call.asset_references {
                                     return assets.contains(&asset_holding.asset);
                                 }
                             }
-                            GroupResourceType::AppLocal(app_local) => {
+                            GroupResourceToPopulate::AppLocal(app_local) => {
                                 if let Some(ref apps) = app_call.app_references {
                                     return apps.contains(&app_local.app);
                                 }
@@ -1599,7 +1615,7 @@ impl Composer {
                     return Ok(());
                 }
             }
-            GroupResourceType::Box(box_ref) => {
+            GroupResourceToPopulate::Box(box_ref) => {
                 // For boxes, first try to find a transaction that already has the app available
                 let group_index = transactions.iter().position(|txn| {
                     if !Composer::is_app_call_below_resource_limit(txn) {
@@ -1663,16 +1679,17 @@ impl Composer {
                     .unwrap_or(0);
 
                 match resource {
-                    GroupResourceType::Account(_) => accounts_count < MAX_ACCOUNT_REFERENCES,
+                    GroupResourceToPopulate::Account(_) => accounts_count < MAX_ACCOUNT_REFERENCES,
 
-                    GroupResourceType::AssetHolding(..) | GroupResourceType::AppLocal(..) => {
+                    GroupResourceToPopulate::AssetHolding(..)
+                    | GroupResourceToPopulate::AppLocal(..) => {
                         // If we're adding local state or asset holding, we need space for the account and the other reference (asset or app)
                         (accounts_count + assets_count + apps_count + boxes_count)
                             < (MAX_OVERALL_REFERENCES - 1)
                             && accounts_count < MAX_ACCOUNT_REFERENCES
                     }
 
-                    GroupResourceType::Box(box_ref) => {
+                    GroupResourceToPopulate::Box(box_ref) => {
                         // If we're adding a box, we need space for both the box reference and the app reference
                         if box_ref.app != 0 {
                             (accounts_count + assets_count + apps_count + boxes_count)
@@ -1700,7 +1717,7 @@ impl Composer {
 
         if let Transaction::AppCall(ref mut app_call) = transactions[group_index] {
             match resource {
-                GroupResourceType::Account(account) => {
+                GroupResourceToPopulate::Account(account) => {
                     let accounts = app_call.account_references.get_or_insert_with(Vec::new);
                     let address = account.parse::<Address>().map_err(|e| {
                         ComposerError::TransactionError {
@@ -1711,13 +1728,13 @@ impl Composer {
                         accounts.push(address);
                     }
                 }
-                GroupResourceType::App(app_id) => {
+                GroupResourceToPopulate::App(app_id) => {
                     let apps = app_call.app_references.get_or_insert_with(Vec::new);
                     if !apps.contains(app_id) {
                         apps.push(*app_id);
                     }
                 }
-                GroupResourceType::Box(box_ref) => {
+                GroupResourceToPopulate::Box(box_ref) => {
                     let boxes = app_call.box_references.get_or_insert_with(Vec::new);
                     if !boxes
                         .iter()
@@ -1735,14 +1752,14 @@ impl Composer {
                         }
                     }
                 }
-                GroupResourceType::ExtraBoxRef => {
+                GroupResourceToPopulate::ExtraBoxRef => {
                     let boxes = app_call.box_references.get_or_insert_with(Vec::new);
                     boxes.push(algokit_transact::BoxReference {
                         app_id: 0,
                         name: Vec::new(),
                     });
                 }
-                GroupResourceType::AssetHolding(asset_holding) => {
+                GroupResourceToPopulate::AssetHolding(asset_holding) => {
                     let assets = app_call.asset_references.get_or_insert_with(Vec::new);
                     if !assets.contains(&asset_holding.asset) {
                         assets.push(asset_holding.asset);
@@ -1758,7 +1775,7 @@ impl Composer {
                         accounts.push(address);
                     }
                 }
-                GroupResourceType::AppLocal(app_local) => {
+                GroupResourceToPopulate::AppLocal(app_local) => {
                     let apps = app_call.app_references.get_or_insert_with(Vec::new);
                     if !apps.contains(&app_local.app) {
                         apps.push(app_local.app);
@@ -1774,7 +1791,7 @@ impl Composer {
                         accounts.push(address);
                     }
                 }
-                GroupResourceType::Asset(asset_id) => {
+                GroupResourceToPopulate::Asset(asset_id) => {
                     let assets = app_call.asset_references.get_or_insert_with(Vec::new);
                     if !assets.contains(asset_id) {
                         assets.push(*asset_id);
@@ -1794,10 +1811,7 @@ impl Composer {
         }
     }
 
-    pub async fn build(
-        &mut self,
-        params: Option<BuildParams>,
-    ) -> Result<&Vec<TransactionWithSigner>, ComposerError> {
+    pub async fn build(&mut self) -> Result<&Vec<TransactionWithSigner>, ComposerError> {
         if let Some(ref group) = self.built_group {
             return Ok(group);
         }
@@ -1806,21 +1820,23 @@ impl Composer {
         let default_validity_window =
             Self::get_default_validity_window(&suggested_params.genesis_id);
 
-        let group_analysis = match params.as_ref() {
-            Some(params)
-                if params.cover_app_call_inner_transaction_fees
-                    || params.populate_app_call_resources.is_enabled() =>
-            {
-                Some(
-                    self.analyze_group_requirements(
-                        &suggested_params,
-                        &default_validity_window,
-                        params,
-                    )
-                    .await?,
+        let group_analysis = if (self.composer_config.cover_app_call_inner_transaction_fees
+            || self
+                .composer_config
+                .populate_app_call_resources
+                .is_enabled())
+            && self.transactions.iter().any(|ctxn| ctxn.is_app_call())
+        {
+            Some(
+                self.analyze_group_requirements(
+                    &suggested_params,
+                    &default_validity_window,
+                    &self.composer_config,
                 )
-            }
-            _ => None,
+                .await?,
+            )
+        } else {
+            None
         };
 
         let transactions = self
@@ -1861,13 +1877,14 @@ impl Composer {
             return Ok(group);
         }
 
-        // TODO: Should gather signatures invoke build?
-        // This makes it possible to build, then send, however use different args between the two calls?
+        self.build().await?;
 
-        let transactions_with_signers =
-            self.built_group.as_ref().ok_or(ComposerError::StateError {
-                message: "Cannot gather signatures before building the transaction group"
-                    .to_string(),
+        let transactions_with_signers = self
+            .built_group
+            .as_ref()
+            .filter(|&txs| !txs.is_empty())
+            .ok_or(ComposerError::StateError {
+                message: "No transactions available".to_string(),
             })?;
 
         // Group transactions by signer
@@ -2005,32 +2022,18 @@ impl Composer {
         &mut self,
         params: Option<SendParams>,
     ) -> Result<SendTransactionComposerResults, ComposerError> {
-        let build_params = params.as_ref().map(Into::into);
-
-        self.build(build_params).await?;
-
-        let group = {
-            let transactions_with_signers =
-                self.built_group.as_ref().ok_or(ComposerError::StateError {
-                    message: "No transactions to send".to_string(),
-                })?;
-
-            if transactions_with_signers.is_empty() {
-                return Err(ComposerError::StateError {
-                    message: "No transactions to send".to_string(),
-                });
-            }
-            transactions_with_signers[0].transaction.header().group
-        };
-
         self.gather_signatures().await?;
 
-        let signed_transactions = self
-            .signed_group
-            .as_ref()
-            .ok_or(ComposerError::StateError {
-                message: "No signed transactions to send".to_string(),
-            })?;
+        let (group, signed_transactions) = {
+            let stxns = self
+                .signed_group
+                .as_ref()
+                .filter(|&stxns| !stxns.is_empty())
+                .ok_or(ComposerError::StateError {
+                    message: "No transactions available".to_string(),
+                })?;
+            (stxns[0].transaction.header().group, stxns)
+        };
 
         let wait_rounds = if let Some(max_rounds_to_wait_for_confirmation) =
             params.and_then(|p| p.max_rounds_to_wait_for_confirmation)
@@ -2046,11 +2049,11 @@ impl Composer {
                 .ok_or(ComposerError::StateError {
                     message: "Failed to calculate last valid round".to_string(),
                 })?;
-            (last_round - first_round)
-                .try_into()
-                .unwrap_or(Self::get_default_validity_window(
-                    &suggested_params.genesis_id,
-                ))
+            ((last_round - first_round) + 1).try_into().map_err(|e| {
+                ComposerError::TransactionError {
+                    message: format!("Failed to calculate rounds to wait: {}", e),
+                }
+            })?
         };
 
         // Encode each signed transaction and concatenate them
@@ -2095,6 +2098,10 @@ impl Composer {
         })
     }
 
+    pub fn count(&self) -> usize {
+        self.transactions.len()
+    }
+
     /// Extract ABI method mapping from built transactions.
     /// Maps transaction index to the ABI method used to create it.
     /// Used by TransactionCreator to populate BuiltTransactions.method_calls.
@@ -2114,19 +2121,31 @@ impl Composer {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::EmptySigner;
     use algokit_transact::test_utils::{AccountMother, TransactionMother};
     use base64::{Engine, prelude::BASE64_STANDARD};
 
+    fn test_composer_params() -> ComposerParams {
+        ComposerParams {
+            algod_client: Arc::new(AlgodClient::testnet()),
+            signer_getter: Arc::new(|_| Ok(Arc::new(EmptySigner {}))),
+            composer_config: Some(TransactionComposerConfig {
+                populate_app_call_resources: ResourcePopulation::Disabled,
+                cover_app_call_inner_transaction_fees: false,
+            }),
+        }
+    }
+
     #[test]
     fn test_add_transaction() {
-        let mut composer = Composer::testnet();
+        let mut composer = Composer::new(test_composer_params());
         let txn = TransactionMother::simple_payment().build().unwrap();
         assert!(composer.add_transaction(txn, None).is_ok());
     }
 
     #[test]
     fn test_add_too_many_transactions() {
-        let mut composer = Composer::testnet();
+        let mut composer = Composer::new(test_composer_params());
         for _ in 0..16 {
             let txn = TransactionMother::simple_payment().build().unwrap();
             assert!(composer.add_transaction(txn, None).is_ok());
@@ -2137,7 +2156,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_suggested_params() {
-        let composer = Composer::testnet();
+        let composer = Composer::new(test_composer_params());
         let response = composer.get_suggested_params().await.unwrap();
 
         assert_eq!(
@@ -2150,7 +2169,7 @@ mod tests {
 
     #[test]
     fn test_add_payment() {
-        let mut composer = Composer::testnet();
+        let mut composer = Composer::new(test_composer_params());
         let payment_params = PaymentParams {
             sender: AccountMother::account().address(),
             signer: None,
@@ -2171,7 +2190,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_gather_signatures() {
-        let mut composer = Composer::testnet();
+        let mut composer = Composer::new(test_composer_params());
 
         let payment_params = PaymentParams {
             sender: AccountMother::account().address(),
@@ -2189,7 +2208,6 @@ mod tests {
             amount: 1000,
         };
         composer.add_payment(payment_params).unwrap();
-        composer.build(None).await.unwrap();
 
         let result = composer.gather_signatures().await;
         assert!(result.is_ok());
@@ -2197,7 +2215,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_single_transaction_no_group() {
-        let mut composer = Composer::testnet();
+        let mut composer = Composer::new(test_composer_params());
         let payment_params = PaymentParams {
             sender: AccountMother::account().address(),
             signer: None,
@@ -2215,7 +2233,7 @@ mod tests {
         };
         composer.add_payment(payment_params).unwrap();
 
-        composer.build(None).await.unwrap();
+        composer.build().await.unwrap();
 
         let built_group = composer.built_group.as_ref().unwrap();
         assert_eq!(built_group.len(), 1);
@@ -2226,7 +2244,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_multiple_transactions_have_group() {
-        let mut composer = Composer::testnet();
+        let mut composer = Composer::new(test_composer_params());
 
         for _ in 0..2 {
             let payment_params = PaymentParams {
@@ -2247,7 +2265,7 @@ mod tests {
             composer.add_payment(payment_params).unwrap();
         }
 
-        composer.build(None).await.unwrap();
+        composer.build().await.unwrap();
 
         let built_group = composer.built_group.as_ref().unwrap();
         assert_eq!(built_group.len(), 2);
@@ -2349,24 +2367,46 @@ mod tests {
     }
 
     #[test]
-    fn test_build_params_default() {
-        let params = BuildParams::default();
+    fn test_transaction_composer_config_default() {
+        let params = TransactionComposerConfig::default();
         assert!(!params.cover_app_call_inner_transaction_fees);
         assert!(params.populate_app_call_resources.is_enabled());
+        assert!(!params.populate_app_call_resources.use_access_list());
     }
 
     #[test]
-    fn test_build_params_from_send_params() {
-        let send_params = SendParams {
-            max_rounds_to_wait_for_confirmation: Some(10),
-            cover_app_call_inner_transaction_fees: true,
-            populate_app_call_resources: ResourcePopulation::Enabled {
-                use_access_list: true,
-            },
-        };
+    fn test_add_transaction_with_non_empty_group_fails() {
+        let mut composer = Composer::new(test_composer_params());
 
-        let build_params = BuildParams::from(&send_params);
-        assert!(build_params.cover_app_call_inner_transaction_fees);
-        assert!(build_params.populate_app_call_resources.is_enabled());
+        // Create a transaction with a non-empty group
+        let mut txn = TransactionMother::simple_payment().build().unwrap();
+        // Set a non-zero group (the check is for non-zero bytes)
+        txn.header_mut().group = Some([1u8; 32]);
+
+        let result = composer.add_transaction(txn, None);
+
+        assert!(result.is_err());
+        if let Err(ComposerError::TransactionError { message }) = result {
+            assert!(message.contains("Cannot add a transaction with nonzero group"));
+        }
+    }
+
+    #[tokio::test]
+    async fn test_add_transaction_after_build_fails() {
+        let mut composer = Composer::new(test_composer_params());
+
+        // Add a transaction and build the composer
+        let txn = TransactionMother::simple_payment().build().unwrap();
+        composer.add_transaction(txn, None).unwrap();
+        composer.build().await.unwrap();
+
+        // Now try to add another transaction, which should fail
+        let txn2 = TransactionMother::simple_payment().build().unwrap();
+        let result = composer.add_transaction(txn2, None);
+
+        assert!(result.is_err());
+        if let Err(ComposerError::StateError { message }) = result {
+            assert!(message.contains("Cannot add new transactions after building"));
+        }
     }
 }

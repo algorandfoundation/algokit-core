@@ -38,7 +38,7 @@ async fn test_asset_freeze_unfreeze(
     let target_addr = target_account.account().address();
 
     // Create a composer for the target account that can send transactions
-    let target_composer = algorand_fixture.algorand_client.new_group();
+    let target_composer = algorand_fixture.algorand_client.new_group(None);
 
     // SETUP PHASE
 
@@ -59,7 +59,7 @@ async fn test_asset_freeze_unfreeze(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture.algorand_client.new_group(None);
     composer.add_asset_create(asset_create_params)?;
 
     let create_result = composer.send(None).await?;
@@ -93,7 +93,7 @@ async fn test_asset_freeze_unfreeze(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture.algorand_client.new_group(None);
     composer.add_asset_transfer(asset_transfer_params)?;
 
     let transfer_result = composer.send(None).await?;
@@ -113,7 +113,7 @@ async fn test_asset_freeze_unfreeze(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture.algorand_client.new_group(None);
     composer.add_asset_freeze(asset_freeze_params)?;
 
     let freeze_result = composer.send(None).await?;
@@ -192,7 +192,7 @@ async fn test_asset_freeze_unfreeze(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture.algorand_client.new_group(None);
     composer.add_asset_unfreeze(asset_unfreeze_params)?;
 
     let unfreeze_result = composer.send(None).await?;

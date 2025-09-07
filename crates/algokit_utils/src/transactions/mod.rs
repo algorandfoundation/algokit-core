@@ -23,8 +23,8 @@ pub use asset_transfer::{
 };
 pub use common::{EmptySigner, TransactionSigner, TransactionWithSigner};
 pub use composer::{
-    Composer, ComposerError, ComposerTransaction, ResourcePopulation, SendParams,
-    SendTransactionComposerResults,
+    Composer, ComposerError, ComposerParams, ComposerTransaction, ResourcePopulation, SendParams,
+    SendTransactionComposerResults, TransactionComposerConfig,
 };
 pub use creator::{BuiltTransactions, TransactionCreator};
 pub use key_registration::{

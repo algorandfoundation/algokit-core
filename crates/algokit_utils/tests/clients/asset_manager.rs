@@ -222,7 +222,7 @@ async fn test_bulk_opt_out_success(
     let asset_manager = algorand_fixture.algorand_client.asset();
 
     // First, opt into the assets individually using the Composer
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture.algorand_client.new_group(None);
 
     for &asset_id in &asset_ids {
         let opt_in_params = AssetOptInParams {
@@ -335,7 +335,7 @@ async fn test_bulk_opt_out_without_balance_check(
 
     let asset_manager = algorand_fixture.algorand_client.asset();
 
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture.algorand_client.new_group(None);
 
     let opt_in_params = AssetOptInParams {
         sender: test_address.clone(),

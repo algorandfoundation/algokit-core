@@ -369,24 +369,26 @@ impl AppManager {
     }
 
     /// Get ABI return value from transaction confirmation.
-    pub fn get_abi_return(
-        confirmation_data: &[u8],
-        method: &ABIMethod,
-    ) -> Result<Option<ABIReturn>, AppManagerError> {
+    pub fn get_abi_return(confirmation_data: &[u8], method: &ABIMethod) -> Option<ABIReturn> {
         if let Some(return_type) = &method.returns {
-            let return_value = return_type.decode(confirmation_data).map_err(|e| {
-                AppManagerError::ABIDecodeError {
-                    message: e.to_string(),
-                }
-            })?;
+            let return_value = match return_type.decode(confirmation_data) {
+                Ok(value) => ABIReturn {
+                    method: method.clone(),
+                    raw_return_value: confirmation_data.to_vec(),
+                    return_value: Some(value),
+                    decode_error: None,
+                },
+                Err(e) => ABIReturn {
+                    method: method.clone(),
+                    raw_return_value: confirmation_data.to_vec(),
+                    return_value: None,
+                    decode_error: Some(e),
+                },
+            };
 
-            Ok(Some(ABIReturn {
-                method: method.clone(),
-                raw_return_value: confirmation_data.to_vec(),
-                return_value,
-            }))
+            Some(return_value)
         } else {
-            Ok(None)
+            None
         }
     }
 

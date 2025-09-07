@@ -6,7 +6,8 @@ use algokit_abi::{ABIMethod, ABIType, ABIValue};
 use algokit_test_artifacts::{inner_fee_contract, nested_contract};
 use algokit_transact::{Address, TransactionId};
 use algokit_utils::Composer;
-use algokit_utils::transactions::composer::{ResourcePopulation, SendParams};
+use algokit_utils::transactions::TransactionComposerConfig;
+use algokit_utils::transactions::composer::ResourcePopulation;
 use algokit_utils::{AppCallParams, AppCreateParams, PaymentParams};
 use base64::{Engine, prelude::BASE64_STANDARD};
 use rstest::*;
@@ -78,7 +79,9 @@ async fn test_errors_when_no_max_fee_supplied(
         abi_types: _,
     } = fixture.await?;
     let app_id = app_ids[0];
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture
+        .algorand_client
+        .new_group(COVER_FEES_GROUP_PARAMS);
 
     let params = AppCallParams {
         sender: sender_address.clone(),
@@ -87,7 +90,7 @@ async fn test_errors_when_no_max_fee_supplied(
         ..Default::default()
     };
     composer.add_app_call(params)?;
-    let result = composer.send(COVER_FEES_SEND_PARAMS).await;
+    let result = composer.send(None).await;
 
     assert!(
         result.is_err()
@@ -118,7 +121,15 @@ async fn test_errors_when_inner_fees_not_covered_and_fee_coverage_disabled(
         method_selectors,
         abi_types,
     } = fixture.await?;
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer =
+        algorand_fixture
+            .algorand_client
+            .new_group(Some(TransactionComposerConfig {
+                cover_app_call_inner_transaction_fees: false,
+                populate_app_call_resources: ResourcePopulation::Enabled {
+                    use_access_list: false,
+                }, // Ensure the same behaviour when simulating due to resource population
+            }));
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
 
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0]);
@@ -137,15 +148,7 @@ async fn test_errors_when_inner_fees_not_covered_and_fee_coverage_disabled(
     };
     composer.add_app_call(txn_params)?;
 
-    let result = composer
-        .send(Some(SendParams {
-            cover_app_call_inner_transaction_fees: false,
-            populate_app_call_resources: ResourcePopulation::Enabled {
-                use_access_list: false,
-            }, // Ensure the same behaviour when simulating due to resource population
-            ..Default::default()
-        }))
-        .await;
+    let result = composer.send(None).await;
 
     assert!(
         result.is_err()
@@ -178,7 +181,9 @@ async fn test_does_not_alter_fee_when_no_inners(
     } = fixture.await?;
     let app_id = app_ids[0];
 
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture
+        .algorand_client
+        .new_group(COVER_FEES_GROUP_PARAMS);
 
     let expected_fee = 1000u64;
 
@@ -191,7 +196,7 @@ async fn test_does_not_alter_fee_when_no_inners(
     };
     composer.add_app_call(txn_params.clone())?;
 
-    let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
+    let result = composer.send(None).await?;
 
     assert_eq!(result.confirmations.len(), 1);
     let transaction_fee = result.confirmations[0]
@@ -202,7 +207,7 @@ async fn test_does_not_alter_fee_when_no_inners(
         .unwrap_or(0);
     assert_eq!(transaction_fee, expected_fee);
     assert_min_fee(
-        algorand_fixture.algorand_client.new_group(),
+        &|params| algorand_fixture.algorand_client.new_group(params),
         &txn_params,
         transaction_fee,
     )
@@ -226,7 +231,9 @@ async fn test_alters_fee_no_inner_fees_covered(
         method_selectors,
         abi_types,
     } = fixture.await?;
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture
+        .algorand_client
+        .new_group(COVER_FEES_GROUP_PARAMS);
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
     let expected_fee = 7000u64;
 
@@ -247,7 +254,7 @@ async fn test_alters_fee_no_inner_fees_covered(
     };
     composer.add_app_call(txn_params.clone())?;
 
-    let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
+    let result = composer.send(None).await?;
 
     assert_eq!(result.confirmations.len(), 1);
     let transaction_fee = result.confirmations[0]
@@ -258,7 +265,7 @@ async fn test_alters_fee_no_inner_fees_covered(
         .unwrap_or(0);
     assert_eq!(transaction_fee, expected_fee);
     assert_min_fee(
-        algorand_fixture.algorand_client.new_group(),
+        &|params| algorand_fixture.algorand_client.new_group(params),
         &txn_params,
         transaction_fee,
     )
@@ -282,7 +289,9 @@ async fn test_alters_fee_all_inner_fees_covered(
         method_selectors,
         abi_types,
     } = fixture.await?;
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture
+        .algorand_client
+        .new_group(COVER_FEES_GROUP_PARAMS);
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
 
     let expected_fee = 1000u64;
@@ -304,7 +313,7 @@ async fn test_alters_fee_all_inner_fees_covered(
     };
     composer.add_app_call(txn_params.clone())?;
 
-    let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
+    let result = composer.send(None).await?;
 
     assert_eq!(result.confirmations.len(), 1);
     let actual_fees = result
@@ -314,7 +323,7 @@ async fn test_alters_fee_all_inner_fees_covered(
         .collect::<Vec<_>>();
     assert_eq!(actual_fees[0], expected_fee);
     assert_min_fee(
-        algorand_fixture.algorand_client.new_group(),
+        &|params| algorand_fixture.algorand_client.new_group(params),
         &txn_params,
         expected_fee,
     )
@@ -338,7 +347,9 @@ async fn test_alters_fee_some_inner_fees_covered(
         method_selectors,
         abi_types,
     } = fixture.await?;
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture
+        .algorand_client
+        .new_group(COVER_FEES_GROUP_PARAMS);
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
 
     let expected_fee = 5300u64;
@@ -361,7 +372,7 @@ async fn test_alters_fee_some_inner_fees_covered(
     };
     composer.add_app_call(txn_params.clone())?;
 
-    let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
+    let result = composer.send(None).await?;
 
     assert_eq!(result.confirmations.len(), 1);
     let actual_fees = result
@@ -371,7 +382,7 @@ async fn test_alters_fee_some_inner_fees_covered(
         .collect::<Vec<_>>();
     assert_eq!(actual_fees[0], expected_fee);
     assert_min_fee(
-        algorand_fixture.algorand_client.new_group(),
+        &|params| algorand_fixture.algorand_client.new_group(params),
         &txn_params,
         expected_fee,
     )
@@ -395,7 +406,9 @@ async fn test_alters_fee_some_inner_fees_surplus(
         method_selectors,
         abi_types,
     } = fixture.await?;
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture
+        .algorand_client
+        .new_group(COVER_FEES_GROUP_PARAMS);
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
 
     let expected_fee = 2000u64;
@@ -418,7 +431,7 @@ async fn test_alters_fee_some_inner_fees_surplus(
     };
     composer.add_app_call(txn_params.clone())?;
 
-    let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
+    let result = composer.send(None).await?;
 
     assert_eq!(result.confirmations.len(), 1);
     let actual_fees = result
@@ -428,7 +441,7 @@ async fn test_alters_fee_some_inner_fees_surplus(
         .collect::<Vec<_>>();
     assert_eq!(actual_fees[0], expected_fee);
     assert_min_fee(
-        algorand_fixture.algorand_client.new_group(),
+        &|params| algorand_fixture.algorand_client.new_group(params),
         &txn_params,
         expected_fee,
     )
@@ -453,7 +466,9 @@ async fn test_alters_fee_expensive_abi_method_calls(
         abi_types,
     } = fixture.await?;
 
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture
+        .algorand_client
+        .new_group(COVER_FEES_GROUP_PARAMS);
     let app_id = app_ids[0];
     let expected_fee = 10_000u64;
 
@@ -469,7 +484,7 @@ async fn test_alters_fee_expensive_abi_method_calls(
     };
     composer.add_app_call(params.clone())?;
 
-    let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
+    let result = composer.send(None).await?;
 
     assert_eq!(result.confirmations.len(), 1);
     let actual_fees: Vec<u64> = result
@@ -480,7 +495,7 @@ async fn test_alters_fee_expensive_abi_method_calls(
     assert_eq!(actual_fees[0], expected_fee);
 
     assert_min_fee(
-        algorand_fixture.algorand_client.new_group(),
+        &|params| algorand_fixture.algorand_client.new_group(params),
         &params,
         expected_fee,
     )
@@ -504,7 +519,9 @@ async fn test_errors_when_max_fee_too_small(
         method_selectors,
         abi_types,
     } = fixture.await?;
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture
+        .algorand_client
+        .new_group(COVER_FEES_GROUP_PARAMS);
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
     let expected_fee = 7000u64;
 
@@ -525,7 +542,7 @@ async fn test_errors_when_max_fee_too_small(
     };
     composer.add_app_call(params.clone())?;
 
-    let result = composer.send(COVER_FEES_SEND_PARAMS).await;
+    let result = composer.send(None).await;
 
     assert!(
         result.is_err()
@@ -556,7 +573,9 @@ async fn test_errors_when_static_fee_too_small(
         method_selectors,
         abi_types,
     } = fixture.await?;
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture
+        .algorand_client
+        .new_group(COVER_FEES_GROUP_PARAMS);
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
     let expected_fee = 7000u64;
 
@@ -577,7 +596,7 @@ async fn test_errors_when_static_fee_too_small(
     };
     composer.add_app_call(params.clone())?;
 
-    let result = composer.send(COVER_FEES_SEND_PARAMS).await;
+    let result = composer.send(None).await;
 
     assert!(
         result.is_err()
@@ -608,7 +627,9 @@ async fn test_does_not_alter_static_fee_with_surplus(
         method_selectors,
         abi_types,
     } = fixture.await?;
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture
+        .algorand_client
+        .new_group(COVER_FEES_GROUP_PARAMS);
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
     let expected_fee = 6000u64;
 
@@ -630,7 +651,7 @@ async fn test_does_not_alter_static_fee_with_surplus(
 
     composer.add_app_call(app_call_params)?;
 
-    let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
+    let result = composer.send(None).await?;
 
     assert_eq!(result.confirmations.len(), 1);
     let actual_fees: Vec<u64> = result
@@ -658,7 +679,9 @@ async fn test_alters_fee_multiple_app_calls_in_group(
         method_selectors,
         abi_types,
     } = fixture.await?;
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture
+        .algorand_client
+        .new_group(COVER_FEES_GROUP_PARAMS);
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
 
     // Create an app call transaction that has varying inner fees
@@ -699,7 +722,7 @@ async fn test_alters_fee_multiple_app_calls_in_group(
     };
     composer.add_app_call(txn_2_params.clone())?;
 
-    let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
+    let result = composer.send(None).await?;
 
     assert_eq!(result.confirmations.len(), 2);
     let actual_fees: Vec<u64> = result
@@ -710,18 +733,9 @@ async fn test_alters_fee_multiple_app_calls_in_group(
     assert_eq!(actual_fees[0], txn_1_expected_fee);
     assert_eq!(actual_fees[1], txn_2_expected_fee);
 
-    assert_min_fee(
-        algorand_fixture.algorand_client.new_group(),
-        &txn_1_params,
-        txn_1_expected_fee,
-    )
-    .await;
-    assert_min_fee(
-        algorand_fixture.algorand_client.new_group(),
-        &txn_2_params,
-        txn_2_expected_fee,
-    )
-    .await;
+    let new_group = &|params| algorand_fixture.algorand_client.new_group(params);
+    assert_min_fee(new_group, &txn_1_params, txn_1_expected_fee).await;
+    assert_min_fee(new_group, &txn_2_params, txn_2_expected_fee).await;
 
     Ok(())
 }
@@ -741,7 +755,9 @@ async fn test_does_not_alter_fee_when_group_covers_inner_fees(
         method_selectors,
         abi_types,
     } = fixture.await?;
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture
+        .algorand_client
+        .new_group(COVER_FEES_GROUP_PARAMS);
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
 
     // Create a payment transaction that will cover the inner fees of transaction 2
@@ -772,7 +788,7 @@ async fn test_does_not_alter_fee_when_group_covers_inner_fees(
     };
     composer.add_app_call(txn_2_params)?;
 
-    let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
+    let result = composer.send(None).await?;
 
     assert_eq!(result.confirmations.len(), 2);
     let actual_fees: Vec<u64> = result
@@ -802,7 +818,9 @@ async fn test_alters_fee_nested_abi_method_call(
         method_selectors,
         abi_types,
     } = fixture.await?;
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture
+        .algorand_client
+        .new_group(COVER_FEES_GROUP_PARAMS);
     let [app_id_1, app_id_2, app_id_3, app_id_4] = [app_ids[0], app_ids[1], app_ids[2], app_ids[3]];
     let expected_fee = 2000u64;
 
@@ -844,7 +862,7 @@ async fn test_alters_fee_nested_abi_method_call(
     };
     composer.add_app_call(txn_3_params.clone())?;
 
-    let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
+    let result = composer.send(None).await?;
 
     assert_eq!(result.confirmations.len(), 3);
     let actual_fees = result
@@ -874,7 +892,9 @@ async fn test_errors_when_nested_max_fee_below_calculated(
         method_selectors,
         abi_types,
     } = fixture.await?;
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture
+        .algorand_client
+        .new_group(COVER_FEES_GROUP_PARAMS);
     let [app_id_1, app_id_2, app_id_3, app_id_4] = [app_ids[0], app_ids[1], app_ids[2], app_ids[3]];
 
     // Create a payment transaction that will be used as a nested argument
@@ -916,7 +936,7 @@ async fn test_errors_when_nested_max_fee_below_calculated(
     };
     composer.add_app_call(txn_3_params)?;
 
-    let result = composer.send(COVER_FEES_SEND_PARAMS).await;
+    let result = composer.send(None).await;
 
     assert!(
         result.is_err()
@@ -949,7 +969,9 @@ async fn test_alters_fee_allocating_surplus_to_most_constrained(
         method_selectors,
         abi_types,
     } = fixture.await?;
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture
+        .algorand_client
+        .new_group(COVER_FEES_GROUP_PARAMS);
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
 
     // Create an app call transaction with inners that have no fees
@@ -989,7 +1011,7 @@ async fn test_alters_fee_allocating_surplus_to_most_constrained(
     };
     composer.add_payment(txn_3_params)?;
 
-    let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
+    let result = composer.send(None).await?;
 
     assert_eq!(result.confirmations.len(), 3);
     let actual_fees = result
@@ -1019,7 +1041,9 @@ async fn test_alters_fee_large_surplus_pooling_to_lower_siblings(
         method_selectors,
         abi_types,
     } = fixture.await?;
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture
+        .algorand_client
+        .new_group(COVER_FEES_GROUP_PARAMS);
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
     let expected_fee = 7000u64;
 
@@ -1040,7 +1064,7 @@ async fn test_alters_fee_large_surplus_pooling_to_lower_siblings(
     };
     composer.add_app_call(txn_params.clone())?;
 
-    let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
+    let result = composer.send(None).await?;
 
     assert_eq!(result.confirmations.len(), 1);
     let actual_fees = result
@@ -1050,7 +1074,7 @@ async fn test_alters_fee_large_surplus_pooling_to_lower_siblings(
         .collect::<Vec<_>>();
     assert_eq!(actual_fees[0], expected_fee);
     assert_min_fee(
-        algorand_fixture.algorand_client.new_group(),
+        &|params| algorand_fixture.algorand_client.new_group(params),
         &txn_params,
         expected_fee,
     )
@@ -1074,7 +1098,9 @@ async fn test_alters_fee_surplus_pooling_to_some_siblings(
         method_selectors,
         abi_types,
     } = fixture.await?;
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture
+        .algorand_client
+        .new_group(COVER_FEES_GROUP_PARAMS);
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
     let expected_fee = 6300u64;
 
@@ -1095,7 +1121,7 @@ async fn test_alters_fee_surplus_pooling_to_some_siblings(
     };
     composer.add_app_call(txn_params.clone())?;
 
-    let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
+    let result = composer.send(None).await?;
 
     assert_eq!(result.confirmations.len(), 1);
     let actual_fees = result
@@ -1105,7 +1131,7 @@ async fn test_alters_fee_surplus_pooling_to_some_siblings(
         .collect::<Vec<_>>();
     assert_eq!(actual_fees[0], expected_fee);
     assert_min_fee(
-        algorand_fixture.algorand_client.new_group(),
+        &|params| algorand_fixture.algorand_client.new_group(params),
         &txn_params,
         expected_fee,
     )
@@ -1129,7 +1155,9 @@ async fn test_alters_fee_large_surplus_no_pooling(
         method_selectors,
         abi_types,
     } = fixture.await?;
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture
+        .algorand_client
+        .new_group(COVER_FEES_GROUP_PARAMS);
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
     let expected_fee = 10_000u64;
 
@@ -1150,7 +1178,7 @@ async fn test_alters_fee_large_surplus_no_pooling(
     };
     composer.add_app_call(txn_params.clone())?;
 
-    let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
+    let result = composer.send(None).await?;
 
     assert_eq!(result.confirmations.len(), 1);
     let actual_fees = result
@@ -1160,7 +1188,7 @@ async fn test_alters_fee_large_surplus_no_pooling(
         .collect::<Vec<_>>();
     assert_eq!(actual_fees[0], expected_fee);
     assert_min_fee(
-        algorand_fixture.algorand_client.new_group(),
+        &|params| algorand_fixture.algorand_client.new_group(params),
         &txn_params,
         expected_fee,
     )
@@ -1184,7 +1212,9 @@ async fn test_alters_fee_multiple_surplus_poolings(
         method_selectors,
         abi_types,
     } = fixture.await?;
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture
+        .algorand_client
+        .new_group(COVER_FEES_GROUP_PARAMS);
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
     let expected_fee = 7100u64;
 
@@ -1226,7 +1256,7 @@ async fn test_alters_fee_multiple_surplus_poolings(
     };
     composer.add_app_call(txn_params.clone())?;
 
-    let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
+    let result = composer.send(None).await?;
 
     assert_eq!(result.confirmations.len(), 1);
     let actual_fees = result
@@ -1236,7 +1266,7 @@ async fn test_alters_fee_multiple_surplus_poolings(
         .collect::<Vec<_>>();
     assert_eq!(actual_fees[0], expected_fee);
     assert_min_fee(
-        algorand_fixture.algorand_client.new_group(),
+        &|params| algorand_fixture.algorand_client.new_group(params),
         &txn_params,
         expected_fee,
     )
@@ -1260,7 +1290,9 @@ async fn test_errors_when_max_fee_below_calculated(
         method_selectors,
         abi_types,
     } = fixture.await?;
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture
+        .algorand_client
+        .new_group(COVER_FEES_GROUP_PARAMS);
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
 
     // Create an app call transaction that has no inner fees covered
@@ -1292,7 +1324,7 @@ async fn test_errors_when_max_fee_below_calculated(
     };
     composer.add_app_call(txn_2_params)?;
 
-    let result = composer.send(COVER_FEES_SEND_PARAMS).await;
+    let result = composer.send(None).await;
 
     assert!(
         result.is_err()
@@ -1323,7 +1355,9 @@ async fn test_errors_when_static_fee_below_calculated(
         method_selectors,
         abi_types,
     } = fixture.await?;
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture
+        .algorand_client
+        .new_group(COVER_FEES_GROUP_PARAMS);
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
 
     // Create an app call transaction that has no inner fees covered
@@ -1355,7 +1389,7 @@ async fn test_errors_when_static_fee_below_calculated(
     };
     composer.add_app_call(txn_2_params)?;
 
-    let result = composer.send(COVER_FEES_SEND_PARAMS).await;
+    let result = composer.send(None).await;
 
     assert!(
         result.is_err()
@@ -1386,7 +1420,9 @@ async fn test_errors_when_static_fee_too_low_for_non_app_call(
         method_selectors,
         abi_types,
     } = fixture.await?;
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture
+        .algorand_client
+        .new_group(COVER_FEES_GROUP_PARAMS);
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0]);
 
@@ -1433,7 +1469,7 @@ async fn test_errors_when_static_fee_too_low_for_non_app_call(
     };
     composer.add_payment(txn_3_params)?;
 
-    let result = composer.send(COVER_FEES_SEND_PARAMS).await;
+    let result = composer.send(None).await;
 
     assert!(
         result.is_err()
@@ -1470,7 +1506,13 @@ async fn test_readonly_fixed_opcode_budget(
         method_selectors,
         abi_types,
     } = fixture.await?;
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer =
+        algorand_fixture
+            .algorand_client
+            .new_group(Some(TransactionComposerConfig {
+                cover_app_call_inner_transaction_fees: cover_inner_fees,
+                ..Default::default()
+            }));
     let app_id = app_ids[0];
 
     let op_budget_encoded = abi_types.uint64.encode(&ABIValue::from(6200u64))?; // This would normally require op-ups via inner transactions
@@ -1483,12 +1525,7 @@ async fn test_readonly_fixed_opcode_budget(
     };
     composer.add_app_call(txn_params)?;
 
-    let result = composer
-        .send(Some(SendParams {
-            cover_app_call_inner_transaction_fees: cover_inner_fees,
-            ..Default::default()
-        }))
-        .await?;
+    let result = composer.send(None).await?;
 
     assert_eq!(result.confirmations.len(), 1);
     let actual_fees = result
@@ -1519,7 +1556,9 @@ async fn test_readonly_alters_fee_handling_inners(
         method_selectors,
         abi_types,
     } = fixture.await?;
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture
+        .algorand_client
+        .new_group(COVER_FEES_GROUP_PARAMS);
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
     let expected_fee = 12_000u64;
 
@@ -1542,7 +1581,7 @@ async fn test_readonly_alters_fee_handling_inners(
     };
     composer.add_app_call(txn_params)?;
 
-    let result = composer.send(COVER_FEES_SEND_PARAMS).await?;
+    let result = composer.send(None).await?;
 
     assert_eq!(result.confirmations.len(), 1);
     let actual_fees = result
@@ -1577,7 +1616,9 @@ async fn test_readonly_errors_when_max_fee_too_small(
         method_selectors,
         abi_types,
     } = fixture.await?;
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture
+        .algorand_client
+        .new_group(COVER_FEES_GROUP_PARAMS);
     let (app_id_1, app_id_2, app_id_3) = (app_ids[0], app_ids[1], app_ids[2]);
 
     // This tuple represents partial inner fee coverage for readonly context
@@ -1597,7 +1638,7 @@ async fn test_readonly_errors_when_max_fee_too_small(
     };
     composer.add_app_call(txn_params)?;
 
-    let result = composer.send(COVER_FEES_SEND_PARAMS).await;
+    let result = composer.send(None).await;
 
     assert!(
         result.is_err()
@@ -1654,11 +1695,11 @@ struct Arc32AppSpec {
     source: Option<TealSource>,
 }
 
-const COVER_FEES_SEND_PARAMS: Option<SendParams> = Some(SendParams {
-    cover_app_call_inner_transaction_fees: true,
-    max_rounds_to_wait_for_confirmation: None,
-    populate_app_call_resources: ResourcePopulation::Disabled,
-});
+const COVER_FEES_GROUP_PARAMS: Option<TransactionComposerConfig> =
+    Some(TransactionComposerConfig {
+        cover_app_call_inner_transaction_fees: true,
+        populate_app_call_resources: ResourcePopulation::Disabled,
+    });
 
 fn get_inner_fee_teal_programs()
 -> Result<(Vec<u8>, Vec<u8>), Box<dyn std::error::Error + Send + Sync>> {
@@ -1745,7 +1786,7 @@ async fn deploy_app(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture.algorand_client.new_group(None);
     composer.add_app_create(app_create_params)?;
 
     let result = composer.send(None).await?;
@@ -1773,7 +1814,11 @@ async fn fund_app_accounts(
     Ok(())
 }
 
-async fn assert_min_fee(mut composer: Composer, params: &AppCallParams, fee: u64) {
+async fn assert_min_fee(
+    new_group: &impl Fn(Option<TransactionComposerConfig>) -> Composer,
+    params: &AppCallParams,
+    fee: u64,
+) {
     if fee == 1000 {
         return;
     }
@@ -1783,16 +1828,16 @@ async fn assert_min_fee(mut composer: Composer, params: &AppCallParams, fee: u64
         ..params.clone()
     };
 
+    let mut composer = new_group(Some(TransactionComposerConfig {
+        cover_app_call_inner_transaction_fees: false, // Run without fee coverage to confirm it fails
+        populate_app_call_resources: ResourcePopulation::default(),
+    }));
+
     composer
         .add_app_call(params)
         .expect("Failed to add app call");
 
-    let result = composer
-        .send(Some(SendParams {
-            cover_app_call_inner_transaction_fees: false,
-            ..Default::default()
-        }))
-        .await;
+    let result = composer.send(None).await;
 
     assert!(
         result.is_err()

@@ -377,7 +377,7 @@ async fn test_new_group_creates_composer(
     #[future] algorand_fixture: AlgorandFixtureResult,
 ) -> TestResult {
     let algorand_fixture = algorand_fixture.await?;
-    let _composer = algorand_fixture.algorand_client.send().new_group();
+    let _composer = algorand_fixture.algorand_client.send().new_group(None);
 
     // Validate Sender's Composer orchestration capability
     // Implementation details tested in composer tests

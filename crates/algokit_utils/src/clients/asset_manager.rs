@@ -4,7 +4,9 @@ use algokit_transact::Address;
 use snafu::Snafu;
 use std::{str::FromStr, sync::Arc};
 
-use crate::transactions::{AssetOptInParams, AssetOptOutParams, Composer, ComposerError};
+use crate::transactions::{
+    AssetOptInParams, AssetOptOutParams, Composer, ComposerError, TransactionComposerConfig,
+};
 
 #[derive(Debug, Clone)]
 pub struct BulkAssetOptInOutResult {
@@ -152,11 +154,14 @@ pub struct AssetValidationError {
 #[derive(Clone)]
 pub struct AssetManager {
     algod_client: Arc<AlgodClient>,
-    new_group: Arc<dyn Fn() -> Composer>,
+    new_group: Arc<dyn Fn(Option<TransactionComposerConfig>) -> Composer>,
 }
 
 impl AssetManager {
-    pub fn new(algod_client: Arc<AlgodClient>, new_group: impl Fn() -> Composer + 'static) -> Self {
+    pub fn new(
+        algod_client: Arc<AlgodClient>,
+        new_group: impl Fn(Option<TransactionComposerConfig>) -> Composer + 'static,
+    ) -> Self {
         Self {
             algod_client,
             new_group: Arc::new(new_group),
@@ -198,7 +203,7 @@ impl AssetManager {
             return Ok(Vec::new());
         }
 
-        let mut composer = (self.new_group)();
+        let mut composer = (self.new_group)(None);
 
         // Add asset opt-in transactions for each asset
         for &asset_id in asset_ids {
@@ -272,7 +277,7 @@ impl AssetManager {
             asset_creators.push(creator);
         }
 
-        let mut composer = (self.new_group)();
+        let mut composer = (self.new_group)(None);
 
         // Add asset opt-out transactions for each asset
         for (i, &asset_id) in asset_ids.iter().enumerate() {

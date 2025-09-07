@@ -3,6 +3,8 @@ use algokit_transact::Transaction;
 use derive_more::Debug;
 use std::{collections::HashMap, sync::Arc};
 
+use crate::transactions::TransactionComposerConfig;
+
 use super::{
     AppCallMethodCallParams, AppCallParams, AppCreateMethodCallParams, AppCreateParams,
     AppDeleteMethodCallParams, AppDeleteParams, AppUpdateMethodCallParams, AppUpdateParams,
@@ -24,11 +26,13 @@ pub struct BuiltTransactions {
 
 /// Creates individual Algorand transactions.
 pub struct TransactionCreator {
-    new_group: Arc<dyn Fn() -> Composer>,
+    new_group: Arc<dyn Fn(Option<TransactionComposerConfig>) -> Composer>,
 }
 
 impl TransactionCreator {
-    pub fn new(new_group: impl Fn() -> Composer + 'static) -> Self {
+    pub fn new(
+        new_group: impl Fn(Option<TransactionComposerConfig>) -> Composer + 'static,
+    ) -> Self {
         Self {
             new_group: Arc::new(new_group),
         }
@@ -41,9 +45,9 @@ impl TransactionCreator {
     where
         F: FnOnce(&mut Composer) -> Result<(), ComposerError>,
     {
-        let mut composer = (self.new_group)();
+        let mut composer = (self.new_group)(None);
         composer_method(&mut composer)?;
-        let built_transactions = composer.build(None).await?;
+        let built_transactions = composer.build().await?;
 
         built_transactions
             .last()
@@ -221,9 +225,9 @@ impl TransactionCreator {
     where
         F: FnOnce(&mut Composer) -> Result<(), ComposerError>,
     {
-        let mut composer = (self.new_group)();
+        let mut composer = (self.new_group)(None);
         composer_method(&mut composer)?;
-        let transactions_with_signers = composer.build(None).await?;
+        let transactions_with_signers = composer.build().await?;
 
         let transactions = transactions_with_signers
             .iter()
