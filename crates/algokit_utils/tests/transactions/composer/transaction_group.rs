@@ -39,7 +39,7 @@ async fn test_payment_and_asset_create_group(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture.algorand_client.new_group(None);
     composer.add_payment(payment_params)?;
     composer.add_asset_create(asset_create_params)?;
 
@@ -145,7 +145,7 @@ async fn test_add_transactions_to_group_max_size(
     let receiver = algorand_fixture.generate_account(None).await?;
     let receiver_addr = receiver.account().address();
 
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture.algorand_client.new_group(None);
 
     for i in 0..MAX_TX_GROUP_SIZE - 2 {
         let payment_params = PaymentParams {
@@ -171,7 +171,7 @@ async fn test_add_transactions_to_group_max_size(
         composer.add_transaction(tx, None)?;
     }
 
-    assert!(composer.build(None).await.unwrap().len() == MAX_TX_GROUP_SIZE);
+    assert!(composer.build().await.unwrap().len() == MAX_TX_GROUP_SIZE);
 
     Ok(())
 }
@@ -187,7 +187,7 @@ async fn test_add_transaction_to_group_too_big(
     let receiver = algorand_fixture.generate_account(None).await?;
     let receiver_addr = receiver.account().address();
 
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture.algorand_client.new_group(None);
 
     for i in 0..MAX_TX_GROUP_SIZE {
         let payment_params = PaymentParams {

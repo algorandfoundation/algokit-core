@@ -22,7 +22,7 @@ async fn test_basic_payment_transaction(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture.algorand_client.new_group(None);
     composer.add_payment(payment_params)?;
 
     let result = composer.send(None).await?;
@@ -58,7 +58,7 @@ async fn test_basic_account_close_transaction(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture.algorand_client.new_group(None);
     composer.add_account_close(account_close_params)?;
 
     let result = composer.send(None).await?;
@@ -99,7 +99,7 @@ async fn test_payment_transactions_with_signers(
     let sender_account = algorand_fixture.generate_account(None).await?;
     let sender_addr = sender_account.account().address();
 
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture.algorand_client.new_group(None);
     let signer = Arc::new(sender_account.clone());
 
     // Add two payment transactions with the same signer

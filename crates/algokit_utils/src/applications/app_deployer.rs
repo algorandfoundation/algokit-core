@@ -973,7 +973,7 @@ impl AppDeployer {
                 group: None,
                 transaction_ids: result.common_params.tx_ids.clone(),
                 confirmations: vec![result.common_params.confirmation.clone()],
-                abi_returns: vec![Ok(result.abi_return.clone())],
+                abi_returns: result.abi_return.map_or(vec![], |r| vec![r]),
             },
         })
     }
@@ -1075,7 +1075,7 @@ impl AppDeployer {
                 group: None,
                 transaction_ids: result.common_params.tx_ids.clone(),
                 confirmations: vec![result.common_params.confirmation.clone()],
-                abi_returns: vec![Ok(result.abi_return.clone())],
+                abi_returns: result.abi_return.map_or(vec![], |r| vec![r]),
             },
         })
     }
@@ -1128,7 +1128,7 @@ impl AppDeployer {
             metadata.name, existing_app_metadata.app_id
         );
 
-        let mut composer = self.transaction_sender.new_group();
+        let mut composer = self.transaction_sender.new_group(None);
 
         // Add create transaction
         match create_params {

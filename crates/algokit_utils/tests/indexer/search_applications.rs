@@ -42,7 +42,7 @@ async fn create_app(algorand_fixture: &AlgorandFixture) -> Option<u64> {
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group();
+    let mut composer = algorand_fixture.algorand_client.new_group(None);
     composer.add_app_create(params).unwrap();
     let result = composer.send(None).await.unwrap();
     result.confirmations[0].app_id

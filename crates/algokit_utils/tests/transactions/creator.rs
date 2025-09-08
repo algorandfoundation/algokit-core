@@ -6,9 +6,15 @@ use algokit_utils::transactions::{
     AssetClawbackParams, AssetCreateParams, AssetDestroyParams, AssetFreezeParams,
     AssetOptInParams, AssetOptOutParams, AssetTransferParams,
     NonParticipationKeyRegistrationParams, OfflineKeyRegistrationParams,
-    OnlineKeyRegistrationParams, PaymentParams,
+    OnlineKeyRegistrationParams, PaymentParams, ResourcePopulation, TransactionComposerConfig,
 };
 use rstest::*;
+
+const GROUP_ANALYSIS_DISABLED: Option<TransactionComposerConfig> =
+    Some(TransactionComposerConfig {
+        cover_app_call_inner_transaction_fees: false,
+        populate_app_call_resources: ResourcePopulation::Disabled,
+    });
 
 #[rstest]
 #[case::basic(1_000_000)]
@@ -254,7 +260,9 @@ enum AssetTestCase {
 async fn application_operations(
     #[case] on_complete: OnApplicationComplete,
     #[case] app_id: u64,
-    #[future] algorand_fixture: AlgorandFixtureResult,
+    #[with(GROUP_ANALYSIS_DISABLED)]
+    #[future]
+    algorand_fixture: AlgorandFixtureResult,
 ) -> TestResult {
     let algorand_fixture = algorand_fixture.await?;
     let sender_address = algorand_fixture.test_account.account().address();
@@ -328,7 +336,9 @@ async fn application_operations(
 #[rstest]
 #[tokio::test]
 async fn method_call_returns_built_transactions(
-    #[future] algorand_fixture: AlgorandFixtureResult,
+    #[with(GROUP_ANALYSIS_DISABLED)]
+    #[future]
+    algorand_fixture: AlgorandFixtureResult,
 ) -> TestResult {
     let algorand_fixture = algorand_fixture.await?;
     let sender_address = algorand_fixture.test_account.account().address();

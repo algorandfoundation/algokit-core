@@ -14,8 +14,11 @@ use super::{
         SendTransactionResult, TransactionResultError,
     },
 };
-use crate::clients::app_manager::{AppManager, AppManagerError, CompiledTeal};
 use crate::clients::asset_manager::{AssetManager, AssetManagerError};
+use crate::{
+    clients::app_manager::{AppManager, AppManagerError, CompiledTeal},
+    transactions::TransactionComposerConfig,
+};
 use algod_client::apis::AlgodApiError;
 use algokit_abi::{ABIMethod, ABIReturn};
 use algokit_transact::Address;
@@ -76,7 +79,7 @@ impl From<TransactionResultError> for TransactionSenderError {
 pub struct TransactionSender {
     asset_manager: AssetManager,
     app_manager: AppManager,
-    new_group: Arc<dyn Fn() -> Composer>,
+    new_group: Arc<dyn Fn(Option<TransactionComposerConfig>) -> Composer>,
 }
 
 pub trait HasMethod {
@@ -174,7 +177,7 @@ where
 impl TransactionSender {
     /// Create a new TransactionSender instance.
     pub fn new(
-        new_group: impl Fn() -> Composer + 'static,
+        new_group: impl Fn(Option<TransactionComposerConfig>) -> Composer + 'static,
         asset_manager: AssetManager,
         app_manager: AppManager,
     ) -> Self {
@@ -185,8 +188,8 @@ impl TransactionSender {
         }
     }
 
-    pub fn new_group(&self) -> Composer {
-        (self.new_group)()
+    pub fn new_group(&self, params: Option<TransactionComposerConfig>) -> Composer {
+        (self.new_group)(params)
     }
 
     async fn send_and_parse(
@@ -194,7 +197,7 @@ impl TransactionSender {
         mut composer: Composer,
         send_params: Option<SendParams>,
     ) -> Result<SendTransactionResult, TransactionSenderError> {
-        let built_transactions = composer.build(None).await?;
+        let built_transactions = composer.build().await?;
 
         let raw_transactions: Vec<algokit_transact::Transaction> = built_transactions
             .iter()
@@ -209,24 +212,10 @@ impl TransactionSender {
             .unwrap_or_else(|| "".to_string());
 
         // Enhanced ABI return processing using app_manager
-        let abi_returns: Option<Vec<ABIReturn>> = if !composer_results.abi_returns.is_empty() {
-            let returns: Result<Vec<_>, _> = composer_results
-                .abi_returns
-                .into_iter()
-                .map(|result| {
-                    result.map_err(|e| TransactionSenderError::ComposerError { source: e })
-                })
-                .collect();
-            match returns {
-                Ok(returns) => {
-                    // Process ABI returns with app_manager for enhanced parsing
-                    let processed_returns: Vec<_> = returns.into_iter().flatten().collect();
-                    Some(processed_returns)
-                }
-                Err(_) => None,
-            }
-        } else {
+        let abi_returns = if composer_results.abi_returns.is_empty() {
             None
+        } else {
+            Some(composer_results.abi_returns)
         };
 
         let result = SendTransactionResult::new(
@@ -250,7 +239,7 @@ impl TransactionSender {
     where
         F: FnOnce(&mut Composer) -> Result<(), ComposerError>,
     {
-        let mut composer = self.new_group();
+        let mut composer = self.new_group(None);
         add_transaction(&mut composer)?;
         self.send_and_parse(composer, send_params).await
     }
@@ -268,7 +257,7 @@ impl TransactionSender {
         F: FnOnce(&mut Composer) -> Result<(), ComposerError>,
         T: FnOnce(SendTransactionResult) -> Result<R, TransactionSenderError>,
     {
-        let mut composer = self.new_group();
+        let mut composer = self.new_group(None);
         add_transaction(&mut composer)?;
         let base_result = self.send_and_parse(composer, send_params).await?;
         transform_result(base_result)
@@ -300,16 +289,12 @@ impl TransactionSender {
         if method.returns.is_some() {
             // Use app manager static method to parse the return value with proper method information
             match AppManager::get_abi_return(&abi_return.raw_return_value, method) {
-                Ok(Some(parsed)) => {
+                Some(parsed) => {
                     // Return enhanced ABIReturn with validated parsing
                     Some(parsed)
                 }
-                Ok(None) => {
+                None => {
                     // Method has no return type
-                    Some(abi_return)
-                }
-                Err(_) => {
-                    // Return original if parsing fails
                     Some(abi_return)
                 }
             }

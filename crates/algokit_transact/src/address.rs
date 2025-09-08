@@ -31,7 +31,7 @@ impl Address {
         &self.0
     }
 
-    /// Computes the address from an application ID.
+    /// Computes the escrow address from an application ID.
     pub fn from_app_id(app_id: &u64) -> Self {
         let mut to_hash = b"appID".to_vec();
         to_hash.extend_from_slice(&app_id.to_be_bytes());

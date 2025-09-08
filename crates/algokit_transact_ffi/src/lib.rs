@@ -669,6 +669,16 @@ impl TryFrom<FeeParams> for algokit_transact::FeeParams {
 }
 
 #[ffi_func]
+pub fn calculate_fee(
+    transaction: Transaction,
+    fee_params: FeeParams,
+) -> Result<u64, AlgoKitTransactError> {
+    let txn: algokit_transact::Transaction = transaction.try_into()?;
+    let fee_params_internal: algokit_transact::FeeParams = fee_params.try_into()?;
+    Ok(txn.calculate_fee(fee_params_internal)?)
+}
+
+#[ffi_func]
 pub fn assign_fee(
     transaction: Transaction,
     fee_params: FeeParams,

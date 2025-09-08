@@ -22,17 +22,17 @@ async fn fixture(#[future] algorand_fixture: AlgorandFixtureResult) -> FixtureRe
     let algod_client = algorand_fixture.algod.clone();
     let indexer_client = algorand_fixture.indexer.clone();
 
-    let composer = algorand_fixture.algorand_client.new_group();
+    let composer = algorand_fixture.algorand_client.new_group(None);
     let asset_manager = AssetManager::new(algod_client.clone(), {
         let new_composer = composer.clone();
-        move || new_composer.clone()
+        move |_params| new_composer.clone()
     });
     let app_manager = AppManager::new(algod_client.clone());
 
     let transaction_sender = TransactionSender::new(
         {
             let new_composer = composer.clone();
-            move || new_composer.clone()
+            move |_params| new_composer.clone()
         },
         asset_manager,
         app_manager.clone(),
@@ -1137,7 +1137,6 @@ async fn get_testing_app_deploy_params(
         ignore_cache: None,
         send_params: SendParams {
             max_rounds_to_wait_for_confirmation: Some(100),
-            ..Default::default()
         },
     })
 }
