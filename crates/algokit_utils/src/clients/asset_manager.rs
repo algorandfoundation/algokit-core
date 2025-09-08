@@ -4,7 +4,6 @@ use algokit_transact::Address;
 use snafu::Snafu;
 use std::{str::FromStr, sync::Arc};
 
-use crate::CommonTransactionParams;
 use crate::transactions::{AssetOptInParams, AssetOptOutParams, Composer, ComposerError};
 
 #[derive(Debug, Clone)]
@@ -204,11 +203,9 @@ impl AssetManager {
         // Add asset opt-in transactions for each asset
         for &asset_id in asset_ids {
             let opt_in_params = AssetOptInParams {
-                common_params: CommonTransactionParams {
-                    sender: account.clone(),
-                    ..Default::default()
-                },
+                sender: account.clone(),
                 asset_id,
+                ..Default::default()
             };
 
             composer
@@ -280,12 +277,10 @@ impl AssetManager {
         // Add asset opt-out transactions for each asset
         for (i, &asset_id) in asset_ids.iter().enumerate() {
             let opt_out_params = AssetOptOutParams {
-                common_params: CommonTransactionParams {
-                    sender: account.clone(),
-                    ..Default::default()
-                },
+                sender: account.clone(),
                 asset_id,
                 close_remainder_to: Some(asset_creators[i].clone()),
+                ..Default::default()
             };
 
             composer

@@ -55,7 +55,7 @@ use super::asset_transfer::{
     AssetClawbackParams, AssetOptInParams, AssetOptOutParams, AssetTransferParams,
     build_asset_clawback, build_asset_opt_in, build_asset_opt_out, build_asset_transfer,
 };
-use super::common::{CommonTransactionParams, TransactionSigner};
+use super::common::TransactionSigner;
 use super::key_registration::{
     NonParticipationKeyRegistrationParams, OfflineKeyRegistrationParams,
     OnlineKeyRegistrationParams,
@@ -310,78 +310,72 @@ pub enum ComposerTransaction {
     NonParticipationKeyRegistration(NonParticipationKeyRegistrationParams),
 }
 
-impl ComposerTransaction {
-    pub fn common_params(&self) -> CommonTransactionParams {
-        match self {
-            ComposerTransaction::Payment(payment_params) => payment_params.common_params.clone(),
-            ComposerTransaction::AccountClose(account_close_params) => {
-                account_close_params.common_params.clone()
+macro_rules! get_composer_transaction_field {
+    ($field:ident, $field_type:ty, $get_expr:expr, $default_expr:expr) => {
+        pub fn $field(&self) -> $field_type {
+            match self {
+                $crate::transactions::composer::ComposerTransaction::Payment(params) => $get_expr(&params.$field),
+                $crate::transactions::composer::ComposerTransaction::AccountClose(params) => $get_expr(&params.$field),
+                $crate::transactions::composer::ComposerTransaction::AssetTransfer(params) => $get_expr(&params.$field),
+                $crate::transactions::composer::ComposerTransaction::AssetOptIn(params) => $get_expr(&params.$field),
+                $crate::transactions::composer::ComposerTransaction::AssetOptOut(params) => $get_expr(&params.$field),
+                $crate::transactions::composer::ComposerTransaction::AssetClawback(params) => $get_expr(&params.$field),
+                $crate::transactions::composer::ComposerTransaction::AssetCreate(params) => $get_expr(&params.$field),
+                $crate::transactions::composer::ComposerTransaction::AssetConfig(params) => $get_expr(&params.$field),
+                $crate::transactions::composer::ComposerTransaction::AssetDestroy(params) => $get_expr(&params.$field),
+                $crate::transactions::composer::ComposerTransaction::AssetFreeze(params) => $get_expr(&params.$field),
+                $crate::transactions::composer::ComposerTransaction::AssetUnfreeze(params) => $get_expr(&params.$field),
+                $crate::transactions::composer::ComposerTransaction::AppCall(params) => $get_expr(&params.$field),
+                $crate::transactions::composer::ComposerTransaction::AppCreateCall(params) => $get_expr(&params.$field),
+                $crate::transactions::composer::ComposerTransaction::AppUpdateCall(params) => $get_expr(&params.$field),
+                $crate::transactions::composer::ComposerTransaction::AppDeleteCall(params) => $get_expr(&params.$field),
+                $crate::transactions::composer::ComposerTransaction::AppCallMethodCall(params) => $get_expr(&params.$field),
+                $crate::transactions::composer::ComposerTransaction::AppCreateMethodCall(params) => $get_expr(&params.$field),
+                $crate::transactions::composer::ComposerTransaction::AppUpdateMethodCall(params) => $get_expr(&params.$field),
+                $crate::transactions::composer::ComposerTransaction::AppDeleteMethodCall(params) => $get_expr(&params.$field),
+                $crate::transactions::composer::ComposerTransaction::OnlineKeyRegistration(params) => $get_expr(&params.$field),
+                $crate::transactions::composer::ComposerTransaction::OfflineKeyRegistration(params) => $get_expr(&params.$field),
+                $crate::transactions::composer::ComposerTransaction::NonParticipationKeyRegistration(params) => $get_expr(&params.$field),
+                $crate::transactions::composer::ComposerTransaction::Transaction(_) => $default_expr,
+                $crate::transactions::composer::ComposerTransaction::TransactionWithSigner(_) => $default_expr,
             }
-            ComposerTransaction::AssetTransfer(asset_transfer_params) => {
-                asset_transfer_params.common_params.clone()
-            }
-            ComposerTransaction::AssetOptIn(asset_opt_in_params) => {
-                asset_opt_in_params.common_params.clone()
-            }
-            ComposerTransaction::AssetOptOut(asset_opt_out_params) => {
-                asset_opt_out_params.common_params.clone()
-            }
-            ComposerTransaction::AssetClawback(asset_clawback_params) => {
-                asset_clawback_params.common_params.clone()
-            }
-            ComposerTransaction::AssetCreate(asset_create_params) => {
-                asset_create_params.common_params.clone()
-            }
-            ComposerTransaction::AssetConfig(asset_config_params) => {
-                asset_config_params.common_params.clone()
-            }
-            ComposerTransaction::AssetDestroy(asset_destroy_params) => {
-                asset_destroy_params.common_params.clone()
-            }
-            ComposerTransaction::AssetFreeze(asset_freeze_params) => {
-                asset_freeze_params.common_params.clone()
-            }
-            ComposerTransaction::AssetUnfreeze(asset_unfreeze_params) => {
-                asset_unfreeze_params.common_params.clone()
-            }
-            ComposerTransaction::AppCall(app_call_params) => app_call_params.common_params.clone(),
-            ComposerTransaction::AppCreateCall(app_create_params) => {
-                app_create_params.common_params.clone()
-            }
-            ComposerTransaction::AppUpdateCall(app_update_params) => {
-                app_update_params.common_params.clone()
-            }
-            ComposerTransaction::AppDeleteCall(app_delete_params) => {
-                app_delete_params.common_params.clone()
-            }
-            ComposerTransaction::AppCallMethodCall(params) => params.common_params.clone(),
-            ComposerTransaction::AppCreateMethodCall(params) => params.common_params.clone(),
-            ComposerTransaction::AppUpdateMethodCall(params) => params.common_params.clone(),
-            ComposerTransaction::AppDeleteMethodCall(params) => params.common_params.clone(),
-            ComposerTransaction::OnlineKeyRegistration(online_key_reg_params) => {
-                online_key_reg_params.common_params.clone()
-            }
-            ComposerTransaction::OfflineKeyRegistration(offline_key_reg_params) => {
-                offline_key_reg_params.common_params.clone()
-            }
-            ComposerTransaction::NonParticipationKeyRegistration(non_participation_params) => {
-                non_participation_params.common_params.clone()
-            }
-            ComposerTransaction::TransactionWithSigner(txn_with_signer) => {
-                CommonTransactionParams {
-                    signer: Some(txn_with_signer.signer.clone()),
-                    ..CommonTransactionParams::default()
-                }
-            }
-            _ => CommonTransactionParams::default(),
         }
-    }
+    };
+}
+
+impl ComposerTransaction {
+    // Generate field accessor methods
+    get_composer_transaction_field!(
+        sender,
+        algokit_transact::Address,
+        |x: &algokit_transact::Address| x.clone(),
+        Default::default()
+    );
+    get_composer_transaction_field!(
+        signer,
+        Option<std::sync::Arc<dyn crate::transactions::common::TransactionSigner>>,
+        |x: &Option<std::sync::Arc<dyn crate::transactions::common::TransactionSigner>>| x.clone(),
+        None
+    );
+    get_composer_transaction_field!(
+        rekey_to,
+        Option<algokit_transact::Address>,
+        |x: &Option<algokit_transact::Address>| x.clone(),
+        None
+    );
+    get_composer_transaction_field!(note, Option<Vec<u8>>, |x: &Option<Vec<u8>>| x.clone(), None);
+    get_composer_transaction_field!(lease, Option<[u8; 32]>, |x: &Option<[u8; 32]>| *x, None);
+    get_composer_transaction_field!(static_fee, Option<u64>, |x: &Option<u64>| *x, None);
+    get_composer_transaction_field!(extra_fee, Option<u64>, |x: &Option<u64>| *x, None);
+    get_composer_transaction_field!(max_fee, Option<u64>, |x: &Option<u64>| *x, None);
+    get_composer_transaction_field!(validity_window, Option<u32>, |x: &Option<u32>| *x, None);
+    get_composer_transaction_field!(first_valid_round, Option<u64>, |x: &Option<u64>| *x, None);
+    get_composer_transaction_field!(last_valid_round, Option<u64>, |x: &Option<u64>| *x, None);
 
     /// Get the logical maximum fee based on static_fee and max_fee
     pub fn logical_max_fee(&self) -> Option<u64> {
-        let common_params = self.common_params();
-        let max_fee = common_params.max_fee;
-        let static_fee = common_params.static_fee;
+        let max_fee = self.max_fee();
+        let static_fee = self.static_fee();
         match (max_fee, static_fee) {
             (Some(max_fee_value), static_fee) if max_fee_value > static_fee.unwrap_or(0) => max_fee,
             _ => static_fee,
@@ -995,20 +989,21 @@ impl Composer {
     }
 
     fn build_transaction_header(
-        common_params: &CommonTransactionParams,
+        &self,
+        composer_transaction: &ComposerTransaction,
         suggested_params: &TransactionParams,
         default_validity_window: u32,
     ) -> Result<TransactionHeader, ComposerError> {
-        let first_valid = common_params
-            .first_valid_round
+        let first_valid = composer_transaction
+            .first_valid_round()
             .unwrap_or(suggested_params.last_round);
 
         Ok(TransactionHeader {
-            sender: common_params.sender.clone(),
-            rekey_to: common_params.rekey_to.clone(),
-            note: common_params.note.clone(),
-            lease: common_params.lease,
-            fee: common_params.static_fee,
+            sender: composer_transaction.sender(),
+            rekey_to: composer_transaction.rekey_to(),
+            note: composer_transaction.note(),
+            lease: composer_transaction.lease(),
+            fee: composer_transaction.static_fee(),
             genesis_id: Some(suggested_params.genesis_id.clone()),
             genesis_hash: Some(
                 suggested_params
@@ -1020,9 +1015,9 @@ impl Composer {
                     })?,
             ),
             first_valid,
-            last_valid: common_params.last_valid_round.unwrap_or_else(|| {
-                common_params
-                    .validity_window
+            last_valid: composer_transaction.last_valid_round().unwrap_or_else(|| {
+                composer_transaction
+                    .validity_window()
                     .map(|window| first_valid + window as u64)
                     .unwrap_or(first_valid + default_validity_window as u64)
             }),
@@ -1046,9 +1041,8 @@ impl Composer {
             .transactions
             .iter()
             .map(|ctxn| -> Result<Transaction, ComposerError> {
-                let common_params = ctxn.common_params();
-                let header = Self::build_transaction_header(
-                    &common_params,
+                let header = self.build_transaction_header(
+                    ctxn,
                     suggested_params,
                     *default_validity_window,
                 )?;
@@ -1128,8 +1122,8 @@ impl Composer {
                         .assign_fee(FeeParams {
                             fee_per_byte: suggested_params.fee,
                             min_fee: suggested_params.min_fee,
-                            extra_fee: common_params.extra_fee,
-                            max_fee: common_params.max_fee,
+                            extra_fee: ctxn.extra_fee(),
+                            max_fee: ctxn.max_fee(),
                         })
                         .map_err(|e| ComposerError::TransactionError {
                             message: e.to_string(),
@@ -1844,8 +1838,7 @@ impl Composer {
             .enumerate()
             .map(|(group_index, txn)| {
                 let ctxn = &self.transactions[group_index];
-                let common_params = ctxn.common_params();
-                let signer = if let Some(transaction_signer) = common_params.signer {
+                let signer = if let Some(transaction_signer) = ctxn.signer() {
                     transaction_signer
                 } else {
                     let sender_address = txn.header().sender.clone();
@@ -2155,19 +2148,17 @@ mod tests {
     fn test_add_payment() {
         let mut composer = Composer::testnet();
         let payment_params = PaymentParams {
-            common_params: CommonTransactionParams {
-                sender: AccountMother::account().address(),
-                signer: None,
-                rekey_to: None,
-                note: None,
-                lease: None,
-                static_fee: None,
-                extra_fee: None,
-                max_fee: None,
-                validity_window: None,
-                first_valid_round: None,
-                last_valid_round: None,
-            },
+            sender: AccountMother::account().address(),
+            signer: None,
+            rekey_to: None,
+            note: None,
+            lease: None,
+            static_fee: None,
+            extra_fee: None,
+            max_fee: None,
+            validity_window: None,
+            first_valid_round: None,
+            last_valid_round: None,
             receiver: AccountMother::account().address(),
             amount: 1000,
         };
@@ -2179,19 +2170,17 @@ mod tests {
         let mut composer = Composer::testnet();
 
         let payment_params = PaymentParams {
-            common_params: CommonTransactionParams {
-                sender: AccountMother::account().address(),
-                signer: None,
-                rekey_to: None,
-                note: None,
-                lease: None,
-                static_fee: None,
-                extra_fee: None,
-                max_fee: None,
-                validity_window: None,
-                first_valid_round: None,
-                last_valid_round: None,
-            },
+            sender: AccountMother::account().address(),
+            signer: None,
+            rekey_to: None,
+            note: None,
+            lease: None,
+            static_fee: None,
+            extra_fee: None,
+            max_fee: None,
+            validity_window: None,
+            first_valid_round: None,
+            last_valid_round: None,
             receiver: AccountMother::account().address(),
             amount: 1000,
         };
@@ -2206,19 +2195,17 @@ mod tests {
     async fn test_single_transaction_no_group() {
         let mut composer = Composer::testnet();
         let payment_params = PaymentParams {
-            common_params: CommonTransactionParams {
-                sender: AccountMother::account().address(),
-                signer: None,
-                rekey_to: None,
-                note: None,
-                lease: None,
-                static_fee: None,
-                extra_fee: None,
-                max_fee: None,
-                validity_window: None,
-                first_valid_round: None,
-                last_valid_round: None,
-            },
+            sender: AccountMother::account().address(),
+            signer: None,
+            rekey_to: None,
+            note: None,
+            lease: None,
+            static_fee: None,
+            extra_fee: None,
+            max_fee: None,
+            validity_window: None,
+            first_valid_round: None,
+            last_valid_round: None,
             receiver: AccountMother::account().address(),
             amount: 1000,
         };
@@ -2239,19 +2226,17 @@ mod tests {
 
         for _ in 0..2 {
             let payment_params = PaymentParams {
-                common_params: CommonTransactionParams {
-                    sender: AccountMother::account().address(),
-                    signer: None,
-                    rekey_to: None,
-                    note: None,
-                    lease: None,
-                    static_fee: None,
-                    extra_fee: None,
-                    max_fee: None,
-                    validity_window: None,
-                    first_valid_round: None,
-                    last_valid_round: None,
-                },
+                sender: AccountMother::account().address(),
+                signer: None,
+                rekey_to: None,
+                note: None,
+                lease: None,
+                static_fee: None,
+                extra_fee: None,
+                max_fee: None,
+                validity_window: None,
+                first_valid_round: None,
+                last_valid_round: None,
                 receiver: AccountMother::account().address(),
                 amount: 1000,
             };

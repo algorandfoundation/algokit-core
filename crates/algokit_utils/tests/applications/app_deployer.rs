@@ -6,7 +6,7 @@ use algokit_utils::applications::{
     OnSchemaBreak, OnUpdate, UpdateParams,
 };
 use algokit_utils::clients::app_manager::{AppManager, DeploymentMetadata, TealTemplateValue};
-use algokit_utils::{AppCreateParams, CommonTransactionParams, TransactionSender};
+use algokit_utils::{AppCreateParams, TransactionSender};
 use algokit_utils::{AssetManager, SendParams};
 use base64::{Engine, prelude::BASE64_STANDARD};
 use rstest::*;
@@ -131,17 +131,17 @@ async fn test_latest_created_app_is_retrieved(#[future] fixture: FixtureResult) 
 
     let mut create_params_1 =
         get_testing_app_create_params(&app_manager, &test_account, &creation_metadata).await?;
-    create_params_1.common_params.lease = Some([1u8; 32]);
+    create_params_1.lease = Some([1u8; 32]);
     transaction_sender.app_create(create_params_1, None).await?;
 
     let mut create_params_2 =
         get_testing_app_create_params(&app_manager, &test_account, &creation_metadata).await?;
-    create_params_2.common_params.lease = Some([2u8; 32]);
+    create_params_2.lease = Some([2u8; 32]);
     transaction_sender.app_create(create_params_2, None).await?;
 
     let mut create_params_3 =
         get_testing_app_create_params(&app_manager, &test_account, &creation_metadata).await?;
-    create_params_3.common_params.lease = Some([3u8; 32]);
+    create_params_3.lease = Some([3u8; 32]);
     let result_3 = transaction_sender.app_create(create_params_3, None).await?;
 
     algorand_fixture
@@ -205,7 +205,17 @@ async fn test_created_updated_and_deleted_apps_are_retrieved_by_name_with_deploy
     let update_create_params =
         get_testing_app_create_params(&app_manager, &test_account, &update_metadata).await?;
     let update_params = algokit_utils::AppUpdateParams {
-        common_params: update_create_params.common_params,
+        sender: update_create_params.sender.clone(),
+        signer: update_create_params.signer.clone(),
+        rekey_to: update_create_params.rekey_to.clone(),
+        note: update_create_params.note.clone(),
+        lease: update_create_params.lease,
+        static_fee: update_create_params.static_fee,
+        extra_fee: update_create_params.extra_fee,
+        max_fee: update_create_params.max_fee,
+        validity_window: update_create_params.validity_window,
+        first_valid_round: update_create_params.first_valid_round,
+        last_valid_round: update_create_params.last_valid_round,
         app_id: result_1.app_id,
         approval_program: update_create_params.approval_program,
         clear_state_program: update_create_params.clear_state_program,
@@ -219,16 +229,14 @@ async fn test_created_updated_and_deleted_apps_are_retrieved_by_name_with_deploy
 
     // Delete app 3
     let delete_params = algokit_utils::AppDeleteParams {
-        common_params: CommonTransactionParams {
-            sender: test_account.clone(),
-            ..Default::default()
-        },
+        sender: test_account.clone(),
         app_id: result_3.app_id,
         args: None,
         account_references: None,
         app_references: None,
         asset_references: None,
         box_references: None,
+        ..Default::default()
     };
     let delete_result = transaction_sender.app_delete(delete_params, None).await?;
 
@@ -1107,10 +1115,7 @@ async fn get_testing_app_deploy_params(
         on_schema_break,
         on_update,
         create_params: CreateParams::AppCreateCall(DeployAppCreateParams {
-            common_params: CommonTransactionParams {
-                sender: sender.clone(),
-                ..Default::default()
-            },
+            sender: sender.clone(),
             approval_program: AppProgram::Teal(approval_program),
             clear_state_program: AppProgram::Teal(clear_program),
             global_state_schema: Some(global_schema),
@@ -1121,17 +1126,11 @@ async fn get_testing_app_deploy_params(
             ..Default::default()
         }),
         update_params: UpdateParams::AppUpdateCall(DeployAppUpdateParams {
-            common_params: CommonTransactionParams {
-                sender: sender.clone(),
-                ..Default::default()
-            },
+            sender: sender.clone(),
             ..Default::default()
         }),
         delete_params: DeleteParams::AppDeleteCall(DeployAppDeleteParams {
-            common_params: CommonTransactionParams {
-                sender: sender.clone(),
-                ..Default::default()
-            },
+            sender: sender.clone(),
             ..Default::default()
         }),
         existing_deployments: None,
@@ -1192,11 +1191,8 @@ async fn get_testing_app_create_params(
     let note = format!("ALGOKIT_DEPLOYER:j{}", note_data);
 
     Ok(AppCreateParams {
-        common_params: CommonTransactionParams {
-            sender: sender.clone(),
-            note: Some(note.into_bytes()),
-            ..Default::default()
-        },
+        sender: sender.clone(),
+        note: Some(note.into_bytes()),
         approval_program: approval_compiled.compiled_base64_to_bytes,
         clear_state_program: clear_compiled.compiled_base64_to_bytes,
         on_complete: OnApplicationComplete::NoOp,
@@ -1214,5 +1210,6 @@ async fn get_testing_app_create_params(
             num_uints: 1,
         }),
         extra_program_pages: None,
+        ..Default::default()
     })
 }

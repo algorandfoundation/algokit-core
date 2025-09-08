@@ -1,8 +1,6 @@
 use crate::common::{AlgorandFixture, AlgorandFixtureResult, TestResult, algorand_fixture};
 use algokit_transact::Address;
-use algokit_utils::{
-    AssetConfigParams, AssetCreateParams, AssetDestroyParams, CommonTransactionParams,
-};
+use algokit_utils::{AssetConfigParams, AssetCreateParams, AssetDestroyParams};
 use rstest::*;
 
 #[rstest]
@@ -14,10 +12,7 @@ async fn test_asset_create_transaction(
     let sender_address = algorand_fixture.test_account.account().address();
 
     let asset_create_params = AssetCreateParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         total: 1_000_000,
         decimals: Some(2),
         default_frozen: Some(false),
@@ -29,6 +24,7 @@ async fn test_asset_create_transaction(
         reserve: Some(sender_address.clone()),
         freeze: Some(sender_address.clone()),
         clawback: Some(sender_address),
+        ..Default::default()
     };
 
     let mut composer = algorand_fixture.algorand_client.new_group();
@@ -96,10 +92,7 @@ async fn test_asset_config_transaction(
         .address();
     // First create an asset to reconfigure
     let asset_create_params = AssetCreateParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         total: 1_000_000,
         decimals: Some(0),
         default_frozen: Some(false),
@@ -111,6 +104,7 @@ async fn test_asset_config_transaction(
         reserve: None,
         freeze: None,
         clawback: None,
+        ..Default::default()
     };
 
     let mut composer = algorand_fixture.algorand_client.new_group();
@@ -123,15 +117,13 @@ async fn test_asset_config_transaction(
 
     // Now reconfigure the asset
     let asset_config_params = AssetConfigParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address,
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         asset_id,
         manager: Some(new_manager_addr.clone()),
         reserve: None,
         freeze: None,
         clawback: None,
+        ..Default::default()
     };
 
     let mut composer = algorand_fixture.algorand_client.new_group();
@@ -175,10 +167,7 @@ async fn test_asset_destroy_transaction(
     let sender_address = algorand_fixture.test_account.account().address();
     // First create an asset to destroy
     let asset_create_params = AssetCreateParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         total: 1_000,
         decimals: Some(0),
         default_frozen: Some(false),
@@ -190,6 +179,7 @@ async fn test_asset_destroy_transaction(
         reserve: None,
         freeze: None,
         clawback: None,
+        ..Default::default()
     };
 
     let mut composer = algorand_fixture.algorand_client.new_group();
@@ -202,11 +192,9 @@ async fn test_asset_destroy_transaction(
 
     // Now destroy the asset
     let asset_destroy_params = AssetDestroyParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address,
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         asset_id,
+        ..Default::default()
     };
 
     let mut composer = algorand_fixture.algorand_client.new_group();
@@ -236,10 +224,7 @@ async fn test_asset_create_validation_errors(
     let sender_address = algorand_fixture.test_account.account().address();
     // Test asset creation with multiple validation errors
     let invalid_asset_create_params = AssetCreateParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         total: 0,           // Invalid: should be > 0 (will be caught by transact validation)
         decimals: Some(25), // Invalid: should be <= 19
         default_frozen: Some(false),
@@ -251,6 +236,7 @@ async fn test_asset_create_validation_errors(
         reserve: None,
         freeze: None,
         clawback: None,
+        ..Default::default()
     };
 
     let mut composer = algorand_fixture.algorand_client.new_group();

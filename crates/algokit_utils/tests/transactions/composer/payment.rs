@@ -1,4 +1,4 @@
-use algokit_utils::{AccountCloseParams, CommonTransactionParams, PaymentParams};
+use algokit_utils::{AccountCloseParams, PaymentParams};
 use rstest::*;
 use std::sync::Arc;
 
@@ -16,12 +16,10 @@ async fn test_basic_payment_transaction(
     let receiver_account = receiver.account();
 
     let payment_params = PaymentParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address,
-            ..Default::default()
-        },
+        sender: sender_address,
         receiver: receiver_account.address(),
         amount: 500_000, // 0.5 ALGO
+        ..Default::default()
     };
 
     let mut composer = algorand_fixture.algorand_client.new_group();
@@ -55,11 +53,9 @@ async fn test_basic_account_close_transaction(
     let close_remainder_to_addr = close_remainder_to.account().address();
 
     let account_close_params = AccountCloseParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         close_remainder_to: close_remainder_to_addr.clone(),
+        ..Default::default()
     };
 
     let mut composer = algorand_fixture.algorand_client.new_group();
@@ -109,13 +105,11 @@ async fn test_payment_transactions_with_signers(
     // Add two payment transactions with the same signer
     for i in 0..2 {
         let payment_params = PaymentParams {
-            common_params: CommonTransactionParams {
-                sender: sender_addr.clone(),
-                signer: Some(signer.clone()),
-                ..Default::default()
-            },
+            sender: sender_addr.clone(),
+            signer: Some(signer.clone()),
             receiver: receiver_addr.clone(),
             amount: 50_000 + (i * 10_000),
+            ..Default::default()
         };
         composer.add_payment(payment_params)?;
     }

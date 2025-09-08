@@ -6,7 +6,6 @@ use algokit_abi::{ABIMethod, ABIType, ABIValue};
 use algokit_test_artifacts::resource_population;
 use algokit_transact::Transaction;
 use algokit_transact::{Address, BoxReference, OnApplicationComplete, StateSchema};
-use algokit_utils::CommonTransactionParams;
 use algokit_utils::transactions::composer::{ResourcePopulation, SendParams};
 use algokit_utils::{AppCallParams, AppCreateParams, PaymentParams};
 use base64::{Engine, prelude::BASE64_STANDARD};
@@ -94,11 +93,8 @@ async fn test_accounts_errors_when_resource_population_disabled(
         .account()
         .address();
     composer.add_app_call(AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            max_fee: Some(2000),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        max_fee: Some(2000),
         app_id,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
@@ -154,10 +150,7 @@ async fn test_accounts_populated_when_resource_population_enabled(
         .account()
         .address();
     composer.add_app_call(AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
@@ -208,10 +201,7 @@ async fn test_boxes_errors_when_resource_population_disabled(
         _ => return Err("Invalid box size".into()),
     };
     composer.add_app_call(AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![method_selector]),
@@ -292,10 +282,7 @@ async fn test_boxes_populated_when_resource_population_enabled(
         _ => return Err("Invalid box size".into()),
     };
     composer.add_app_call(AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![method_selector]),
@@ -333,11 +320,8 @@ async fn test_apps_errors_when_resource_population_disabled(
     } = fixture.await?;
     let mut composer = algorand_fixture.algorand_client.new_group();
     composer.add_app_call(AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            static_fee: Some(2000),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        static_fee: Some(2000),
         app_id,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![method_selectors.external_app_call]),
@@ -374,11 +358,8 @@ async fn test_apps_populated_when_resource_population_enabled(
     } = fixture.await?;
     let mut composer = algorand_fixture.algorand_client.new_group();
     composer.add_app_call(AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            static_fee: Some(2000),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        static_fee: Some(2000),
         app_id,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![method_selectors.external_app_call]),
@@ -416,10 +397,7 @@ async fn test_assets_errors_when_resource_population_disabled(
     } = fixture.await?;
     let mut composer = algorand_fixture.algorand_client.new_group();
     composer.add_app_call(AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![method_selectors.asset_total]),
@@ -462,10 +440,7 @@ async fn test_assets_populated_when_resource_population_enabled(
     } = fixture.await?;
     let mut composer = algorand_fixture.algorand_client.new_group();
     composer.add_app_call(AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![method_selectors.asset_total]),
@@ -515,10 +490,7 @@ async fn test_cross_product_assets_and_accounts_errors_when_resource_population_
         .address()
         .to_string();
     composer.add_app_call(AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
@@ -565,10 +537,7 @@ async fn test_cross_product_assets_and_accounts_populated_when_resource_populati
         .account()
         .address();
     composer.add_app_call(AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
@@ -626,10 +595,7 @@ async fn test_cross_product_account_app_errors_when_resource_population_disabled
         .account()
         .address();
     composer.add_app_call(AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
@@ -691,11 +657,8 @@ async fn test_cross_product_account_app_populated_when_resource_population_enabl
     };
 
     composer.add_app_call(AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: alice_address.clone(),
-            signer: Some(alice_signer.clone()),
-            ..Default::default()
-        },
+        sender: alice_address.clone(),
+        signer: Some(alice_signer.clone()),
         app_id: external_app_id,
         on_complete: OnApplicationComplete::OptIn,
         args: Some(vec![method_selectors.opt_in_to_application]),
@@ -703,10 +666,7 @@ async fn test_cross_product_account_app_populated_when_resource_population_enabl
     })?;
 
     composer.add_app_call(AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
@@ -759,10 +719,7 @@ async fn test_mixed_avm_version_same_account(
         .address();
 
     composer.add_app_call(AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id: avm_8_app_id,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
@@ -775,10 +732,7 @@ async fn test_mixed_avm_version_same_account(
     })?;
 
     composer.add_app_call(AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id: avm_9_app_id,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
@@ -827,11 +781,8 @@ async fn test_mixed_avm_version_app_account(
         deploy_resource_population_app(&algorand_fixture, &method_selectors, 9).await?;
 
     composer.add_app_call(AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            static_fee: Some(2000),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        static_fee: Some(2000),
         app_id: avm_8_app_id,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![method_selectors.external_app_call]),
@@ -839,10 +790,7 @@ async fn test_mixed_avm_version_app_account(
     })?;
 
     composer.add_app_call(AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id: avm_9_app_id,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![
@@ -890,10 +838,7 @@ async fn test_error(
     } = fixture.await?;
     let mut composer = algorand_fixture.algorand_client.new_group();
     composer.add_app_call(AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![method_selectors.error]),
@@ -953,19 +898,14 @@ async fn test_box_with_txn_arg(
     let mut composer = algorand_fixture.algorand_client.new_group();
 
     composer.add_payment(PaymentParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         amount: 0,
         receiver: sender_address.clone(),
+        ..Default::default()
     })?;
 
     composer.add_app_call(AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id: external_app_id,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![method_selectors.box_with_payment]),
@@ -1008,11 +948,8 @@ async fn test_sender_asset_holding(
     fund_app_account(&algorand_fixture, external_app_id, 200_000).await?;
 
     composer.add_app_call(AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            static_fee: Some(2000),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        static_fee: Some(2000),
         app_id: external_app_id,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![method_selectors.create_asset]),
@@ -1020,10 +957,7 @@ async fn test_sender_asset_holding(
     })?;
 
     composer.add_app_call(AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id: external_app_id,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![method_selectors.sender_asset_balance]),
@@ -1069,22 +1003,17 @@ async fn test_rekeyed_account(
 
     // Rekey the account
     composer.add_payment(PaymentParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            rekey_to: Some(auth_address.clone()),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        rekey_to: Some(auth_address.clone()),
         amount: 0,
         receiver: sender_address.clone(),
+        ..Default::default()
     })?;
 
     composer.add_app_call(AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            signer: Some(auth_signer.clone()),
-            static_fee: Some(2001),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        signer: Some(auth_signer.clone()),
+        static_fee: Some(2001),
         app_id: external_app_id,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![method_selectors.create_asset]),
@@ -1092,11 +1021,8 @@ async fn test_rekeyed_account(
     })?;
 
     composer.add_app_call(AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            signer: Some(auth_signer.clone()),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        signer: Some(auth_signer.clone()),
         app_id: external_app_id,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![method_selectors.sender_asset_balance]),
@@ -1178,10 +1104,7 @@ async fn deploy_resource_population_app(
 
     let mut composer = context.algorand_client.new_group();
     composer.add_app_create(AppCreateParams {
-        common_params: CommonTransactionParams {
-            sender: context.test_account.account().address(),
-            ..Default::default()
-        },
+        sender: context.test_account.account().address(),
         on_complete: OnApplicationComplete::NoOp,
         approval_program: approval_compile_result.result.clone(),
         clear_state_program: clear_state_compile_result.result,
@@ -1211,11 +1134,8 @@ async fn bootstrap_resource_population_app(
     let mut composer = context.algorand_client.new_group();
 
     composer.add_app_call(AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: context.test_account.account().address(),
-            static_fee: Some(3000),
-            ..Default::default()
-        },
+        sender: context.test_account.account().address(),
+        static_fee: Some(3000),
         app_id,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![method_selectors.bootstrap.clone()]),

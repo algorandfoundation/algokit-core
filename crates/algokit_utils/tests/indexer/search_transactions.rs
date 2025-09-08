@@ -1,6 +1,6 @@
 use algokit_http_client::DefaultHttpClient;
 use algokit_transact::TransactionId;
-use algokit_utils::{ClientManager, CommonTransactionParams, PaymentParams};
+use algokit_utils::{ClientManager, PaymentParams};
 use indexer_client::IndexerClient;
 use rstest::rstest;
 use std::sync::Arc;
@@ -21,12 +21,10 @@ async fn finds_sent_transaction(#[future] algorand_fixture: AlgorandFixtureResul
     let receiver = algorand_fixture.generate_account(None).await?;
 
     let payment_params = PaymentParams {
-        common_params: CommonTransactionParams {
-            sender: sender.clone(),
-            ..Default::default()
-        },
+        sender: sender.clone(),
         receiver: receiver.account().address(),
         amount: 500_000,
+        ..Default::default()
     };
 
     let mut composer = algorand_fixture.algorand_client.new_group();

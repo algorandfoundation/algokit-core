@@ -1,6 +1,6 @@
 use crate::common::{AlgorandFixtureResult, TestResult, algorand_fixture};
 use algokit_utils::{
-    CommonTransactionParams, NonParticipationKeyRegistrationParams, OfflineKeyRegistrationParams,
+    NonParticipationKeyRegistrationParams, OfflineKeyRegistrationParams,
     OnlineKeyRegistrationParams,
 };
 use base64::{Engine, engine::general_purpose};
@@ -15,10 +15,8 @@ async fn test_offline_key_registration_transaction(
     let sender_addr = algorand_fixture.test_account.account().address();
 
     let offline_key_reg_params = OfflineKeyRegistrationParams {
-        common_params: CommonTransactionParams {
-            sender: sender_addr.clone(),
-            ..Default::default()
-        },
+        sender: sender_addr.clone(),
+        ..Default::default()
     };
 
     let mut composer = algorand_fixture.algorand_client.new_group();
@@ -107,16 +105,14 @@ async fn test_non_participation_key_registration_transaction(
     let vote_last = vote_first + 10_000_000;
 
     let online_key_reg_params = OnlineKeyRegistrationParams {
-        common_params: CommonTransactionParams {
-            sender: sender_addr.clone(),
-            ..Default::default()
-        },
+        sender: sender_addr.clone(),
         vote_key,
         selection_key,
         vote_first,
         vote_last,
         vote_key_dilution: 100,
         state_proof_key: Some(state_proof_key),
+        ..Default::default()
     };
 
     let mut composer = algorand_fixture.algorand_client.new_group();
@@ -142,10 +138,8 @@ async fn test_non_participation_key_registration_transaction(
 
     // Step 2: Mark account as permanently non-participating
     let non_participation_params = NonParticipationKeyRegistrationParams {
-        common_params: CommonTransactionParams {
-            sender: sender_addr.clone(),
-            ..Default::default()
-        },
+        sender: sender_addr.clone(),
+        ..Default::default()
     };
 
     let mut composer2 = algorand_fixture.algorand_client.new_group();
@@ -208,16 +202,14 @@ async fn test_non_participation_key_registration_transaction(
     let vote_last_3 = vote_first_3 + 10_000_000;
 
     let try_online_again_params = OnlineKeyRegistrationParams {
-        common_params: CommonTransactionParams {
-            sender: sender_addr.clone(),
-            ..Default::default()
-        },
+        sender: sender_addr.clone(),
         vote_key,
         selection_key,
         vote_first: vote_first_3,
         vote_last: vote_last_3,
         vote_key_dilution: 100,
         state_proof_key: Some(state_proof_key),
+        ..Default::default()
     };
 
     let mut composer3 = algorand_fixture.algorand_client.new_group();
@@ -277,16 +269,14 @@ async fn test_online_key_registration_transaction(
     let vote_last = vote_first + 10_000_000;
 
     let online_key_reg_params = OnlineKeyRegistrationParams {
-        common_params: CommonTransactionParams {
-            sender: sender_addr.clone(),
-            ..Default::default()
-        },
+        sender: sender_addr.clone(),
         vote_key,
         selection_key,
         vote_first,
         vote_last,
         vote_key_dilution: 100,
         state_proof_key: Some(state_proof_key),
+        ..Default::default()
     };
 
     let mut composer = algorand_fixture.algorand_client.new_group();

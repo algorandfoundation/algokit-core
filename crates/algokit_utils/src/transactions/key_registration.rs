@@ -1,40 +1,39 @@
+use crate::create_transaction_params;
 use algokit_transact::{KeyRegistrationTransactionFields, Transaction, TransactionHeader};
 
-use super::common::CommonTransactionParams;
-
-#[derive(Debug, Default, Clone)]
-/// Parameters for creating an online key registration transaction.
-pub struct OnlineKeyRegistrationParams {
-    /// Common parameters used across all transaction types
-    pub common_params: CommonTransactionParams,
-    /// The root participation public key
-    pub vote_key: [u8; 32],
-    /// The VRF public key
-    pub selection_key: [u8; 32],
-    ///  The first round that the participation key is valid. Not to be confused with the first valid round of the keyreg transaction
-    pub vote_first: u64,
-    /// The last round that the participation key is valid. Not to be confused with the last valid round of the keyreg transaction
-    pub vote_last: u64,
-    /// This is the dilution for the 2-level participation key. It determines the interval (number of rounds) for generating new ephemeral keys
-    pub vote_key_dilution: u64,
-    /// The 64 byte state proof public key commitment
-    pub state_proof_key: Option<[u8; 64]>,
+create_transaction_params! {
+    /// Parameters for creating an online key registration transaction.
+    #[derive(Clone, Default)]
+    pub struct OnlineKeyRegistrationParams {
+        /// The root participation public key
+        pub vote_key: [u8; 32],
+        /// The VRF public key
+        pub selection_key: [u8; 32],
+        ///  The first round that the participation key is valid. Not to be confused with the first valid round of the keyreg transaction
+        pub vote_first: u64,
+        /// The last round that the participation key is valid. Not to be confused with the last valid round of the keyreg transaction
+        pub vote_last: u64,
+        /// This is the dilution for the 2-level participation key. It determines the interval (number of rounds) for generating new ephemeral keys
+        pub vote_key_dilution: u64,
+        /// The 64 byte state proof public key commitment
+        pub state_proof_key: Option<[u8; 64]>,
+    }
 }
 
-#[derive(Debug, Default, Clone)]
-/// Parameters for creating an offline key registration transaction.
-pub struct OfflineKeyRegistrationParams {
-    /// Common parameters used across all transaction types
-    pub common_params: CommonTransactionParams,
+create_transaction_params! {
+    /// Parameters for creating an offline key registration transaction.
+    #[derive(Clone, Default)]
+    pub struct OfflineKeyRegistrationParams {
+    }
 }
 
-#[derive(Debug, Default, Clone)]
-/// Parameters for creating an non participation key registration transaction.
-///
-/// **Warning:** This will prevent the sender account from ever participating again. The account will also no longer earn rewards.
-pub struct NonParticipationKeyRegistrationParams {
-    /// Common parameters used across all transaction types
-    pub common_params: CommonTransactionParams,
+create_transaction_params! {
+    /// Parameters for creating an non participation key registration transaction.
+    ///
+    /// **Warning:** This will prevent the sender account from ever participating again. The account will also no longer earn rewards.
+    #[derive(Clone, Default)]
+    pub struct NonParticipationKeyRegistrationParams {
+    }
 }
 
 pub fn build_online_key_registration(

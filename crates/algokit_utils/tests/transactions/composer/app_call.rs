@@ -8,9 +8,7 @@ use algokit_transact::{
     Address, OnApplicationComplete, PaymentTransactionFields, StateSchema, Transaction,
     TransactionHeader, TransactionId,
 };
-use algokit_utils::{
-    AppCallMethodCallParams, AssetCreateParams, CommonTransactionParams, ComposerError,
-};
+use algokit_utils::{AppCallMethodCallParams, AssetCreateParams, ComposerError};
 use algokit_utils::{
     AppCallParams, AppCreateParams, AppDeleteParams, AppMethodCallArg, AppUpdateParams,
     PaymentParams,
@@ -33,10 +31,7 @@ async fn test_app_call_transaction(
     let app_id = create_test_app(&algorand_fixture, &sender_address).await?;
 
     let app_call_params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id,
         on_complete: OnApplicationComplete::NoOp,
         args: Some(vec![b"Call".to_vec()]),
@@ -44,6 +39,7 @@ async fn test_app_call_transaction(
         app_references: None,
         asset_references: None,
         box_references: None,
+        ..Default::default()
     };
 
     let mut composer = algorand_fixture.algorand_client.new_group();
@@ -86,10 +82,7 @@ async fn test_app_create_transaction(
     let sender_address = algorand_fixture.test_account.account().address();
 
     let app_create_params = AppCreateParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         approval_program: HELLO_WORLD_APPROVAL_PROGRAM.to_vec(),
         clear_state_program: HELLO_WORLD_CLEAR_STATE_PROGRAM.to_vec(),
         args: Some(vec![b"Create".to_vec()]),
@@ -151,10 +144,7 @@ async fn test_app_delete_transaction(
     let app_id = create_test_app(&algorand_fixture, &sender_address).await?;
 
     let app_delete_params = AppDeleteParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id,
         args: Some(vec![b"Delete".to_vec()]),
         ..Default::default()
@@ -205,10 +195,7 @@ async fn test_app_update_transaction(
     let app_id = create_test_app(&algorand_fixture, &sender_address).await?;
 
     let app_update_params = AppUpdateParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id,
         approval_program: HELLO_WORLD_CLEAR_STATE_PROGRAM.to_vec(), // Update the approval program
         clear_state_program: HELLO_WORLD_CLEAR_STATE_PROGRAM.to_vec(),
@@ -266,7 +253,7 @@ async fn test_hello_world_app_method_call(
     #[future] arc56_algorand_fixture: Arc56AppFixtureResult,
 ) -> TestResult {
     let Arc56AppFixture {
-        sender_address: sender_addr,
+        sender_address,
         app_id,
         arc56_contract,
         algorand_fixture,
@@ -279,10 +266,7 @@ async fn test_hello_world_app_method_call(
     ))];
 
     let method_call_params = AppCallMethodCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_addr.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id,
         method: abi_method,
         args,
@@ -310,7 +294,7 @@ async fn test_add_app_call_method_call(
     #[future] arc56_algorand_fixture: Arc56AppFixtureResult,
 ) -> TestResult {
     let Arc56AppFixture {
-        sender_address: sender_addr,
+        sender_address,
         app_id,
         arc56_contract,
         algorand_fixture,
@@ -324,10 +308,7 @@ async fn test_add_app_call_method_call(
     ];
 
     let method_call_params = AppCallMethodCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_addr.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id,
         method: abi_method,
         args,
@@ -356,7 +337,7 @@ async fn test_echo_byte_app_call_method_call(
     #[future] arc56_algorand_fixture: Arc56AppFixtureResult,
 ) -> TestResult {
     let Arc56AppFixture {
-        sender_address: sender_addr,
+        sender_address,
         app_id,
         arc56_contract,
         algorand_fixture,
@@ -375,10 +356,7 @@ async fn test_echo_byte_app_call_method_call(
     ))];
 
     let method_call_params = AppCallMethodCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_addr.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id,
         method: abi_method,
         args,
@@ -407,7 +385,7 @@ async fn test_echo_static_array_app_call_method_call(
     #[future] arc56_algorand_fixture: Arc56AppFixtureResult,
 ) -> TestResult {
     let Arc56AppFixture {
-        sender_address: sender_addr,
+        sender_address,
         app_id,
         arc56_contract,
         algorand_fixture,
@@ -426,10 +404,7 @@ async fn test_echo_static_array_app_call_method_call(
     ))];
 
     let method_call_params = AppCallMethodCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_addr.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id,
         method: abi_method,
         args,
@@ -458,7 +433,7 @@ async fn test_echo_dynamic_array_app_call_method_call(
     #[future] arc56_algorand_fixture: Arc56AppFixtureResult,
 ) -> TestResult {
     let Arc56AppFixture {
-        sender_address: sender_addr,
+        sender_address,
         app_id,
         arc56_contract,
         algorand_fixture,
@@ -476,10 +451,7 @@ async fn test_echo_dynamic_array_app_call_method_call(
     ))];
 
     let method_call_params = AppCallMethodCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_addr.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id,
         method: abi_method,
         args,
@@ -508,7 +480,7 @@ async fn test_nest_array_and_tuple_app_call_method_call(
     #[future] arc56_algorand_fixture: Arc56AppFixtureResult,
 ) -> TestResult {
     let Arc56AppFixture {
-        sender_address: sender_addr,
+        sender_address,
         app_id,
         arc56_contract,
         algorand_fixture,
@@ -542,10 +514,7 @@ async fn test_nest_array_and_tuple_app_call_method_call(
     ];
 
     let method_call_params = AppCallMethodCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_addr.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id,
         method: abi_method,
         args,
@@ -602,7 +571,7 @@ async fn test_get_pay_txn_amount_app_call_method_call(
     #[future] arc56_algorand_fixture: Arc56AppFixtureResult,
 ) -> TestResult {
     let Arc56AppFixture {
-        sender_address: sender_addr,
+        sender_address,
         app_id,
         arc56_contract,
         mut algorand_fixture,
@@ -615,19 +584,14 @@ async fn test_get_pay_txn_amount_app_call_method_call(
 
     let payment_amount = 1_234_567u64;
     let args = vec![AppMethodCallArg::Payment(PaymentParams {
-        common_params: CommonTransactionParams {
-            sender: sender_addr.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         receiver: receiver_addr,
         amount: payment_amount,
+        ..Default::default()
     })];
 
     let method_call_params = AppCallMethodCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_addr.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id,
         method: abi_method,
         args,
@@ -660,7 +624,7 @@ async fn test_get_pay_txn_amount_app_call_method_call_using_a_different_signer(
     #[future] arc56_algorand_fixture: Arc56AppFixtureResult,
 ) -> TestResult {
     let Arc56AppFixture {
-        sender_address: sender_addr,
+        sender_address,
         app_id,
         arc56_contract,
         mut algorand_fixture,
@@ -677,20 +641,15 @@ async fn test_get_pay_txn_amount_app_call_method_call_using_a_different_signer(
     let payment_amount = 1_234_567u64;
     let alice_signer = Arc::new(alice.clone());
     let args = vec![AppMethodCallArg::Payment(PaymentParams {
-        common_params: CommonTransactionParams {
-            sender: alice_addr.clone(), // Alice sends and signs the payment
-            signer: Some(alice_signer),
-            ..Default::default()
-        },
+        sender: alice_addr.clone(),
+        signer: Some(alice_signer),
         receiver: receiver_addr,
         amount: payment_amount,
+        ..Default::default()
     })];
 
     let method_call_params = AppCallMethodCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_addr.clone(), // Default test account still makes the method call
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id,
         method: abi_method,
         args,
@@ -723,7 +682,7 @@ async fn test_get_returned_value_of_app_call_txn_app_call_method_call(
     #[future] arc56_algorand_fixture: Arc56AppFixtureResult,
 ) -> TestResult {
     let Arc56AppFixture {
-        sender_address: sender_addr,
+        sender_address,
         app_id,
         arc56_contract,
         mut algorand_fixture,
@@ -741,28 +700,20 @@ async fn test_get_returned_value_of_app_call_txn_app_call_method_call(
     let mut composer = algorand_fixture.algorand_client.new_group();
 
     let first_method_call_params = AppCallMethodCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_addr.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id,
         method: get_pay_txn_amount_method,
         args: vec![AppMethodCallArg::Payment(PaymentParams {
-            common_params: CommonTransactionParams {
-                sender: sender_addr.clone(),
-                ..Default::default()
-            },
+            sender: sender_address.clone(),
             receiver: receiver_addr,
             amount: payment_amount,
+            ..Default::default()
         })],
         ..Default::default()
     };
 
     let second_method_call_params = AppCallMethodCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_addr.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id,
         method: get_returned_value_of_app_call_txn_method,
         args: vec![AppMethodCallArg::AppCallMethodCall(
@@ -796,7 +747,7 @@ async fn test_get_returned_value_of_nested_app_call_method_calls(
     #[future] arc56_algorand_fixture: Arc56AppFixtureResult,
 ) -> TestResult {
     let Arc56AppFixture {
-        sender_address: sender_addr,
+        sender_address,
         app_id,
         arc56_contract,
         mut algorand_fixture,
@@ -814,39 +765,29 @@ async fn test_get_returned_value_of_nested_app_call_method_calls(
     let mut composer = algorand_fixture.algorand_client.new_group();
 
     let get_pay_txn_amount_method_call_params = AppCallMethodCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_addr.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id,
         method: get_pay_txn_amount_method,
         args: vec![AppMethodCallArg::Payment(PaymentParams {
-            common_params: CommonTransactionParams {
-                sender: sender_addr.clone(),
-                ..Default::default()
-            },
+            sender: sender_address.clone(),
             receiver: receiver_addr.clone(),
             amount: payment_amount,
+            ..Default::default()
         })],
         ..Default::default()
     };
 
     let get_pay_txns_amount_sum_method_method_call_params = AppCallMethodCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_addr.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id,
         method: get_pay_txns_amount_sum_method,
         args: vec![
             AppMethodCallArg::Payment(PaymentParams {
-                common_params: CommonTransactionParams {
-                    sender: sender_addr.clone(),
-                    note: Some("second txn".as_bytes().to_vec()),
-                    ..Default::default()
-                },
+                sender: sender_address.clone(),
                 receiver: receiver_addr.clone(),
                 amount: payment_amount,
+                note: Some("second txn".as_bytes().to_vec()),
+                ..Default::default()
             }),
             AppMethodCallArg::TransactionPlaceholder,
             AppMethodCallArg::AppCallMethodCall(get_pay_txn_amount_method_call_params),
@@ -912,10 +853,7 @@ async fn create_test_app(
     sender: &Address,
 ) -> Result<u64, ComposerError> {
     let app_create_params = AppCreateParams {
-        common_params: CommonTransactionParams {
-            sender: sender.clone(),
-            ..Default::default()
-        },
+        sender: sender.clone(),
         approval_program: HELLO_WORLD_APPROVAL_PROGRAM.to_vec(),
         clear_state_program: HELLO_WORLD_CLEAR_STATE_PROGRAM.to_vec(),
         global_state_schema: Some(StateSchema {
@@ -947,7 +885,7 @@ async fn test_more_than_15_args_with_ref_types_app_call_method_call(
     #[future] arc56_algorand_fixture: Arc56AppFixtureResult,
 ) -> TestResult {
     let Arc56AppFixture {
-        sender_address: sender_addr,
+        sender_address,
         app_id,
         arc56_contract,
         mut algorand_fixture,
@@ -962,10 +900,7 @@ async fn test_more_than_15_args_with_ref_types_app_call_method_call(
     let receiver_addr = receiver.account().address();
 
     let asset_create_params = AssetCreateParams {
-        common_params: CommonTransactionParams {
-            sender: sender_addr.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         total: 1_000_000,
         decimals: Some(2),
         default_frozen: Some(false),
@@ -973,10 +908,11 @@ async fn test_more_than_15_args_with_ref_types_app_call_method_call(
         unit_name: Some("TEST".to_string()),
         url: Some("https://example.com".to_string()),
         metadata_hash: None,
-        manager: Some(sender_addr.clone()),
-        reserve: Some(sender_addr.clone()),
-        freeze: Some(sender_addr.clone()),
-        clawback: Some(sender_addr.clone()),
+        manager: Some(sender_address.clone()),
+        reserve: Some(sender_address.clone()),
+        freeze: Some(sender_address.clone()),
+        clawback: Some(sender_address.clone()),
+        ..Default::default()
     };
 
     let mut asset_composer = algorand_fixture.algorand_client.new_group();
@@ -995,7 +931,7 @@ async fn test_more_than_15_args_with_ref_types_app_call_method_call(
     let genesis_hash: Option<[u8; 32]> = tx_params.genesis_hash.try_into().ok();
     let payment_transaction = Transaction::Payment(PaymentTransactionFields {
         header: TransactionHeader {
-            sender: sender_addr.clone(),
+            sender: sender_address.clone(),
             fee: Some(tx_params.min_fee),
             first_valid: tx_params.last_round,
             last_valid: tx_params.last_round + 1000,
@@ -1038,10 +974,7 @@ async fn test_more_than_15_args_with_ref_types_app_call_method_call(
     )));
 
     let method_call_params = AppCallMethodCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_addr.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id,
         method: abi_method,
         args,
@@ -1137,7 +1070,7 @@ async fn test_more_than_15_args_app_call_method_call(
     #[future] arc56_algorand_fixture: Arc56AppFixtureResult,
 ) -> TestResult {
     let Arc56AppFixture {
-        sender_address: sender_addr,
+        sender_address,
         app_id,
         arc56_contract,
         algorand_fixture,
@@ -1153,10 +1086,7 @@ async fn test_more_than_15_args_app_call_method_call(
     }
 
     let method_call_params = AppCallMethodCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_addr.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id,
         method: abi_method,
         args,
@@ -1209,10 +1139,7 @@ async fn test_app_call_validation_errors(
 
     // Test app call with invalid app_id (0)
     let invalid_app_call_params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address,
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id: 0, // Invalid: should be > 0 for app calls (0 is for app creation)
         ..Default::default()
     };
@@ -1291,48 +1218,35 @@ async fn test_double_nested(#[future] algorand_fixture: AlgorandFixtureResult) -
     let app_id = deploy_nested_app(&algorand_fixture).await?;
 
     let first_txn_arg = AppCallMethodCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            note: Some("first_txn_arg".as_bytes().to_vec()),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        note: Some("first_txn_arg".as_bytes().to_vec()),
         app_id,
         method: ABIMethod::from_str("txnArg(pay)address")?,
         args: vec![AppMethodCallArg::Payment(PaymentParams {
-            common_params: CommonTransactionParams {
-                sender: sender_address.clone(),
-                ..Default::default()
-            },
+            sender: sender_address.clone(),
             receiver: receiver_address.clone(),
             amount: 2_500_000u64,
+            ..Default::default()
         })],
         ..Default::default()
     };
 
     let second_txn_arg = AppCallMethodCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            note: Some("second_txn_arg".as_bytes().to_vec()),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        note: Some("second_txn_arg".as_bytes().to_vec()),
         app_id,
         method: ABIMethod::from_str("txnArg(pay)address")?,
         args: vec![AppMethodCallArg::Payment(PaymentParams {
-            common_params: CommonTransactionParams {
-                sender: sender_address.clone(),
-                ..Default::default()
-            },
+            sender: sender_address.clone(),
             receiver: receiver_address.clone(),
             amount: 1_500_000u64,
+            ..Default::default()
         })],
         ..Default::default()
     };
 
     let method_call_params = AppCallMethodCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id,
         method: ABIMethod::from_str("doubleNestedTxnArg(pay,appl,pay,appl)uint64")?,
         args: vec![
@@ -1415,10 +1329,7 @@ async fn deploy_nested_app(
     let create_method_selector = create_method.selector()?;
 
     let app_create_params = AppCreateParams {
-        common_params: CommonTransactionParams {
-            sender: algorand_fixture.test_account.account().address(),
-            ..Default::default()
-        },
+        sender: algorand_fixture.test_account.account().address(),
         approval_program: approval_compile_result.result,
         clear_state_program: clear_state_compile_result.result,
         args: Some(vec![create_method_selector]),

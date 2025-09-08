@@ -21,7 +21,7 @@ pub use asset_freeze::{AssetFreezeParams, AssetUnfreezeParams};
 pub use asset_transfer::{
     AssetClawbackParams, AssetOptInParams, AssetOptOutParams, AssetTransferParams,
 };
-pub use common::{CommonTransactionParams, EmptySigner, TransactionSigner, TransactionWithSigner};
+pub use common::{EmptySigner, TransactionSigner, TransactionWithSigner};
 pub use composer::{
     Composer, ComposerError, ComposerTransaction, ResourcePopulation, SendParams,
     SendTransactionComposerResults,
