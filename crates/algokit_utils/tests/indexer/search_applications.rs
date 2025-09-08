@@ -57,10 +57,11 @@ async fn finds_created_application(
     let app_id = create_app(&algorand_fixture).await.unwrap();
 
     let config = ClientManager::get_config_from_environment_or_localnet();
-    let base_url = if let Some(port) = config.indexer_config.port {
-        format!("{}:{}", config.indexer_config.server, port)
+    let indexer_config = config.indexer_config.unwrap();
+    let base_url = if let Some(port) = indexer_config.port {
+        format!("{}:{}", indexer_config.server, port)
     } else {
-        config.indexer_config.server.clone()
+        indexer_config.server.clone()
     };
     let indexer_client = IndexerClient::new(Arc::new(DefaultHttpClient::new(&base_url)));
 

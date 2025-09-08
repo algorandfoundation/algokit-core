@@ -33,12 +33,14 @@ impl AlgorandFixture {
     pub async fn new(
         params: &AlgorandClientParams,
     ) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
-        let algod = Arc::new(ClientManager::get_algod_client(
-            &params.client_config.algod_config,
-        ));
-        let indexer = Arc::new(ClientManager::get_indexer_client(
-            &params.client_config.indexer_config,
-        ));
+        let algod =
+            Arc::new(ClientManager::get_algod_client(&params.client_config.algod_config).unwrap());
+        let indexer = Arc::new(
+            ClientManager::get_indexer_client(
+                &params.client_config.indexer_config.clone().unwrap(),
+            )
+            .unwrap(),
+        );
 
         let mut algorand_client = AlgorandClient::new(params);
 
