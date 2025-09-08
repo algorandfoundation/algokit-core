@@ -406,12 +406,12 @@ impl TransactionSender {
             // Ensure account has zero balance before opting out
             let account_info = self
                 .asset_manager
-                .get_account_information(&params.common_params.sender, params.asset_id)
+                .get_account_information(&params.sender, params.asset_id)
                 .await
                 .map_err(|e| TransactionSenderError::ValidationError {
                     message: format!(
                         "Account {} validation failed for Asset {}: {}",
-                        params.common_params.sender, params.asset_id, e
+                        params.sender, params.asset_id, e
                     ),
                 })?;
 
@@ -424,7 +424,7 @@ impl TransactionSender {
                 return Err(TransactionSenderError::ValidationError {
                     message: format!(
                         "Account {} does not have a zero balance for Asset {}; can't opt-out.",
-                        params.common_params.sender, params.asset_id
+                        params.sender, params.asset_id
                     ),
                 });
             }

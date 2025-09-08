@@ -1,61 +1,59 @@
+use crate::create_transaction_params;
 use algokit_transact::{Address, AssetTransferTransactionFields, Transaction, TransactionHeader};
 
-use super::common::CommonTransactionParams;
-
-#[derive(Debug, Clone)]
-/// Parameters for creating an asset transfer transaction.
-pub struct AssetTransferParams {
-    /// Common parameters used across all transaction types
-    pub common_params: CommonTransactionParams,
-    /// ID of the asset to transfer.
-    pub asset_id: u64,
-    /// The amount of the asset to transfer (in smallest divisible (decimal) units).
-    pub amount: u64,
-    /// The address of the account that will receive the asset unit(s).
-    pub receiver: Address,
+create_transaction_params! {
+    /// Parameters for creating an asset transfer transaction.
+    #[derive(Clone, Default)]
+    pub struct AssetTransferParams {
+        /// ID of the asset to transfer.
+        pub asset_id: u64,
+        /// The amount of the asset to transfer (in smallest divisible (decimal) units).
+        pub amount: u64,
+        /// The address of the account that will receive the asset unit(s).
+        pub receiver: Address,
+    }
 }
 
-#[derive(Debug, Clone)]
-/// Parameters for creating an asset opt-in transaction.
-pub struct AssetOptInParams {
-    /// Common parameters used across all transaction types
-    pub common_params: CommonTransactionParams,
-    /// ID of the asset that will be opted-in to.
-    pub asset_id: u64,
+create_transaction_params! {
+    /// Parameters for creating an asset opt-in transaction.
+    #[derive(Clone, Default)]
+    pub struct AssetOptInParams {
+        /// ID of the asset that will be opted-in to.
+        pub asset_id: u64,
+    }
 }
 
-#[derive(Debug, Clone)]
-/// Parameters for creating an asset opt-out transaction.
-pub struct AssetOptOutParams {
-    /// Common parameters used across all transaction types
-    pub common_params: CommonTransactionParams,
-    /// ID of the asset that will be opted-out of.
-    pub asset_id: u64,
-    /// Optional address of an account to close the remaining asset position to. We recommend setting this to the asset creator.
-    ///
-    /// **Warning:** Be careful with this parameter as it can lead to loss of funds if not used correctly.
-    pub close_remainder_to: Option<Address>,
+create_transaction_params! {
+    /// Parameters for creating an asset opt-out transaction.
+    #[derive(Clone, Default)]
+    pub struct AssetOptOutParams {
+        /// ID of the asset that will be opted-out of.
+        pub asset_id: u64,
+        /// Optional address of an account to close the remaining asset position to. We recommend setting this to the asset creator.
+        ///
+        /// **Warning:** Be careful with this parameter as it can lead to loss of funds if not used correctly.
+        pub close_remainder_to: Option<Address>,
+    }
 }
 
-#[derive(Debug, Clone)]
-/// Parameters for creating an asset clawback transaction.
-pub struct AssetClawbackParams {
-    /// Common parameters used across all transaction types
-    pub common_params: CommonTransactionParams,
-    /// ID of the asset to clawback.
-    pub asset_id: u64,
-    /// Amount of the asset to transfer (in smallest divisible (decimal) units).
-    pub amount: u64,
-    /// The address of the account that will receive the asset unit(s).
-    pub receiver: Address,
-    /// Address of an account to clawback the asset from.
-    ///
-    /// Requires the sender to be the clawback account.
-    ///
-    /// **Warning:** Be careful with this parameter as it can lead to unexpected loss of funds if not used correctly.
-    pub clawback_target: Address,
+create_transaction_params! {
+    #[derive(Clone, Default)]
+    /// Parameters for creating an asset clawback transaction.
+    pub struct AssetClawbackParams {
+        /// ID of the asset to clawback.
+        pub asset_id: u64,
+        /// Amount of the asset to transfer (in smallest divisible (decimal) units).
+        pub amount: u64,
+        /// The address of the account that will receive the asset unit(s).
+        pub receiver: Address,
+        /// Address of an account to clawback the asset from.
+        ///
+        /// Requires the sender to be the clawback account.
+        ///
+        /// **Warning:** Be careful with this parameter as it can lead to unexpected loss of funds if not used correctly.
+        pub clawback_target: Address,
+    }
 }
-
 pub fn build_asset_transfer(
     params: &AssetTransferParams,
     header: TransactionHeader,
@@ -121,12 +119,10 @@ mod tests {
 
         // Test with Some(creator) - explicit close_remainder_to
         let params_with_creator = AssetOptOutParams {
-            common_params: CommonTransactionParams {
-                sender: sender.clone(),
-                ..Default::default()
-            },
+            sender: sender.clone(),
             asset_id: 123,
             close_remainder_to: Some(creator.clone()),
+            ..Default::default()
         };
 
         let header = TransactionHeader {
@@ -155,12 +151,10 @@ mod tests {
 
         // Test with None - should pass None through (resolution happens at TransactionSender level)
         let params_without_creator = AssetOptOutParams {
-            common_params: CommonTransactionParams {
-                sender: sender.clone(),
-                ..Default::default()
-            },
+            sender: sender.clone(),
             asset_id: 456,
             close_remainder_to: None,
+            ..Default::default()
         };
 
         let tx2 = build_asset_opt_out(&params_without_creator, header);

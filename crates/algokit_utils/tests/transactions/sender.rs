@@ -7,8 +7,8 @@ use algokit_test_artifacts::sandbox;
 use algokit_transact::{Address, OnApplicationComplete};
 use algokit_utils::transactions::{
     AppCallMethodCallParams, AppCreateParams, AppMethodCallArg, AssetCreateParams,
-    AssetOptInParams, AssetOptOutParams, AssetTransferParams, CommonTransactionParams,
-    PaymentParams, TransactionSenderError,
+    AssetOptInParams, AssetOptOutParams, AssetTransferParams, PaymentParams,
+    TransactionSenderError,
 };
 use rstest::*;
 use std::sync::Arc;
@@ -24,12 +24,10 @@ async fn test_payment_returns_rich_result(
     let receiver = algorand_fixture.generate_account(None).await?;
 
     let params = PaymentParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address,
-            ..Default::default()
-        },
+        sender: sender_address,
         receiver: receiver.account().address(),
         amount: 1_000_000,
+        ..Default::default()
     };
 
     let result = algorand_fixture
@@ -59,12 +57,10 @@ async fn test_zero_amount_payment_allowed(
     let receiver = algorand_fixture.generate_account(None).await?;
 
     let params = PaymentParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address,
-            ..Default::default()
-        },
+        sender: sender_address,
         receiver: receiver.account().address(),
         amount: 0, // Zero amount should be allowed
+        ..Default::default()
     };
 
     let result = algorand_fixture
@@ -99,10 +95,7 @@ async fn test_asset_create_extracts_asset_id(
     let sender_address = algorand_fixture.test_account.account().address();
 
     let params = AssetCreateParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address,
-            ..Default::default()
-        },
+        sender: sender_address,
         total: 1000,
         decimals: Some(2),
         unit_name: Some("TEST".to_string()),
@@ -134,10 +127,7 @@ async fn test_app_create_extracts_app_id(
     let sender_address: Address = algorand_fixture.test_account.account().address();
 
     let params = AppCreateParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address,
-            ..Default::default()
-        },
+        sender: sender_address,
         on_complete: OnApplicationComplete::NoOp,
         approval_program: vec![0x06, 0x81, 0x01],
         clear_state_program: vec![0x06, 0x81, 0x01],
@@ -179,10 +169,7 @@ async fn test_abi_method_returns_enhanced_processing(
         .try_into()?;
 
     let params = AppCallMethodCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address,
-            ..Default::default()
-        },
+        sender: sender_address,
         app_id,
         method,
         args: vec![AppMethodCallArg::ABIValue(ABIValue::String(
@@ -193,6 +180,7 @@ async fn test_abi_method_returns_enhanced_processing(
         app_references: None,
         asset_references: None,
         box_references: None,
+        ..Default::default()
     };
 
     let result = algorand_fixture
@@ -232,13 +220,11 @@ async fn test_asset_opt_out_uses_asset_manager_coordination(
     .await?;
 
     let params = AssetOptOutParams {
-        common_params: CommonTransactionParams {
-            sender: opt_out_address,
-            signer: Some(Arc::new(opt_out_account)),
-            ..Default::default()
-        },
+        sender: opt_out_address,
+        signer: Some(Arc::new(opt_out_account)),
         asset_id,
         close_remainder_to: None, // Let it auto-resolve to creator
+        ..Default::default()
     };
 
     let result = algorand_fixture
@@ -277,13 +263,11 @@ async fn test_asset_opt_out_with_balance_validation(
     .await?;
 
     let transfer_params = AssetTransferParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         asset_id,
         amount: 10,
         receiver: opt_out_address.clone(),
+        ..Default::default()
     };
     algorand_fixture
         .algorand_client
@@ -293,13 +277,11 @@ async fn test_asset_opt_out_with_balance_validation(
 
     // Attempt opt-out with non-zero balance
     let params = AssetOptOutParams {
-        common_params: CommonTransactionParams {
-            sender: opt_out_address,
-            signer: Some(Arc::new(opt_out_account)),
-            ..Default::default()
-        },
+        sender: opt_out_address,
+        signer: Some(Arc::new(opt_out_account)),
         asset_id,
         close_remainder_to: None, // Let it auto-resolve to creator
+        ..Default::default()
     };
 
     let result = algorand_fixture
@@ -332,13 +314,11 @@ async fn test_validation_error_propagation(
 
     // Try to opt out of non-existent asset - this triggers validation
     let params = AssetOptOutParams {
-        common_params: CommonTransactionParams {
-            sender: opt_out_address,
-            signer: Some(Arc::new(opt_out_account)),
-            ..Default::default()
-        },
+        sender: opt_out_address,
+        signer: Some(Arc::new(opt_out_account)),
         asset_id: 999999999,      // Non-existent asset
         close_remainder_to: None, // Let it try to auto-resolve (will fail for non-existent asset)
+        ..Default::default()
     };
 
     let result = algorand_fixture
@@ -368,12 +348,10 @@ async fn test_transaction_confirmation_integration(
     let receiver = algorand_fixture.generate_account(None).await?;
 
     let params = PaymentParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address,
-            ..Default::default()
-        },
+        sender: sender_address,
         receiver: receiver.account().address(),
         amount: 1_000_000,
+        ..Default::default()
     };
 
     let result = algorand_fixture
@@ -445,10 +423,7 @@ async fn create_test_asset(
     sender_address: &Address,
 ) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
     let params = AssetCreateParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         total: 1000,
         decimals: Some(0),
         unit_name: Some("TEST".to_string()),
@@ -471,12 +446,10 @@ async fn opt_in_to_asset(
     account: TestAccount,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let params = AssetOptInParams {
-        common_params: CommonTransactionParams {
-            sender: address,
-            signer: Some(Arc::new(account)),
-            ..Default::default()
-        },
+        sender: address,
+        signer: Some(Arc::new(account)),
         asset_id,
+        ..Default::default()
     };
 
     algorand_fixture

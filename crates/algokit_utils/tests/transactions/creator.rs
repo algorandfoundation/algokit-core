@@ -4,7 +4,7 @@ use algokit_transact::{Address, OnApplicationComplete, Transaction};
 use algokit_utils::transactions::{
     AppCallMethodCallParams, AppCallParams, AppCreateParams, AppDeleteParams, AppUpdateParams,
     AssetClawbackParams, AssetCreateParams, AssetDestroyParams, AssetFreezeParams,
-    AssetOptInParams, AssetOptOutParams, AssetTransferParams, CommonTransactionParams,
+    AssetOptInParams, AssetOptOutParams, AssetTransferParams,
     NonParticipationKeyRegistrationParams, OfflineKeyRegistrationParams,
     OnlineKeyRegistrationParams, PaymentParams,
 };
@@ -27,12 +27,10 @@ async fn payment_transaction(
     let receiver_address = receiver.account().address();
 
     let params = PaymentParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         receiver: receiver_address.clone(),
         amount,
+        ..Default::default()
     };
 
     let tx = creator.payment(params).await?;
@@ -68,10 +66,7 @@ async fn asset_operations(
     match test_case {
         AssetTestCase::Create => {
             let params = AssetCreateParams {
-                common_params: CommonTransactionParams {
-                    sender: sender_address.clone(),
-                    ..Default::default()
-                },
+                sender: sender_address.clone(),
                 total: 1_000_000,
                 asset_name: Some("TestAsset".to_string()),
                 unit_name: Some("TST".to_string()),
@@ -94,13 +89,11 @@ async fn asset_operations(
             let receiver = algorand_fixture.generate_account(None).await?;
             let receiver_address = receiver.account().address();
             let params = AssetTransferParams {
-                common_params: CommonTransactionParams {
-                    sender: sender_address.clone(),
-                    ..Default::default()
-                },
+                sender: sender_address.clone(),
                 receiver: receiver_address.clone(),
                 asset_id: 1,
                 amount: 100,
+                ..Default::default()
             };
             let tx = algorand_fixture
                 .algorand_client
@@ -119,11 +112,9 @@ async fn asset_operations(
         }
         AssetTestCase::OptIn => {
             let params = AssetOptInParams {
-                common_params: CommonTransactionParams {
-                    sender: sender_address.clone(),
-                    ..Default::default()
-                },
+                sender: sender_address.clone(),
                 asset_id: 1,
+                ..Default::default()
             };
             let tx = algorand_fixture
                 .algorand_client
@@ -142,12 +133,10 @@ async fn asset_operations(
         }
         AssetTestCase::OptOut => {
             let params = AssetOptOutParams {
-                common_params: CommonTransactionParams {
-                    sender: sender_address.clone(),
-                    ..Default::default()
-                },
+                sender: sender_address.clone(),
                 asset_id: 1,
                 close_remainder_to: Some(sender_address.clone()),
+                ..Default::default()
             };
             let tx = algorand_fixture
                 .algorand_client
@@ -172,12 +161,10 @@ async fn asset_operations(
             let target = algorand_fixture.generate_account(None).await?;
             let target_address = target.account().address();
             let params = AssetFreezeParams {
-                common_params: CommonTransactionParams {
-                    sender: sender_address.clone(),
-                    ..Default::default()
-                },
+                sender: sender_address.clone(),
                 asset_id: 1,
                 target_address: target_address.clone(),
+                ..Default::default()
             };
             let tx = algorand_fixture
                 .algorand_client
@@ -196,11 +183,9 @@ async fn asset_operations(
         }
         AssetTestCase::Destroy => {
             let params = AssetDestroyParams {
-                common_params: CommonTransactionParams {
-                    sender: sender_address.clone(),
-                    ..Default::default()
-                },
+                sender: sender_address.clone(),
                 asset_id: 1,
+                ..Default::default()
             };
             let tx = algorand_fixture
                 .algorand_client
@@ -221,14 +206,12 @@ async fn asset_operations(
             let target_address = target.account().address();
             let receiver_address = receiver.account().address();
             let params = AssetClawbackParams {
-                common_params: CommonTransactionParams {
-                    sender: sender_address.clone(),
-                    ..Default::default()
-                },
+                sender: sender_address.clone(),
                 asset_id: 1,
                 clawback_target: target_address.clone(),
                 receiver: receiver_address.clone(),
                 amount: 50,
+                ..Default::default()
             };
             let tx = algorand_fixture
                 .algorand_client
@@ -281,10 +264,7 @@ async fn application_operations(
             .algorand_client
             .create()
             .app_create(AppCreateParams {
-                common_params: CommonTransactionParams {
-                    sender: sender_address.clone(),
-                    ..Default::default()
-                },
+                sender: sender_address.clone(),
                 approval_program: vec![0x06, 0x81, 0x01],
                 clear_state_program: vec![0x06, 0x81, 0x01],
                 ..Default::default()
@@ -295,10 +275,7 @@ async fn application_operations(
             .algorand_client
             .create()
             .app_call(AppCallParams {
-                common_params: CommonTransactionParams {
-                    sender: sender_address.clone(),
-                    ..Default::default()
-                },
+                sender: sender_address.clone(),
                 app_id,
                 on_complete: OnApplicationComplete::NoOp,
                 ..Default::default()
@@ -309,10 +286,7 @@ async fn application_operations(
             .algorand_client
             .create()
             .app_update(AppUpdateParams {
-                common_params: CommonTransactionParams {
-                    sender: sender_address.clone(),
-                    ..Default::default()
-                },
+                sender: sender_address.clone(),
                 app_id,
                 approval_program: vec![0x06, 0x81, 0x01],
                 clear_state_program: vec![0x06, 0x81, 0x01],
@@ -324,10 +298,7 @@ async fn application_operations(
             .algorand_client
             .create()
             .app_delete(AppDeleteParams {
-                common_params: CommonTransactionParams {
-                    sender: sender_address.clone(),
-                    ..Default::default()
-                },
+                sender: sender_address.clone(),
                 app_id,
                 ..Default::default()
             })
@@ -372,10 +343,7 @@ async fn method_call_returns_built_transactions(
     );
 
     let params = AppCallMethodCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id: 1,
         method,
         args: vec![],
@@ -384,6 +352,7 @@ async fn method_call_returns_built_transactions(
         app_references: None,
         asset_references: None,
         box_references: None,
+        ..Default::default()
     };
 
     let result = creator.app_call_method_call(params).await?;
@@ -421,16 +390,14 @@ async fn key_registration_operations(
                 .algorand_client
                 .create()
                 .online_key_registration(OnlineKeyRegistrationParams {
-                    common_params: CommonTransactionParams {
-                        sender: sender_address.clone(),
-                        ..Default::default()
-                    },
+                    sender: sender_address.clone(),
                     vote_key: [1u8; 32],
                     selection_key: [2u8; 32],
                     vote_first: 1000,
                     vote_last: 2000,
                     state_proof_key: Some([3u8; 64]),
                     vote_key_dilution: 10000,
+                    ..Default::default()
                 })
                 .await?
         }
@@ -439,10 +406,8 @@ async fn key_registration_operations(
                 .algorand_client
                 .create()
                 .offline_key_registration(OfflineKeyRegistrationParams {
-                    common_params: CommonTransactionParams {
-                        sender: sender_address.clone(),
-                        ..Default::default()
-                    },
+                    sender: sender_address.clone(),
+                    ..Default::default()
                 })
                 .await?
         }
@@ -451,10 +416,8 @@ async fn key_registration_operations(
                 .algorand_client
                 .create()
                 .non_participation_key_registration(NonParticipationKeyRegistrationParams {
-                    common_params: CommonTransactionParams {
-                        sender: sender_address.clone(),
-                        ..Default::default()
-                    },
+                    sender: sender_address.clone(),
+                    ..Default::default()
                 })
                 .await?
         }
@@ -505,13 +468,11 @@ async fn transaction_creator_accepts_all_parameters(
     // Test that TransactionCreator accepts parameters and creates transactions
     // Validation happens at the sending level, not creation level
     let params = AssetTransferParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address,
-            ..Default::default()
-        },
+        sender: sender_address,
         asset_id: u64::MAX,           // This is valid for transaction creation
         receiver: Address::default(), // Zero address is also valid for creation
         amount: 1,
+        ..Default::default()
     };
     let result = algorand_fixture
         .algorand_client
@@ -544,12 +505,10 @@ async fn transaction_has_valid_defaults(
     let receiver_address = receiver.account().address();
 
     let params = PaymentParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address,
-            ..Default::default()
-        },
+        sender: sender_address,
         receiver: receiver_address,
         amount: 1_000_000,
+        ..Default::default()
     };
 
     let tx = creator.payment(params).await?;

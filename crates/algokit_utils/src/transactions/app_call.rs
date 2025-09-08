@@ -1,13 +1,11 @@
+use super::composer::ComposerError;
 use crate::{
     AccountCloseParams, AssetClawbackParams, AssetConfigParams, AssetCreateParams,
     AssetDestroyParams, AssetFreezeParams, AssetOptInParams, AssetOptOutParams,
     AssetTransferParams, AssetUnfreezeParams, NonParticipationKeyRegistrationParams,
-    OfflineKeyRegistrationParams, OnlineKeyRegistrationParams, PaymentParams,
-    TransactionWithSigner,
+    OfflineKeyRegistrationParams, OnlineKeyRegistrationParams, PaymentParams, TransactionSigner,
+    TransactionWithSigner, create_transaction_params,
 };
-
-use super::common::CommonTransactionParams;
-use super::composer::ComposerError;
 use algokit_abi::{
     ABIMethod, ABIMethodArgType, ABIReferenceValue, ABIType, ABIValue, abi_type::BitSize,
 };
@@ -15,6 +13,7 @@ use algokit_transact::{
     Address, AppCallTransactionBuilder, AppCallTransactionFields, BoxReference,
     OnApplicationComplete, StateSchema, Transaction, TransactionHeader,
 };
+use derive_more::Debug;
 use num_bigint::BigUint;
 use std::str::FromStr;
 
@@ -69,140 +68,140 @@ pub trait ValidMethodCallArg: sealed::ValidMethodCallArgSealed {}
 impl ValidMethodCallArg for AppMethodCallArg {}
 impl ValidMethodCallArg for ProcessedAppMethodCallArg {}
 
-/// Parameters for creating an app call transaction.
-#[derive(Debug, Default, Clone)]
-pub struct AppCallParams {
-    /// Common parameters used across all transaction types
-    pub common_params: CommonTransactionParams,
-    /// ID of the app being called.
-    pub app_id: u64,
-    /// Defines what additional actions occur with the transaction.
-    pub on_complete: OnApplicationComplete,
-    /// Transaction specific arguments available in the app's
-    /// approval program and clear state program.
-    pub args: Option<Vec<Vec<u8>>>,
-    /// List of accounts in addition to the sender that may be accessed
-    /// from the app's approval program and clear state program.
-    pub account_references: Option<Vec<Address>>,
-    /// List of apps in addition to the current app that may be called
-    /// from the app's approval program and clear state program.
-    pub app_references: Option<Vec<u64>>,
-    /// Lists the assets whose parameters may be accessed by this app's
-    /// approval program and clear state program.
-    ///
-    /// The access is read-only.
-    pub asset_references: Option<Vec<u64>>,
-    /// The boxes that should be made available for the runtime of the program.
-    pub box_references: Option<Vec<BoxReference>>,
+create_transaction_params! {
+    /// Parameters for creating an app call transaction.
+    #[derive(Clone, Default)]
+    pub struct AppCallParams {
+        /// ID of the app being called.
+        pub app_id: u64,
+        /// Defines what additional actions occur with the transaction.
+        pub on_complete: OnApplicationComplete,
+        /// Transaction specific arguments available in the app's
+        /// approval program and clear state program.
+        pub args: Option<Vec<Vec<u8>>>,
+        /// List of accounts in addition to the sender that may be accessed
+        /// from the app's approval program and clear state program.
+        pub account_references: Option<Vec<Address>>,
+        /// List of apps in addition to the current app that may be called
+        /// from the app's approval program and clear state program.
+        pub app_references: Option<Vec<u64>>,
+        /// Lists the assets whose parameters may be accessed by this app's
+        /// approval program and clear state program.
+        ///
+        /// The access is read-only.
+        pub asset_references: Option<Vec<u64>>,
+        /// The boxes that should be made available for the runtime of the program.
+        pub box_references: Option<Vec<BoxReference>>,
+    }
 }
 
-/// Parameters for creating an app create transaction.
-#[derive(Debug, Default, Clone)]
-pub struct AppCreateParams {
-    /// Common parameters used across all transaction types
-    pub common_params: CommonTransactionParams,
-    /// Defines what additional actions occur with the transaction.
-    pub on_complete: OnApplicationComplete,
-    /// Logic executed for every app call transaction, except when
-    /// on-completion is set to "clear".
-    ///
-    /// Approval programs may reject the transaction.
-    pub approval_program: Vec<u8>,
-    /// Logic executed for app call transactions with on-completion set to "clear".
-    ///
-    /// Clear state programs cannot reject the transaction.
-    pub clear_state_program: Vec<u8>,
-    /// Holds the maximum number of global state values.
-    ///
-    /// This cannot be changed after creation.
-    pub global_state_schema: Option<StateSchema>,
-    /// Holds the maximum number of local state values.
-    ///
-    /// This cannot be changed after creation.
-    pub local_state_schema: Option<StateSchema>,
-    /// Number of additional pages allocated to the app's approval
-    /// and clear state programs.
-    ///
-    /// Each extra program page is 2048 bytes. The sum of approval program
-    /// and clear state program may not exceed 2048*(1+extra_program_pages) bytes.
-    /// Currently, the maximum value is 3.
-    /// This cannot be changed after creation.
-    pub extra_program_pages: Option<u32>,
-    /// Transaction specific arguments available in the app's
-    /// approval program and clear state program.
-    pub args: Option<Vec<Vec<u8>>>,
-    /// List of accounts in addition to the sender that may be accessed
-    /// from the app's approval program and clear state program.
-    pub account_references: Option<Vec<Address>>,
-    /// List of apps in addition to the current app that may be called
-    /// from the app's approval program and clear state program.
-    pub app_references: Option<Vec<u64>>,
-    /// Lists the assets whose parameters may be accessed by this app's
-    /// approval program and clear state program.
-    ///
-    /// The access is read-only.
-    pub asset_references: Option<Vec<u64>>,
-    /// The boxes that should be made available for the runtime of the program.
-    pub box_references: Option<Vec<BoxReference>>,
+create_transaction_params! {
+    /// Parameters for creating an app create transaction.
+    #[derive(Clone, Default)]
+    pub struct AppCreateParams {
+        /// Defines what additional actions occur with the transaction.
+        pub on_complete: OnApplicationComplete,
+        /// Logic executed for every app call transaction, except when
+        /// on-completion is set to "clear".
+        ///
+        /// Approval programs may reject the transaction.
+        pub approval_program: Vec<u8>,
+        /// Logic executed for app call transactions with on-completion set to "clear".
+        ///
+        /// Clear state programs cannot reject the transaction.
+        pub clear_state_program: Vec<u8>,
+        /// Holds the maximum number of global state values.
+        ///
+        /// This cannot be changed after creation.
+        pub global_state_schema: Option<StateSchema>,
+        /// Holds the maximum number of local state values.
+        ///
+        /// This cannot be changed after creation.
+        pub local_state_schema: Option<StateSchema>,
+        /// Number of additional pages allocated to the app's approval
+        /// and clear state programs.
+        ///
+        /// Each extra program page is 2048 bytes. The sum of approval program
+        /// and clear state program may not exceed 2048*(1+extra_program_pages) bytes.
+        /// Currently, the maximum value is 3.
+        /// This cannot be changed after creation.
+        pub extra_program_pages: Option<u32>,
+        /// Transaction specific arguments available in the app's
+        /// approval program and clear state program.
+        pub args: Option<Vec<Vec<u8>>>,
+        /// List of accounts in addition to the sender that may be accessed
+        /// from the app's approval program and clear state program.
+        pub account_references: Option<Vec<Address>>,
+        /// List of apps in addition to the current app that may be called
+        /// from the app's approval program and clear state program.
+        pub app_references: Option<Vec<u64>>,
+        /// Lists the assets whose parameters may be accessed by this app's
+        /// approval program and clear state program.
+        ///
+        /// The access is read-only.
+        pub asset_references: Option<Vec<u64>>,
+        /// The boxes that should be made available for the runtime of the program.
+        pub box_references: Option<Vec<BoxReference>>,
+    }
 }
 
-/// Parameters for creating an app delete transaction.
-#[derive(Debug, Default, Clone)]
-pub struct AppDeleteParams {
-    /// Common parameters used across all transaction types
-    pub common_params: CommonTransactionParams,
-    /// ID of the app being deleted.
-    pub app_id: u64,
-    /// Transaction specific arguments available in the app's
-    /// approval program and clear state program.
-    pub args: Option<Vec<Vec<u8>>>,
-    /// List of accounts in addition to the sender that may be accessed
-    /// from the app's approval program and clear state program.
-    pub account_references: Option<Vec<Address>>,
-    /// List of apps in addition to the current app that may be called
-    /// from the app's approval program and clear state program.
-    pub app_references: Option<Vec<u64>>,
-    /// Lists the assets whose parameters may be accessed by this app's
-    /// approval program and clear state program.
-    ///
-    /// The access is read-only.
-    pub asset_references: Option<Vec<u64>>,
-    /// The boxes that should be made available for the runtime of the program.
-    pub box_references: Option<Vec<BoxReference>>,
+create_transaction_params! {
+    /// Parameters for creating an app delete transaction.
+    #[derive(Clone, Default)]
+    pub struct AppDeleteParams {
+        /// ID of the app being deleted.
+        pub app_id: u64,
+        /// Transaction specific arguments available in the app's
+        /// approval program and clear state program.
+        pub args: Option<Vec<Vec<u8>>>,
+        /// List of accounts in addition to the sender that may be accessed
+        /// from the app's approval program and clear state program.
+        pub account_references: Option<Vec<Address>>,
+        /// List of apps in addition to the current app that may be called
+        /// from the app's approval program and clear state program.
+        pub app_references: Option<Vec<u64>>,
+        /// Lists the assets whose parameters may be accessed by this app's
+        /// approval program and clear state program.
+        ///
+        /// The access is read-only.
+        pub asset_references: Option<Vec<u64>>,
+        /// The boxes that should be made available for the runtime of the program.
+        pub box_references: Option<Vec<BoxReference>>,
+    }
 }
 
-/// Parameters for creating an app update transaction.
-#[derive(Debug, Default, Clone)]
-pub struct AppUpdateParams {
-    /// Common parameters used across all transaction types
-    pub common_params: CommonTransactionParams,
-    /// ID of the app being updated.
-    pub app_id: u64,
-    /// Logic executed for every app call transaction, except when
-    /// on-completion is set to "clear".
-    ///
-    /// Approval programs may reject the transaction.
-    pub approval_program: Vec<u8>,
-    /// Logic executed for app call transactions with on-completion set to "clear".
-    ///
-    /// Clear state programs cannot reject the transaction.
-    pub clear_state_program: Vec<u8>,
-    /// Transaction specific arguments available in the app's
-    /// approval program and clear state program.
-    pub args: Option<Vec<Vec<u8>>>,
-    /// List of accounts in addition to the sender that may be accessed
-    /// from the app's approval program and clear state program.
-    pub account_references: Option<Vec<Address>>,
-    /// List of apps in addition to the current app that may be called
-    /// from the app's approval program and clear state program.
-    pub app_references: Option<Vec<u64>>,
-    /// Lists the assets whose parameters may be accessed by this app's
-    /// approval program and clear state program.
-    ///
-    /// The access is read-only.
-    pub asset_references: Option<Vec<u64>>,
-    /// The boxes that should be made available for the runtime of the program.
-    pub box_references: Option<Vec<BoxReference>>,
+create_transaction_params! {
+    /// Parameters for creating an app update transaction.
+    #[derive(Clone, Default)]
+    pub struct AppUpdateParams {
+        /// ID of the app being updated.
+        pub app_id: u64,
+        /// Logic executed for every app call transaction, except when
+        /// on-completion is set to "clear".
+        ///
+        /// Approval programs may reject the transaction.
+        pub approval_program: Vec<u8>,
+        /// Logic executed for app call transactions with on-completion set to "clear".
+        ///
+        /// Clear state programs cannot reject the transaction.
+        pub clear_state_program: Vec<u8>,
+        /// Transaction specific arguments available in the app's
+        /// approval program and clear state program.
+        pub args: Option<Vec<Vec<u8>>>,
+        /// List of accounts in addition to the sender that may be accessed
+        /// from the app's approval program and clear state program.
+        pub account_references: Option<Vec<Address>>,
+        /// List of apps in addition to the current app that may be called
+        /// from the app's approval program and clear state program.
+        pub app_references: Option<Vec<u64>>,
+        /// Lists the assets whose parameters may be accessed by this app's
+        /// approval program and clear state program.
+        ///
+        /// The access is read-only.
+        pub asset_references: Option<Vec<u64>>,
+        /// The boxes that should be made available for the runtime of the program.
+        pub box_references: Option<Vec<BoxReference>>,
+    }
 }
 
 /// Parameters for creating an app method call transaction.
@@ -211,8 +210,38 @@ pub struct AppCallMethodCallParams<T = AppMethodCallArg>
 where
     T: ValidMethodCallArg,
 {
-    /// Common parameters used across all transaction types
-    pub common_params: CommonTransactionParams,
+    #[debug(skip)]
+    /// A signer used to sign transaction(s); if not specified then
+    /// an attempt will be made to find a registered signer for the
+    ///  given `sender` or use a default signer (if configured).
+    pub signer: Option<std::sync::Arc<dyn TransactionSigner>>,
+    /// The address of the account sending the transaction.
+    pub sender: algokit_transact::Address,
+    /// Change the signing key of the sender to the given address.
+    /// **Warning:** Please be careful with this parameter and be sure to read the [official rekey guidance](https://dev.algorand.co/concepts/accounts/rekeying).
+    pub rekey_to: Option<algokit_transact::Address>,
+    /// Note to attach to the transaction. Max of 1000 bytes.
+    pub note: Option<Vec<u8>>,
+    /// Prevent multiple transactions with the same lease being included within the validity window.
+    ///
+    /// A [lease](https://dev.algorand.co/concepts/transactions/leases)
+    /// enforces a mutually exclusive transaction (useful to prevent double-posting and other scenarios).
+    pub lease: Option<[u8; 32]>,
+    /// The static transaction fee. In most cases you want to use extra fee unless setting the fee to 0 to be covered by another transaction.
+    pub static_fee: Option<u64>,
+    /// The fee to pay IN ADDITION to the suggested fee. Useful for manually covering inner transaction fees.
+    pub extra_fee: Option<u64>,
+    /// Throw an error if the fee for the transaction is more than this amount; prevents overspending on fees during high congestion periods.
+    pub max_fee: Option<u64>,
+    /// How many rounds the transaction should be valid for, if not specified then the registered default validity window will be used.
+    pub validity_window: Option<u32>,
+    /// Set the first round this transaction is valid.
+    /// If left undefined, the value from algod will be used.
+    ///
+    /// We recommend you only set this when you intentionally want this to be some time in the future.
+    pub first_valid_round: Option<u64>,
+    /// The last round this transaction is valid. It is recommended to use validity window instead.
+    pub last_valid_round: Option<u64>,
     /// ID of the app being called.
     pub app_id: u64,
     /// The ABI method to call.
@@ -243,7 +272,6 @@ where
 {
     fn default() -> Self {
         Self {
-            common_params: CommonTransactionParams::default(),
             app_id: 0,
             method: ABIMethod::default(),
             args: Vec::new(),
@@ -252,6 +280,17 @@ where
             asset_references: None,
             box_references: None,
             on_complete: OnApplicationComplete::NoOp,
+            sender: Address::default(),
+            signer: None,
+            rekey_to: None,
+            note: None,
+            lease: None,
+            static_fee: None,
+            extra_fee: None,
+            max_fee: None,
+            validity_window: None,
+            first_valid_round: None,
+            last_valid_round: None,
         }
     }
 }
@@ -262,8 +301,38 @@ pub struct AppCreateMethodCallParams<T = AppMethodCallArg>
 where
     T: ValidMethodCallArg,
 {
-    /// Common parameters used across all transaction types
-    pub common_params: CommonTransactionParams,
+    #[debug(skip)]
+    /// A signer used to sign transaction(s); if not specified then
+    /// an attempt will be made to find a registered signer for the
+    ///  given `sender` or use a default signer (if configured).
+    pub signer: Option<std::sync::Arc<dyn TransactionSigner>>,
+    /// The address of the account sending the transaction.
+    pub sender: algokit_transact::Address,
+    /// Change the signing key of the sender to the given address.
+    /// **Warning:** Please be careful with this parameter and be sure to read the [official rekey guidance](https://dev.algorand.co/concepts/accounts/rekeying).
+    pub rekey_to: Option<algokit_transact::Address>,
+    /// Note to attach to the transaction. Max of 1000 bytes.
+    pub note: Option<Vec<u8>>,
+    /// Prevent multiple transactions with the same lease being included within the validity window.
+    ///
+    /// A [lease](https://dev.algorand.co/concepts/transactions/leases)
+    /// enforces a mutually exclusive transaction (useful to prevent double-posting and other scenarios).
+    pub lease: Option<[u8; 32]>,
+    /// The static transaction fee. In most cases you want to use extra fee unless setting the fee to 0 to be covered by another transaction.
+    pub static_fee: Option<u64>,
+    /// The fee to pay IN ADDITION to the suggested fee. Useful for manually covering inner transaction fees.
+    pub extra_fee: Option<u64>,
+    /// Throw an error if the fee for the transaction is more than this amount; prevents overspending on fees during high congestion periods.
+    pub max_fee: Option<u64>,
+    /// How many rounds the transaction should be valid for, if not specified then the registered default validity window will be used.
+    pub validity_window: Option<u32>,
+    /// Set the first round this transaction is valid.
+    /// If left undefined, the value from algod will be used.
+    ///
+    /// We recommend you only set this when you intentionally want this to be some time in the future.
+    pub first_valid_round: Option<u64>,
+    /// The last round this transaction is valid. It is recommended to use validity window instead.
+    pub last_valid_round: Option<u64>,
     /// Defines what additional actions occur with the transaction.
     pub on_complete: OnApplicationComplete,
     /// Logic executed for every app call transaction, except when
@@ -317,8 +386,38 @@ pub struct AppUpdateMethodCallParams<T = AppMethodCallArg>
 where
     T: ValidMethodCallArg,
 {
-    /// Common parameters used across all transaction types
-    pub common_params: CommonTransactionParams,
+    #[debug(skip)]
+    /// A signer used to sign transaction(s); if not specified then
+    /// an attempt will be made to find a registered signer for the
+    ///  given `sender` or use a default signer (if configured).
+    pub signer: Option<std::sync::Arc<dyn TransactionSigner>>,
+    /// The address of the account sending the transaction.
+    pub sender: algokit_transact::Address,
+    /// Change the signing key of the sender to the given address.
+    /// **Warning:** Please be careful with this parameter and be sure to read the [official rekey guidance](https://dev.algorand.co/concepts/accounts/rekeying).
+    pub rekey_to: Option<algokit_transact::Address>,
+    /// Note to attach to the transaction. Max of 1000 bytes.
+    pub note: Option<Vec<u8>>,
+    /// Prevent multiple transactions with the same lease being included within the validity window.
+    ///
+    /// A [lease](https://dev.algorand.co/concepts/transactions/leases)
+    /// enforces a mutually exclusive transaction (useful to prevent double-posting and other scenarios).
+    pub lease: Option<[u8; 32]>,
+    /// The static transaction fee. In most cases you want to use extra fee unless setting the fee to 0 to be covered by another transaction.
+    pub static_fee: Option<u64>,
+    /// The fee to pay IN ADDITION to the suggested fee. Useful for manually covering inner transaction fees.
+    pub extra_fee: Option<u64>,
+    /// Throw an error if the fee for the transaction is more than this amount; prevents overspending on fees during high congestion periods.
+    pub max_fee: Option<u64>,
+    /// How many rounds the transaction should be valid for, if not specified then the registered default validity window will be used.
+    pub validity_window: Option<u32>,
+    /// Set the first round this transaction is valid.
+    /// If left undefined, the value from algod will be used.
+    ///
+    /// We recommend you only set this when you intentionally want this to be some time in the future.
+    pub first_valid_round: Option<u64>,
+    /// The last round this transaction is valid. It is recommended to use validity window instead.
+    pub last_valid_round: Option<u64>,
     /// ID of the app being updated.
     pub app_id: u64,
     /// Logic executed for every app call transaction, except when
@@ -356,8 +455,38 @@ pub struct AppDeleteMethodCallParams<T = AppMethodCallArg>
 where
     T: ValidMethodCallArg,
 {
-    /// Common parameters used across all transaction types
-    pub common_params: CommonTransactionParams,
+    #[debug(skip)]
+    /// A signer used to sign transaction(s); if not specified then
+    /// an attempt will be made to find a registered signer for the
+    ///  given `sender` or use a default signer (if configured).
+    pub signer: Option<std::sync::Arc<dyn TransactionSigner>>,
+    /// The address of the account sending the transaction.
+    pub sender: algokit_transact::Address,
+    /// Change the signing key of the sender to the given address.
+    /// **Warning:** Please be careful with this parameter and be sure to read the [official rekey guidance](https://dev.algorand.co/concepts/accounts/rekeying).
+    pub rekey_to: Option<algokit_transact::Address>,
+    /// Note to attach to the transaction. Max of 1000 bytes.
+    pub note: Option<Vec<u8>>,
+    /// Prevent multiple transactions with the same lease being included within the validity window.
+    ///
+    /// A [lease](https://dev.algorand.co/concepts/transactions/leases)
+    /// enforces a mutually exclusive transaction (useful to prevent double-posting and other scenarios).
+    pub lease: Option<[u8; 32]>,
+    /// The static transaction fee. In most cases you want to use extra fee unless setting the fee to 0 to be covered by another transaction.
+    pub static_fee: Option<u64>,
+    /// The fee to pay IN ADDITION to the suggested fee. Useful for manually covering inner transaction fees.
+    pub extra_fee: Option<u64>,
+    /// Throw an error if the fee for the transaction is more than this amount; prevents overspending on fees during high congestion periods.
+    pub max_fee: Option<u64>,
+    /// How many rounds the transaction should be valid for, if not specified then the registered default validity window will be used.
+    pub validity_window: Option<u32>,
+    /// Set the first round this transaction is valid.
+    /// If left undefined, the value from algod will be used.
+    ///
+    /// We recommend you only set this when you intentionally want this to be some time in the future.
+    pub first_valid_round: Option<u64>,
+    /// The last round this transaction is valid. It is recommended to use validity window instead.
+    pub last_valid_round: Option<u64>,
     /// ID of the app being deleted.
     pub app_id: u64,
     /// The ABI method to call.
@@ -503,7 +632,17 @@ impl From<&AppCallMethodCallParams> for AppCallMethodCallParams<ProcessedAppMeth
         let processed_args = process_app_method_call_args(&params.args);
 
         Self {
-            common_params: params.common_params.clone(),
+            sender: params.sender.clone(),
+            signer: params.signer.clone(),
+            rekey_to: params.rekey_to.clone(),
+            note: params.note.clone(),
+            lease: params.lease,
+            static_fee: params.static_fee,
+            extra_fee: params.extra_fee,
+            max_fee: params.max_fee,
+            validity_window: params.validity_window,
+            first_valid_round: params.first_valid_round,
+            last_valid_round: params.last_valid_round,
             app_id: params.app_id,
             method: params.method.clone(),
             args: processed_args,
@@ -521,7 +660,17 @@ impl From<&AppCreateMethodCallParams> for AppCreateMethodCallParams<ProcessedApp
         let processed_args = process_app_method_call_args(&params.args);
 
         Self {
-            common_params: params.common_params.clone(),
+            sender: params.sender.clone(),
+            signer: params.signer.clone(),
+            rekey_to: params.rekey_to.clone(),
+            note: params.note.clone(),
+            lease: params.lease,
+            static_fee: params.static_fee,
+            extra_fee: params.extra_fee,
+            max_fee: params.max_fee,
+            validity_window: params.validity_window,
+            first_valid_round: params.first_valid_round,
+            last_valid_round: params.last_valid_round,
             method: params.method.clone(),
             args: processed_args,
             account_references: params.account_references.clone(),
@@ -543,7 +692,17 @@ impl From<&AppUpdateMethodCallParams> for AppUpdateMethodCallParams<ProcessedApp
         let processed_args = process_app_method_call_args(&params.args);
 
         Self {
-            common_params: params.common_params.clone(),
+            sender: params.sender.clone(),
+            signer: params.signer.clone(),
+            rekey_to: params.rekey_to.clone(),
+            note: params.note.clone(),
+            lease: params.lease,
+            static_fee: params.static_fee,
+            extra_fee: params.extra_fee,
+            max_fee: params.max_fee,
+            validity_window: params.validity_window,
+            first_valid_round: params.first_valid_round,
+            last_valid_round: params.last_valid_round,
             app_id: params.app_id,
             method: params.method.clone(),
             args: processed_args,
@@ -562,7 +721,17 @@ impl From<&AppDeleteMethodCallParams> for AppDeleteMethodCallParams<ProcessedApp
         let processed_args = process_app_method_call_args(&params.args);
 
         Self {
-            common_params: params.common_params.clone(),
+            sender: params.sender.clone(),
+            signer: params.signer.clone(),
+            rekey_to: params.rekey_to.clone(),
+            note: params.note.clone(),
+            lease: params.lease,
+            static_fee: params.static_fee,
+            extra_fee: params.extra_fee,
+            max_fee: params.max_fee,
+            validity_window: params.validity_window,
+            first_valid_round: params.first_valid_round,
+            last_valid_round: params.last_valid_round,
             app_id: params.app_id,
             method: params.method.clone(),
             args: processed_args,

@@ -1,31 +1,26 @@
+use crate::create_transaction_params;
 use algokit_transact::{Address, AssetFreezeTransactionFields, Transaction, TransactionHeader};
 
-use super::common::CommonTransactionParams;
-
-/// Parameters for creating an asset freeze transaction.
-#[derive(Debug, Default, Clone)]
-pub struct AssetFreezeParams {
-    /// Common parameters used across all transaction types
-    pub common_params: CommonTransactionParams,
-
-    /// The ID of the asset to freeze
-    pub asset_id: u64,
-
-    /// The address of the account to freeze
-    pub target_address: Address,
+create_transaction_params! {
+    /// Parameters for creating an asset freeze transaction.
+    #[derive(Clone, Default)]
+    pub struct AssetFreezeParams {
+        /// The ID of the asset to freeze
+        pub asset_id: u64,
+        /// The address of the account to freeze
+        pub target_address: Address,
+    }
 }
 
-/// Parameters for creating an asset unfreeze transaction.
-#[derive(Debug, Default, Clone)]
-pub struct AssetUnfreezeParams {
-    /// Common parameters used across all transaction types
-    pub common_params: CommonTransactionParams,
-
-    /// The ID of the asset to unfreeze
-    pub asset_id: u64,
-
-    /// The address of the account to unfreeze
-    pub target_address: Address,
+create_transaction_params! {
+    /// Parameters for creating an asset unfreeze transaction.
+    #[derive(Clone, Default)]
+    pub struct AssetUnfreezeParams {
+      /// The ID of the asset to unfreeze
+        pub asset_id: u64,
+       /// The address of the account to unfreeze
+        pub target_address: Address,
+    }
 }
 
 pub fn build_asset_freeze(params: &AssetFreezeParams, header: TransactionHeader) -> Transaction {

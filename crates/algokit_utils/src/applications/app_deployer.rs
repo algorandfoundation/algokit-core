@@ -4,8 +4,8 @@ use crate::clients::app_manager::{
 use crate::transactions::{TransactionSender, TransactionSenderError};
 use crate::{
     AppCreateMethodCallParams, AppCreateParams, AppDeleteMethodCallParams, AppDeleteParams,
-    AppMethodCallArg, AppUpdateMethodCallParams, AppUpdateParams, CommonTransactionParams,
-    ComposerError, SendParams, SendTransactionComposerResults,
+    AppMethodCallArg, AppUpdateMethodCallParams, AppUpdateParams, ComposerError, SendParams,
+    SendTransactionComposerResults, create_transaction_params,
 };
 use algokit_transact::{Address, OnApplicationComplete};
 use base64::{Engine as _, engine::general_purpose};
@@ -25,6 +25,12 @@ pub enum AppProgram {
     Teal(String),
     /// Pre-compiled bytecode
     CompiledBytes(Vec<u8>),
+}
+
+impl Default for AppProgram {
+    fn default() -> Self {
+        Self::CompiledBytes(Vec::new())
+    }
 }
 
 /// What action to perform if a schema break (storage schema or extra pages change) is detected
@@ -107,164 +113,89 @@ pub struct AppLookup {
     pub apps: HashMap<String, AppMetadata>,
 }
 
-/// Parameters for the create transaction with program variants
-#[derive(Debug, Clone)]
-pub struct DeployAppCreateParams {
-    pub common_params: CommonTransactionParams,
-    pub on_complete: OnApplicationComplete,
-    pub approval_program: AppProgram,
-    pub clear_state_program: AppProgram,
-    pub args: Option<Vec<Vec<u8>>>,
-    pub account_references: Option<Vec<Address>>,
-    pub app_references: Option<Vec<u64>>,
-    pub asset_references: Option<Vec<u64>>,
-    pub box_references: Option<Vec<algokit_transact::BoxReference>>,
-    pub global_state_schema: Option<algokit_transact::StateSchema>,
-    pub local_state_schema: Option<algokit_transact::StateSchema>,
-    pub extra_program_pages: Option<u32>,
-}
-
-impl Default for DeployAppCreateParams {
-    fn default() -> Self {
-        Self {
-            common_params: Default::default(),
-            on_complete: OnApplicationComplete::NoOp,
-            approval_program: AppProgram::CompiledBytes(Vec::new()),
-            clear_state_program: AppProgram::CompiledBytes(Vec::new()),
-            args: None,
-            account_references: None,
-            app_references: None,
-            asset_references: None,
-            box_references: None,
-            global_state_schema: None,
-            local_state_schema: None,
-            extra_program_pages: None,
-        }
+create_transaction_params! {
+    /// Parameters for the create transaction with program variants
+    #[derive(Default, Clone)]
+    pub struct DeployAppCreateParams {
+        pub on_complete: OnApplicationComplete,
+        pub approval_program: AppProgram,
+        pub clear_state_program: AppProgram,
+        pub args: Option<Vec<Vec<u8>>>,
+        pub account_references: Option<Vec<Address>>,
+        pub app_references: Option<Vec<u64>>,
+        pub asset_references: Option<Vec<u64>>,
+        pub box_references: Option<Vec<algokit_transact::BoxReference>>,
+        pub global_state_schema: Option<algokit_transact::StateSchema>,
+        pub local_state_schema: Option<algokit_transact::StateSchema>,
+        pub extra_program_pages: Option<u32>,
     }
 }
 
-/// Parameters for the create method call with program variants
-#[derive(Debug, Clone)]
-pub struct DeployAppCreateMethodCallParams {
-    pub common_params: CommonTransactionParams,
-    pub on_complete: OnApplicationComplete,
-    pub approval_program: AppProgram,
-    pub clear_state_program: AppProgram,
-    pub method: algokit_abi::ABIMethod,
-    pub args: Vec<AppMethodCallArg>,
-    pub account_references: Option<Vec<Address>>,
-    pub app_references: Option<Vec<u64>>,
-    pub asset_references: Option<Vec<u64>>,
-    pub box_references: Option<Vec<algokit_transact::BoxReference>>,
-    pub global_state_schema: Option<algokit_transact::StateSchema>,
-    pub local_state_schema: Option<algokit_transact::StateSchema>,
-    pub extra_program_pages: Option<u32>,
-}
-
-impl Default for DeployAppCreateMethodCallParams {
-    fn default() -> Self {
-        Self {
-            common_params: Default::default(),
-            on_complete: OnApplicationComplete::NoOp,
-            approval_program: AppProgram::CompiledBytes(Vec::new()),
-            clear_state_program: AppProgram::CompiledBytes(Vec::new()),
-            method: algokit_abi::ABIMethod {
-                name: String::new(),
-                args: Vec::new(),
-                returns: None,
-                description: None,
-            },
-            args: Vec::new(),
-            account_references: None,
-            app_references: None,
-            asset_references: None,
-            box_references: None,
-            global_state_schema: None,
-            local_state_schema: None,
-            extra_program_pages: None,
-        }
-    }
-}
-#[derive(Debug, Clone, Default)]
-pub struct DeployAppUpdateParams {
-    pub common_params: CommonTransactionParams,
-    pub args: Option<Vec<Vec<u8>>>,
-    pub account_references: Option<Vec<Address>>,
-    pub app_references: Option<Vec<u64>>,
-    pub asset_references: Option<Vec<u64>>,
-    pub box_references: Option<Vec<algokit_transact::BoxReference>>,
-}
-
-/// Parameters for the update method call
-#[derive(Debug, Clone)]
-pub struct DeployAppUpdateMethodCallParams {
-    pub common_params: CommonTransactionParams,
-    pub method: algokit_abi::ABIMethod,
-    pub args: Vec<AppMethodCallArg>,
-    pub account_references: Option<Vec<Address>>,
-    pub app_references: Option<Vec<u64>>,
-    pub asset_references: Option<Vec<u64>>,
-    pub box_references: Option<Vec<algokit_transact::BoxReference>>,
-}
-
-impl Default for DeployAppUpdateMethodCallParams {
-    fn default() -> Self {
-        Self {
-            common_params: Default::default(),
-            method: algokit_abi::ABIMethod {
-                name: String::new(),
-                args: Vec::new(),
-                returns: None,
-                description: None,
-            },
-            args: Vec::new(),
-            account_references: None,
-            app_references: None,
-            asset_references: None,
-            box_references: None,
-        }
+create_transaction_params! {
+    /// Parameters for the create method call with program variants
+    #[derive(Default, Clone)]
+    pub struct DeployAppCreateMethodCallParams {
+        pub on_complete: OnApplicationComplete,
+        pub approval_program: AppProgram,
+        pub clear_state_program: AppProgram,
+        pub method: algokit_abi::ABIMethod,
+        pub args: Vec<AppMethodCallArg>,
+        pub account_references: Option<Vec<Address>>,
+        pub app_references: Option<Vec<u64>>,
+        pub asset_references: Option<Vec<u64>>,
+        pub box_references: Option<Vec<algokit_transact::BoxReference>>,
+        pub global_state_schema: Option<algokit_transact::StateSchema>,
+        pub local_state_schema: Option<algokit_transact::StateSchema>,
+        pub extra_program_pages: Option<u32>,
     }
 }
 
-/// Parameters for the delete transaction
-#[derive(Debug, Clone, Default)]
-pub struct DeployAppDeleteParams {
-    pub common_params: CommonTransactionParams,
-    pub args: Option<Vec<Vec<u8>>>,
-    pub account_references: Option<Vec<Address>>,
-    pub app_references: Option<Vec<u64>>,
-    pub asset_references: Option<Vec<u64>>,
-    pub box_references: Option<Vec<algokit_transact::BoxReference>>,
+create_transaction_params! {
+    #[derive(Default, Clone)]
+    pub struct DeployAppUpdateParams {
+        pub args: Option<Vec<Vec<u8>>>,
+        pub account_references: Option<Vec<Address>>,
+        pub app_references: Option<Vec<u64>>,
+        pub asset_references: Option<Vec<u64>>,
+        pub box_references: Option<Vec<algokit_transact::BoxReference>>,
+    }
 }
 
-/// Parameters for the delete method call
-#[derive(Debug, Clone)]
-pub struct DeployAppDeleteMethodCallParams {
-    pub common_params: CommonTransactionParams,
-    pub method: algokit_abi::ABIMethod,
-    pub args: Vec<AppMethodCallArg>,
-    pub account_references: Option<Vec<Address>>,
-    pub app_references: Option<Vec<u64>>,
-    pub asset_references: Option<Vec<u64>>,
-    pub box_references: Option<Vec<algokit_transact::BoxReference>>,
+create_transaction_params! {
+    /// Parameters for the update method call
+    #[derive(Default, Clone)]
+    pub struct DeployAppUpdateMethodCallParams {
+        pub method: algokit_abi::ABIMethod,
+        pub args: Vec<AppMethodCallArg>,
+        pub account_references: Option<Vec<Address>>,
+        pub app_references: Option<Vec<u64>>,
+        pub asset_references: Option<Vec<u64>>,
+        pub box_references: Option<Vec<algokit_transact::BoxReference>>,
+    }
 }
 
-impl Default for DeployAppDeleteMethodCallParams {
-    fn default() -> Self {
-        Self {
-            common_params: Default::default(),
-            method: algokit_abi::ABIMethod {
-                name: String::new(),
-                args: Vec::new(),
-                returns: None,
-                description: None,
-            },
-            args: Vec::new(),
-            account_references: None,
-            app_references: None,
-            asset_references: None,
-            box_references: None,
-        }
+create_transaction_params! {
+    /// Parameters for the delete transaction
+    #[derive(Clone, Default)]
+    pub struct DeployAppDeleteParams {
+        pub args: Option<Vec<Vec<u8>>>,
+        pub account_references: Option<Vec<Address>>,
+        pub app_references: Option<Vec<u64>>,
+        pub asset_references: Option<Vec<u64>>,
+        pub box_references: Option<Vec<algokit_transact::BoxReference>>,
+    }
+}
+
+create_transaction_params! {
+    /// Parameters for the delete method call
+    #[derive(Default, Clone)]
+    pub struct DeployAppDeleteMethodCallParams {
+        pub method: algokit_abi::ABIMethod,
+        pub args: Vec<AppMethodCallArg>,
+        pub account_references: Option<Vec<Address>>,
+        pub app_references: Option<Vec<u64>>,
+        pub asset_references: Option<Vec<u64>>,
+        pub box_references: Option<Vec<algokit_transact::BoxReference>>,
     }
 }
 
@@ -403,24 +334,24 @@ impl AppDeployer {
         let arc2_note = Self::build_deployment_note(&metadata)?;
         match &mut create_params {
             CreateParams::AppCreateCall(params) => {
-                params.common_params.note = Some(arc2_note.clone());
+                params.note = Some(arc2_note.clone());
             }
             CreateParams::AppCreateMethodCall(params) => {
-                params.common_params.note = Some(arc2_note.clone());
+                params.note = Some(arc2_note.clone());
             }
         }
         match &mut update_params {
             UpdateParams::AppUpdateCall(params) => {
-                params.common_params.note = Some(arc2_note);
+                params.note = Some(arc2_note);
             }
             UpdateParams::AppUpdateMethodCall(params) => {
-                params.common_params.note = Some(arc2_note);
+                params.note = Some(arc2_note);
             }
         }
 
         let sender = match &create_params {
-            CreateParams::AppCreateCall(params) => &params.common_params.sender,
-            CreateParams::AppCreateMethodCall(params) => &params.common_params.sender,
+            CreateParams::AppCreateCall(params) => &params.sender,
+            CreateParams::AppCreateMethodCall(params) => &params.sender,
         };
 
         if let Some(ref existing_deployments) = existing_deployments {
@@ -953,7 +884,17 @@ impl AppDeployer {
         let result = match create_params {
             CreateParams::AppCreateCall(params) => {
                 let app_create_params = AppCreateParams {
-                    common_params: params.common_params.clone(),
+                    sender: params.sender.clone(),
+                    signer: params.signer.clone(),
+                    rekey_to: params.rekey_to.clone(),
+                    note: params.note.clone(),
+                    lease: params.lease,
+                    static_fee: params.static_fee,
+                    extra_fee: params.extra_fee,
+                    max_fee: params.max_fee,
+                    validity_window: params.validity_window,
+                    first_valid_round: params.first_valid_round,
+                    last_valid_round: params.last_valid_round,
                     on_complete: params.on_complete,
                     approval_program: approval_program.to_vec(),
                     clear_state_program: clear_state_program.to_vec(),
@@ -973,7 +914,17 @@ impl AppDeployer {
             }
             CreateParams::AppCreateMethodCall(params) => {
                 let app_create_method_params = AppCreateMethodCallParams {
-                    common_params: params.common_params.clone(),
+                    sender: params.sender.clone(),
+                    signer: params.signer.clone(),
+                    rekey_to: params.rekey_to.clone(),
+                    note: params.note.clone(),
+                    lease: params.lease,
+                    static_fee: params.static_fee,
+                    extra_fee: params.extra_fee,
+                    max_fee: params.max_fee,
+                    validity_window: params.validity_window,
+                    first_valid_round: params.first_valid_round,
+                    last_valid_round: params.last_valid_round,
                     on_complete: params.on_complete,
                     approval_program: approval_program.to_vec(),
                     clear_state_program: clear_state_program.to_vec(),
@@ -1010,8 +961,8 @@ impl AppDeployer {
         };
 
         let sender = match create_params {
-            CreateParams::AppCreateCall(params) => &params.common_params.sender,
-            CreateParams::AppCreateMethodCall(params) => &params.common_params.sender,
+            CreateParams::AppCreateCall(params) => &params.sender,
+            CreateParams::AppCreateMethodCall(params) => &params.sender,
         };
 
         self.update_app_lookup(sender, &app_metadata);
@@ -1043,7 +994,17 @@ impl AppDeployer {
         let result = match update_params {
             UpdateParams::AppUpdateCall(params) => {
                 let app_update_params = AppUpdateParams {
-                    common_params: params.common_params.clone(),
+                    sender: params.sender.clone(),
+                    signer: params.signer.clone(),
+                    rekey_to: params.rekey_to.clone(),
+                    note: params.note.clone(),
+                    lease: params.lease,
+                    static_fee: params.static_fee,
+                    extra_fee: params.extra_fee,
+                    max_fee: params.max_fee,
+                    validity_window: params.validity_window,
+                    first_valid_round: params.first_valid_round,
+                    last_valid_round: params.last_valid_round,
                     app_id: existing_app_metadata.app_id,
                     approval_program: approval_program.to_vec(),
                     clear_state_program: clear_state_program.to_vec(),
@@ -1060,7 +1021,17 @@ impl AppDeployer {
             }
             UpdateParams::AppUpdateMethodCall(params) => {
                 let app_update_method_params = AppUpdateMethodCallParams {
-                    common_params: params.common_params.clone(),
+                    sender: params.sender.clone(),
+                    signer: params.signer.clone(),
+                    rekey_to: params.rekey_to.clone(),
+                    note: params.note.clone(),
+                    lease: params.lease,
+                    static_fee: params.static_fee,
+                    extra_fee: params.extra_fee,
+                    max_fee: params.max_fee,
+                    validity_window: params.validity_window,
+                    first_valid_round: params.first_valid_round,
+                    last_valid_round: params.last_valid_round,
                     app_id: existing_app_metadata.app_id,
                     approval_program: approval_program.to_vec(),
                     clear_state_program: clear_state_program.to_vec(),
@@ -1092,8 +1063,8 @@ impl AppDeployer {
         };
 
         let sender = match update_params {
-            UpdateParams::AppUpdateCall(params) => &params.common_params.sender,
-            UpdateParams::AppUpdateMethodCall(params) => &params.common_params.sender,
+            UpdateParams::AppUpdateCall(params) => &params.sender,
+            UpdateParams::AppUpdateMethodCall(params) => &params.sender,
         };
 
         self.update_app_lookup(sender, &app_metadata);
@@ -1163,7 +1134,17 @@ impl AppDeployer {
         match create_params {
             CreateParams::AppCreateCall(params) => {
                 let app_create_params = AppCreateParams {
-                    common_params: params.common_params.clone(),
+                    sender: params.sender.clone(),
+                    signer: params.signer.clone(),
+                    rekey_to: params.rekey_to.clone(),
+                    note: params.note.clone(),
+                    lease: params.lease,
+                    static_fee: params.static_fee,
+                    extra_fee: params.extra_fee,
+                    max_fee: params.max_fee,
+                    validity_window: params.validity_window,
+                    first_valid_round: params.first_valid_round,
+                    last_valid_round: params.last_valid_round,
                     on_complete: params.on_complete,
                     approval_program: approval_program.to_vec(),
                     clear_state_program: clear_state_program.to_vec(),
@@ -1182,7 +1163,17 @@ impl AppDeployer {
             }
             CreateParams::AppCreateMethodCall(params) => {
                 let app_create_method_params = AppCreateMethodCallParams {
-                    common_params: params.common_params.clone(),
+                    sender: params.sender.clone(),
+                    signer: params.signer.clone(),
+                    rekey_to: params.rekey_to.clone(),
+                    note: params.note.clone(),
+                    lease: params.lease,
+                    static_fee: params.static_fee,
+                    extra_fee: params.extra_fee,
+                    max_fee: params.max_fee,
+                    validity_window: params.validity_window,
+                    first_valid_round: params.first_valid_round,
+                    last_valid_round: params.last_valid_round,
                     on_complete: params.on_complete,
                     approval_program: approval_program.to_vec(),
                     clear_state_program: clear_state_program.to_vec(),
@@ -1207,7 +1198,17 @@ impl AppDeployer {
             DeleteParams::AppDeleteCall(params) => {
                 composer
                     .add_app_delete(AppDeleteParams {
-                        common_params: params.common_params.clone(),
+                        sender: params.sender.clone(),
+                        signer: params.signer.clone(),
+                        rekey_to: params.rekey_to.clone(),
+                        note: params.note.clone(),
+                        lease: params.lease,
+                        static_fee: params.static_fee,
+                        extra_fee: params.extra_fee,
+                        max_fee: params.max_fee,
+                        validity_window: params.validity_window,
+                        first_valid_round: params.first_valid_round,
+                        last_valid_round: params.last_valid_round,
                         app_id: existing_app_metadata.app_id,
                         args: params.args.clone(),
                         account_references: params.account_references.clone(),
@@ -1220,7 +1221,17 @@ impl AppDeployer {
             DeleteParams::AppDeleteMethodCall(params) => {
                 composer
                     .add_app_delete_method_call(AppDeleteMethodCallParams {
-                        common_params: params.common_params.clone(),
+                        sender: params.sender.clone(),
+                        signer: params.signer.clone(),
+                        rekey_to: params.rekey_to.clone(),
+                        note: params.note.clone(),
+                        lease: params.lease,
+                        static_fee: params.static_fee,
+                        extra_fee: params.extra_fee,
+                        max_fee: params.max_fee,
+                        validity_window: params.validity_window,
+                        first_valid_round: params.first_valid_round,
+                        last_valid_round: params.last_valid_round,
                         app_id: existing_app_metadata.app_id,
                         method: params.method.clone(),
                         args: params.args.clone(),
@@ -1265,8 +1276,8 @@ impl AppDeployer {
         };
 
         let sender = match create_params {
-            CreateParams::AppCreateCall(params) => &params.common_params.sender,
-            CreateParams::AppCreateMethodCall(params) => &params.common_params.sender,
+            CreateParams::AppCreateCall(params) => &params.sender,
+            CreateParams::AppCreateMethodCall(params) => &params.sender,
         };
 
         self.update_app_lookup(sender, &app_metadata);

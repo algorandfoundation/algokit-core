@@ -5,9 +5,9 @@ use algokit_abi::abi_type::BitSize;
 use algokit_abi::{ABIMethod, ABIType, ABIValue};
 use algokit_test_artifacts::{inner_fee_contract, nested_contract};
 use algokit_transact::{Address, TransactionId};
+use algokit_utils::Composer;
 use algokit_utils::transactions::composer::{ResourcePopulation, SendParams};
 use algokit_utils::{AppCallParams, AppCreateParams, PaymentParams};
-use algokit_utils::{CommonTransactionParams, Composer};
 use base64::{Engine, prelude::BASE64_STANDARD};
 use rstest::*;
 use serde::Deserialize;
@@ -81,15 +81,11 @@ async fn test_errors_when_no_max_fee_supplied(
     let mut composer = algorand_fixture.algorand_client.new_group();
 
     let params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id,
         args: Some(vec![method_selectors.no_op]),
         ..Default::default()
     };
-
     composer.add_app_call(params)?;
     let result = composer.send(COVER_FEES_SEND_PARAMS).await;
 
@@ -127,11 +123,8 @@ async fn test_errors_when_inner_fees_not_covered_and_fee_coverage_disabled(
 
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0]);
     let txn_params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            max_fee: Some(7000),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        max_fee: Some(7000),
         app_id: app_id_1,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
@@ -190,11 +183,8 @@ async fn test_does_not_alter_fee_when_no_inners(
     let expected_fee = 1000u64;
 
     let txn_params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            max_fee: Some(2000),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        max_fee: Some(2000),
         app_id,
         args: Some(vec![method_selectors.no_op]),
         ..Default::default()
@@ -243,11 +233,8 @@ async fn test_alters_fee_no_inner_fees_covered(
     // Create an app call transaction that has no inner fees covered
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0]);
     let txn_params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            max_fee: Some(expected_fee),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        max_fee: Some(expected_fee),
         app_id: app_id_1,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
@@ -303,11 +290,8 @@ async fn test_alters_fee_all_inner_fees_covered(
     // Create an app call transaction that has all inner fees covered
     let fees_tuple = create_fees_tuple(1000, 1000, 1000, 1000, vec![1000, 1000]);
     let txn_params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            max_fee: Some(expected_fee),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        max_fee: Some(expected_fee),
         app_id: app_id_1,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
@@ -363,11 +347,8 @@ async fn test_alters_fee_some_inner_fees_covered(
     let fees_tuple = create_fees_tuple(1000, 0, 200, 0, vec![500, 0]);
 
     let txn_params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            max_fee: Some(expected_fee),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        max_fee: Some(expected_fee),
         app_id: app_id_1,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
@@ -423,11 +404,8 @@ async fn test_alters_fee_some_inner_fees_surplus(
     let fees_tuple = create_fees_tuple(0, 1000, 5000, 0, vec![0, 50]);
 
     let txn_params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            max_fee: Some(expected_fee),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        max_fee: Some(expected_fee),
         app_id: app_id_1,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
@@ -482,11 +460,8 @@ async fn test_alters_fee_expensive_abi_method_calls(
     let op_budget_encoded = abi_types.uint64.encode(&ABIValue::from(6200u64))?;
 
     let params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            max_fee: Some(expected_fee + 2_000),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        max_fee: Some(expected_fee + 2_000),
         app_id,
         args: Some(vec![method_selectors.burn_ops, op_budget_encoded]),
         app_references: None,
@@ -536,11 +511,8 @@ async fn test_errors_when_max_fee_too_small(
     // Create an app call transaction that has no inner fees covered
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0]);
     let params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            max_fee: Some(expected_fee - 1),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        max_fee: Some(expected_fee - 1),
         app_id: app_id_1,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
@@ -591,11 +563,8 @@ async fn test_errors_when_static_fee_too_small(
     // Create an app call transaction that has no inner fees covered
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0]);
     let params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            static_fee: Some(expected_fee - 1),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        max_fee: Some(expected_fee - 1),
         app_id: app_id_1,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
@@ -646,11 +615,8 @@ async fn test_does_not_alter_static_fee_with_surplus(
     // Create an app call transaction that has a static fee with surplus
     let fees_tuple = create_fees_tuple(1000, 0, 200, 0, vec![500, 0]);
     let app_call_params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            static_fee: Some(expected_fee), // Static fee with surplus
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        static_fee: Some(expected_fee), // Static fee with surplus
         app_id: app_id_1,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
@@ -699,12 +665,9 @@ async fn test_alters_fee_multiple_app_calls_in_group(
     let txn_1_expected_fee = 5800u64;
     let txn_1_fee_tuple = create_fees_tuple(0, 1000, 0, 0, vec![200, 0]);
     let txn_1_params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            static_fee: Some(txn_1_expected_fee),
-            note: Some(b"txn1".to_vec()),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        static_fee: Some(txn_1_expected_fee),
+        note: Some(b"txn1".to_vec()),
         app_id: app_id_1,
         args: Some(vec![
             method_selectors.send_inners_with_fees.clone(),
@@ -721,12 +684,9 @@ async fn test_alters_fee_multiple_app_calls_in_group(
     let txn_2_expected_fee = 6000u64;
     let txn_2_fee_tuple = create_fees_tuple(1000, 0, 0, 0, vec![0, 0]);
     let txn_2_params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            max_fee: Some(txn_2_expected_fee),
-            note: Some(b"txn2".to_vec()),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        max_fee: Some(txn_2_expected_fee),
+        note: Some(b"txn2".to_vec()),
         app_id: app_id_1,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
@@ -787,24 +747,19 @@ async fn test_does_not_alter_fee_when_group_covers_inner_fees(
     // Create a payment transaction that will cover the inner fees of transaction 2
     let txn_1_expected_fee = 8000u64;
     let txn_1_params = PaymentParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            static_fee: Some(txn_1_expected_fee),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        static_fee: Some(txn_1_expected_fee),
         receiver: sender_address.clone(),
         amount: 0,
+        ..Default::default()
     };
     composer.add_payment(txn_1_params)?;
 
     // Create an app call transaction that has inner fees covered by the above payment
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0]);
     let txn_2_params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            max_fee: Some(txn_1_expected_fee),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        max_fee: Some(txn_1_expected_fee),
         app_id: app_id_1,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
@@ -853,24 +808,19 @@ async fn test_alters_fee_nested_abi_method_call(
 
     // Create a payment transaction that will be used as a nested argument
     let txn_1_params = PaymentParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            static_fee: Some(1500),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        static_fee: Some(1500),
         receiver: sender_address.clone(),
         amount: 0,
+        ..Default::default()
     };
     composer.add_payment(txn_1_params.clone())?;
 
     // Create an app call transaction that will be used as a nested argument
     let fees_tuple = create_fees_tuple(0, 0, 2000, 0, vec![0, 0]);
     let txn_2_params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            max_fee: Some(6000),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        max_fee: Some(6000),
         app_id: app_id_1,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
@@ -885,11 +835,8 @@ async fn test_alters_fee_nested_abi_method_call(
 
     // Create the app call that will use the nested transaction
     let txn_3_params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            static_fee: Some(expected_fee),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        static_fee: Some(expected_fee),
         app_id: app_id_4,
         args: Some(vec![method_selectors.nested_txn_arg]),
         app_references: None,
@@ -932,12 +879,10 @@ async fn test_errors_when_nested_max_fee_below_calculated(
 
     // Create a payment transaction that will be used as a nested argument
     let txn_1_params = PaymentParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         receiver: sender_address.clone(),
         amount: 0,
+        ..Default::default()
     };
     composer.add_payment(txn_1_params)?;
 
@@ -946,11 +891,8 @@ async fn test_errors_when_nested_max_fee_below_calculated(
     let fees_tuple = create_fees_tuple(0, 0, 2000, 0, vec![0, 0]);
     let txn_2_max_fee = 2000; // Too low for the calculated fee
     let txn_2_params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            max_fee: Some(txn_2_max_fee),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        max_fee: Some(txn_2_max_fee),
         app_id: app_id_1,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
@@ -965,11 +907,8 @@ async fn test_errors_when_nested_max_fee_below_calculated(
 
     // Create an app call transaction that will be used as a nested argument
     let txn_3_params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            max_fee: Some(10_000),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        max_fee: Some(10_000),
         app_id: app_id_4,
         args: Some(vec![method_selectors.nested_txn_arg]),
         app_references: None,
@@ -1016,11 +955,8 @@ async fn test_alters_fee_allocating_surplus_to_most_constrained(
     // Create an app call transaction with inners that have no fees
     let fees_tuple_1 = create_fees_tuple(0, 0, 0, 0, vec![0, 0]);
     let txn_1_params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            max_fee: Some(2000),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        max_fee: Some(2000),
         app_id: app_id_1,
         args: Some(vec![
             method_selectors.send_inners_with_fees.clone(),
@@ -1035,25 +971,21 @@ async fn test_alters_fee_allocating_surplus_to_most_constrained(
 
     // Create a payment transaction with large static fee
     let txn_2_params = PaymentParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            static_fee: Some(7500),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        static_fee: Some(7500),
         receiver: sender_address.clone(),
         amount: 0,
+        ..Default::default()
     };
     composer.add_payment(txn_2_params)?;
 
     // Create a payment transaction with static fee of 0
     let txn_3_params = PaymentParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            static_fee: Some(0),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        static_fee: Some(0),
         receiver: sender_address.clone(),
         amount: 0,
+        ..Default::default()
     };
     composer.add_payment(txn_3_params)?;
 
@@ -1094,11 +1026,8 @@ async fn test_alters_fee_large_surplus_pooling_to_lower_siblings(
     // Create an app call transaction that has a large inner fee surplus pooling to lower siblings
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0, 20_000, 0, 0, 0]);
     let txn_params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            max_fee: Some(expected_fee),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        max_fee: Some(expected_fee),
         app_id: app_id_1,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
@@ -1152,11 +1081,8 @@ async fn test_alters_fee_surplus_pooling_to_some_siblings(
     // Create an app call transaction that has a inner fee surplus pooling to some lower siblings
     let fees_tuple = create_fees_tuple(0, 0, 2200, 0, vec![0, 0, 2500, 0, 0, 0]);
     let txn_params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            max_fee: Some(expected_fee),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        max_fee: Some(expected_fee),
         app_id: app_id_1,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
@@ -1210,11 +1136,8 @@ async fn test_alters_fee_large_surplus_no_pooling(
     // Create an app call transaction that has a large inner fee surplus with no pooling
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0, 0, 0, 0, 20_000]);
     let txn_params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            max_fee: Some(expected_fee),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        max_fee: Some(expected_fee),
         app_id: app_id_1,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
@@ -1289,11 +1212,8 @@ async fn test_alters_fee_multiple_surplus_poolings(
         ]),
     ]);
     let txn_params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            max_fee: Some(expected_fee),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        max_fee: Some(expected_fee),
         app_id: app_id_1,
         args: Some(vec![
             method_selectors.send_inners_with_fees_2,
@@ -1346,11 +1266,8 @@ async fn test_errors_when_max_fee_below_calculated(
     // Create an app call transaction that has no inner fees covered
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0]);
     let txn_1_params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            max_fee: Some(1200),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        max_fee: Some(1200),
         app_id: app_id_1,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
@@ -1366,11 +1283,8 @@ async fn test_errors_when_max_fee_below_calculated(
     // Create an app call transaction that has large max fee,
     // without it the simulate call to get the execution info would fail
     let txn_2_params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            max_fee: Some(10_000),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        max_fee: Some(10_000),
         app_id: app_id_1,
         args: Some(vec![method_selectors.no_op]),
         app_references: None,
@@ -1415,11 +1329,8 @@ async fn test_errors_when_static_fee_below_calculated(
     // Create an app call transaction that has no inner fees covered
     let fees_tuple = create_fees_tuple(0, 0, 0, 0, vec![0, 0]);
     let params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            static_fee: Some(5000),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        static_fee: Some(5000),
         app_id: app_id_1,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
@@ -1435,11 +1346,8 @@ async fn test_errors_when_static_fee_below_calculated(
     // Create an app call transaction that has large max fee,
     // without it the simulate call to get the execution info would fail
     let txn_2_params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            max_fee: Some(10_000),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        max_fee: Some(10_000),
         app_id: app_id_1,
         args: Some(vec![method_selectors.no_op]),
         app_references: None,
@@ -1484,12 +1392,9 @@ async fn test_errors_when_static_fee_too_low_for_non_app_call(
 
     // Create an app call transaction with both high static and max fee
     let txn_1_params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            static_fee: Some(13_000),
-            max_fee: Some(14_000),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        static_fee: Some(13_000),
+        max_fee: Some(14_000),
         app_id: app_id_1,
         args: Some(vec![
             method_selectors.send_inners_with_fees.clone(),
@@ -1504,11 +1409,8 @@ async fn test_errors_when_static_fee_too_low_for_non_app_call(
 
     // Create an app call transaction with low static
     let txn_2_params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            static_fee: Some(1000),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        static_fee: Some(1000),
         app_id: app_id_1,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
@@ -1523,13 +1425,11 @@ async fn test_errors_when_static_fee_too_low_for_non_app_call(
 
     // Payment transaction with insufficient static fee
     let txn_3_params = PaymentParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            static_fee: Some(500),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        static_fee: Some(500),
         receiver: sender_address.clone(),
         amount: 0,
+        ..Default::default()
     };
     composer.add_payment(txn_3_params)?;
 
@@ -1575,10 +1475,7 @@ async fn test_readonly_fixed_opcode_budget(
 
     let op_budget_encoded = abi_types.uint64.encode(&ABIValue::from(6200u64))?; // This would normally require op-ups via inner transactions
     let txn_params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
         app_id,
         args: Some(vec![method_selectors.burn_ops_readonly, op_budget_encoded]),
         app_references: None,
@@ -1631,11 +1528,8 @@ async fn test_readonly_alters_fee_handling_inners(
     // If this method is running in a non readonly context, the minimum fee would be calculated as 5300.
     let fees_tuple = create_fees_tuple(1000, 0, 200, 0, vec![500, 0]);
     let txn_params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            max_fee: Some(expected_fee),
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        max_fee: Some(expected_fee),
         app_id: app_id_1,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
@@ -1689,11 +1583,8 @@ async fn test_readonly_errors_when_max_fee_too_small(
     // This tuple represents partial inner fee coverage for readonly context
     let fees_tuple = create_fees_tuple(1000, 0, 200, 0, vec![500, 0]);
     let txn_params = AppCallParams {
-        common_params: CommonTransactionParams {
-            sender: sender_address.clone(),
-            max_fee: Some(2000), // Too small for the inner fees
-            ..Default::default()
-        },
+        sender: sender_address.clone(),
+        max_fee: Some(2000), // Too small for the inner fees
         app_id: app_id_1,
         args: Some(vec![
             method_selectors.send_inners_with_fees,
@@ -1846,11 +1737,8 @@ async fn deploy_app(
     note: &str,
 ) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
     let app_create_params = AppCreateParams {
-        common_params: CommonTransactionParams {
-            sender: algorand_fixture.test_account.account().address(),
-            note: Some(note.as_bytes().to_vec()),
-            ..Default::default()
-        },
+        sender: algorand_fixture.test_account.account().address(),
+        note: Some(note.as_bytes().to_vec()),
         approval_program,
         clear_state_program,
         args,
@@ -1891,10 +1779,7 @@ async fn assert_min_fee(mut composer: Composer, params: &AppCallParams, fee: u64
     }
 
     let params = AppCallParams {
-        common_params: CommonTransactionParams {
-            static_fee: Some(fee - 1),
-            ..params.common_params.clone()
-        },
+        static_fee: Some(fee - 1),
         ..params.clone()
     };
 
