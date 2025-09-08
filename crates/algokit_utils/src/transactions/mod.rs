@@ -26,7 +26,7 @@ pub use composer::{
     Composer, ComposerError, ComposerParams, ComposerTransaction, ResourcePopulation, SendParams,
     SendTransactionComposerResults, TransactionComposerConfig,
 };
-pub use creator::{BuiltTransactions, TransactionCreator};
+pub use creator::TransactionCreator;
 pub use key_registration::{
     NonParticipationKeyRegistrationParams, OfflineKeyRegistrationParams,
     OnlineKeyRegistrationParams,

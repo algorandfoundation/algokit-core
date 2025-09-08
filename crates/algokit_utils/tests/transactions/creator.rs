@@ -367,11 +367,9 @@ async fn method_call_returns_built_transactions(
 
     let result = creator.app_call_method_call(params).await?;
 
-    assert!(!result.transactions.is_empty());
-    assert!(!result.signers.is_empty());
-    assert_eq!(result.transactions.len(), result.signers.len());
+    assert!(!result.is_empty());
 
-    match &result.transactions[0] {
+    match &result[0] {
         Transaction::AppCall(app_fields) => {
             assert_eq!(app_fields.header.sender, sender_address);
             assert_eq!(app_fields.app_id, 1);
