@@ -17,8 +17,10 @@ pub struct AlgorandClient {
     transaction_sender: TransactionSender,
     transaction_creator: TransactionCreator,
     account_manager: Arc<Mutex<AccountManager>>,
+    default_composer_config: Option<TransactionComposerConfig>,
 }
 
+/// A client that brokers easy access to Algorand functionality.
 pub struct AlgorandClientParams {
     pub client_config: AlgoConfig,
     pub composer_config: Option<TransactionComposerConfig>,
@@ -26,7 +28,7 @@ pub struct AlgorandClientParams {
 
 impl AlgorandClient {
     pub fn new(params: &AlgorandClientParams) -> Self {
-        let client_manager = ClientManager::new(&params.client_config);
+        let client_manager = ClientManager::new(&params.client_config).unwrap();
         let algod_client = client_manager.algod();
 
         let account_manager = Arc::new(Mutex::new(AccountManager::new()));
@@ -77,6 +79,7 @@ impl AlgorandClient {
             app_manager,
             transaction_sender,
             transaction_creator,
+            default_composer_config: params.composer_config.clone(),
         }
     }
 
@@ -128,7 +131,7 @@ impl AlgorandClient {
         Composer::new(ComposerParams {
             algod_client: self.client_manager.algod().clone(),
             signer_getter: Arc::new(get_signer),
-            composer_config: params,
+            composer_config: params.or_else(|| self.default_composer_config.clone()),
         })
     }
 
@@ -136,9 +139,12 @@ impl AlgorandClient {
         Self::new(&AlgorandClientParams {
             client_config: AlgoConfig {
                 algod_config: ClientManager::get_default_localnet_config(AlgorandService::Algod),
-                indexer_config: ClientManager::get_default_localnet_config(
+                indexer_config: Some(ClientManager::get_default_localnet_config(
                     AlgorandService::Indexer,
-                ),
+                )),
+                kmd_config: Some(ClientManager::get_default_localnet_config(
+                    AlgorandService::Kmd,
+                )),
             },
             composer_config: params,
         })
@@ -148,10 +154,11 @@ impl AlgorandClient {
         Self::new(&AlgorandClientParams {
             client_config: AlgoConfig {
                 algod_config: ClientManager::get_algonode_config("testnet", AlgorandService::Algod),
-                indexer_config: ClientManager::get_algonode_config(
+                indexer_config: Some(ClientManager::get_algonode_config(
                     "testnet",
                     AlgorandService::Indexer,
-                ),
+                )),
+                kmd_config: None,
             },
             composer_config: params,
         })
@@ -161,10 +168,11 @@ impl AlgorandClient {
         Self::new(&AlgorandClientParams {
             client_config: AlgoConfig {
                 algod_config: ClientManager::get_algonode_config("mainnet", AlgorandService::Algod),
-                indexer_config: ClientManager::get_algonode_config(
+                indexer_config: Some(ClientManager::get_algonode_config(
                     "mainnet",
                     AlgorandService::Indexer,
-                ),
+                )),
+                kmd_config: None,
             },
             composer_config: params,
         })

@@ -2101,21 +2101,6 @@ impl Composer {
     pub fn count(&self) -> usize {
         self.transactions.len()
     }
-
-    /// Extract ABI method mapping from built transactions.
-    /// Maps transaction index to the ABI method used to create it.
-    /// Used by TransactionCreator to populate BuiltTransactions.method_calls.
-    pub(crate) fn extract_method_calls(&self) -> HashMap<usize, ABIMethod> {
-        let mut method_calls = HashMap::new();
-
-        for (i, transaction) in self.transactions.iter().enumerate() {
-            if let Some(method) = self.get_method_from_transaction(transaction) {
-                method_calls.insert(i, method.clone());
-            }
-        }
-
-        method_calls
-    }
 }
 
 #[cfg(test)]

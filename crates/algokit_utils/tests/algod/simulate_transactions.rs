@@ -16,7 +16,7 @@ async fn test_simulate_transactions() {
 
     // Create algod client using ClientManager
     let config = ClientManager::get_config_from_environment_or_localnet();
-    let algod_client = ClientManager::get_algod_client(&config.algod_config);
+    let algod_client = ClientManager::get_algod_client(&config.algod_config).unwrap();
 
     // Create multiple transactions for group simulation using TransactionMother from algokit_transact
     let transaction1 = TransactionMother::simple_payment().build().unwrap();

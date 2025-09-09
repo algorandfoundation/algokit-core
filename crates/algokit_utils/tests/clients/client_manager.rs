@@ -9,7 +9,7 @@ async fn test_network_caching_with_localnet() {
     init_test_logging();
 
     let config = ClientManager::get_config_from_environment_or_localnet();
-    let manager = ClientManager::new(&config);
+    let manager = ClientManager::new(&config).unwrap();
 
     let first = manager.network().await.unwrap();
     let second = manager.network().await.unwrap();
@@ -30,7 +30,7 @@ async fn test_concurrent_network_calls() {
     init_test_logging();
 
     let config = ClientManager::get_config_from_environment_or_localnet();
-    let manager = Arc::new(ClientManager::new(&config));
+    let manager = Arc::new(ClientManager::new(&config).unwrap());
 
     // Spawn 10 concurrent tasks
     let tasks: Vec<_> = (0..10)
@@ -69,7 +69,7 @@ async fn test_convenience_methods_with_cache() {
     init_test_logging();
 
     let config = ClientManager::get_config_from_environment_or_localnet();
-    let manager = ClientManager::new(&config);
+    let manager = ClientManager::new(&config).unwrap();
 
     let network_details = manager.network().await.unwrap();
 
@@ -93,7 +93,7 @@ async fn test_network_details_localnet() {
     init_test_logging();
 
     let config = ClientManager::get_config_from_environment_or_localnet();
-    let manager = ClientManager::new(&config);
+    let manager = ClientManager::new(&config).unwrap();
 
     let details = manager.network().await.unwrap();
 

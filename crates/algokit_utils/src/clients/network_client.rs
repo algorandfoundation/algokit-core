@@ -74,24 +74,38 @@ impl AlgorandService {
     }
 }
 
+/// Config for an Algorand client.
 #[derive(Debug, Clone)]
 pub struct AlgoClientConfig {
+    /// Base URL of the server e.g. http://localhost, https://testnet-api.algonode.cloud/, etc.
     pub server: String,
+    /// Optional port to use e.g. 4001, 443, etc.
     pub port: Option<u16>,
+    /// Optional token to use for API authentication
     pub token: Option<TokenHeader>,
 }
 
+/// Configuration for algod, indexer and kmd clients.
 #[derive(Debug, Clone)]
 pub struct AlgoConfig {
+    /// Algod client configuration
     pub algod_config: AlgoClientConfig,
-    pub indexer_config: AlgoClientConfig,
+    /// Indexer client configuration
+    pub indexer_config: Option<AlgoClientConfig>,
+    /// KMD client configuration
+    pub kmd_config: Option<AlgoClientConfig>,
 }
 
 impl AlgoConfig {
-    pub fn new(algod_config: AlgoClientConfig, indexer_config: AlgoClientConfig) -> Self {
+    pub fn new(
+        algod_config: AlgoClientConfig,
+        indexer_config: Option<AlgoClientConfig>,
+        kmd_config: Option<AlgoClientConfig>,
+    ) -> Self {
         Self {
             algod_config,
             indexer_config,
+            kmd_config,
         }
     }
 }
