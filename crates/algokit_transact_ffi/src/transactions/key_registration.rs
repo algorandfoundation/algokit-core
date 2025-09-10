@@ -86,3 +86,30 @@ impl TryFrom<crate::Transaction> for algokit_transact::KeyRegistrationTransactio
         Ok(transaction_fields)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use algokit_transact::test_utils::TestDataMother;
+
+    #[test]
+    fn test_encode_transaction_validation_integration() {
+        // invalid
+        let mut tx: Transaction = TestDataMother::online_key_registration()
+            .transaction
+            .try_into()
+            .unwrap();
+        tx.key_registration.as_mut().unwrap().vote_key = None;
+        let result = encode_transaction(tx);
+        assert!(result.is_err());
+
+        // valid
+        let result = encode_transaction(
+            TestDataMother::online_key_registration()
+                .transaction
+                .try_into()
+                .unwrap(),
+        );
+        assert!(result.is_ok());
+    }
+}

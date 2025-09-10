@@ -6,7 +6,7 @@
 use crate::Transaction;
 use crate::address::Address;
 use crate::traits::Validate;
-use crate::transactions::common::TransactionHeader;
+use crate::transactions::common::{TransactionHeader, TransactionValidationError};
 use crate::utils::{is_zero, is_zero_addr};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
@@ -70,12 +70,14 @@ impl Validate for AssetFreezeTransactionFields {
         let mut errors = Vec::new();
 
         if self.asset_id == 0 {
-            errors.push("Asset ID must not be 0".to_string());
+            errors.push(TransactionValidationError::ZeroValueField(
+                "Asset ID".to_string(),
+            ));
         }
 
         match errors.is_empty() {
             true => Ok(()),
-            false => Err(errors),
+            false => Err(errors.into_iter().map(|e| e.to_string()).collect()),
         }
     }
 }

@@ -38,7 +38,7 @@ impl TryFrom<Transaction> for algokit_transact::AssetTransferTransactionFields {
         let data = tx.clone().asset_transfer.unwrap();
         let header: algokit_transact::TransactionHeader = tx.try_into()?;
 
-        Ok(Self {
+        let transaction_fields = Self {
             header,
             asset_id: data.asset_id,
             amount: data.amount,
@@ -48,7 +48,15 @@ impl TryFrom<Transaction> for algokit_transact::AssetTransferTransactionFields {
                 .close_remainder_to
                 .map(|addr| addr.parse())
                 .transpose()?,
-        })
+        };
+
+        transaction_fields
+            .validate()
+            .map_err(|errors| AlgoKitTransactError::DecodingError {
+                message: format!("Asset transfer validation failed: {}", errors.join(", ")),
+            })?;
+
+        Ok(transaction_fields)
     }
 }
 
@@ -84,5 +92,26 @@ mod tests {
 
         assert_eq!(actual_id, data.id);
         assert_eq!(actual_id_raw, data.id_raw);
+    }
+
+    #[test]
+    fn test_encode_transaction_validation_integration() {
+        // invalid
+        let mut tx: Transaction = TestDataMother::simple_asset_transfer()
+            .transaction
+            .try_into()
+            .unwrap();
+        tx.asset_transfer.as_mut().unwrap().asset_id = 0;
+        let result = encode_transaction(tx);
+        assert!(result.is_err());
+
+        // valid
+        let result = encode_transaction(
+            TestDataMother::simple_asset_transfer()
+                .transaction
+                .try_into()
+                .unwrap(),
+        );
+        assert!(result.is_ok());
     }
 }

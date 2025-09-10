@@ -42,11 +42,46 @@ impl TryFrom<Transaction> for algokit_transact::AssetFreezeTransactionFields {
         let data = tx.clone().asset_freeze.unwrap();
         let header: algokit_transact::TransactionHeader = tx.try_into()?;
 
-        Ok(Self {
+        let transaction_fields = Self {
             header,
             asset_id: data.asset_id,
             freeze_target: data.freeze_target.parse()?,
             frozen: data.frozen,
-        })
+        };
+
+        transaction_fields
+            .validate()
+            .map_err(|errors| AlgoKitTransactError::DecodingError {
+                message: format!("Asset freeze validation failed: {}", errors.join(", ")),
+            })?;
+
+        Ok(transaction_fields)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use algokit_transact::test_utils::TestDataMother;
+
+    #[test]
+    fn test_encode_transaction_validation_integration() {
+        // invalid
+        let mut tx: Transaction = TestDataMother::asset_freeze()
+            .transaction
+            .try_into()
+            .unwrap();
+        tx.asset_freeze.as_mut().unwrap().asset_id = 0;
+        let result = encode_transaction(tx);
+        assert!(result.is_err());
+
+        // valid
+        let result = encode_transaction(
+            TestDataMother::asset_freeze()
+                .transaction
+                .try_into()
+                .unwrap(),
+        );
+        assert!(result.is_ok());
     }
 }
