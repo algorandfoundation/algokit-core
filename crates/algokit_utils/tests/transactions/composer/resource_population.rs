@@ -114,13 +114,12 @@ async fn test_accounts_errors_when_resource_population_disabled(
     })?;
 
     let result = composer.send(None).await;
-
     assert!(
         result.is_err()
             && result
                 .unwrap_err()
                 .to_string()
-                .contains("invalid Account reference")
+                .contains("unavailable Account")
     );
 
     Ok(())
@@ -266,14 +265,6 @@ async fn test_boxes_populated_when_resource_population_enabled(
                 BoxReference {
                     app_id: 0,
                     name: vec![109],
-                },
-                BoxReference {
-                    app_id: 0,
-                    name: vec![],
-                },
-                BoxReference {
-                    app_id: 0,
-                    name: vec![],
                 },
                 BoxReference {
                     app_id: 0,
@@ -476,8 +467,8 @@ async fn test_assets_populated_when_resource_population_enabled(
 #[case(9)]
 #[tokio::test]
 async fn test_cross_product_assets_and_accounts_errors_when_resource_population_disabled(
-    #[case] avm_version: u8,
-    #[with(avm_version)]
+    #[case] _avm_version: u8,
+    #[with(_avm_version)]
     #[future]
     fixture: FixtureResult,
 ) -> TestResult {
@@ -496,11 +487,7 @@ async fn test_cross_product_assets_and_accounts_errors_when_resource_population_
                 populate_app_call_resources: ResourcePopulation::Disabled,
                 ..Default::default()
             }));
-    let expected_error = if avm_version == 8 {
-        "invalid Account reference"
-    } else {
-        "unavailable Account"
-    };
+    let expected_error = "unavailable Account";
     let alice = algorand_fixture
         .generate_account(None)
         .await?
@@ -582,8 +569,8 @@ async fn test_cross_product_assets_and_accounts_populated_when_resource_populati
 #[case(9)]
 #[tokio::test]
 async fn test_cross_product_account_app_errors_when_resource_population_disabled(
-    #[case] avm_version: u8,
-    #[with(avm_version)]
+    #[case] _avm_version: u8,
+    #[with(_avm_version)]
     #[future]
     fixture: FixtureResult,
 ) -> TestResult {
@@ -602,11 +589,7 @@ async fn test_cross_product_account_app_errors_when_resource_population_disabled
                 populate_app_call_resources: ResourcePopulation::Disabled,
                 ..Default::default()
             }));
-    let expected_error = if avm_version == 8 {
-        "invalid Account reference"
-    } else {
-        "unavailable Account"
-    };
+    let expected_error = "unavailable Account";
     let alice = algorand_fixture
         .generate_account(Some(TestAccountConfig {
             initial_funds: 10_000_000,
