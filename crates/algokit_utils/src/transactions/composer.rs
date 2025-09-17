@@ -2,6 +2,7 @@ use crate::config::Config;
 use crate::{
     genesis_id_is_localnet,
     transactions::{
+        common::TransactionSignerGetter,
         key_registration::{
             build_non_participation_key_registration, build_offline_key_registration,
             build_online_key_registration,
@@ -188,7 +189,7 @@ pub struct TransactionComposerConfig {
 #[derive(Clone)]
 pub struct ComposerParams {
     pub algod_client: Arc<AlgodClient>,
-    pub signer_getter: SignerGetter,
+    pub signer_getter: Arc<dyn TransactionSignerGetter>,
     pub composer_config: Option<TransactionComposerConfig>,
 }
 
@@ -398,12 +399,10 @@ impl ComposerTransaction {
     }
 }
 
-pub type SignerGetter =
-    Arc<dyn Fn(Address) -> Result<Arc<dyn TransactionSigner>, ComposerError> + Send + Sync>;
 #[derive(Clone)]
 pub struct Composer {
     algod_client: Arc<AlgodClient>,
-    signer_getter: SignerGetter,
+    signer_getter: Arc<dyn TransactionSignerGetter>,
     composer_config: TransactionComposerConfig,
     transactions: Vec<ComposerTransaction>,
     built_group: Option<Vec<TransactionWithSigner>>,
@@ -1948,7 +1947,9 @@ impl Composer {
                             transaction_signer
                         } else {
                             let sender_address = txn.header().sender.clone();
-                            (self.signer_getter)(sender_address.clone())?
+                            self.signer_getter
+                                .get_signer(sender_address.clone())
+                                .map_err(|e| ComposerError::SigningError { message: e })?
                         }
                     }
                 };
@@ -2298,7 +2299,7 @@ mod tests {
     fn test_composer_params() -> ComposerParams {
         ComposerParams {
             algod_client: Arc::new(AlgodClient::testnet()),
-            signer_getter: Arc::new(|_| Ok(Arc::new(EmptySigner {}))),
+            signer_getter: Arc::new(EmptySigner {}),
             composer_config: Some(TransactionComposerConfig {
                 populate_app_call_resources: ResourcePopulation::Disabled,
                 cover_app_call_inner_transaction_fees: false,

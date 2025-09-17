@@ -3,7 +3,7 @@ use std::{collections::HashMap, sync::Arc};
 use algokit_transact::Address;
 use snafu::Snafu;
 
-use crate::TransactionSigner;
+use crate::{TransactionSigner, transactions::common::TransactionSignerGetter};
 
 pub struct AccountManager {
     default_signer: Option<Arc<dyn TransactionSigner>>,
@@ -50,4 +50,10 @@ impl AccountManager {
 pub enum AccountManagerError {
     #[snafu(display("No signer found for address: {address}"))]
     SignerNotFound { address: String },
+}
+
+impl TransactionSignerGetter for AccountManager {
+    fn get_signer(&self, address: Address) -> Result<Arc<dyn TransactionSigner>, String> {
+        self.get_signer(address).map_err(|e| e.to_string())
+    }
 }

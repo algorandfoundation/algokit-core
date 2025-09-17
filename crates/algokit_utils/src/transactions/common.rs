@@ -1,7 +1,7 @@
-use algokit_transact::{EMPTY_SIGNATURE, SignedTransaction, Transaction};
+use algokit_transact::{Address, EMPTY_SIGNATURE, SignedTransaction, Transaction};
 use async_trait::async_trait;
 use derive_more::Debug;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 #[async_trait]
 pub trait TransactionSigner: Send + Sync {
@@ -17,6 +17,16 @@ pub trait TransactionSigner: Send + Sync {
     ) -> Result<SignedTransaction, String> {
         let result = self.sign_transactions(&[transaction.clone()], &[0]).await?;
         Ok(result[0].clone())
+    }
+}
+
+pub trait TransactionSignerGetter {
+    fn get_signer(&self, address: Address) -> Result<Arc<dyn TransactionSigner>, String>;
+}
+
+impl<T: TransactionSignerGetter> TransactionSignerGetter for Mutex<T> {
+    fn get_signer(&self, address: Address) -> Result<Arc<dyn TransactionSigner>, String> {
+        self.lock().map_err(|e| e.to_string())?.get_signer(address)
     }
 }
 
@@ -45,6 +55,12 @@ impl TransactionSigner for EmptySigner {
                 }
             })
             .collect()
+    }
+}
+
+impl TransactionSignerGetter for EmptySigner {
+    fn get_signer(&self, _address: Address) -> Result<Arc<dyn TransactionSigner>, String> {
+        Ok(Arc::new(self.clone()))
     }
 }
 

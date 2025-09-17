@@ -5,7 +5,7 @@ use crate::clients::network_client::{AlgoConfig, AlgorandService};
 use crate::transactions::{
     Composer, ComposerParams, TransactionComposerConfig, TransactionCreator, TransactionSender,
 };
-use crate::{AccountManager, ComposerError, TransactionSigner};
+use crate::{AccountManager, TransactionSigner};
 use algod_client::models::TransactionParams;
 use algokit_transact::Address;
 use std::sync::{Arc, Mutex};
@@ -33,26 +33,14 @@ impl AlgorandClient {
 
         let account_manager = Arc::new(Mutex::new(AccountManager::new()));
 
-        let get_signer = {
-            let account_manager = account_manager.clone();
-            move |address| {
-                account_manager
-                    .lock()
-                    .unwrap()
-                    .get_signer(address)
-                    .map_err(|e| ComposerError::SigningError {
-                        message: e.to_string(),
-                    })
-            }
-        };
         let new_group = {
             let algod_client = algod_client.clone();
-            let get_signer = get_signer.clone();
+            let account_manager = account_manager.clone();
             let default_composer_config = params.composer_config.clone();
             move |composer_config: Option<TransactionComposerConfig>| {
                 Composer::new(ComposerParams {
                     algod_client: algod_client.clone(),
-                    signer_getter: Arc::new(get_signer.clone()),
+                    signer_getter: account_manager.clone(),
                     composer_config: composer_config.or_else(|| default_composer_config.clone()),
                 })
             }
@@ -115,22 +103,9 @@ impl AlgorandClient {
 
     /// Create a new transaction composer for building transaction groups
     pub fn new_group(&self, params: Option<TransactionComposerConfig>) -> Composer {
-        let get_signer = {
-            let account_manager = self.account_manager.clone();
-            move |address| {
-                account_manager
-                    .lock()
-                    .unwrap()
-                    .get_signer(address)
-                    .map_err(|e| ComposerError::SigningError {
-                        message: e.to_string(),
-                    })
-            }
-        };
-
         Composer::new(ComposerParams {
             algod_client: self.client_manager.algod().clone(),
-            signer_getter: Arc::new(get_signer),
+            signer_getter: self.account_manager.clone(),
             composer_config: params.or_else(|| self.default_composer_config.clone()),
         })
     }
