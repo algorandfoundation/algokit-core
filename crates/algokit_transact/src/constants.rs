@@ -28,3 +28,5 @@ pub const MAX_BOX_REFERENCES: usize = 8;
 // Application state schema limits
 pub const MAX_GLOBAL_STATE_KEYS: u32 = 64;
 pub const MAX_LOCAL_STATE_KEYS: u32 = 16;
+
+pub const MAX_SIMULATE_OPCODE_BUDGET: u64 = 320_000;

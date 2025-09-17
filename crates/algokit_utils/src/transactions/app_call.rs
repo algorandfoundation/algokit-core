@@ -21,7 +21,10 @@ use std::str::FromStr;
 pub enum AppMethodCallArg {
     ABIValue(ABIValue),
     ABIReference(ABIReferenceValue),
-    // TODO: default value will be handled in another PR when ARC56 is fully supported
+    /// Sentinel to request ARC-56 default resolution for this argument (handled by AppClient params builder)
+    DefaultValue,
+    /// Placeholder for a transaction-typed argument. Not encoded; satisfied by a transaction
+    /// included in the same group (extracted from other method call arguments).
     TransactionPlaceholder,
     Transaction(Transaction),
     TransactionWithSigner(TransactionWithSigner),

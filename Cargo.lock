@@ -136,6 +136,7 @@ dependencies = [
  "futures",
  "hex",
  "indexer_client",
+ "insta",
  "lazy_static",
  "log",
  "num-bigint",
@@ -1862,6 +1863,8 @@ checksum = "154934ea70c58054b556dd430b99a98c2a7ff5309ac9891597e339b5c28f4371"
 dependencies = [
  "console",
  "once_cell",
+ "pest",
+ "pest_derive",
  "serde",
  "similar",
 ]

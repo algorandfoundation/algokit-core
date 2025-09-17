@@ -1,3 +1,4 @@
+pub mod app_client;
 pub mod app_deployer;
 
 // Re-export commonly used client types

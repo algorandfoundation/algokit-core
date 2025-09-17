@@ -73,6 +73,8 @@ pub mod nested_contract {
     /// Contract for testing nested application call scenarios
     /// and complex transaction composition.
     pub const APPLICATION: &str = include_str!("../contracts/nested_contract/application.json");
+    pub const APPLICATION_ARC56: &str =
+        include_str!("../contracts/nested_contract/application.arc56.json");
 }
 
 /// Nested struct storage contract artifacts
@@ -155,11 +157,27 @@ pub mod nested_contract_calls {
 
 /// Testing app contract artifacts
 pub mod testing_app {
-    /// General-purpose testing contract (ARC32)
+    /// General-purpose testing contract (ARC56)
     ///
     /// Contract with updatable/deletable template variables and
     /// various methods for comprehensive app deployer testing.
     pub const APPLICATION: &str = include_str!("../contracts/testing_app/application.json");
+    pub const APPLICATION_ARC56: &str =
+        include_str!("../contracts/testing_app/application.arc56.json");
+}
+
+/// HelloWorld contract artifacts
+pub mod hello_world {
+    /// HelloWorld contract (ARC56)
+    pub const APPLICATION_ARC56: &str =
+        include_str!("../contracts/hello_world/application.arc56.json");
+}
+
+/// Testing app (puya compiler) contract artifacts
+pub mod testing_app_puya {
+    /// Testing app (puya compiler) contract (ARC56)
+    pub const APPLICATION_ARC56: &str =
+        include_str!("../contracts/testing_app_puya/application.arc56.json");
 }
 
 /// Resource population contract artifacts
@@ -175,4 +193,11 @@ pub mod resource_population {
     /// Contract for testing complex resource population scenarios.
     pub const APPLICATION_V9: &str =
         include_str!("../contracts/resource_population/ResourcePackerv9.arc32.json");
+}
+
+pub mod box_map_test {
+    /// Box map testing contract (ARC56)
+    ///
+    /// Contract for testing box map operations and complex data handling.
+    pub const APPLICATION_ARC56: &str = include_str!("../contracts/boxmap/application.arc56.json");
 }

@@ -26,3 +26,6 @@ pub static STATIC_ARRAY_REGEX: LazyLock<Regex> = LazyLock::new(|| {
 pub static UFIXED_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"^ufixed([1-9][\d]*)x([1-9][\d]*)$").expect("Invalid ufixed regex")
 });
+
+/// Constant for void return type in method signatures.
+pub const VOID_RETURN_TYPE: &str = "void";

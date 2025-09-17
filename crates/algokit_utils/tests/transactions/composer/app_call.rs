@@ -8,6 +8,7 @@ use algokit_transact::{
     Address, OnApplicationComplete, PaymentTransactionFields, StateSchema, Transaction,
     TransactionHeader, TransactionId,
 };
+use algokit_utils::transactions::composer::SimulateParams;
 use algokit_utils::{AppCallMethodCallParams, AssetCreateParams, ComposerError};
 use algokit_utils::{
     AppCallParams, AppCreateParams, AppDeleteParams, AppMethodCallArg, AppUpdateParams,
@@ -814,6 +815,78 @@ async fn test_get_returned_value_of_nested_app_call_method_calls(
     }
 }
 
+#[rstest]
+#[tokio::test]
+async fn group_simulate_matches_send(
+    #[future] arc56_algorand_fixture: Arc56AppFixtureResult,
+) -> TestResult {
+    let Arc56AppFixture {
+        sender_address: sender,
+        app_id,
+        arc56_contract,
+        algorand_fixture,
+    } = arc56_algorand_fixture.await?;
+
+    // Compose group: add(uint64,uint64)uint64 + payment + hello_world(string)string
+    let mut composer = algorand_fixture.algorand_client.new_group(None);
+
+    // 1) add(uint64,uint64)uint64
+    let method_add = get_abi_method(&arc56_contract, "add")?;
+    let add_params = AppCallMethodCallParams {
+        sender: sender.clone(),
+        app_id,
+        method: method_add,
+        args: vec![
+            AppMethodCallArg::ABIValue(ABIValue::Uint(BigUint::from(1u64))),
+            AppMethodCallArg::ABIValue(ABIValue::Uint(BigUint::from(2u64))),
+        ],
+        ..Default::default()
+    };
+    composer.add_app_call_method_call(add_params)?;
+
+    // 2) payment
+    let payment = PaymentParams {
+        sender: sender.clone(),
+        receiver: sender.clone(),
+        amount: 10_000,
+        ..Default::default()
+    };
+    composer.add_payment(payment)?;
+
+    // 3) hello_world(string)string
+    let method_hello = get_abi_method(&arc56_contract, "hello_world")?;
+    let call_params = AppCallMethodCallParams {
+        sender: sender.clone(),
+        app_id,
+        method: method_hello,
+        args: vec![AppMethodCallArg::ABIValue(ABIValue::String(
+            "test".to_string(),
+        ))],
+        ..Default::default()
+    };
+    composer.add_app_call_method_call(call_params)?;
+
+    let simulate = composer
+        .simulate(Some(SimulateParams {
+            skip_signatures: true,
+            ..Default::default()
+        }))
+        .await?;
+    let send = composer.send(None).await?;
+
+    assert_eq!(simulate.transaction_ids, send.transaction_ids);
+    // Compare all ABI returns in order where both sides have a value
+    for (simulate_abi_return, send_abi_return) in
+        simulate.abi_returns.iter().zip(send.abi_returns.iter())
+    {
+        assert_eq!(
+            simulate_abi_return.return_value,
+            send_abi_return.return_value
+        );
+    }
+    Ok(())
+}
+
 struct Arc56AppFixture {
     sender_address: Address,
     app_id: u64,
@@ -831,7 +904,15 @@ async fn arc56_algorand_fixture(
     let sender_address = algorand_fixture.test_account.account().address();
 
     let arc56_contract: Arc56Contract = serde_json::from_str(sandbox::APPLICATION_ARC56)?;
-    let app_id = deploy_arc56_contract(&algorand_fixture, &sender_address, &arc56_contract).await?;
+    let app_id = deploy_arc56_contract(
+        &algorand_fixture,
+        &sender_address,
+        &arc56_contract,
+        None,
+        None,
+        None,
+    )
+    .await?;
 
     Ok(Arc56AppFixture {
         sender_address,
@@ -1179,14 +1260,9 @@ fn get_abi_method(
     arc56_contract: &Arc56Contract,
     name: &str,
 ) -> Result<ABIMethod, Box<dyn std::error::Error + Send + Sync>> {
-    let method = arc56_contract
-        .methods
-        .iter()
-        .find(|m| m.name == name)
-        .ok_or_else(|| format!("Failed to find {} method", name))?
-        .try_into()
-        .map_err(|e| format!("Failed to convert ARC56 method to ABI method: {}", e))?;
-    Ok(method)
+    Ok(arc56_contract
+        .find_abi_method(name)
+        .map_err(|e| format!("Failed to convert ARC56 method to ABI method: {}", e))?)
 }
 
 fn get_abi_return(

@@ -159,14 +159,17 @@ async fn test_abi_method_returns_enhanced_processing(
 
     // Deploy ABI app using existing pattern
     let arc56_contract: Arc56Contract = serde_json::from_str(sandbox::APPLICATION_ARC56)?;
-    let app_id = deploy_arc56_contract(&algorand_fixture, &sender_address, &arc56_contract).await?;
+    let app_id = deploy_arc56_contract(
+        &algorand_fixture,
+        &sender_address,
+        &arc56_contract,
+        None,
+        None,
+        None,
+    )
+    .await?;
 
-    let method = arc56_contract
-        .methods
-        .iter()
-        .find(|m| m.name == "hello_world")
-        .expect("Failed to find hello_world method")
-        .try_into()?;
+    let method = arc56_contract.find_abi_method("hello_world")?;
 
     let params = AppCallMethodCallParams {
         sender: sender_address,

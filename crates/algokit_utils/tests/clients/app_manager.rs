@@ -410,8 +410,15 @@ fn test_app_state_keys_as_vec_u8() {
 
     // Verify the actual data in AppState
     let app_state = &result[&key_raw];
-    assert_eq!(app_state.key_raw, key_raw);
-    assert_eq!(app_state.key_base64, Base64.encode(&key_raw));
+    match app_state {
+        AppState::Uint(uint_value) => {
+            assert_eq!(uint_value.key_raw, key_raw);
+            assert_eq!(uint_value.key_base64, Base64.encode(&key_raw));
+        }
+        AppState::Bytes(_) => {
+            panic!("Expected AppState::Uint");
+        }
+    }
 
     // Test with binary key data (non-UTF-8)
     let binary_key = vec![0xFF, 0xFE, 0xFD, 0x00];
@@ -420,7 +427,7 @@ fn test_app_state_keys_as_vec_u8() {
     let binary_state_val = TealKeyValue {
         key: binary_key_base64,
         value: TealValue {
-            r#type: 2,
+            r#type: 2, // Uint type
             bytes: Vec::new(),
             uint: 123,
         },
@@ -432,7 +439,15 @@ fn test_app_state_keys_as_vec_u8() {
     // Verify binary key works correctly
     assert!(binary_result.contains_key(&binary_key));
     let binary_app_state = &binary_result[&binary_key];
-    assert_eq!(binary_app_state.key_raw, binary_key);
+    match binary_app_state {
+        AppState::Uint(uint_app_state) => {
+            assert_eq!(uint_app_state.key_raw, binary_key);
+            assert_eq!(uint_app_state.value, 123);
+        }
+        AppState::Bytes(_) => {
+            panic!("Expected AppState::Uint");
+        }
+    }
 
     // Test bytes value type with base64 deserialization
     let bytes_key = b"bytes_key".to_vec();
@@ -454,18 +469,16 @@ fn test_app_state_keys_as_vec_u8() {
     // Verify bytes value handling
     assert!(bytes_result.contains_key(&bytes_key));
     let bytes_app_state = &bytes_result[&bytes_key];
-    assert_eq!(bytes_app_state.key_raw, bytes_key);
-    assert_eq!(bytes_app_state.value_raw, Some(bytes_value.clone()));
-    assert_eq!(
-        bytes_app_state.value_base64,
-        Some(Base64.encode(&bytes_value))
-    );
-
-    // Check that the bytes value is correctly decoded as UTF-8 string
-    if let AppStateValue::Bytes(ref value_str) = bytes_app_state.value {
-        assert_eq!(value_str, "Hello, World!");
-    } else {
-        panic!("Expected AppStateValue::Bytes");
+    match bytes_app_state {
+        AppState::Uint(_) => {
+            panic!("Expected AppState::Bytes");
+        }
+        AppState::Bytes(value) => {
+            assert_eq!(value.key_raw, bytes_key);
+            assert_eq!(value.value_raw, bytes_value.clone());
+            assert_eq!(value.value_base64, Base64.encode(&bytes_value));
+            assert_eq!(value.value, "Hello, World!");
+        }
     }
 }
 

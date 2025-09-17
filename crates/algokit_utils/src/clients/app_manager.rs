@@ -31,22 +31,29 @@ pub struct CompiledTeal {
     pub compiled: String,
     pub compiled_hash: String,
     pub compiled_base64_to_bytes: Vec<u8>,
-    pub source_map: Option<serde_json::Value>,
+    pub source_map: Option<serde_json::Value>, // TODO: review this, relying on serde doesn't seem right
 }
 
 #[derive(Debug, Clone)]
-pub struct AppState {
+pub enum AppState {
+    Uint(UintAppState),
+    Bytes(BytesAppState),
+}
+
+#[derive(Debug, Clone)]
+pub struct UintAppState {
     pub key_raw: Vec<u8>,
     pub key_base64: String,
-    pub value_raw: Option<Vec<u8>>,
-    pub value_base64: Option<String>,
-    pub value: AppStateValue,
+    pub value: u64,
 }
 
 #[derive(Debug, Clone)]
-pub enum AppStateValue {
-    Uint(u64),
-    Bytes(String),
+pub struct BytesAppState {
+    pub key_raw: Vec<u8>,
+    pub key_base64: String,
+    pub value_raw: Vec<u8>,
+    pub value_base64: String,
+    pub value: String,
 }
 
 #[derive(Debug, Clone)]
@@ -160,8 +167,21 @@ impl AppManager {
     ) -> Result<CompiledTeal, AppManagerError> {
         let mut teal_code = Self::strip_teal_comments(teal_template_code);
 
+        // When deployment metadata is provided, avoid replacing
+        // TMPL_UPDATABLE/TMPL_DELETABLE via generic template variables; let the
+        // deploy-time control function handle them.
         if let Some(params) = template_params {
-            teal_code = Self::replace_template_variables(&teal_code, params)?;
+            let filtered_params: TealTemplateParams = if deployment_metadata.is_some() {
+                let mut clone = params.clone();
+                clone.remove("UPDATABLE");
+                clone.remove("DELETABLE");
+                clone.remove("TMPL_UPDATABLE");
+                clone.remove("TMPL_DELETABLE");
+                clone
+            } else {
+                params.clone()
+            };
+            teal_code = Self::replace_template_variables(&teal_code, &filtered_params)?;
         }
 
         if let Some(metadata) = deployment_metadata {
@@ -282,19 +302,18 @@ impl AppManager {
         box_name: &BoxIdentifier,
     ) -> Result<Vec<u8>, AppManagerError> {
         let (_, name_bytes) = Self::get_box_reference(box_name);
-        let name_base64 = Base64.encode(&name_bytes);
+        // Algod expects goal-arg style encoding for box name query param in 'encoding:value'.
+        // However our HTTP client decodes base64 automatically into bytes for the Box model fields.
+        // The API still requires 'b64:<base64>' for the query parameter value.
+        let name_goal = format!("b64:{}", Base64.encode(&name_bytes));
 
         let box_result = self
             .algod_client
-            .get_application_box_by_name(app_id, &name_base64)
+            .get_application_box_by_name(app_id, &name_goal)
             .await
             .map_err(|e| AppManagerError::AlgodClientError { source: e })?;
 
-        Base64
-            .decode(&box_result.value)
-            .map_err(|e| AppManagerError::DecodingError {
-                message: e.to_string(),
-            })
+        Ok(box_result.value)
     }
 
     /// Get values for multiple boxes.
@@ -397,6 +416,42 @@ impl AppManager {
         (0, box_id.clone())
     }
 
+    /// Helper function to ensure bytes are decoded from base64 if needed.
+    /// When using `Bytes` deserializer with JSON, base64 strings are not decoded
+    /// but kept as ASCII bytes of the base64 string. This function detects and fixes that.
+    fn ensure_decoded_bytes(bytes: &[u8]) -> Vec<u8> {
+        // Check if bytes could be a base64 string
+        if let Ok(s) = std::str::from_utf8(bytes) {
+            // Base64 strings have specific characteristics:
+            // - Length is multiple of 4 (with padding) or would be after padding
+            // - Contains base64 chars
+            // - Successfully decodes to different bytes than the original
+            if !s.is_empty()
+                && s.chars()
+                    .all(|c| c.is_ascii_alphanumeric() || c == '+' || c == '/' || c == '=')
+            {
+                // Additional check: base64 strings typically have = padding or specific length
+                let looks_like_base64 = s.contains('=')
+                    || s.contains('+')
+                    || s.contains('/')
+                    || (s.len() % 4 == 0 && s.len() >= 8); // Reasonable minimum for base64
+
+                if looks_like_base64 {
+                    // Try to decode as base64
+                    if let Ok(decoded) = Base64.decode(s) {
+                        // Only return decoded if it's actually different
+                        // (prevents treating plain text as base64)
+                        if decoded != bytes {
+                            return decoded;
+                        }
+                    }
+                }
+            }
+        }
+        // Already raw bytes or not valid base64
+        bytes.to_vec()
+    }
+
     /// Decode application state from raw format.
     /// Keys are decoded from base64 to Vec<u8> for binary data support, matching TypeScript UInt8Array typing.
     pub fn decode_app_state(
@@ -413,20 +468,26 @@ impl AppManager {
                     })?;
 
             // TODO(stabilization): Consider r#type pattern consistency across API vs ABI types (PR #229 comment)
-            let (value_raw, value_base64, value) = match state_val.value.r#type {
+            let app_state = match state_val.value.r#type {
                 1 => {
-                    // Bytes - now already decoded from base64 by serde
-                    let value_raw = state_val.value.bytes.clone();
+                    // Handle both cases: raw bytes (from msgpack) or base64 string bytes (from JSON with Bytes deserializer)
+                    let value_raw = Self::ensure_decoded_bytes(&state_val.value.bytes);
                     let value_base64 = Base64.encode(&value_raw);
                     let value_str = String::from_utf8(value_raw.clone())
                         .unwrap_or_else(|_| hex::encode(&value_raw));
-                    (
-                        Some(value_raw),
-                        Some(value_base64),
-                        AppStateValue::Bytes(value_str),
-                    )
+                    AppState::Bytes(BytesAppState {
+                        key_raw: key_raw.clone(),
+                        key_base64: Base64.encode(&key_raw),
+                        value_raw,
+                        value_base64,
+                        value: value_str,
+                    })
                 }
-                2 => (None, None, AppStateValue::Uint(state_val.value.uint)),
+                2 => AppState::Uint(UintAppState {
+                    key_raw: key_raw.clone(),
+                    key_base64: Base64.encode(&key_raw),
+                    value: state_val.value.uint,
+                }),
                 _ => {
                     return Err(AppManagerError::DecodingError {
                         message: format!("Unknown state data type: {}", state_val.value.r#type),
@@ -434,16 +495,7 @@ impl AppManager {
                 }
             };
 
-            state_values.insert(
-                key_raw.clone(),
-                AppState {
-                    key_raw: key_raw.clone(),
-                    key_base64: Base64.encode(&key_raw),
-                    value_raw,
-                    value_base64,
-                    value,
-                },
-            );
+            state_values.insert(key_raw.clone(), app_state);
         }
 
         Ok(state_values)

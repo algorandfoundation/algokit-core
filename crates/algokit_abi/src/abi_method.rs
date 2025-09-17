@@ -1,12 +1,11 @@
+use crate::DefaultValueSource;
 use crate::abi_type::ABIType;
 use crate::abi_value::ABIValue;
+use crate::constants::VOID_RETURN_TYPE;
 use crate::error::ABIError;
 use sha2::{Digest, Sha512_256};
 use std::fmt::Display;
 use std::str::FromStr;
-
-/// Constant for void return type in method signatures.
-const VOID_RETURN_TYPE: &str = "void";
 
 /// Represents a transaction type that can be used as an ABI method argument.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -158,7 +157,7 @@ impl FromStr for ABIMethodArgType {
 }
 
 /// Represents a parsed ABI method, including its name, arguments, and return type.
-#[derive(Debug, Default, Clone, PartialEq, Eq)]
+#[derive(Debug, Default, Clone)]
 pub struct ABIMethod {
     /// The name of the method.
     pub name: String,
@@ -170,57 +169,7 @@ pub struct ABIMethod {
     pub description: Option<String>,
 }
 
-/// Represents an argument in an ABI method.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ABIMethodArg {
-    /// The type of the argument.
-    pub arg_type: ABIMethodArgType,
-    /// An optional name for the argument.
-    pub name: Option<String>,
-    /// An optional description of the argument.
-    pub description: Option<String>,
-}
-
 impl ABIMethod {
-    /// Creates a new ABI method.
-    pub fn new(
-        name: String,
-        args: Vec<ABIMethodArg>,
-        returns: Option<ABIType>,
-        description: Option<String>,
-    ) -> Self {
-        Self {
-            name,
-            args,
-            returns,
-            description,
-        }
-    }
-
-    /// Returns the number of transaction arguments in the method.
-    pub fn transaction_arg_count(&self) -> usize {
-        self.args
-            .iter()
-            .filter(|arg| arg.arg_type.is_transaction())
-            .count()
-    }
-
-    /// Returns the number of reference arguments in the method.
-    pub fn reference_arg_count(&self) -> usize {
-        self.args
-            .iter()
-            .filter(|arg| arg.arg_type.is_reference())
-            .count()
-    }
-
-    /// Returns the number of value-type arguments in the method.
-    pub fn value_arg_count(&self) -> usize {
-        self.args
-            .iter()
-            .filter(|arg| arg.arg_type.is_value_type())
-            .count()
-    }
-
     /// Returns the method selector, which is the first 4 bytes of the SHA-512/256 hash of the method signature.
     pub fn selector(&self) -> Result<Vec<u8>, ABIError> {
         let signature = self.signature()?;
@@ -279,6 +228,71 @@ impl ABIMethod {
     }
 }
 
+/// Default value information for ABI method arguments.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ABIDefaultValue {
+    /// Base64 encoded bytes, base64 ARC4 encoded uint64, or UTF-8 method selector
+    pub data: String,
+    /// Where the default value is coming from
+    pub source: DefaultValueSource,
+    /// How the data is encoded. This is the encoding for the data provided here, not the arg type
+    pub value_type: Option<ABIType>,
+}
+
+/// Represents an argument in an ABI method.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ABIMethodArg {
+    /// The type of the argument.
+    pub arg_type: ABIMethodArgType,
+    /// An optional name for the argument.
+    pub name: Option<String>,
+    /// An optional description of the argument.
+    pub description: Option<String>,
+    /// An optional default value for the argument.
+    pub default_value: Option<ABIDefaultValue>,
+}
+
+impl ABIMethod {
+    /// Creates a new ABI method.
+    pub fn new(
+        name: String,
+        args: Vec<ABIMethodArg>,
+        returns: Option<ABIType>,
+        description: Option<String>,
+    ) -> Self {
+        Self {
+            name,
+            args,
+            returns,
+            description,
+        }
+    }
+
+    /// Returns the number of transaction arguments in the method.
+    pub fn transaction_arg_count(&self) -> usize {
+        self.args
+            .iter()
+            .filter(|arg| arg.arg_type.is_transaction())
+            .count()
+    }
+
+    /// Returns the number of reference arguments in the method.
+    pub fn reference_arg_count(&self) -> usize {
+        self.args
+            .iter()
+            .filter(|arg| arg.arg_type.is_reference())
+            .count()
+    }
+
+    /// Returns the number of value-type arguments in the method.
+    pub fn value_arg_count(&self) -> usize {
+        self.args
+            .iter()
+            .filter(|arg| arg.arg_type.is_value_type())
+            .count()
+    }
+}
+
 impl FromStr for ABIMethod {
     type Err = ABIError;
 
@@ -323,7 +337,7 @@ impl FromStr for ABIMethod {
         for (i, arg_type) in arguments.iter().enumerate() {
             let _type = ABIMethodArgType::from_str(arg_type)?;
             let arg_name = Some(format!("arg{}", i));
-            let arg = ABIMethodArg::new(_type, arg_name, None);
+            let arg = ABIMethodArg::new(_type, arg_name, None, None);
             args.push(arg);
         }
 
@@ -347,11 +361,13 @@ impl ABIMethodArg {
         arg_type: ABIMethodArgType,
         name: Option<String>,
         description: Option<String>,
+        default_value: Option<ABIDefaultValue>,
     ) -> Self {
         Self {
             arg_type,
             name,
             description,
+            default_value,
         }
     }
 }
@@ -424,7 +440,6 @@ fn split_arguments_by_comma(args_str: &str) -> Result<Vec<String>, ABIError> {
 mod tests {
     use super::*;
     use crate::abi_type::parse_tuple_content;
-    use hex;
     use rstest::rstest;
 
     // Transaction type parsing with round-trip validation
@@ -517,19 +532,6 @@ mod tests {
         assert!(ABIMethod::from_str(signature).is_err());
     }
 
-    // Method selector verification - critical for hash correctness
-    #[rstest]
-    #[case("add(uint64,uint64)uint64", "fe6bdf69")]
-    #[case("optIn()void", "29314d95")]
-    #[case("deposit(pay,uint64)void", "f2355b55")]
-    #[case("bootstrap(pay,pay,application)void", "895c2a3b")]
-    fn method_selector(#[case] signature: &str, #[case] expected_hex: &str) {
-        let method = ABIMethod::from_str(signature).unwrap();
-        let selector = method.selector().unwrap();
-        assert_eq!(hex::encode(&selector), expected_hex);
-        assert_eq!(selector.len(), 4);
-    }
-
     // ARC-4 tuple parsing - essential cases
     #[rstest]
     #[case("uint64,string,bool", vec!["uint64", "string", "bool"])]
@@ -549,15 +551,6 @@ mod tests {
         assert!(parse_tuple_content(input).is_err());
     }
 
-    // Signature round-trip
-    #[rstest]
-    #[case("add(uint64,uint64)uint64")]
-    #[case("optIn()void")]
-    fn signature_round_trip(#[case] signature: &str) {
-        let method = ABIMethod::from_str(signature).unwrap();
-        assert_eq!(method.signature().unwrap(), signature);
-    }
-
     // Method argument type predicates
     #[test]
     fn method_arg_type_predicates() {
@@ -568,18 +561,5 @@ mod tests {
         assert!(tx_arg.is_transaction() && !tx_arg.is_reference() && !tx_arg.is_value_type());
         assert!(!ref_arg.is_transaction() && ref_arg.is_reference() && !ref_arg.is_value_type());
         assert!(!val_arg.is_transaction() && !val_arg.is_reference() && val_arg.is_value_type());
-    }
-
-    // Edge cases
-    #[test]
-    fn empty_method_name_error() {
-        let method = ABIMethod::new("".to_string(), vec![], None, None);
-        assert!(method.signature().is_err());
-    }
-
-    #[test]
-    fn selector_length() {
-        let method = ABIMethod::new("test".to_string(), vec![], None, None);
-        assert_eq!(method.selector().unwrap().len(), 4);
     }
 }

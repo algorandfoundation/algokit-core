@@ -1,5 +1,6 @@
 pub mod applications;
 pub mod clients;
+pub mod config;
 pub mod transactions;
 
 // Re-exports for clean UniFFI surface
@@ -23,3 +24,6 @@ pub use transactions::{
     TransactionResultError, TransactionSender, TransactionSenderError, TransactionSigner,
     TransactionWithSigner,
 };
+
+pub use applications::app_client::{AppClient, AppClientError, AppClientParams, AppSourceMaps};
+pub use config::{Config, EventType};
