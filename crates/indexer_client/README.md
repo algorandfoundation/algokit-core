@@ -200,6 +200,8 @@ data/bookkeeping/block.go : Block
 - `BoxDescriptor` - Box descriptor describes an app box without a value.
 - `BoxReference` - BoxReference names a box by its name and the application ID it belongs to.
 - `HealthCheck` - A health check response.
+- `HoldingRef` - HoldingRef names a holding by referring to an Address and Asset it belongs to.
+- `LocalsRef` - LocalsRef names a local state by referring to an Address and App it belongs to.
 - `MiniAssetHolding` - A simplified version of AssetHolding 
 - `OnCompletion` - \[apan\] defines the what additional actions occur with the transaction.
 
@@ -211,6 +213,7 @@ Valid types:
 * update
 * delete
 - `ParticipationUpdates` - Participation account data that needs to be checked/acted on by the network.
+- `ResourceRef` - ResourceRef names a single resource. Only one of the fields should be set.
 - `StateDelta` - Application state delta.
 - `AccountStateDelta` - Application state delta.
 - `EvalDeltaKeyValue` - Key-value pairs for StateDelta.
@@ -263,7 +266,7 @@ data/transactions/payment.go : PaymentTxnFields
 
 Definition:
 data/transactions/logicsig.go
-- `TransactionSignatureMultisig` - \[msig\] structure holding multiple subsignatures.
+- `TransactionSignatureMultisig` - structure holding multiple subsignatures.
 
 Definition:
 crypto/multisig.go : MultisigSig

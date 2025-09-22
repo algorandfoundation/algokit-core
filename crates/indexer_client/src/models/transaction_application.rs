@@ -13,6 +13,7 @@ use serde_with::{Bytes, serde_as};
 
 use crate::models::BoxReference;
 use crate::models::OnCompletion;
+use crate::models::ResourceRef;
 use crate::models::StateSchema;
 
 /// Fields for application transactions.
@@ -31,6 +32,9 @@ pub struct TransactionApplication {
     /// \[apaa\] transaction specific arguments accessed from the application's approval-program and clear-state-program.
     #[serde(rename = "application-args", skip_serializing_if = "Option::is_none")]
     pub application_args: Option<Vec<String>>,
+    /// \[al\] Access unifies `accounts`, `foreign-apps`, `foreign-assets`, and `box-references` under a single list. If access is non-empty, these lists must be empty. If access is empty, those lists may be non-empty.
+    #[serde(rename = "access", skip_serializing_if = "Option::is_none")]
+    pub access: Option<Vec<ResourceRef>>,
     /// \[apat\] List of accounts in addition to the sender that may be accessed from the application's approval-program and clear-state-program.
     #[serde(rename = "accounts", skip_serializing_if = "Option::is_none")]
     pub accounts: Option<Vec<String>>,
@@ -79,6 +83,7 @@ impl TransactionApplication {
             application_id,
             on_completion,
             application_args: None,
+            access: None,
             accounts: None,
             box_references: None,
             foreign_apps: None,

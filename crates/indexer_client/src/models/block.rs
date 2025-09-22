@@ -49,6 +49,13 @@ pub struct Block {
     #[serde_as(as = "serde_with::base64::Base64")]
     #[serde(rename = "previous-block-hash")]
     pub previous_block_hash: Vec<u8>,
+    /// \[prev512\] Previous block hash, using SHA-512.
+    #[serde_as(as = "Option<serde_with::base64::Base64>")]
+    #[serde(
+        rename = "previous-block-hash-512",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub previous_block_hash_512: Option<Vec<u8>>,
     #[serde(rename = "rewards", skip_serializing_if = "Option::is_none")]
     pub rewards: Option<BlockRewards>,
     /// \[rnd\] Current round on which this block was appended to the chain.
@@ -78,6 +85,13 @@ pub struct Block {
     #[serde_as(as = "serde_with::base64::Base64")]
     #[serde(rename = "transactions-root-sha256")]
     pub transactions_root_sha256: Vec<u8>,
+    /// \[txn512\] TransactionsRootSHA512 is an auxiliary TransactionRoot, built using a vector commitment instead of a merkle tree, and SHA512 hash function instead of the default SHA512_256.
+    #[serde_as(as = "Option<serde_with::base64::Base64>")]
+    #[serde(
+        rename = "transactions-root-sha512",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub transactions_root_sha512: Option<Vec<u8>>,
     /// \[tc\] TxnCounter counts the number of transactions committed in the ledger, from the time at which support for this feature was introduced.
     ///
     /// Specifically, TxnCounter is the number of the next transaction that will be committed after this block.  It is 0 when no transactions have ever been committed (since TxnCounter started being supported).
@@ -119,9 +133,11 @@ impl Block {
             fees_collected: None,
             bonus: None,
             proposer_payout: None,
+            previous_block_hash_512: None,
             rewards: None,
             state_proof_tracking: None,
             transactions: None,
+            transactions_root_sha512: None,
             txn_counter: None,
             upgrade_state: None,
             upgrade_vote: None,

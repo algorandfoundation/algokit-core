@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::models::TransactionSignatureMultisigSubsignature;
 
-/// \[msig\] structure holding multiple subsignatures.
+/// structure holding multiple subsignatures.
 ///
 /// Definition:
 /// crypto/multisig.go : MultisigSig

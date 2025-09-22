@@ -31,6 +31,11 @@ pub struct TransactionSignatureLogicsig {
     pub logic: Vec<u8>,
     #[serde(rename = "multisig-signature", skip_serializing_if = "Option::is_none")]
     pub multisig_signature: Option<TransactionSignatureMultisig>,
+    #[serde(
+        rename = "logic-multisig-signature",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub logic_multisig_signature: Option<TransactionSignatureMultisig>,
     /// \[sig\] ed25519 signature.
     #[serde_as(as = "Option<serde_with::base64::Base64>")]
     #[serde(rename = "signature", skip_serializing_if = "Option::is_none")]
@@ -44,6 +49,7 @@ impl TransactionSignatureLogicsig {
             logic,
             args: None,
             multisig_signature: None,
+            logic_multisig_signature: None,
             signature: None,
         }
     }
