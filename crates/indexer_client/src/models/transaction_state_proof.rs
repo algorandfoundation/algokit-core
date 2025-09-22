@@ -18,6 +18,7 @@ use crate::models::StateProofFields;
 /// Definition:
 /// data/transactions/stateproof.go : StateProofTxnFields
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct TransactionStateProof {
     /// \[sptype\] Type of the state proof. Integer representing an entry defined in protocol/stateproof.go
     #[serde(rename = "state-proof-type", skip_serializing_if = "Option::is_none")]

@@ -14,6 +14,7 @@ use crate::models::StateProofParticipant;
 use crate::models::StateProofSigSlot;
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct StateProofReveal {
     /// The position in the signature and participants arrays corresponding to this entry.
     #[serde(rename = "position", skip_serializing_if = "Option::is_none")]

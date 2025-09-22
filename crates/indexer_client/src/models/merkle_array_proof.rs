@@ -15,6 +15,7 @@ use crate::models::HashFactory;
 
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct MerkleArrayProof {
     /// \[pth\]
     #[serde_as(as = "Option<Vec<serde_with::base64::Base64>>")]

@@ -15,6 +15,7 @@ use serde::{Deserialize, Serialize};
 /// Definition:
 /// data/transactions/asset.go : AssetTransferTxnFields
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct TransactionAssetTransfer {
     /// \[aamt\] Amount of asset to transfer. A zero amount transferred to self allocates that asset in the account's Assets map.
     #[serde(rename = "amount")]

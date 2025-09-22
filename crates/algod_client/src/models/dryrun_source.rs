@@ -9,11 +9,18 @@
  */
 
 use crate::models;
-use algokit_transact::{AlgorandMsgpack, SignedTransaction as AlgokitSignedTransaction};
+#[cfg(not(feature = "ffi_uniffi"))]
+use algokit_transact::SignedTransaction as AlgokitSignedTransaction;
 use serde::{Deserialize, Serialize};
+
+#[cfg(feature = "ffi_uniffi")]
+use algokit_transact_ffi::SignedTransaction as AlgokitSignedTransaction;
+
+use algokit_transact::AlgorandMsgpack;
 
 /// DryrunSource is TEAL source text that gets uploaded, compiled, and inserted into transactions or application state.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct DryrunSource {
     /// FieldName is what kind of sources this is. If lsig then it goes into the transactions[this.TxnIndex].LogicSig. If approv or clearp it goes into the Approval Program or Clear State Program of application[this.AppIndex].
     #[serde(rename = "field-name")]

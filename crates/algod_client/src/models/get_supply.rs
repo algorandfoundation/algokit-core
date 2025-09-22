@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 
 /// Supply represents the current supply of MicroAlgos in the system
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct GetSupply {
     /// Round
     #[serde(rename = "current_round")]

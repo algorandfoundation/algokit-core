@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 use crate::models::StateProofSignature;
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct StateProofSigSlot {
     #[serde(rename = "signature", skip_serializing_if = "Option::is_none")]
     pub signature: Option<StateProofSignature>,

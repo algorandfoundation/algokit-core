@@ -30,6 +30,7 @@ use crate::models::TransactionStateProof;
 /// data/transactions/transaction.go : Transaction
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct Transaction {
     #[serde(
         rename = "application-transaction",

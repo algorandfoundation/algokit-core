@@ -22,11 +22,12 @@ use crate::models::{ErrorResponse, GetBlockTimeStampOffset};
 /// struct for typed errors of method [`get_block_time_stamp_offset`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum GetBlockTimeStampOffsetError {
     Status400(ErrorResponse),
     Statusdefault(),
     DefaultResponse(),
-    UnknownValue(serde_json::Value),
+    UnknownValue(crate::models::UnknownJsonValue),
 }
 
 /// Gets the current timestamp offset.

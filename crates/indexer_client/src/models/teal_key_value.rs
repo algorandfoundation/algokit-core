@@ -14,6 +14,7 @@ use crate::models::TealValue;
 
 /// Represents a key-value pair in an application store.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct TealKeyValue {
     #[serde(rename = "key")]
     pub key: String,

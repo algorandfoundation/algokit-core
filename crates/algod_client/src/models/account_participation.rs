@@ -9,13 +9,20 @@
  */
 
 use crate::models;
-use algokit_transact::{AlgorandMsgpack, SignedTransaction as AlgokitSignedTransaction};
+#[cfg(not(feature = "ffi_uniffi"))]
+use algokit_transact::SignedTransaction as AlgokitSignedTransaction;
 use serde::{Deserialize, Serialize};
 use serde_with::{Bytes, serde_as};
+
+#[cfg(feature = "ffi_uniffi")]
+use algokit_transact_ffi::SignedTransaction as AlgokitSignedTransaction;
+
+use algokit_transact::AlgorandMsgpack;
 
 /// AccountParticipation describes the parameters used by this account in consensus protocol.
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct AccountParticipation {
     /// \[sel\] Selection public key (if any) currently registered for this round.
     #[serde_as(as = "serde_with::base64::Base64")]

@@ -14,6 +14,7 @@ use crate::models::Asset;
 
 /// (empty)
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct SearchForAssets {
     #[serde(rename = "assets")]
     pub assets: Vec<Asset>,

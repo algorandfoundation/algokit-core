@@ -14,6 +14,7 @@ use serde_with::{Bytes, serde_as};
 /// \[hbprf\] HbProof is a signature using HeartbeatAddress's partkey, thereby showing it is online.
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct HbProofFields {
     /// \[s\] Signature of the heartbeat message.
     #[serde_as(as = "Option<serde_with::base64::Base64>")]

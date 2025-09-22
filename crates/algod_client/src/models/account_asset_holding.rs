@@ -16,6 +16,7 @@ use crate::models::AssetParams;
 
 /// AccountAssetHolding describes the account's asset holding and asset parameters (if either exist) for a specific asset ID.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct AccountAssetHolding {
     #[serde(rename = "asset-holding")]
     pub asset_holding: AssetHolding,

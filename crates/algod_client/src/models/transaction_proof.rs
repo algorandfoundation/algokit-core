@@ -15,6 +15,7 @@ use serde_with::{Bytes, serde_as};
 /// Proof of transaction in a block.
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct TransactionProof {
     /// Proof of transaction membership.
     #[serde_as(as = "serde_with::base64::Base64")]

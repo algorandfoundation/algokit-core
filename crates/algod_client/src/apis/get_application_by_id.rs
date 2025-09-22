@@ -22,6 +22,7 @@ use crate::models::{Application, ErrorResponse};
 /// struct for typed errors of method [`get_application_by_id`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum GetApplicationByIdError {
     Status400(ErrorResponse),
     Status401(ErrorResponse),
@@ -29,7 +30,7 @@ pub enum GetApplicationByIdError {
     Status500(ErrorResponse),
     Statusdefault(),
     DefaultResponse(),
-    UnknownValue(serde_json::Value),
+    UnknownValue(crate::models::UnknownJsonValue),
 }
 
 /// Given a application ID, it returns application information including creator, approval and clear programs, global and local schemas, and global state.

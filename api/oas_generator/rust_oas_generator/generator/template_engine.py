@@ -202,7 +202,7 @@ class ResponseAnalyzer:
 
         if not any("DefaultResponse" in t for t in error_types):
             error_types.append("DefaultResponse()")
-        error_types.append("UnknownValue(serde_json::Value)")
+        error_types.append("UnknownValue(crate::models::UnknownJsonValue)")
 
         return error_types
 

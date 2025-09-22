@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 
 /// Response containing the timestamp offset in seconds
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct GetBlockTimeStampOffset {
     /// Timestamp offset in seconds.
     #[serde(rename = "offset")]

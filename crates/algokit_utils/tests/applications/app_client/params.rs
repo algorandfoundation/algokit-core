@@ -126,7 +126,7 @@ async fn params_build_includes_foreign_references_from_args(
         )
         .await?;
 
-    assert!(built.account_references.as_ref().unwrap().len() >= 1);
+    assert!(!built.account_references.as_ref().unwrap().is_empty());
     assert!(built.app_references.as_ref().unwrap().contains(&345));
     assert!(built.asset_references.as_ref().unwrap().contains(&567));
 

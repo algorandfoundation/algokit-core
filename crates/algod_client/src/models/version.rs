@@ -17,6 +17,7 @@ use crate::models::BuildVersion;
 /// algod version information.
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct Version {
     #[serde(rename = "build")]
     pub build: BuildVersion,

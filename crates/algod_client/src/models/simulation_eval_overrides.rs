@@ -9,11 +9,18 @@
  */
 
 use crate::models;
-use algokit_transact::{AlgorandMsgpack, SignedTransaction as AlgokitSignedTransaction};
+#[cfg(not(feature = "ffi_uniffi"))]
+use algokit_transact::SignedTransaction as AlgokitSignedTransaction;
 use serde::{Deserialize, Serialize};
+
+#[cfg(feature = "ffi_uniffi")]
+use algokit_transact_ffi::SignedTransaction as AlgokitSignedTransaction;
+
+use algokit_transact::AlgorandMsgpack;
 
 /// The set of parameters and limits override during simulation. If this set of parameters is present, then evaluation parameters may differ from standard evaluation in certain ways.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct SimulationEvalOverrides {
     /// If true, transactions without signatures are allowed and simulated as if they were properly signed.
     #[serde(

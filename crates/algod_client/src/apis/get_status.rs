@@ -22,12 +22,13 @@ use crate::models::{ErrorResponse, GetStatus};
 /// struct for typed errors of method [`get_status`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum GetStatusError {
     Status401(ErrorResponse),
     Status500(String),
     Statusdefault(),
     DefaultResponse(),
-    UnknownValue(serde_json::Value),
+    UnknownValue(crate::models::UnknownJsonValue),
 }
 
 /// Gets the current node status.

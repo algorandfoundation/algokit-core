@@ -11,19 +11,22 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
+use crate::models::UnknownJsonValue;
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct GenesisAllocation {
     #[serde(rename = "addr")]
     pub addr: String,
     #[serde(rename = "comment")]
     pub comment: String,
     #[serde(rename = "state")]
-    pub state: serde_json::Value,
+    pub state: UnknownJsonValue,
 }
 
 impl GenesisAllocation {
     /// Constructor for GenesisAllocation
-    pub fn new(addr: String, comment: String, state: serde_json::Value) -> GenesisAllocation {
+    pub fn new(addr: String, comment: String, state: UnknownJsonValue) -> GenesisAllocation {
         GenesisAllocation {
             addr,
             comment,

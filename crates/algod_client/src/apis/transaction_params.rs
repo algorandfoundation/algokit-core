@@ -22,13 +22,14 @@ use crate::models::{ErrorResponse, TransactionParams};
 /// struct for typed errors of method [`transaction_params`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum TransactionParamsError {
     Status401(ErrorResponse),
     Status500(ErrorResponse),
     Status503(ErrorResponse),
     Statusdefault(),
     DefaultResponse(),
-    UnknownValue(serde_json::Value),
+    UnknownValue(crate::models::UnknownJsonValue),
 }
 
 /// Get parameters for constructing a new transaction

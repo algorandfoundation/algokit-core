@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 
 /// Teal disassembly Result
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct TealDisassemble {
     /// disassembled Teal code
     #[serde(rename = "result")]

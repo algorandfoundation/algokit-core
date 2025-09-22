@@ -15,6 +15,7 @@ use crate::models::MerkleArrayProof;
 
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct StateProofSignature {
     #[serde_as(as = "Option<serde_with::base64::Base64>")]
     #[serde(rename = "falcon-signature", skip_serializing_if = "Option::is_none")]

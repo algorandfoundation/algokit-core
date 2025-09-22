@@ -23,6 +23,7 @@ use crate::models::{ErrorResponse, TealDisassemble};
 /// struct for typed errors of method [`teal_disassemble`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum TealDisassembleError {
     Status400(ErrorResponse),
     Status401(ErrorResponse),
@@ -30,7 +31,7 @@ pub enum TealDisassembleError {
     Status500(ErrorResponse),
     Statusdefault(),
     DefaultResponse(),
-    UnknownValue(serde_json::Value),
+    UnknownValue(crate::models::UnknownJsonValue),
 }
 
 /// Given the program bytes, return the TEAL source code in plain text. This endpoint is only enabled when a node's configuration file sets EnableDeveloperAPI to true.

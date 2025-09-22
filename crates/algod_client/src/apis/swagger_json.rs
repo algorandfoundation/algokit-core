@@ -21,10 +21,11 @@ use super::{AlgodApiError, ContentType, Error};
 /// struct for typed errors of method [`swagger_json`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum SwaggerJsonError {
     Statusdefault(),
     DefaultResponse(),
-    UnknownValue(serde_json::Value),
+    UnknownValue(crate::models::UnknownJsonValue),
 }
 
 /// Returns the entire swagger spec in json.

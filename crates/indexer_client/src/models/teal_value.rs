@@ -14,6 +14,7 @@ use serde_with::{Bytes, serde_as};
 /// Represents a TEAL value.
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct TealValue {
     /// type of the value. Value `1` refers to **bytes**, value `2` refers to **uint**
     #[serde(rename = "type")]

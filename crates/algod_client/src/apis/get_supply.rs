@@ -22,11 +22,12 @@ use crate::models::{ErrorResponse, GetSupply};
 /// struct for typed errors of method [`get_supply`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum GetSupplyError {
     Status401(ErrorResponse),
     Statusdefault(),
     DefaultResponse(),
-    UnknownValue(serde_json::Value),
+    UnknownValue(crate::models::UnknownJsonValue),
 }
 
 /// Get the current supply reported by the ledger.

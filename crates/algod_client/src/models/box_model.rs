@@ -15,6 +15,7 @@ use serde_with::{Bytes, serde_as};
 /// Box name and its content.
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct Box {
     /// The round for which this information is relevant
     #[serde(rename = "round")]

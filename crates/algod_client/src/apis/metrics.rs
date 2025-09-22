@@ -21,10 +21,11 @@ use super::{AlgodApiError, ContentType, Error};
 /// struct for typed errors of method [`metrics`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum MetricsError {
     Status404(),
     DefaultResponse(),
-    UnknownValue(serde_json::Value),
+    UnknownValue(crate::models::UnknownJsonValue),
 }
 
 /// Return metrics about algod functioning.

@@ -15,6 +15,7 @@ use crate::models::AccountAssetHolding;
 
 /// AccountAssetsInformationResponse contains a list of assets held by an account.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct AccountAssetsInformation {
     /// The round for which this information is relevant.
     #[serde(rename = "round")]

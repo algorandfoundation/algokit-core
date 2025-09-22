@@ -15,6 +15,7 @@ use crate::models::TealValue;
 
 /// Stores the TEAL eval step data
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct DryrunState {
     /// Line number
     #[serde(rename = "line")]

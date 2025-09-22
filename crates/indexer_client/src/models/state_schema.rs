@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
 
 /// Represents a \[apls\] local-state or \[apgs\] global-state schema. These schemas determine how much storage may be used in a local-state or global-state for an application. The more space used, the larger minimum balance must be maintained in the account holding the data.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct StateSchema {
     /// Maximum number of TEAL uints that may be stored in the key/value store.
     #[serde(rename = "num-uint")]

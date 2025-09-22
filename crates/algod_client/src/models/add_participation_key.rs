@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 
 /// Participation ID of the submission
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct AddParticipationKey {
     /// encoding of the participation ID.
     #[serde(rename = "partId")]

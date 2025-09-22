@@ -14,6 +14,7 @@ use serde_with::{Bytes, serde_as};
 /// BoxReference names a box by its name and the application ID it belongs to.
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct BoxReference {
     /// Application ID to which the box belongs, or zero if referring to the called application.
     #[serde(rename = "app")]

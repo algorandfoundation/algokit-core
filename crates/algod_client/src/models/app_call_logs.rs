@@ -15,6 +15,7 @@ use serde_with::{Bytes, serde_as};
 /// The logged messages from an app call along with the app ID and outer transaction ID. Logs appear in the same order that they were emitted.
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct AppCallLogs {
     /// An array of logs
     #[serde_as(as = "Vec<serde_with::base64::Base64>")]

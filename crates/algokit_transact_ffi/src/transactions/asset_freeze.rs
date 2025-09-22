@@ -67,21 +67,13 @@ mod tests {
     #[test]
     fn test_encode_transaction_validation_integration() {
         // invalid
-        let mut tx: Transaction = TestDataMother::asset_freeze()
-            .transaction
-            .try_into()
-            .unwrap();
+        let mut tx: Transaction = TestDataMother::asset_freeze().transaction.into();
         tx.asset_freeze.as_mut().unwrap().asset_id = 0;
         let result = encode_transaction(tx);
         assert!(result.is_err());
 
         // valid
-        let result = encode_transaction(
-            TestDataMother::asset_freeze()
-                .transaction
-                .try_into()
-                .unwrap(),
-        );
+        let result = encode_transaction(TestDataMother::asset_freeze().transaction.into());
         assert!(result.is_ok());
     }
 }

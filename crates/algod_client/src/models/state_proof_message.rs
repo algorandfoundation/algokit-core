@@ -15,6 +15,7 @@ use serde_with::{Bytes, serde_as};
 /// Represents the message that the state proofs are attesting to.
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct StateProofMessage {
     /// The vector commitment root on all light block headers within a state proof interval.
     #[serde_as(as = "serde_with::base64::Base64")]

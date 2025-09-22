@@ -9,14 +9,21 @@
  */
 
 use crate::models;
-use algokit_transact::{AlgorandMsgpack, SignedTransaction as AlgokitSignedTransaction};
+#[cfg(not(feature = "ffi_uniffi"))]
+use algokit_transact::SignedTransaction as AlgokitSignedTransaction;
 use serde::{Deserialize, Serialize};
+
+#[cfg(feature = "ffi_uniffi")]
+use algokit_transact_ffi::SignedTransaction as AlgokitSignedTransaction;
+
+use algokit_transact::AlgorandMsgpack;
 
 use crate::models::ApplicationStateSchema;
 use crate::models::TealKeyValueStore;
 
 /// Stores local state associated with an application.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct ApplicationLocalState {
     /// The application which this local state is for.
     #[serde(rename = "id")]

@@ -15,6 +15,7 @@ use crate::models::DryrunTxnResult;
 
 /// DryrunResponse contains per-txn debug information from a dryrun.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct TealDryrun {
     #[serde(rename = "txns")]
     pub txns: Vec<DryrunTxnResult>,

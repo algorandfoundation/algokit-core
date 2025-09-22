@@ -22,6 +22,7 @@ use crate::models::{ErrorResponse, StartCatchup};
 /// struct for typed errors of method [`start_catchup`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum StartCatchupError {
     Status400(ErrorResponse),
     Status401(ErrorResponse),
@@ -29,7 +30,7 @@ pub enum StartCatchupError {
     Status500(ErrorResponse),
     Statusdefault(),
     DefaultResponse(),
-    UnknownValue(serde_json::Value),
+    UnknownValue(crate::models::UnknownJsonValue),
 }
 
 /// Given a catchpoint, it starts catching up to this catchpoint

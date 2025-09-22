@@ -14,6 +14,7 @@ use crate::models::StateDelta;
 
 /// Application state delta.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct AccountStateDelta {
     #[serde(rename = "address")]
     pub address: String,

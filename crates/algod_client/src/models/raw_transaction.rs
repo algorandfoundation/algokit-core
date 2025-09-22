@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 
 /// Transaction ID of the submission.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct RawTransaction {
     /// encoding of the transaction hash.
     #[serde(rename = "txId")]

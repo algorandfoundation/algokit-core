@@ -15,22 +15,24 @@ use std::collections::HashMap;
 use super::{AlgodApiError, ContentType, Error};
 
 // Import all custom types used by this endpoint
+use crate::models::UnknownJsonValue;
 
 // Import request body type if needed
 
 /// struct for typed errors of method [`shutdown_node`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum ShutdownNodeError {
     DefaultResponse(),
-    UnknownValue(serde_json::Value),
+    UnknownValue(crate::models::UnknownJsonValue),
 }
 
 /// Special management endpoint to shutdown the node. Optionally provide a timeout parameter to indicate that the node should begin shutting down after a number of seconds.
 pub async fn shutdown_node(
     http_client: &dyn HttpClient,
     timeout: Option<u64>,
-) -> Result<serde_json::Value, Error> {
+) -> Result<UnknownJsonValue, Error> {
     let p_timeout = timeout;
 
     let path = "/v2/shutdown".to_string();

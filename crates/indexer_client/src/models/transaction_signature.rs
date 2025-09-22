@@ -17,6 +17,7 @@ use crate::models::TransactionSignatureMultisig;
 /// Validation signature associated with some data. Only one of the signatures should be provided.
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct TransactionSignature {
     #[serde(rename = "logicsig", skip_serializing_if = "Option::is_none")]
     pub logicsig: Option<TransactionSignatureLogicsig>,

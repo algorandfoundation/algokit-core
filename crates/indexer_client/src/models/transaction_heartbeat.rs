@@ -19,6 +19,7 @@ use crate::models::HbProofFields;
 /// data/transactions/heartbeat.go : HeartbeatTxnFields
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct TransactionHeartbeat {
     /// \[hbad\] HbAddress is the account this txn is proving onlineness for.
     #[serde(rename = "hb-address")]

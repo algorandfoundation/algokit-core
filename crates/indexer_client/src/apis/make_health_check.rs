@@ -21,10 +21,11 @@ use crate::models::HealthCheck;
 /// struct for typed errors of method [`make_health_check`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum MakeHealthCheckError {
     Statusdefault(),
     DefaultResponse(),
-    UnknownValue(serde_json::Value),
+    UnknownValue(crate::models::UnknownJsonValue),
 }
 
 /// Returns 200 if healthy.

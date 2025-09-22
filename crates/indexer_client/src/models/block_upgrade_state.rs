@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
 
 /// Fields relating to a protocol upgrade.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct BlockUpgradeState {
     /// \[proto\] The current protocol version.
     #[serde(rename = "current-protocol")]

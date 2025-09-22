@@ -284,13 +284,13 @@ mod tests {
     #[test]
     fn test_encode_transaction_validation_integration() {
         // invalid
-        let mut tx: Transaction = TestDataMother::app_call().transaction.try_into().unwrap();
+        let mut tx: Transaction = TestDataMother::app_call().transaction.into();
         tx.app_call.as_mut().unwrap().app_id = 0;
         let result = encode_transaction(tx);
         assert!(result.is_err());
 
         // valid
-        let result = encode_transaction(TestDataMother::app_call().transaction.try_into().unwrap());
+        let result = encode_transaction(TestDataMother::app_call().transaction.into());
         assert!(result.is_ok());
     }
 }

@@ -24,6 +24,7 @@ use crate::models::{ErrorResponse, LedgerStateDelta};
 /// struct for typed errors of method [`get_ledger_state_delta_for_transaction_group`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum GetLedgerStateDeltaForTransactionGroupError {
     Status401(ErrorResponse),
     Status404(ErrorResponse),
@@ -32,7 +33,7 @@ pub enum GetLedgerStateDeltaForTransactionGroupError {
     Status501(ErrorResponse),
     Statusdefault(),
     DefaultResponse(),
-    UnknownValue(serde_json::Value),
+    UnknownValue(crate::models::UnknownJsonValue),
 }
 
 /// Get a ledger delta for a given transaction group.

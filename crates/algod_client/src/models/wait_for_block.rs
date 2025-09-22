@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 
 /// NodeStatus contains the information about a node status
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct WaitForBlock {
     /// CatchupTime in nanoseconds
     #[serde(rename = "catchup-time")]

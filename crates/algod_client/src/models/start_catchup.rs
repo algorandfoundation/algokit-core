@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 
 /// An catchpoint start response.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct StartCatchup {
     /// Catchup start response string
     #[serde(rename = "catchup-message")]

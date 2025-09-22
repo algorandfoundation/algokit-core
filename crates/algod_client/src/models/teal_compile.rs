@@ -12,9 +12,12 @@ use crate::models;
 use serde::{Deserialize, Serialize};
 use serde_with::{Bytes, serde_as};
 
+use crate::models::UnknownJsonValue;
+
 /// Teal compile Result
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct TealCompile {
     /// base32 SHA512_256 of program bytes (Address style)
     #[serde(rename = "hash")]
@@ -25,7 +28,7 @@ pub struct TealCompile {
     pub result: Vec<u8>,
     /// JSON of the source map
     #[serde(rename = "sourcemap", skip_serializing_if = "Option::is_none")]
-    pub sourcemap: Option<serde_json::Value>,
+    pub sourcemap: Option<UnknownJsonValue>,
 }
 
 impl TealCompile {

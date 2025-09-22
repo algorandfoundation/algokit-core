@@ -43,6 +43,7 @@ use crate::models::{{ request_body_type }};
 /// struct for typed errors of method [`{{ operation.rust_function_name }}`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum {{ operation.rust_error_enum }} {
 {% set error_types = get_error_types(operation) %}
 {% for error_type in error_types %}

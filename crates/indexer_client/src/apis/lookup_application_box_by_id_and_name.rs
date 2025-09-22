@@ -14,19 +14,20 @@ use std::collections::HashMap;
 use super::{ContentType, Error, IndexerApiError};
 
 // Import all custom types used by this endpoint
-use crate::models::Box;
+use crate::models::{Box, UnknownJsonValue};
 
 // Import request body type if needed
 
 /// struct for typed errors of method [`lookup_application_box_by_id_and_name`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum LookupApplicationBoxByIdAndNameError {
-    Status400(serde_json::Value),
-    Status404(serde_json::Value),
-    Status500(serde_json::Value),
+    Status400(UnknownJsonValue),
+    Status404(UnknownJsonValue),
+    Status500(UnknownJsonValue),
     DefaultResponse(),
-    UnknownValue(serde_json::Value),
+    UnknownValue(crate::models::UnknownJsonValue),
 }
 
 /// Given an application ID and box name, returns base64 encoded box name and value. Box names must be in the goal app call arg form 'encoding:value'. For ints, use the form 'int:1234'. For raw bytes, encode base 64 and use 'b64' prefix as in 'b64:A=='. For printable strings, use the form 'str:hello'. For addresses, use the form 'addr:XYZ...'.

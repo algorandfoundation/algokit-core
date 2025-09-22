@@ -17,6 +17,7 @@ use crate::models::StateProofMessage;
 /// Represents a state proof and its corresponding message
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct StateProof {
     #[serde(rename = "Message")]
     pub message: StateProofMessage,

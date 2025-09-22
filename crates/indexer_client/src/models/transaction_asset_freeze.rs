@@ -15,6 +15,7 @@ use serde::{Deserialize, Serialize};
 /// Definition:
 /// data/transactions/asset.go : AssetFreezeTxnFields
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct TransactionAssetFreeze {
     /// \[fadd\] Address of the account whose asset is being frozen or thawed.
     #[serde(rename = "address")]

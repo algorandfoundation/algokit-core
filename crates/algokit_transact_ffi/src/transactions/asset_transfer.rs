@@ -71,8 +71,7 @@ mod tests {
         let txn: Transaction = TransactionMother::simple_asset_transfer()
             .build()
             .unwrap()
-            .try_into()
-            .unwrap();
+            .into();
 
         // Encode the transaction
         let encoded = encode_transaction(txn).unwrap();
@@ -85,7 +84,7 @@ mod tests {
     #[test]
     fn test_asset_transfer_transaction_id_ffi() {
         let data = TestDataMother::simple_asset_transfer();
-        let tx_ffi: Transaction = data.transaction.try_into().unwrap();
+        let tx_ffi: Transaction = data.transaction.into();
 
         let actual_id = get_transaction_id(tx_ffi.clone()).unwrap();
         let actual_id_raw = get_transaction_id_raw(tx_ffi.clone()).unwrap();
@@ -97,21 +96,13 @@ mod tests {
     #[test]
     fn test_encode_transaction_validation_integration() {
         // invalid
-        let mut tx: Transaction = TestDataMother::simple_asset_transfer()
-            .transaction
-            .try_into()
-            .unwrap();
+        let mut tx: Transaction = TestDataMother::simple_asset_transfer().transaction.into();
         tx.asset_transfer.as_mut().unwrap().asset_id = 0;
         let result = encode_transaction(tx);
         assert!(result.is_err());
 
         // valid
-        let result = encode_transaction(
-            TestDataMother::simple_asset_transfer()
-                .transaction
-                .try_into()
-                .unwrap(),
-        );
+        let result = encode_transaction(TestDataMother::simple_asset_transfer().transaction.into());
         assert!(result.is_ok());
     }
 }

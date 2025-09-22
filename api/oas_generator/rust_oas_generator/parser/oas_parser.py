@@ -41,7 +41,7 @@ _OPENAPI_TYPE_MAPPING: Final = {
         None: "bool",
     },
     "object": {
-        None: "serde_json::Value",
+        None: "UnknownJsonValue",
     },
 }
 
@@ -355,8 +355,13 @@ class Operation:
     supports_msgpack: bool = False
     request_body_supports_msgpack: bool = False
     request_body_supports_text_plain: bool = False
+    has_optional_string: bool = False
 
     def __post_init__(self) -> None:
+        for param in self.parameters:
+            if not param.required and not param.is_enum_parameter and param.rust_type == "String":
+                self.has_optional_string = True
+                break
         self.rust_function_name = rust_snake_case(self.operation_id)
         self.rust_error_enum = f"{rust_pascal_case(self.operation_id)}Error"
 

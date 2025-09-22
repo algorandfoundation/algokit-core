@@ -9,18 +9,27 @@
  */
 
 use crate::models;
-use algokit_transact::{AlgorandMsgpack, SignedTransaction as AlgokitSignedTransaction};
+#[cfg(not(feature = "ffi_uniffi"))]
+use algokit_transact::SignedTransaction as AlgokitSignedTransaction;
 use serde::{Deserialize, Serialize};
+
+#[cfg(feature = "ffi_uniffi")]
+use algokit_transact_ffi::SignedTransaction as AlgokitSignedTransaction;
+
+use algokit_transact::AlgorandMsgpack;
+
+use crate::models::UnknownJsonValue;
 
 /// Encoded block object.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct GetBlock {
     /// Block header data.
     #[serde(rename = "block")]
-    pub block: serde_json::Value,
+    pub block: UnknownJsonValue,
     /// Optional certificate object. This is only included when the format is set to message pack.
     #[serde(rename = "cert", skip_serializing_if = "Option::is_none")]
-    pub cert: Option<serde_json::Value>,
+    pub cert: Option<UnknownJsonValue>,
 }
 
 impl AlgorandMsgpack for GetBlock {
@@ -29,7 +38,7 @@ impl AlgorandMsgpack for GetBlock {
 
 impl GetBlock {
     /// Constructor for GetBlock
-    pub fn new(block: serde_json::Value) -> GetBlock {
+    pub fn new(block: UnknownJsonValue) -> GetBlock {
         GetBlock { block, cert: None }
     }
 

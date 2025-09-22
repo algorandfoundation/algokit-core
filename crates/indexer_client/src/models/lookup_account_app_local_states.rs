@@ -14,6 +14,7 @@ use crate::models::ApplicationLocalState;
 
 /// (empty)
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct LookupAccountAppLocalStates {
     #[serde(rename = "apps-local-states")]
     pub apps_local_states: Vec<ApplicationLocalState>,

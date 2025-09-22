@@ -28,7 +28,7 @@ fn generate_test_data() {
     test_utils::TestDataMother::export(
         Path::new("./test_data.json"),
         Some(|d: &test_utils::TransactionTestData| TransactionTestData {
-            transaction: d.transaction.clone().try_into().unwrap(),
+            transaction: d.transaction.clone().into(),
             id: d.id.clone(),
             id_raw: d.id_raw,
             unsigned_bytes: d.unsigned_bytes.clone(),

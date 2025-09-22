@@ -14,6 +14,7 @@ use crate::models::EvalDelta;
 
 /// Key-value pairs for StateDelta.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct EvalDeltaKeyValue {
     #[serde(rename = "key")]
     pub key: String,

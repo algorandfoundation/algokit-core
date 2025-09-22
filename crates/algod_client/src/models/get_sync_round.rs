@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 
 /// Response containing the ledger's minimum sync round
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct GetSyncRound {
     /// The minimum sync round for the ledger.
     #[serde(rename = "round")]

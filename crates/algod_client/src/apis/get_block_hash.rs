@@ -22,6 +22,7 @@ use crate::models::{ErrorResponse, GetBlockHash};
 /// struct for typed errors of method [`get_block_hash`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum GetBlockHashError {
     Status400(ErrorResponse),
     Status401(ErrorResponse),
@@ -29,7 +30,7 @@ pub enum GetBlockHashError {
     Status500(ErrorResponse),
     Statusdefault(),
     DefaultResponse(),
-    UnknownValue(serde_json::Value),
+    UnknownValue(crate::models::UnknownJsonValue),
 }
 
 /// Get the block hash for the block on the given round.

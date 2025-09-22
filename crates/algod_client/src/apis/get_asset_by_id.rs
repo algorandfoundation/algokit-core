@@ -22,6 +22,7 @@ use crate::models::{Asset, ErrorResponse};
 /// struct for typed errors of method [`get_asset_by_id`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum GetAssetByIdError {
     Status400(ErrorResponse),
     Status401(ErrorResponse),
@@ -29,7 +30,7 @@ pub enum GetAssetByIdError {
     Status500(ErrorResponse),
     Statusdefault(),
     DefaultResponse(),
-    UnknownValue(serde_json::Value),
+    UnknownValue(crate::models::UnknownJsonValue),
 }
 
 /// Given a asset ID, it returns asset information including creator, name, total supply and special addresses.

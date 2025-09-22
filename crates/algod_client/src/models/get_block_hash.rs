@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 
 /// Hash of a block header.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct GetBlockHash {
     /// Block header hash.
     #[serde(rename = "blockHash")]

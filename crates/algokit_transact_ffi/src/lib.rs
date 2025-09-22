@@ -269,10 +269,8 @@ impl TryFrom<Transaction> for algokit_transact::TransactionHeader {
     }
 }
 
-impl TryFrom<algokit_transact::Transaction> for Transaction {
-    type Error = AlgoKitTransactError;
-
-    fn try_from(transaction: algokit_transact::Transaction) -> Result<Self, AlgoKitTransactError> {
+impl From<algokit_transact::Transaction> for Transaction {
+    fn from(transaction: algokit_transact::Transaction) -> Self {
         match transaction {
             algokit_transact::Transaction::Payment(payment) => {
                 let payment_fields = payment.clone().into();
@@ -374,7 +372,7 @@ pub struct SignedTransaction {
 impl From<algokit_transact::SignedTransaction> for SignedTransaction {
     fn from(signed_transaction: algokit_transact::SignedTransaction) -> Self {
         Self {
-            transaction: signed_transaction.transaction.try_into().unwrap(),
+            transaction: signed_transaction.transaction.into(),
             signature: signed_transaction.signature.map(|sig| sig.into()),
             auth_address: signed_transaction.auth_address.map(|addr| addr.as_str()),
             multisignature: signed_transaction.multisignature.map(Into::into),
@@ -436,8 +434,8 @@ fn build_transaction(
     app_call: Option<AppCallTransactionFields>,
     key_registration: Option<KeyRegistrationTransactionFields>,
     asset_freeze: Option<AssetFreezeTransactionFields>,
-) -> Result<Transaction, AlgoKitTransactError> {
-    Ok(Transaction {
+) -> Transaction {
+    Transaction {
         transaction_type,
         sender: header.sender.as_str(),
         fee: header.fee,
@@ -455,7 +453,7 @@ fn build_transaction(
         app_call,
         key_registration,
         asset_freeze,
-    })
+    }
 }
 
 /// Get the transaction type from the encoded transaction.
@@ -515,7 +513,7 @@ pub fn encode_transaction_raw(transaction: Transaction) -> Result<Vec<u8>, AlgoK
 #[ffi_func]
 pub fn decode_transaction(encoded_tx: &[u8]) -> Result<Transaction, AlgoKitTransactError> {
     let ctx: algokit_transact::Transaction = algokit_transact::Transaction::decode(encoded_tx)?;
-    ctx.try_into()
+    Ok(ctx.into())
 }
 
 /// Decodes a collection of MsgPack bytes into a transaction collection.
@@ -598,8 +596,8 @@ pub fn group_transactions(
     let grouped_txs: Vec<Transaction> = txs
         .assign_group()?
         .into_iter()
-        .map(|tx| tx.try_into())
-        .collect::<Result<Vec<_>, _>>()?;
+        .map(|tx| tx.into())
+        .collect();
 
     Ok(grouped_txs)
 }
@@ -688,7 +686,7 @@ pub fn assign_fee(
 
     let updated_txn = txn.assign_fee(fee_params_internal)?;
 
-    updated_txn.try_into()
+    Ok(updated_txn.into())
 }
 
 /// Decodes a signed transaction.
@@ -772,18 +770,9 @@ mod tests {
             157, 37, 101, 171, 205, 211, 38, 98, 250, 86, 254, 215, 115, 126, 212, 252, 24, 53,
             199, 142, 152, 75, 250, 200, 173, 128, 52, 142, 13, 193, 184, 137,
         ];
-        let tx1 = TestDataMother::simple_payment()
-            .transaction
-            .try_into()
-            .unwrap();
-        let tx2 = TestDataMother::simple_asset_transfer()
-            .transaction
-            .try_into()
-            .unwrap();
-        let tx3 = TestDataMother::opt_in_asset_transfer()
-            .transaction
-            .try_into()
-            .unwrap();
+        let tx1 = TestDataMother::simple_payment().transaction.into();
+        let tx2 = TestDataMother::simple_asset_transfer().transaction.into();
+        let tx3 = TestDataMother::opt_in_asset_transfer().transaction.into();
         let txs = vec![tx1, tx2, tx3];
 
         let grouped_txs = group_transactions(txs.clone()).unwrap();

@@ -27,6 +27,7 @@ use snafu::Snafu;
 
 /// Unified error type that can represent any API error from any endpoint
 #[derive(Debug, Snafu)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum {{ client_type }}ApiError {
 {% for operation in operations %}
     #[snafu(display("{{ operation.rust_function_name | title }} error: {error:?}"))]
@@ -47,6 +48,7 @@ impl From<{{ operation.rust_function_name }}::{{ operation.rust_error_enum }}> f
 
 /// The main error type for all {{ client_type | lower }} client operations
 #[derive(Debug, Snafu)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum Error {
     #[snafu(display("HTTP error: {source}"))]
     Http { source: algokit_http_client::HttpError },

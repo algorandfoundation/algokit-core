@@ -13,6 +13,7 @@ use serde_with::{Bytes, serde_as};
 
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct StateProofTracking {
     /// State Proof Type. Note the raw object uses map with this as key.
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]

@@ -24,13 +24,14 @@ use crate::models::{ErrorResponse, PendingTransactionResponse};
 /// struct for typed errors of method [`pending_transaction_information`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum PendingTransactionInformationError {
     Status400(ErrorResponse),
     Status401(ErrorResponse),
     Status404(ErrorResponse),
     Statusdefault(),
     DefaultResponse(),
-    UnknownValue(serde_json::Value),
+    UnknownValue(crate::models::UnknownJsonValue),
 }
 
 /// Given a transaction ID of a recently submitted transaction, it returns information about it.  There are several cases when this might succeed:

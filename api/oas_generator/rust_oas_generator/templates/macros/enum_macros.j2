@@ -4,6 +4,7 @@
 {{ description | rust_doc_comment }}
 {% endif %}
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Enum))]
 pub enum {{ enum_name }} {
 {% for value in enum_values %}
     /// {{ value }}

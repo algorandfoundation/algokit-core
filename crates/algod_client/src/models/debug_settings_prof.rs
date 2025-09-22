@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 
 /// algod mutex and blocking profiling state.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct DebugSettingsProf {
     /// The rate of blocking events. The profiler aims to sample an average of one blocking event per rate nanoseconds spent blocked. To turn off profiling entirely, pass rate 0.
     #[serde(rename = "block-rate", skip_serializing_if = "Option::is_none")]

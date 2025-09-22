@@ -15,6 +15,7 @@ use serde::{Deserialize, Serialize};
 /// Definition:
 /// data/transactions/payment.go : PaymentTxnFields
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct TransactionPayment {
     /// \[amt\] number of MicroAlgos intended to be transferred.
     #[serde(rename = "amount")]

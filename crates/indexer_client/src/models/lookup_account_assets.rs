@@ -14,6 +14,7 @@ use crate::models::AssetHolding;
 
 /// (empty)
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct LookupAccountAssets {
     /// Round at which the results were computed.
     #[serde(rename = "current-round")]

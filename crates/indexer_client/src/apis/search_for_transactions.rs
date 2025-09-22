@@ -15,18 +15,19 @@ use super::parameter_enums::*;
 use super::{ContentType, Error, IndexerApiError};
 
 // Import all custom types used by this endpoint
-use crate::models::SearchForTransactions;
+use crate::models::{SearchForTransactions, UnknownJsonValue};
 
 // Import request body type if needed
 
 /// struct for typed errors of method [`search_for_transactions`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum SearchForTransactionsError {
-    Status400(serde_json::Value),
-    Status500(serde_json::Value),
+    Status400(UnknownJsonValue),
+    Status500(UnknownJsonValue),
     DefaultResponse(),
-    UnknownValue(serde_json::Value),
+    UnknownValue(crate::models::UnknownJsonValue),
 }
 
 /// Search for transactions. Transactions are returned oldest to newest unless the address parameter is used, in which case results are returned newest to oldest.

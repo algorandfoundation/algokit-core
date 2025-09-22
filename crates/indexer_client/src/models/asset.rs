@@ -14,6 +14,7 @@ use crate::models::AssetParams;
 
 /// Specifies both the unique identifier and the parameters for an asset
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct Asset {
     /// unique asset identifier
     #[serde(rename = "index")]

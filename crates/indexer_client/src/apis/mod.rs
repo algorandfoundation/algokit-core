@@ -40,6 +40,7 @@ use snafu::Snafu;
 
 /// Unified error type that can represent any API error from any endpoint
 #[derive(Debug, Snafu)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum IndexerApiError {
     #[snafu(display("Make_health_check error: {error:?}"))]
     MakeHealthCheck {
@@ -265,6 +266,7 @@ impl From<search_for_transactions::SearchForTransactionsError> for IndexerApiErr
 
 /// The main error type for all indexer client operations
 #[derive(Debug, Snafu)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum Error {
     #[snafu(display("HTTP error: {source}"))]
     Http {

@@ -15,6 +15,7 @@ use serde_with::{Bytes, serde_as};
 /// Box descriptor describes a Box.
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct BoxDescriptor {
     /// Base64 encoded box name
     #[serde_as(as = "serde_with::base64::Base64")]

@@ -1,3 +1,5 @@
+#![allow(clippy::let_and_return)]
+
 /*
  * Indexer
  *
@@ -15,6 +17,7 @@ use crate::models::{
     LookupApplicationById, LookupApplicationLogsById, LookupAssetBalances, LookupAssetById,
     LookupAssetTransactions, LookupTransaction, SearchForAccounts, SearchForApplicationBoxes,
     SearchForApplications, SearchForAssets, SearchForBlockHeaders, SearchForTransactions,
+    UnknownJsonValue,
 };
 use algokit_http_client::{DefaultHttpClient, HttpClient};
 use std::sync::Arc;
@@ -25,18 +28,22 @@ use std::sync::Arc;
 /// It wraps the lower-level endpoint functions with a more ergonomic interface.
 /// All methods return a unified `Error` type that can represent any endpoint error.
 #[derive(Clone)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Object))]
 pub struct IndexerClient {
     http_client: Arc<dyn HttpClient>,
 }
 
+#[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
 impl IndexerClient {
     /// Create a new IndexerClient with a custom http client.
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
     pub fn new(http_client: Arc<dyn HttpClient>) -> Self {
         Self { http_client }
     }
 
     /// Create a new IndexerClient for Algorand TestNet.
     #[cfg(feature = "default_client")]
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
     pub fn testnet() -> Self {
         let http_client = Arc::new(DefaultHttpClient::new(
             "https://testnet-idx.4160.nodely.dev",
@@ -46,6 +53,7 @@ impl IndexerClient {
 
     /// Create a new IndexerClient for Algorand MainNet.
     #[cfg(feature = "default_client")]
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
     pub fn mainnet() -> Self {
         let http_client = Arc::new(DefaultHttpClient::new(
             "https://mainnet-idx.4160.nodely.dev",
@@ -55,6 +63,7 @@ impl IndexerClient {
 
     /// Create a new IndexerClient for a local localnet environment.
     #[cfg(feature = "default_client")]
+    #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
     pub fn localnet() -> Self {
         let http_client = Arc::new(
             DefaultHttpClient::with_header(
@@ -66,12 +75,106 @@ impl IndexerClient {
         );
         Self::new(http_client)
     }
-
     /// Returns 200 if healthy.
     pub async fn make_health_check(&self) -> Result<HealthCheck, Error> {
-        super::make_health_check::make_health_check(self.http_client.as_ref()).await
+        let result = super::make_health_check::make_health_check(self.http_client.as_ref()).await;
+
+        result
     }
 
+    /// Lookup account information.
+    pub async fn lookup_account_by_id(
+        &self,
+        account_id: &str,
+        round: Option<u64>,
+        include_all: Option<bool>,
+        exclude: Option<Vec<String>>,
+    ) -> Result<LookupAccountById, Error> {
+        let result = super::lookup_account_by_id::lookup_account_by_id(
+            self.http_client.as_ref(),
+            account_id,
+            round,
+            include_all,
+            exclude,
+        )
+        .await;
+
+        result
+    }
+
+    /// Lookup application.
+    pub async fn lookup_application_by_id(
+        &self,
+        application_id: u64,
+        include_all: Option<bool>,
+    ) -> Result<LookupApplicationById, Error> {
+        let result = super::lookup_application_by_id::lookup_application_by_id(
+            self.http_client.as_ref(),
+            application_id,
+            include_all,
+        )
+        .await;
+
+        result
+    }
+
+    /// Get box information for a given application.
+    pub async fn lookup_application_box_by_id_and_name(
+        &self,
+        application_id: u64,
+        name: &str,
+    ) -> Result<crate::models::Box, Error> {
+        let result =
+            super::lookup_application_box_by_id_and_name::lookup_application_box_by_id_and_name(
+                self.http_client.as_ref(),
+                application_id,
+                name,
+            )
+            .await;
+
+        result
+    }
+
+    /// Lookup asset information.
+    pub async fn lookup_asset_by_id(
+        &self,
+        asset_id: u64,
+        include_all: Option<bool>,
+    ) -> Result<LookupAssetById, Error> {
+        let result = super::lookup_asset_by_id::lookup_asset_by_id(
+            self.http_client.as_ref(),
+            asset_id,
+            include_all,
+        )
+        .await;
+
+        result
+    }
+
+    /// Lookup block.
+    pub async fn lookup_block(
+        &self,
+        round_number: u64,
+        header_only: Option<bool>,
+    ) -> Result<Block, Error> {
+        let result =
+            super::lookup_block::lookup_block(self.http_client.as_ref(), round_number, header_only)
+                .await;
+
+        result
+    }
+
+    /// Lookup a single transaction.
+    pub async fn lookup_transaction(&self, txid: &str) -> Result<LookupTransaction, Error> {
+        let result =
+            super::lookup_transaction::lookup_transaction(self.http_client.as_ref(), txid).await;
+
+        result
+    }
+}
+
+#[cfg(not(feature = "ffi_uniffi"))]
+impl IndexerClient {
     /// Search for accounts.
     pub async fn search_for_accounts(
         &self,
@@ -87,7 +190,7 @@ impl IndexerClient {
         application_id: Option<u64>,
         online_only: Option<bool>,
     ) -> Result<SearchForAccounts, Error> {
-        super::search_for_accounts::search_for_accounts(
+        let result = super::search_for_accounts::search_for_accounts(
             self.http_client.as_ref(),
             asset_id,
             limit,
@@ -101,25 +204,9 @@ impl IndexerClient {
             application_id,
             online_only,
         )
-        .await
-    }
+        .await;
 
-    /// Lookup account information.
-    pub async fn lookup_account_by_id(
-        &self,
-        account_id: &str,
-        round: Option<u64>,
-        include_all: Option<bool>,
-        exclude: Option<Vec<String>>,
-    ) -> Result<LookupAccountById, Error> {
-        super::lookup_account_by_id::lookup_account_by_id(
-            self.http_client.as_ref(),
-            account_id,
-            round,
-            include_all,
-            exclude,
-        )
-        .await
+        result
     }
 
     /// Lookup an account's asset holdings, optionally for a specific ID.
@@ -131,7 +218,7 @@ impl IndexerClient {
         limit: Option<u64>,
         next: Option<&str>,
     ) -> Result<LookupAccountAssets, Error> {
-        super::lookup_account_assets::lookup_account_assets(
+        let result = super::lookup_account_assets::lookup_account_assets(
             self.http_client.as_ref(),
             account_id,
             asset_id,
@@ -139,7 +226,9 @@ impl IndexerClient {
             limit,
             next,
         )
-        .await
+        .await;
+
+        result
     }
 
     /// Lookup an account's created asset parameters, optionally for a specific ID.
@@ -151,7 +240,7 @@ impl IndexerClient {
         limit: Option<u64>,
         next: Option<&str>,
     ) -> Result<LookupAccountCreatedAssets, Error> {
-        super::lookup_account_created_assets::lookup_account_created_assets(
+        let result = super::lookup_account_created_assets::lookup_account_created_assets(
             self.http_client.as_ref(),
             account_id,
             asset_id,
@@ -159,7 +248,9 @@ impl IndexerClient {
             limit,
             next,
         )
-        .await
+        .await;
+
+        result
     }
 
     /// Lookup an account's asset holdings, optionally for a specific ID.
@@ -171,7 +262,7 @@ impl IndexerClient {
         limit: Option<u64>,
         next: Option<&str>,
     ) -> Result<LookupAccountAppLocalStates, Error> {
-        super::lookup_account_app_local_states::lookup_account_app_local_states(
+        let result = super::lookup_account_app_local_states::lookup_account_app_local_states(
             self.http_client.as_ref(),
             account_id,
             application_id,
@@ -179,7 +270,9 @@ impl IndexerClient {
             limit,
             next,
         )
-        .await
+        .await;
+
+        result
     }
 
     /// Lookup an account's created application parameters, optionally for a specific ID.
@@ -191,15 +284,18 @@ impl IndexerClient {
         limit: Option<u64>,
         next: Option<&str>,
     ) -> Result<LookupAccountCreatedApplications, Error> {
-        super::lookup_account_created_applications::lookup_account_created_applications(
-            self.http_client.as_ref(),
-            account_id,
-            application_id,
-            include_all,
-            limit,
-            next,
-        )
-        .await
+        let result =
+            super::lookup_account_created_applications::lookup_account_created_applications(
+                self.http_client.as_ref(),
+                account_id,
+                application_id,
+                include_all,
+                limit,
+                next,
+            )
+            .await;
+
+        result
     }
 
     /// Lookup account transactions. Transactions are returned newest to oldest.
@@ -222,7 +318,7 @@ impl IndexerClient {
         account_id: &str,
         rekey_to: Option<bool>,
     ) -> Result<LookupAccountTransactions, Error> {
-        super::lookup_account_transactions::lookup_account_transactions(
+        let result = super::lookup_account_transactions::lookup_account_transactions(
             self.http_client.as_ref(),
             limit,
             next,
@@ -241,7 +337,9 @@ impl IndexerClient {
             account_id,
             rekey_to,
         )
-        .await
+        .await;
+
+        result
     }
 
     /// Search for applications
@@ -253,7 +351,7 @@ impl IndexerClient {
         limit: Option<u64>,
         next: Option<&str>,
     ) -> Result<SearchForApplications, Error> {
-        super::search_for_applications::search_for_applications(
+        let result = super::search_for_applications::search_for_applications(
             self.http_client.as_ref(),
             application_id,
             creator,
@@ -261,21 +359,9 @@ impl IndexerClient {
             limit,
             next,
         )
-        .await
-    }
+        .await;
 
-    /// Lookup application.
-    pub async fn lookup_application_by_id(
-        &self,
-        application_id: u64,
-        include_all: Option<bool>,
-    ) -> Result<LookupApplicationById, Error> {
-        super::lookup_application_by_id::lookup_application_by_id(
-            self.http_client.as_ref(),
-            application_id,
-            include_all,
-        )
-        .await
+        result
     }
 
     /// Get box names for a given application.
@@ -285,27 +371,15 @@ impl IndexerClient {
         limit: Option<u64>,
         next: Option<&str>,
     ) -> Result<SearchForApplicationBoxes, Error> {
-        super::search_for_application_boxes::search_for_application_boxes(
+        let result = super::search_for_application_boxes::search_for_application_boxes(
             self.http_client.as_ref(),
             application_id,
             limit,
             next,
         )
-        .await
-    }
+        .await;
 
-    /// Get box information for a given application.
-    pub async fn lookup_application_box_by_id_and_name(
-        &self,
-        application_id: u64,
-        name: &str,
-    ) -> Result<crate::models::Box, Error> {
-        super::lookup_application_box_by_id_and_name::lookup_application_box_by_id_and_name(
-            self.http_client.as_ref(),
-            application_id,
-            name,
-        )
-        .await
+        result
     }
 
     /// Lookup application logs.
@@ -319,7 +393,7 @@ impl IndexerClient {
         max_round: Option<u64>,
         sender_address: Option<&str>,
     ) -> Result<LookupApplicationLogsById, Error> {
-        super::lookup_application_logs_by_id::lookup_application_logs_by_id(
+        let result = super::lookup_application_logs_by_id::lookup_application_logs_by_id(
             self.http_client.as_ref(),
             application_id,
             limit,
@@ -329,7 +403,9 @@ impl IndexerClient {
             max_round,
             sender_address,
         )
-        .await
+        .await;
+
+        result
     }
 
     /// Search for assets.
@@ -343,7 +419,7 @@ impl IndexerClient {
         unit: Option<&str>,
         asset_id: Option<u64>,
     ) -> Result<SearchForAssets, Error> {
-        super::search_for_assets::search_for_assets(
+        let result = super::search_for_assets::search_for_assets(
             self.http_client.as_ref(),
             include_all,
             limit,
@@ -353,21 +429,9 @@ impl IndexerClient {
             unit,
             asset_id,
         )
-        .await
-    }
+        .await;
 
-    /// Lookup asset information.
-    pub async fn lookup_asset_by_id(
-        &self,
-        asset_id: u64,
-        include_all: Option<bool>,
-    ) -> Result<LookupAssetById, Error> {
-        super::lookup_asset_by_id::lookup_asset_by_id(
-            self.http_client.as_ref(),
-            asset_id,
-            include_all,
-        )
-        .await
+        result
     }
 
     /// Lookup the list of accounts who hold this asset
@@ -380,7 +444,7 @@ impl IndexerClient {
         currency_less_than: Option<u64>,
         asset_id: u64,
     ) -> Result<LookupAssetBalances, Error> {
-        super::lookup_asset_balances::lookup_asset_balances(
+        let result = super::lookup_asset_balances::lookup_asset_balances(
             self.http_client.as_ref(),
             include_all,
             limit,
@@ -389,7 +453,9 @@ impl IndexerClient {
             currency_less_than,
             asset_id,
         )
-        .await
+        .await;
+
+        result
     }
 
     /// Lookup transactions for an asset. Transactions are returned oldest to newest.
@@ -414,7 +480,7 @@ impl IndexerClient {
         asset_id: u64,
         rekey_to: Option<bool>,
     ) -> Result<LookupAssetTransactions, Error> {
-        super::lookup_asset_transactions::lookup_asset_transactions(
+        let result = super::lookup_asset_transactions::lookup_asset_transactions(
             self.http_client.as_ref(),
             limit,
             next,
@@ -435,7 +501,9 @@ impl IndexerClient {
             asset_id,
             rekey_to,
         )
-        .await
+        .await;
+
+        result
     }
 
     /// Search for block headers. Block headers are returned in ascending round order. Transactions are not included in the output.
@@ -451,7 +519,7 @@ impl IndexerClient {
         expired: Option<Vec<String>>,
         absent: Option<Vec<String>>,
     ) -> Result<SearchForBlockHeaders, Error> {
-        super::search_for_block_headers::search_for_block_headers(
+        let result = super::search_for_block_headers::search_for_block_headers(
             self.http_client.as_ref(),
             limit,
             next,
@@ -463,22 +531,9 @@ impl IndexerClient {
             expired,
             absent,
         )
-        .await
-    }
+        .await;
 
-    /// Lookup block.
-    pub async fn lookup_block(
-        &self,
-        round_number: u64,
-        header_only: Option<bool>,
-    ) -> Result<Block, Error> {
-        super::lookup_block::lookup_block(self.http_client.as_ref(), round_number, header_only)
-            .await
-    }
-
-    /// Lookup a single transaction.
-    pub async fn lookup_transaction(&self, txid: &str) -> Result<LookupTransaction, Error> {
-        super::lookup_transaction::lookup_transaction(self.http_client.as_ref(), txid).await
+        result
     }
 
     /// Search for transactions. Transactions are returned oldest to newest unless the address parameter is used, in which case results are returned newest to oldest.
@@ -505,7 +560,7 @@ impl IndexerClient {
         rekey_to: Option<bool>,
         application_id: Option<u64>,
     ) -> Result<SearchForTransactions, Error> {
-        super::search_for_transactions::search_for_transactions(
+        let result = super::search_for_transactions::search_for_transactions(
             self.http_client.as_ref(),
             limit,
             next,
@@ -528,6 +583,425 @@ impl IndexerClient {
             rekey_to,
             application_id,
         )
-        .await
+        .await;
+
+        result
+    }
+}
+
+#[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
+#[cfg(feature = "ffi_uniffi")]
+impl IndexerClient {
+    /// Search for accounts.
+    pub async fn search_for_accounts(
+        &self,
+        asset_id: Option<u64>,
+        limit: Option<u64>,
+        next: Option<String>,
+        currency_greater_than: Option<u64>,
+        include_all: Option<bool>,
+        exclude: Option<Vec<String>>,
+        currency_less_than: Option<u64>,
+        auth_addr: Option<String>,
+        round: Option<u64>,
+        application_id: Option<u64>,
+        online_only: Option<bool>,
+    ) -> Result<SearchForAccounts, Error> {
+        let result = super::search_for_accounts::search_for_accounts(
+            self.http_client.as_ref(),
+            asset_id,
+            limit,
+            next.as_deref(),
+            currency_greater_than,
+            include_all,
+            exclude,
+            currency_less_than,
+            auth_addr.as_deref(),
+            round,
+            application_id,
+            online_only,
+        )
+        .await;
+
+        result
+    }
+
+    /// Lookup an account's asset holdings, optionally for a specific ID.
+    pub async fn lookup_account_assets(
+        &self,
+        account_id: &str,
+        asset_id: Option<u64>,
+        include_all: Option<bool>,
+        limit: Option<u64>,
+        next: Option<String>,
+    ) -> Result<LookupAccountAssets, Error> {
+        let result = super::lookup_account_assets::lookup_account_assets(
+            self.http_client.as_ref(),
+            account_id,
+            asset_id,
+            include_all,
+            limit,
+            next.as_deref(),
+        )
+        .await;
+
+        result
+    }
+
+    /// Lookup an account's created asset parameters, optionally for a specific ID.
+    pub async fn lookup_account_created_assets(
+        &self,
+        account_id: &str,
+        asset_id: Option<u64>,
+        include_all: Option<bool>,
+        limit: Option<u64>,
+        next: Option<String>,
+    ) -> Result<LookupAccountCreatedAssets, Error> {
+        let result = super::lookup_account_created_assets::lookup_account_created_assets(
+            self.http_client.as_ref(),
+            account_id,
+            asset_id,
+            include_all,
+            limit,
+            next.as_deref(),
+        )
+        .await;
+
+        result
+    }
+
+    /// Lookup an account's asset holdings, optionally for a specific ID.
+    pub async fn lookup_account_app_local_states(
+        &self,
+        account_id: &str,
+        application_id: Option<u64>,
+        include_all: Option<bool>,
+        limit: Option<u64>,
+        next: Option<String>,
+    ) -> Result<LookupAccountAppLocalStates, Error> {
+        let result = super::lookup_account_app_local_states::lookup_account_app_local_states(
+            self.http_client.as_ref(),
+            account_id,
+            application_id,
+            include_all,
+            limit,
+            next.as_deref(),
+        )
+        .await;
+
+        result
+    }
+
+    /// Lookup an account's created application parameters, optionally for a specific ID.
+    pub async fn lookup_account_created_applications(
+        &self,
+        account_id: &str,
+        application_id: Option<u64>,
+        include_all: Option<bool>,
+        limit: Option<u64>,
+        next: Option<String>,
+    ) -> Result<LookupAccountCreatedApplications, Error> {
+        let result =
+            super::lookup_account_created_applications::lookup_account_created_applications(
+                self.http_client.as_ref(),
+                account_id,
+                application_id,
+                include_all,
+                limit,
+                next.as_deref(),
+            )
+            .await;
+
+        result
+    }
+
+    /// Lookup account transactions. Transactions are returned newest to oldest.
+    pub async fn lookup_account_transactions(
+        &self,
+        limit: Option<u64>,
+        next: Option<String>,
+        note_prefix: Option<String>,
+        tx_type: Option<TxType>,
+        sig_type: Option<SigType>,
+        txid: Option<String>,
+        round: Option<u64>,
+        min_round: Option<u64>,
+        max_round: Option<u64>,
+        asset_id: Option<u64>,
+        before_time: Option<String>,
+        after_time: Option<String>,
+        currency_greater_than: Option<u64>,
+        currency_less_than: Option<u64>,
+        account_id: &str,
+        rekey_to: Option<bool>,
+    ) -> Result<LookupAccountTransactions, Error> {
+        let result = super::lookup_account_transactions::lookup_account_transactions(
+            self.http_client.as_ref(),
+            limit,
+            next.as_deref(),
+            note_prefix.as_deref(),
+            tx_type,
+            sig_type,
+            txid.as_deref(),
+            round,
+            min_round,
+            max_round,
+            asset_id,
+            before_time.as_deref(),
+            after_time.as_deref(),
+            currency_greater_than,
+            currency_less_than,
+            account_id,
+            rekey_to,
+        )
+        .await;
+
+        result
+    }
+
+    /// Search for applications
+    pub async fn search_for_applications(
+        &self,
+        application_id: Option<u64>,
+        creator: Option<String>,
+        include_all: Option<bool>,
+        limit: Option<u64>,
+        next: Option<String>,
+    ) -> Result<SearchForApplications, Error> {
+        let result = super::search_for_applications::search_for_applications(
+            self.http_client.as_ref(),
+            application_id,
+            creator.as_deref(),
+            include_all,
+            limit,
+            next.as_deref(),
+        )
+        .await;
+
+        result
+    }
+
+    /// Get box names for a given application.
+    pub async fn search_for_application_boxes(
+        &self,
+        application_id: u64,
+        limit: Option<u64>,
+        next: Option<String>,
+    ) -> Result<SearchForApplicationBoxes, Error> {
+        let result = super::search_for_application_boxes::search_for_application_boxes(
+            self.http_client.as_ref(),
+            application_id,
+            limit,
+            next.as_deref(),
+        )
+        .await;
+
+        result
+    }
+
+    /// Lookup application logs.
+    pub async fn lookup_application_logs_by_id(
+        &self,
+        application_id: u64,
+        limit: Option<u64>,
+        next: Option<String>,
+        txid: Option<String>,
+        min_round: Option<u64>,
+        max_round: Option<u64>,
+        sender_address: Option<String>,
+    ) -> Result<LookupApplicationLogsById, Error> {
+        let result = super::lookup_application_logs_by_id::lookup_application_logs_by_id(
+            self.http_client.as_ref(),
+            application_id,
+            limit,
+            next.as_deref(),
+            txid.as_deref(),
+            min_round,
+            max_round,
+            sender_address.as_deref(),
+        )
+        .await;
+
+        result
+    }
+
+    /// Search for assets.
+    pub async fn search_for_assets(
+        &self,
+        include_all: Option<bool>,
+        limit: Option<u64>,
+        next: Option<String>,
+        creator: Option<String>,
+        name: Option<String>,
+        unit: Option<String>,
+        asset_id: Option<u64>,
+    ) -> Result<SearchForAssets, Error> {
+        let result = super::search_for_assets::search_for_assets(
+            self.http_client.as_ref(),
+            include_all,
+            limit,
+            next.as_deref(),
+            creator.as_deref(),
+            name.as_deref(),
+            unit.as_deref(),
+            asset_id,
+        )
+        .await;
+
+        result
+    }
+
+    /// Lookup the list of accounts who hold this asset
+    pub async fn lookup_asset_balances(
+        &self,
+        include_all: Option<bool>,
+        limit: Option<u64>,
+        next: Option<String>,
+        currency_greater_than: Option<u64>,
+        currency_less_than: Option<u64>,
+        asset_id: u64,
+    ) -> Result<LookupAssetBalances, Error> {
+        let result = super::lookup_asset_balances::lookup_asset_balances(
+            self.http_client.as_ref(),
+            include_all,
+            limit,
+            next.as_deref(),
+            currency_greater_than,
+            currency_less_than,
+            asset_id,
+        )
+        .await;
+
+        result
+    }
+
+    /// Lookup transactions for an asset. Transactions are returned oldest to newest.
+    pub async fn lookup_asset_transactions(
+        &self,
+        limit: Option<u64>,
+        next: Option<String>,
+        note_prefix: Option<String>,
+        tx_type: Option<TxType>,
+        sig_type: Option<SigType>,
+        txid: Option<String>,
+        round: Option<u64>,
+        min_round: Option<u64>,
+        max_round: Option<u64>,
+        before_time: Option<String>,
+        after_time: Option<String>,
+        currency_greater_than: Option<u64>,
+        currency_less_than: Option<u64>,
+        address: Option<String>,
+        address_role: Option<AddressRole>,
+        exclude_close_to: Option<bool>,
+        asset_id: u64,
+        rekey_to: Option<bool>,
+    ) -> Result<LookupAssetTransactions, Error> {
+        let result = super::lookup_asset_transactions::lookup_asset_transactions(
+            self.http_client.as_ref(),
+            limit,
+            next.as_deref(),
+            note_prefix.as_deref(),
+            tx_type,
+            sig_type,
+            txid.as_deref(),
+            round,
+            min_round,
+            max_round,
+            before_time.as_deref(),
+            after_time.as_deref(),
+            currency_greater_than,
+            currency_less_than,
+            address.as_deref(),
+            address_role,
+            exclude_close_to,
+            asset_id,
+            rekey_to,
+        )
+        .await;
+
+        result
+    }
+
+    /// Search for block headers. Block headers are returned in ascending round order. Transactions are not included in the output.
+    pub async fn search_for_block_headers(
+        &self,
+        limit: Option<u64>,
+        next: Option<String>,
+        min_round: Option<u64>,
+        max_round: Option<u64>,
+        before_time: Option<String>,
+        after_time: Option<String>,
+        proposers: Option<Vec<String>>,
+        expired: Option<Vec<String>>,
+        absent: Option<Vec<String>>,
+    ) -> Result<SearchForBlockHeaders, Error> {
+        let result = super::search_for_block_headers::search_for_block_headers(
+            self.http_client.as_ref(),
+            limit,
+            next.as_deref(),
+            min_round,
+            max_round,
+            before_time.as_deref(),
+            after_time.as_deref(),
+            proposers,
+            expired,
+            absent,
+        )
+        .await;
+
+        result
+    }
+
+    /// Search for transactions. Transactions are returned oldest to newest unless the address parameter is used, in which case results are returned newest to oldest.
+    pub async fn search_for_transactions(
+        &self,
+        limit: Option<u64>,
+        next: Option<String>,
+        note_prefix: Option<String>,
+        tx_type: Option<TxType>,
+        sig_type: Option<SigType>,
+        group_id: Option<String>,
+        txid: Option<String>,
+        round: Option<u64>,
+        min_round: Option<u64>,
+        max_round: Option<u64>,
+        asset_id: Option<u64>,
+        before_time: Option<String>,
+        after_time: Option<String>,
+        currency_greater_than: Option<u64>,
+        currency_less_than: Option<u64>,
+        address: Option<String>,
+        address_role: Option<AddressRole>,
+        exclude_close_to: Option<bool>,
+        rekey_to: Option<bool>,
+        application_id: Option<u64>,
+    ) -> Result<SearchForTransactions, Error> {
+        let result = super::search_for_transactions::search_for_transactions(
+            self.http_client.as_ref(),
+            limit,
+            next.as_deref(),
+            note_prefix.as_deref(),
+            tx_type,
+            sig_type,
+            group_id.as_deref(),
+            txid.as_deref(),
+            round,
+            min_round,
+            max_round,
+            asset_id,
+            before_time.as_deref(),
+            after_time.as_deref(),
+            currency_greater_than,
+            currency_less_than,
+            address.as_deref(),
+            address_role,
+            exclude_close_to,
+            rekey_to,
+            application_id,
+        )
+        .await;
+
+        result
     }
 }

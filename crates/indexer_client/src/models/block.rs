@@ -24,6 +24,7 @@ use crate::models::Transaction;
 /// data/bookkeeping/block.go : Block
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct Block {
     /// the proposer of this block.
     #[serde(rename = "proposer", skip_serializing_if = "Option::is_none")]

@@ -15,6 +15,7 @@ use serde::{Deserialize, Serialize};
 /// Definition:
 /// data/basics/userBalance.go : AssetHolding
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct AssetHolding {
     /// number of units held.
     #[serde(rename = "amount")]

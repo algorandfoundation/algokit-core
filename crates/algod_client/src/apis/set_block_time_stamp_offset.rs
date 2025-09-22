@@ -22,13 +22,14 @@ use crate::models::ErrorResponse;
 /// struct for typed errors of method [`set_block_time_stamp_offset`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum SetBlockTimeStampOffsetError {
     Status400(ErrorResponse),
     Status401(ErrorResponse),
     Status500(ErrorResponse),
     Statusdefault(),
     DefaultResponse(),
-    UnknownValue(serde_json::Value),
+    UnknownValue(crate::models::UnknownJsonValue),
 }
 
 /// Sets the timestamp offset (seconds) for blocks in dev mode. Providing an offset of 0 will unset this value and try to use the real clock for the timestamp.

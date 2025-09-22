@@ -22,6 +22,7 @@ use crate::models::AssetHolding;
 /// Definition:
 /// data/basics/userBalance.go : AccountData
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct Account {
     /// the account public key
     #[serde(rename = "address")]

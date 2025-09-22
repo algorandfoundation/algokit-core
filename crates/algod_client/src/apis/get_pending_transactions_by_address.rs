@@ -24,6 +24,7 @@ use crate::models::{ErrorResponse, GetPendingTransactionsByAddress};
 /// struct for typed errors of method [`get_pending_transactions_by_address`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum GetPendingTransactionsByAddressError {
     Status400(ErrorResponse),
     Status401(ErrorResponse),
@@ -31,7 +32,7 @@ pub enum GetPendingTransactionsByAddressError {
     Status503(ErrorResponse),
     Statusdefault(),
     DefaultResponse(),
-    UnknownValue(serde_json::Value),
+    UnknownValue(crate::models::UnknownJsonValue),
 }
 
 /// Get the list of pending transactions by address, sorted by priority, in decreasing order, truncated at the end at MAX. If MAX = 0, returns all pending transactions.

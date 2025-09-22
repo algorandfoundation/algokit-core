@@ -14,6 +14,7 @@ use serde_with::{Bytes, serde_as};
 /// AccountParticipation describes the parameters used by this account in consensus protocol.
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct AccountParticipation {
     /// Selection public key (if any) currently registered for this round.
     #[serde_as(as = "serde_with::base64::Base64")]

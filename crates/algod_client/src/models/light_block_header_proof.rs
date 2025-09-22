@@ -15,6 +15,7 @@ use serde_with::{Bytes, serde_as};
 /// Proof of membership and position of a light block header.
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct LightBlockHeaderProof {
     /// The index of the light block header in the vector commitment tree
     #[serde(rename = "index")]

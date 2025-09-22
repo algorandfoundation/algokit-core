@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
 
 /// Fields relating to voting for a protocol upgrade.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct BlockUpgradeVote {
     /// \[upgradeyes\] Indicates a yes vote for the current proposal.
     #[serde(rename = "upgrade-approve", skip_serializing_if = "Option::is_none")]

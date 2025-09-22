@@ -13,6 +13,7 @@ use std::str::FromStr;
 /// Parameter enum for txtype
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Enum))]
 pub enum TxType {
     /// pay
     Pay,
@@ -72,6 +73,7 @@ impl FromStr for TxType {
 ///   * lsig - LogicSig
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Enum))]
 pub enum SigType {
     /// sig
     Sig,
@@ -108,6 +110,7 @@ impl FromStr for SigType {
 /// Combine with the address parameter to define what type of address to search for.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Enum))]
 pub enum AddressRole {
     /// sender
     Sender,

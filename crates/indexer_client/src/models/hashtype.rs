@@ -16,6 +16,7 @@ use std::str::FromStr;
 ///   * sha512_256
 ///   * sha256
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Enum))]
 pub enum Hashtype {
     /// sha512_256
     #[serde(rename = "sha512_256")]

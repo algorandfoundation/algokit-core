@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 use crate::models::StateProofVerifier;
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct StateProofParticipant {
     #[serde(rename = "verifier", skip_serializing_if = "Option::is_none")]
     pub verifier: Option<StateProofVerifier>,

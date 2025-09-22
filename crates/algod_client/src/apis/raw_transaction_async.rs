@@ -23,6 +23,7 @@ use crate::models::ErrorResponse;
 /// struct for typed errors of method [`raw_transaction_async`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum RawTransactionAsyncError {
     Status400(ErrorResponse),
     Status401(ErrorResponse),
@@ -31,7 +32,7 @@ pub enum RawTransactionAsyncError {
     Status503(ErrorResponse),
     Statusdefault(),
     DefaultResponse(),
-    UnknownValue(serde_json::Value),
+    UnknownValue(crate::models::UnknownJsonValue),
 }
 
 /// Fast track for broadcasting a raw transaction or transaction group to the network through the tx handler without performing most of the checks and reporting detailed errors. Should be only used for development and performance testing.

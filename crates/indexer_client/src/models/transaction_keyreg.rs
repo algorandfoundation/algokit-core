@@ -17,6 +17,7 @@ use serde_with::{Bytes, serde_as};
 /// data/transactions/keyreg.go : KeyregTxnFields
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct TransactionKeyreg {
     /// \[nonpart\] Mark the account as participating or non-participating.
     #[serde(rename = "non-participation", skip_serializing_if = "Option::is_none")]

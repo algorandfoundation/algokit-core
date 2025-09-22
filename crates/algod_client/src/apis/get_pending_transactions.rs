@@ -24,13 +24,14 @@ use crate::models::{ErrorResponse, GetPendingTransactions};
 /// struct for typed errors of method [`get_pending_transactions`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum GetPendingTransactionsError {
     Status401(ErrorResponse),
     Status500(ErrorResponse),
     Status503(ErrorResponse),
     Statusdefault(),
     DefaultResponse(),
-    UnknownValue(serde_json::Value),
+    UnknownValue(crate::models::UnknownJsonValue),
 }
 
 /// Get the list of pending transactions, sorted by priority, in decreasing order, truncated at the end at MAX. If MAX = 0, returns all pending transactions.

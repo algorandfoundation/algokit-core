@@ -21,6 +21,7 @@ use crate::models::StateSchema;
 /// data/transactions/application.go : ApplicationCallTxnFields
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct TransactionApplication {
     /// \[apid\] ID of the application being configured or empty if creating.
     #[serde(rename = "application-id")]

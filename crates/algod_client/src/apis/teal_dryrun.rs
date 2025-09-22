@@ -24,6 +24,7 @@ use crate::models::DryrunRequest;
 /// struct for typed errors of method [`teal_dryrun`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum TealDryrunError {
     Status400(ErrorResponse),
     Status401(ErrorResponse),
@@ -31,7 +32,7 @@ pub enum TealDryrunError {
     Status500(ErrorResponse),
     Statusdefault(),
     DefaultResponse(),
-    UnknownValue(serde_json::Value),
+    UnknownValue(crate::models::UnknownJsonValue),
 }
 
 /// Executes TEAL program(s) in context and returns debugging information about the execution. This endpoint is only enabled when a node's configuration file sets EnableDeveloperAPI to true.

@@ -22,13 +22,14 @@ use crate::models::{AbortCatchup, ErrorResponse};
 /// struct for typed errors of method [`abort_catchup`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum AbortCatchupError {
     Status400(ErrorResponse),
     Status401(ErrorResponse),
     Status500(ErrorResponse),
     Statusdefault(),
     DefaultResponse(),
-    UnknownValue(serde_json::Value),
+    UnknownValue(crate::models::UnknownJsonValue),
 }
 
 /// Given a catchpoint, it aborts catching up to this catchpoint

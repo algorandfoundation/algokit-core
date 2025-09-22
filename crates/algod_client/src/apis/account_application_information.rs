@@ -24,13 +24,14 @@ use crate::models::{AccountApplicationInformation, ErrorResponse};
 /// struct for typed errors of method [`account_application_information`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum AccountApplicationInformationError {
     Status400(ErrorResponse),
     Status401(ErrorResponse),
     Status500(ErrorResponse),
     Statusdefault(),
     DefaultResponse(),
-    UnknownValue(serde_json::Value),
+    UnknownValue(crate::models::UnknownJsonValue),
 }
 
 /// Given a specific account public key and application ID, this call returns the account's application local state and global state (AppLocalState and AppParams, if either exists). Global state will only be returned if the provided address is the application's creator.

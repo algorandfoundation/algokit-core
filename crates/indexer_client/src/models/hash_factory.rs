@@ -11,6 +11,7 @@ use crate::models;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct HashFactory {
     /// \[t\]
     #[serde(rename = "hash-type", skip_serializing_if = "Option::is_none")]

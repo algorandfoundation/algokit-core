@@ -16,6 +16,7 @@ use serde_with::{Bytes, serde_as};
 /// a new transaction.
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct TransactionParams {
     /// ConsensusVersion indicates the consensus protocol version
     /// as of LastRound.

@@ -13,6 +13,7 @@ use serde_with::{Bytes, serde_as};
 
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct StateProofVerifier {
     /// \[cmt\] Represents the root of the vector commitment tree.
     #[serde_as(as = "Option<serde_with::base64::Base64>")]

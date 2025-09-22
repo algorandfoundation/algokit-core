@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 
 /// Top level transaction IDs in a block.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct GetBlockTxids {
     /// Block transaction IDs.
     #[serde(rename = "blockTxids")]

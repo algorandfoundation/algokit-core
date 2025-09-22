@@ -22,9 +22,10 @@ use crate::models::Version;
 /// struct for typed errors of method [`get_version`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum GetVersionError {
     DefaultResponse(),
-    UnknownValue(serde_json::Value),
+    UnknownValue(crate::models::UnknownJsonValue),
 }
 
 /// Retrieves the supported API versions, binary build versions, and genesis information.

@@ -22,6 +22,7 @@ use std::str::FromStr;
 ///   * update
 ///   * delete
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Enum))]
 pub enum OnCompletion {
     /// noop
     #[serde(rename = "noop")]

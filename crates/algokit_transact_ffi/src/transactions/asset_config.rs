@@ -185,21 +185,13 @@ mod tests {
     #[test]
     fn test_encode_transaction_validation_integration() {
         // invalid
-        let mut tx: Transaction = TestDataMother::asset_create()
-            .transaction
-            .try_into()
-            .unwrap();
+        let mut tx: Transaction = TestDataMother::asset_create().transaction.into();
         tx.asset_config.as_mut().unwrap().asset_id = 123;
         let result = encode_transaction(tx);
         assert!(result.is_err());
 
         // valid
-        let result = encode_transaction(
-            TestDataMother::asset_create()
-                .transaction
-                .try_into()
-                .unwrap(),
-        );
+        let result = encode_transaction(TestDataMother::asset_create().transaction.into());
         assert!(result.is_ok());
     }
 }

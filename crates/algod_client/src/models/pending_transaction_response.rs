@@ -9,16 +9,24 @@
  */
 
 use crate::models;
-use algokit_transact::{AlgorandMsgpack, SignedTransaction as AlgokitSignedTransaction};
+#[cfg(not(feature = "ffi_uniffi"))]
+use algokit_transact::SignedTransaction as AlgokitSignedTransaction;
 use serde::{Deserialize, Serialize};
 use serde_with::{Bytes, serde_as};
 
+#[cfg(feature = "ffi_uniffi")]
+use algokit_transact_ffi::SignedTransaction as AlgokitSignedTransaction;
+
+use algokit_transact::AlgorandMsgpack;
+
 use crate::models::AccountStateDelta;
 use crate::models::StateDelta;
+use crate::models::UnknownJsonValue;
 
 /// Details about a pending transaction. If the transaction was recently confirmed, includes confirmation details like the round and reward details.
 #[serde_as]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct PendingTransactionResponse {
     /// The asset index if the transaction was found and it created an asset.
     #[serde(rename = "asset-index", skip_serializing_if = "Option::is_none")]
@@ -84,6 +92,7 @@ impl Default for PendingTransactionResponse {
             logs: None,
             inner_txns: None,
             txn: AlgokitSignedTransaction {
+                #[allow(clippy::useless_conversion)]
                 transaction: algokit_transact::Transaction::Payment(
                     algokit_transact::PaymentTransactionFields {
                         header: algokit_transact::TransactionHeader {
@@ -102,7 +111,8 @@ impl Default for PendingTransactionResponse {
                         amount: 0,
                         close_remainder_to: None,
                     },
-                ),
+                )
+                .into(),
                 signature: None,
                 auth_address: None,
                 multisignature: None,

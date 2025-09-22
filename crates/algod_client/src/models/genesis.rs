@@ -14,6 +14,7 @@ use serde::{Deserialize, Serialize};
 use crate::models::GenesisAllocation;
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct Genesis {
     #[serde(rename = "alloc")]
     pub alloc: Vec<GenesisAllocation>,

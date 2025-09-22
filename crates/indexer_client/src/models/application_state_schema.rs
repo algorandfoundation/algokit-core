@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
 
 /// Specifies maximums on the number of each type that may be stored.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct ApplicationStateSchema {
     /// number of uints.
     #[serde(rename = "num-uint")]

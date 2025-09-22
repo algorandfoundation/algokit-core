@@ -14,18 +14,19 @@ use std::collections::HashMap;
 use super::{ContentType, Error, IndexerApiError};
 
 // Import all custom types used by this endpoint
-use crate::models::LookupAssetBalances;
+use crate::models::{LookupAssetBalances, UnknownJsonValue};
 
 // Import request body type if needed
 
 /// struct for typed errors of method [`lookup_asset_balances`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum LookupAssetBalancesError {
-    Status400(serde_json::Value),
-    Status500(serde_json::Value),
+    Status400(UnknownJsonValue),
+    Status500(UnknownJsonValue),
     DefaultResponse(),
-    UnknownValue(serde_json::Value),
+    UnknownValue(crate::models::UnknownJsonValue),
 }
 
 /// Lookup the list of accounts who hold this asset

@@ -21,7 +21,13 @@ use std::str::FromStr;
 use serde_with::{Bytes, serde_as};
 {% endif %}
 {% if schema.has_signed_transaction_fields or schema.implements_algokit_msgpack %}
-use algokit_transact::{SignedTransaction as AlgokitSignedTransaction, AlgorandMsgpack};
+#[cfg(not(feature = "ffi_uniffi"))]
+use algokit_transact::SignedTransaction as AlgokitSignedTransaction;
+
+#[cfg(feature = "ffi_uniffi")]
+use algokit_transact_ffi::SignedTransaction as AlgokitSignedTransaction;
+
+use algokit_transact::AlgorandMsgpack;
 {% endif %}
 
 {# Generate imports for custom types used in this schema #}
@@ -86,6 +92,7 @@ pub type {{ schema.rust_struct_name }} = {{ schema.underlying_rust_type }};
 {% endfor %}
 {% set needs_manual_default = complex_signed_tx_fields|length > 0 %}
 #[derive(Clone, {% if not needs_manual_default %}Default, {% endif %}Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 {% if schema.vendor_extensions.get('x-algokit-signed-txn') %}
 // This struct represents a SignedTransaction and can be converted to/from AlgoKit's SignedTransaction
 {% endif %}
@@ -141,6 +148,7 @@ impl Default for {{ schema.rust_struct_name }} {
 {% for property in schema.properties %}
             {% if property.is_signed_transaction %}
             {{ property.rust_field_name }}: {% if property.required %}{% if property.rust_type.startswith('Vec<') %}Vec::new(){% else %}AlgokitSignedTransaction {
+                #[allow(clippy::useless_conversion)]
                 transaction: algokit_transact::Transaction::Payment(algokit_transact::PaymentTransactionFields {
                     header: algokit_transact::TransactionHeader {
                         sender: Default::default(),
@@ -157,7 +165,7 @@ impl Default for {{ schema.rust_struct_name }} {
                     receiver: Default::default(),
                     amount: 0,
                     close_remainder_to: None,
-                }),
+                }).into(),
                 signature: None,
                 auth_address: None,
                 multisignature: None,
