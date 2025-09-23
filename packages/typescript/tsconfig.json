@@ -1,0 +1,4 @@
+{
+  "files": [],
+  "references": [{ "path": "./algokit_common" }, { "path": "./algokit_abi" }, { "path": "./algokit_transact" }, { "path": "./algod_client" }, { "path": "./algokit_utils" }]
+}

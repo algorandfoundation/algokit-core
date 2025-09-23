@@ -97,7 +97,7 @@ desc = "A collection of signed transactions can be encoded"
 # Test Targets
 
 [target.bun]
-out_dir = "../../packages/typescript/algokit_transact/__tests__"
+out_dir = "../../packages/typescript/algokit_transact/tests"
 
 [target.pytest]
 out_dir = "../../packages/python/algokit_transact/tests"
