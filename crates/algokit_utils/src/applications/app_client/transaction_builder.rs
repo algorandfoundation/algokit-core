@@ -108,14 +108,14 @@ impl TransactionBuilder<'_> {
         params: AppClientMethodCallParams,
         compilation_params: Option<CompilationParams>,
     ) -> Result<algokit_transact::Transaction, AppClientError> {
-        let params = self
+        let (params, _compiled) = self
             .client
             .params()
             .update(params, compilation_params)
             .await?;
         let trasactions = self
             .client
-            .algorand
+            .algorand()
             .create()
             .app_update_method_call(params)
             .map_err(|e| AppClientError::ComposerError { source: e })
@@ -216,14 +216,14 @@ impl BareTransactionBuilder<'_> {
         params: AppClientBareCallParams,
         compilation_params: Option<CompilationParams>,
     ) -> Result<algokit_transact::Transaction, AppClientError> {
-        let params: crate::AppUpdateParams = self
+        let (params, _compiled) = self
             .client
             .params()
             .bare()
             .update(params, compilation_params)
             .await?;
         self.client
-            .algorand
+            .algorand()
             .create()
             .app_update(params)
             .map_err(|e| AppClientError::ComposerError { source: e })

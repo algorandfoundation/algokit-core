@@ -35,7 +35,7 @@ async fn from_network_resolves_id(#[future] algorand_fixture: AlgorandFixtureRes
 
     let client = AppClient::from_network(
         spec_with_networks,
-        RootAlgorandClient::default_localnet(None),
+        RootAlgorandClient::default_localnet(None).into(),
         None,
         None,
         None,
@@ -110,7 +110,7 @@ async fn from_creator_and_name_resolves_and_can_call(
         &sender.to_string(),
         &app_name,
         spec.clone(),
-        algorand,
+        algorand.into(),
         Some(sender.to_string()),
         Some(Arc::new(fixture.test_account.clone())),
         None,

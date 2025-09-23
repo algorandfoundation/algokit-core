@@ -180,6 +180,31 @@ pub mod testing_app_puya {
         include_str!("../contracts/testing_app_puya/application.arc56.json");
 }
 
+/// Testing app ARC56 templates (control-template capable)
+pub mod testing_app_arc56_templates {
+    /// ARC56 app spec used in template-var/error mapping tests
+    pub const APP_SPEC_ARC56: &str =
+        include_str!("../contracts/testing_app_arc56/app_spec.arc56.json");
+}
+/// Extra pages test contract artifacts
+pub mod extra_pages_test {
+    /// Aggregate application (ARC56) used by extra pages tests
+    pub const APPLICATION_ARC56: &str =
+        include_str!("../contracts/extra_pages_test/application.arc56.json");
+
+    /// Small program variant (ARC56)
+    pub const SMALL_ARC56: &str = include_str!("../contracts/extra_pages_test/small.arc56.json");
+
+    /// Large program variant (ARC56)
+    pub const LARGE_ARC56: &str = include_str!("../contracts/extra_pages_test/large.arc56.json");
+}
+
+/// State contract artifacts (control-aware spec)
+pub mod state_contract {
+    /// State contract (ARC56) with UPDATABLE/DELETABLE/VALUE template variables
+    pub const STATE_ARC56: &str = include_str!("../contracts/state_contract/state.arc56.json");
+}
+
 /// Resource population contract artifacts
 pub mod resource_population {
     /// Resource population testing contract (ARC32) targeting AVM V8

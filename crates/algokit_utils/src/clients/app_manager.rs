@@ -35,6 +35,12 @@ pub struct CompiledTeal {
 }
 
 #[derive(Debug, Clone)]
+pub struct CompiledPrograms {
+    pub approval: CompiledTeal,
+    pub clear: CompiledTeal,
+}
+
+#[derive(Debug, Clone)]
 pub enum AppState {
     Uint(UintAppState),
     Bytes(BytesAppState),
@@ -171,12 +177,17 @@ impl AppManager {
         // TMPL_UPDATABLE/TMPL_DELETABLE via generic template variables; let the
         // deploy-time control function handle them.
         if let Some(params) = template_params {
-            let filtered_params: TealTemplateParams = if deployment_metadata.is_some() {
+            let filtered_params: TealTemplateParams = if let Some(meta) = deployment_metadata {
                 let mut clone = params.clone();
-                clone.remove("UPDATABLE");
-                clone.remove("DELETABLE");
-                clone.remove("TMPL_UPDATABLE");
-                clone.remove("TMPL_DELETABLE");
+                // Only strip corresponding template params when an explicit override is provided
+                if meta.updatable.is_some() {
+                    clone.remove("UPDATABLE");
+                    clone.remove("TMPL_UPDATABLE");
+                }
+                if meta.deletable.is_some() {
+                    clone.remove("DELETABLE");
+                    clone.remove("TMPL_DELETABLE");
+                }
                 clone
             } else {
                 params.clone()
@@ -332,8 +343,7 @@ impl AppManager {
     /// Decode box value using ABI type.
     ///
     /// This method takes an ABIType directly and uses it to decode the box value,
-    /// returning an ABIValue directly for simpler usage patterns that match the
-    /// TypeScript and Python implementations.
+    /// returning an ABIValue directly for simpler usage patterns.
     ///
     /// # Arguments
     /// * `app_id` - The app ID
@@ -361,8 +371,7 @@ impl AppManager {
     /// Decode multiple box values using ABI type.
     ///
     /// This method takes an ABIType directly and uses it to decode multiple box values,
-    /// returning ABIValue objects directly for simpler usage patterns that match the
-    /// TypeScript and Python implementations.
+    /// returning ABIValue objects directly for simpler usage patterns.
     ///
     /// # Arguments
     /// * `app_id` - The app ID

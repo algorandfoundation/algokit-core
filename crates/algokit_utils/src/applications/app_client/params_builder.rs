@@ -3,7 +3,9 @@ use super::types::{
     AppClientBareCallParams, AppClientMethodCallParams, CompilationParams, FundAppAccountParams,
 };
 use crate::AppClientError;
+use crate::applications::app_client::utils::parse_account_refs_to_addresses;
 use crate::clients::app_manager::AppState;
+use crate::clients::app_manager::CompiledPrograms;
 use crate::transactions::{
     AppCallMethodCallParams, AppCallParams, AppDeleteMethodCallParams, AppDeleteParams,
     AppMethodCallArg, AppUpdateMethodCallParams, AppUpdateParams, PaymentParams,
@@ -100,9 +102,7 @@ impl<'app_client> ParamsBuilder<'app_client> {
             app_id: self.client.app_id,
             method: abi_method,
             args: resolved_args,
-            account_references: super::utils::parse_account_refs_to_addresses(
-                &params.account_references,
-            )?,
+            account_references: parse_account_refs_to_addresses(&params.account_references)?,
             app_references: params.app_references.clone(),
             asset_references: params.asset_references.clone(),
             box_references: params.box_references.clone(),
@@ -114,11 +114,10 @@ impl<'app_client> ParamsBuilder<'app_client> {
         &self,
         params: AppClientMethodCallParams,
         compilation_params: Option<CompilationParams>,
-    ) -> Result<AppUpdateMethodCallParams, AppClientError> {
+    ) -> Result<(AppUpdateMethodCallParams, CompiledPrograms), AppClientError> {
         // Compile programs (and populate AppManager cache/source maps)
         let compilation_params = compilation_params.unwrap_or_default();
-        let (approval_program, clear_state_program) =
-            self.client.compile(&compilation_params).await?;
+        let compiled_programs = self.client.compile(&compilation_params).await?;
 
         let abi_method = self.get_abi_method(&params.method)?;
         let sender = self.client.get_sender_address(&params.sender)?.as_str();
@@ -126,7 +125,7 @@ impl<'app_client> ParamsBuilder<'app_client> {
             .resolve_args(&abi_method, &params.args, &sender)
             .await?;
 
-        Ok(AppUpdateMethodCallParams {
+        let update_params = AppUpdateMethodCallParams {
             sender: self.client.get_sender_address(&params.sender)?,
             signer: self
                 .client
@@ -143,15 +142,15 @@ impl<'app_client> ParamsBuilder<'app_client> {
             app_id: self.client.app_id,
             method: abi_method,
             args: resolved_args,
-            account_references: super::utils::parse_account_refs_to_addresses(
-                &params.account_references,
-            )?,
+            account_references: parse_account_refs_to_addresses(&params.account_references)?,
             app_references: params.app_references.clone(),
             asset_references: params.asset_references.clone(),
             box_references: params.box_references.clone(),
-            approval_program,
-            clear_state_program,
-        })
+            approval_program: compiled_programs.approval.compiled_base64_to_bytes.clone(),
+            clear_state_program: compiled_programs.clear.compiled_base64_to_bytes.clone(),
+        };
+
+        Ok((update_params, compiled_programs))
     }
 
     /// Build parameters for funding the application's account.
@@ -210,9 +209,7 @@ impl<'app_client> ParamsBuilder<'app_client> {
             app_id: self.client.app_id,
             method: abi_method,
             args: resolved_args,
-            account_references: super::utils::parse_account_refs_to_addresses(
-                &params.account_references,
-            )?,
+            account_references: parse_account_refs_to_addresses(&params.account_references)?,
             app_references: params.app_references.clone(),
             asset_references: params.asset_references.clone(),
             box_references: params.box_references.clone(),
@@ -458,9 +455,7 @@ impl BareParamsBuilder<'_> {
             last_valid_round: params.last_valid_round,
             app_id: self.client.app_id,
             args: params.args,
-            account_references: super::utils::parse_account_refs_to_addresses(
-                &params.account_references,
-            )?,
+            account_references: parse_account_refs_to_addresses(&params.account_references)?,
             app_references: params.app_references,
             asset_references: params.asset_references,
             box_references: params.box_references,
@@ -480,13 +475,12 @@ impl BareParamsBuilder<'_> {
         &self,
         params: AppClientBareCallParams,
         compilation_params: Option<CompilationParams>,
-    ) -> Result<AppUpdateParams, AppClientError> {
+    ) -> Result<(AppUpdateParams, CompiledPrograms), AppClientError> {
         // Compile programs (and populate AppManager cache/source maps)
         let compilation_params = compilation_params.unwrap_or_default();
-        let (approval_program, clear_state_program) =
-            self.client.compile(&compilation_params).await?;
+        let compiled_programs = self.client.compile(&compilation_params).await?;
 
-        Ok(AppUpdateParams {
+        let update_params = AppUpdateParams {
             sender: self.client.get_sender_address(&params.sender)?,
             signer: self
                 .client
@@ -502,15 +496,15 @@ impl BareParamsBuilder<'_> {
             last_valid_round: params.last_valid_round,
             app_id: self.client.app_id,
             args: params.args,
-            account_references: super::utils::parse_account_refs_to_addresses(
-                &params.account_references,
-            )?,
+            account_references: parse_account_refs_to_addresses(&params.account_references)?,
             app_references: params.app_references,
             asset_references: params.asset_references,
             box_references: params.box_references,
-            approval_program,
-            clear_state_program,
-        })
+            approval_program: compiled_programs.approval.compiled_base64_to_bytes.clone(),
+            clear_state_program: compiled_programs.clear.compiled_base64_to_bytes.clone(),
+        };
+
+        Ok((update_params, compiled_programs))
     }
 
     fn build_bare_app_call_params(
@@ -535,9 +529,7 @@ impl BareParamsBuilder<'_> {
             app_id: self.client.app_id,
             on_complete,
             args: params.args,
-            account_references: super::utils::parse_account_refs_to_addresses(
-                &params.account_references,
-            )?,
+            account_references: parse_account_refs_to_addresses(&params.account_references)?,
             app_references: params.app_references,
             asset_references: params.asset_references,
             box_references: params.box_references,

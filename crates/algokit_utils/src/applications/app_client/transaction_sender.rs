@@ -1,6 +1,7 @@
+use crate::applications::app_client::utils::transform_transaction_error;
 use crate::transactions::SendTransactionResult;
 use crate::transactions::composer::SimulateParams;
-use crate::{AppClientError, SendAppCallResult, SendParams};
+use crate::{AppClientError, SendAppCallResult, SendAppUpdateResult, SendParams};
 use algokit_transact::{MAX_SIMULATE_OPCODE_BUDGET, OnApplicationComplete};
 
 use super::types::{AppClientBareCallParams, AppClientMethodCallParams, CompilationParams};
@@ -111,7 +112,7 @@ impl<'app_client> TransactionSender<'app_client> {
                 .send()
                 .app_call_method_call(method_params, send_params)
                 .await
-                .map_err(|e| super::utils::transform_transaction_error(self.client, e, false))
+                .map_err(|e| transform_transaction_error(self.client, e, false))
         }
     }
 
@@ -128,7 +129,7 @@ impl<'app_client> TransactionSender<'app_client> {
             .send()
             .app_call_method_call(method_params, send_params)
             .await
-            .map_err(|e| super::utils::transform_transaction_error(self.client, e, false))
+            .map_err(|e| transform_transaction_error(self.client, e, false))
     }
 
     /// Execute an ABI method call with CloseOut on-complete action.
@@ -144,7 +145,7 @@ impl<'app_client> TransactionSender<'app_client> {
             .send()
             .app_call_method_call(method_params, send_params)
             .await
-            .map_err(|e| super::utils::transform_transaction_error(self.client, e, false))
+            .map_err(|e| transform_transaction_error(self.client, e, false))
     }
 
     /// Execute an ABI method call with Delete on-complete action.
@@ -160,7 +161,7 @@ impl<'app_client> TransactionSender<'app_client> {
             .send()
             .app_delete_method_call(delete_params, send_params)
             .await
-            .map_err(|e| super::utils::transform_transaction_error(self.client, e, false))
+            .map_err(|e| transform_transaction_error(self.client, e, false))
     }
 
     /// Update the application using an ABI method call.
@@ -169,19 +170,27 @@ impl<'app_client> TransactionSender<'app_client> {
         params: AppClientMethodCallParams,
         compilation_params: Option<CompilationParams>,
         send_params: Option<SendParams>,
-    ) -> Result<crate::transactions::SendAppUpdateResult, AppClientError> {
-        let update_params = self
+    ) -> Result<SendAppUpdateResult, AppClientError> {
+        let (update_params, compiled) = self
             .client
             .params()
             .update(params, compilation_params)
             .await?;
 
-        self.client
-            .algorand
+        let mut result = self
+            .client
+            .algorand()
             .send()
             .app_update_method_call(update_params, send_params)
             .await
-            .map_err(|e| super::utils::transform_transaction_error(self.client, e, false))
+            .map_err(|e| transform_transaction_error(self.client, e, false))?;
+
+        result.compiled_approval = Some(compiled.approval.compiled_base64_to_bytes.clone());
+        result.compiled_clear = Some(compiled.clear.compiled_base64_to_bytes.clone());
+        result.approval_source_map = compiled.approval.source_map.clone();
+        result.clear_source_map = compiled.clear.source_map.clone();
+
+        Ok(result)
     }
 
     /// Send payment to fund the application's account.
@@ -197,7 +206,7 @@ impl<'app_client> TransactionSender<'app_client> {
             .send()
             .payment(payment, send_params)
             .await
-            .map_err(|e| super::utils::transform_transaction_error(self.client, e, false))
+            .map_err(|e| transform_transaction_error(self.client, e, false))
     }
 }
 
@@ -215,7 +224,7 @@ impl BareTransactionSender<'_> {
             .send()
             .app_call(params, send_params)
             .await
-            .map_err(|e| super::utils::transform_transaction_error(self.client, e, false))
+            .map_err(|e| transform_transaction_error(self.client, e, false))
     }
 
     /// Execute a bare application call with OptIn on-complete action.
@@ -230,7 +239,7 @@ impl BareTransactionSender<'_> {
             .send()
             .app_call(app_call, send_params)
             .await
-            .map_err(|e| super::utils::transform_transaction_error(self.client, e, false))
+            .map_err(|e| transform_transaction_error(self.client, e, false))
     }
 
     /// Execute a bare application call with CloseOut on-complete action.
@@ -245,7 +254,7 @@ impl BareTransactionSender<'_> {
             .send()
             .app_call(app_call, send_params)
             .await
-            .map_err(|e| super::utils::transform_transaction_error(self.client, e, false))
+            .map_err(|e| transform_transaction_error(self.client, e, false))
     }
 
     /// Execute a bare application call with Delete on-complete action.
@@ -260,7 +269,7 @@ impl BareTransactionSender<'_> {
             .send()
             .app_delete(delete_params, send_params)
             .await
-            .map_err(|e| super::utils::transform_transaction_error(self.client, e, false))
+            .map_err(|e| transform_transaction_error(self.client, e, false))
     }
 
     /// Execute a bare application call with ClearState on-complete action.
@@ -275,7 +284,7 @@ impl BareTransactionSender<'_> {
             .send()
             .app_call(app_call, send_params)
             .await
-            .map_err(|e| super::utils::transform_transaction_error(self.client, e, true))
+            .map_err(|e| transform_transaction_error(self.client, e, true))
     }
 
     /// Update the application using a bare application call.
@@ -284,19 +293,28 @@ impl BareTransactionSender<'_> {
         params: AppClientBareCallParams,
         compilation_params: Option<CompilationParams>,
         send_params: Option<SendParams>,
-    ) -> Result<crate::transactions::SendAppUpdateResult, AppClientError> {
-        let update_params = self
+    ) -> Result<SendAppUpdateResult, AppClientError> {
+        let (update_params, compiled_programs) = self
             .client
             .params()
             .bare()
             .update(params, compilation_params)
             .await?;
 
-        self.client
-            .algorand
+        let mut result = self
+            .client
+            .algorand()
             .send()
             .app_update(update_params, send_params)
             .await
-            .map_err(|e| super::utils::transform_transaction_error(self.client, e, false))
+            .map_err(|e| transform_transaction_error(self.client, e, false))?;
+
+        result.compiled_approval =
+            Some(compiled_programs.approval.compiled_base64_to_bytes.clone());
+        result.compiled_clear = Some(compiled_programs.clear.compiled_base64_to_bytes.clone());
+        result.approval_source_map = compiled_programs.approval.source_map.clone();
+        result.clear_source_map = compiled_programs.clear.source_map.clone();
+
+        Ok(result)
     }
 }

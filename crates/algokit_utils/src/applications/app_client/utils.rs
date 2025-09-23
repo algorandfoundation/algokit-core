@@ -1,7 +1,7 @@
 use super::AppClient;
 use super::error_transformation::extract_logic_error_data;
-use crate::AppClientError;
 use crate::transactions::TransactionSenderError;
+use crate::{AppClientError, TransactionResultError};
 use std::str::FromStr;
 
 fn contains_logic_error(s: &str) -> bool {
@@ -23,7 +23,7 @@ pub fn transform_transaction_error(
                 return AppClientError::TransactionSenderError { source: err };
             }
         }
-        let tx_err = crate::transactions::TransactionResultError::ParsingError {
+        let tx_err = TransactionResultError::ParsingError {
             message: err_str.clone(),
         };
         let logic = client.expose_logic_error(&tx_err, is_clear_state_program);

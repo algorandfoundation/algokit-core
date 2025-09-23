@@ -55,7 +55,7 @@ pub async fn build_app_fixture(
     let client = AppClient::new(AppClientParams {
         app_id,
         app_spec: spec.clone(),
-        algorand,
+        algorand: algorand.into(),
         app_name: opts.app_name.clone(),
         default_sender: Some(
             opts.default_sender_override

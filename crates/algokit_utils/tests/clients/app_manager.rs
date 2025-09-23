@@ -490,7 +490,6 @@ fn test_abi_type_box_value_methods() {
     // ABIType-based methods (get_box_value_from_abi_type, get_box_values_from_abi_type):
     //    - Take ABIType directly as parameter
     //    - Return ABIValue directly
-    //    - Simpler API that matches TypeScript/Python implementations
     //    - Ideal for box data decoding based on actual storage format
 
     // Create a simple uint64 ABI type for testing

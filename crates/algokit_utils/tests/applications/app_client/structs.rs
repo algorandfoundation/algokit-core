@@ -41,7 +41,7 @@ async fn test_nested_structs_described_by_structure(
         algokit_utils::applications::app_client::AppClientParams {
             app_id,
             app_spec: spec,
-            algorand,
+            algorand: algorand.into(),
             app_name: None,
             default_sender: Some(sender.to_string()),
             default_signer: None,
@@ -151,7 +151,7 @@ async fn test_nested_structs_referenced_by_name(
         algokit_utils::applications::app_client::AppClientParams {
             app_id,
             app_spec: spec,
-            algorand,
+            algorand: algorand.into(),
             app_name: None,
             default_sender: Some(sender.to_string()),
             default_signer: None,

@@ -667,6 +667,16 @@ impl Arc56Contract {
         self.to_abi_method(arc56_method)
     }
 
+    /// Get decoded TEAL sources (approval, clear) from the optional `source` field
+    pub fn decoded_teal(&self) -> Result<(String, String), ABIError> {
+        let src = self.source.as_ref().ok_or(ABIError::ValidationError {
+            message: "Missing source in ARC-56 contract".to_string(),
+        })?;
+        let approval = src.get_decoded_approval()?;
+        let clear = src.get_decoded_clear()?;
+        Ok((approval, clear))
+    }
+
     pub fn get_global_abi_storage_key(&self, key_name: &str) -> Result<ABIStorageKey, ABIError> {
         let storage_key = self.state.keys.global_state.get(key_name).ok_or_else(|| {
             ABIError::ValidationError {

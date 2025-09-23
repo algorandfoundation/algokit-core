@@ -78,6 +78,10 @@ pub struct SendAppUpdateResult {
     pub compiled_approval: Option<Vec<u8>>,
     /// The compiled clear state program (if provided)
     pub compiled_clear: Option<Vec<u8>>,
+    /// The approval program source map (if available)
+    pub approval_source_map: Option<serde_json::Value>,
+    /// The clear program source map (if available)
+    pub clear_source_map: Option<serde_json::Value>,
 }
 
 /// Result of sending an app call transaction.
@@ -317,12 +321,16 @@ impl SendAppUpdateResult {
         abi_return: Option<ABIReturn>,
         compiled_approval: Option<Vec<u8>>,
         compiled_clear: Option<Vec<u8>>,
+        approval_source_map: Option<serde_json::Value>,
+        clear_source_map: Option<serde_json::Value>,
     ) -> Self {
         SendAppUpdateResult {
             common_params,
             abi_return,
             compiled_approval,
             compiled_clear,
+            approval_source_map,
+            clear_source_map,
         }
     }
 }

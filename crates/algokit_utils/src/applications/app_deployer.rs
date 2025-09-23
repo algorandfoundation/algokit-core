@@ -434,7 +434,8 @@ impl AppDeployer {
 
         // Check for changes
         let is_update = self.is_program_different(&approval_bytes, &clear_bytes, &existing_app)?;
-        let is_schema_break = self.is_schema_break(&create_params, &existing_app)?;
+        let is_schema_break =
+            self.is_schema_break(&create_params, &existing_app, &approval_bytes, &clear_bytes)?;
 
         if is_schema_break {
             self.handle_schema_break(
@@ -496,7 +497,7 @@ impl AppDeployer {
                     ),
                 })?;
 
-        // Query indexer for apps created by this address
+        // Query indexer for apps created by this address; localnet-only retry to allow catch-up
         let created_apps_response = indexer
             .lookup_account_created_applications(&creator_address_str, None, Some(true), None, None)
             .await
@@ -645,17 +646,18 @@ impl AppDeployer {
     ) -> Result<(Vec<u8>, Vec<u8>), AppDeployError> {
         let approval_bytes = match approval_program {
             AppProgram::Teal(code) => {
-                let deployment_metadata_for_compilation = DeploymentMetadata {
+                let metadata = DeploymentMetadata {
                     updatable: deployment_metadata.updatable,
                     deletable: deployment_metadata.deletable,
                 };
+                let metadata_opt = if metadata.updatable.is_some() || metadata.deletable.is_some() {
+                    Some(&metadata)
+                } else {
+                    None
+                };
                 let compiled = self
                     .app_manager
-                    .compile_teal_template(
-                        code,
-                        deploy_time_params,
-                        Some(&deployment_metadata_for_compilation),
-                    )
+                    .compile_teal_template(code, deploy_time_params, metadata_opt)
                     .await
                     .map_err(|e| AppDeployError::AppManagerError { source: e })?;
                 compiled.compiled_base64_to_bytes
@@ -705,20 +707,22 @@ impl AppDeployer {
         &self,
         create_params: &CreateParams,
         existing_app: &AppInformation,
+        approval_program: &[u8],
+        clear_state_program: &[u8],
     ) -> Result<bool, AppDeployError> {
-        let (new_global_schema, new_local_schema, new_extra_pages) = match create_params {
+        let (new_global_schema, new_local_schema) = match create_params {
             CreateParams::AppCreateCall(params) => (
                 params.global_state_schema.as_ref(),
                 params.local_state_schema.as_ref(),
-                params.extra_program_pages.unwrap_or(0),
             ),
             CreateParams::AppCreateMethodCall(params) => (
                 params.global_state_schema.as_ref(),
                 params.local_state_schema.as_ref(),
-                params.extra_program_pages.unwrap_or(0),
             ),
         };
 
+        let new_extra_pages =
+            Self::calculate_extra_program_pages(approval_program, clear_state_program);
         let global_ints_break =
             new_global_schema.is_some_and(|schema| schema.num_uints > existing_app.global_ints);
         let global_bytes_break = new_global_schema
@@ -883,6 +887,8 @@ impl AppDeployer {
     ) -> Result<AppDeployResult, AppDeployError> {
         let result = match create_params {
             CreateParams::AppCreateCall(params) => {
+                let computed_extra_pages =
+                    Self::calculate_extra_program_pages(approval_program, clear_state_program);
                 let app_create_params = AppCreateParams {
                     sender: params.sender.clone(),
                     signer: params.signer.clone(),
@@ -900,7 +906,7 @@ impl AppDeployer {
                     clear_state_program: clear_state_program.to_vec(),
                     global_state_schema: params.global_state_schema.clone(),
                     local_state_schema: params.local_state_schema.clone(),
-                    extra_program_pages: params.extra_program_pages,
+                    extra_program_pages: params.extra_program_pages.or(Some(computed_extra_pages)),
                     args: params.args.clone(),
                     account_references: params.account_references.clone(),
                     app_references: params.app_references.clone(),
@@ -913,6 +919,8 @@ impl AppDeployer {
                     .map_err(|e| AppDeployError::TransactionSenderError { source: e })?
             }
             CreateParams::AppCreateMethodCall(params) => {
+                let computed_extra_pages =
+                    Self::calculate_extra_program_pages(approval_program, clear_state_program);
                 let app_create_method_params = AppCreateMethodCallParams {
                     sender: params.sender.clone(),
                     signer: params.signer.clone(),
@@ -930,7 +938,7 @@ impl AppDeployer {
                     clear_state_program: clear_state_program.to_vec(),
                     global_state_schema: params.global_state_schema.clone(),
                     local_state_schema: params.local_state_schema.clone(),
-                    extra_program_pages: params.extra_program_pages,
+                    extra_program_pages: params.extra_program_pages.or(Some(computed_extra_pages)),
                     method: params.method.clone(),
                     args: params.args.clone(),
                     account_references: params.account_references.clone(),
@@ -1133,6 +1141,8 @@ impl AppDeployer {
         // Add create transaction
         match create_params {
             CreateParams::AppCreateCall(params) => {
+                let computed_extra_pages =
+                    Self::calculate_extra_program_pages(approval_program, clear_state_program);
                 let app_create_params = AppCreateParams {
                     sender: params.sender.clone(),
                     signer: params.signer.clone(),
@@ -1150,7 +1160,7 @@ impl AppDeployer {
                     clear_state_program: clear_state_program.to_vec(),
                     global_state_schema: params.global_state_schema.clone(),
                     local_state_schema: params.local_state_schema.clone(),
-                    extra_program_pages: params.extra_program_pages,
+                    extra_program_pages: params.extra_program_pages.or(Some(computed_extra_pages)),
                     args: params.args.clone(),
                     account_references: params.account_references.clone(),
                     app_references: params.app_references.clone(),
@@ -1162,6 +1172,8 @@ impl AppDeployer {
                     .map_err(|e| AppDeployError::ComposerError { source: e })?;
             }
             CreateParams::AppCreateMethodCall(params) => {
+                let computed_extra_pages =
+                    Self::calculate_extra_program_pages(approval_program, clear_state_program);
                 let app_create_method_params = AppCreateMethodCallParams {
                     sender: params.sender.clone(),
                     signer: params.signer.clone(),
@@ -1179,7 +1191,7 @@ impl AppDeployer {
                     clear_state_program: clear_state_program.to_vec(),
                     global_state_schema: params.global_state_schema.clone(),
                     local_state_schema: params.local_state_schema.clone(),
-                    extra_program_pages: params.extra_program_pages,
+                    extra_program_pages: params.extra_program_pages.or(Some(computed_extra_pages)),
                     method: params.method.clone(),
                     args: params.args.clone(),
                     account_references: params.account_references.clone(),
@@ -1286,5 +1298,16 @@ impl AppDeployer {
             app: app_metadata,
             result,
         })
+    }
+
+    /// Calculate minimum number of extra program pages required to fit the programs.
+    fn calculate_extra_program_pages(approval: &[u8], clear: &[u8]) -> u32 {
+        let total = approval.len().saturating_add(clear.len());
+        if total == 0 {
+            return 0;
+        }
+        let page_size = algokit_transact::PROGRAM_PAGE_SIZE;
+        let pages = ((total - 1) / page_size) as u32;
+        std::cmp::min(pages, algokit_transact::MAX_EXTRA_PROGRAM_PAGES)
     }
 }

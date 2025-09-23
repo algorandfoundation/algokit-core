@@ -17,17 +17,11 @@ pub struct AppSourceMaps {
 }
 
 /// Parameters required to construct an AppClient instance.
-// Important: do NOT derive Clone for this struct while it contains `AlgorandClient`.
-// `AlgorandClient` is intentionally non-Clone: it owns live HTTP clients, internal caches,
-// and shared mutable state (e.g., signer registry via Arc<Mutex<_>>). Forcing Clone here
-// would either require making `AlgorandClient` Clone or wrapping it in Arc implicitly,
-// which encourages accidental copying of a process-wide client and confusing ownership/
-// lifetime semantics. If you need to share the client, wrap it in Arc at the call site
-// and pass that explicitly, rather than deriving Clone on this params type.
+#[derive(Clone)]
 pub struct AppClientParams {
     pub app_id: u64,
     pub app_spec: Arc56Contract,
-    pub algorand: AlgorandClient,
+    pub algorand: Arc<AlgorandClient>,
     pub app_name: Option<String>,
     pub default_sender: Option<String>,
     pub default_signer: Option<Arc<dyn TransactionSigner>>,
@@ -41,7 +35,7 @@ pub struct FundAppAccountParams {
     pub amount: u64,
     pub sender: Option<String>,
     #[debug(skip)]
-    pub signer: Option<std::sync::Arc<dyn TransactionSigner>>,
+    pub signer: Option<Arc<dyn TransactionSigner>>,
     pub rekey_to: Option<String>,
     pub note: Option<Vec<u8>>,
     pub lease: Option<[u8; 32]>,
@@ -61,7 +55,7 @@ pub struct AppClientMethodCallParams {
     pub args: Vec<AppMethodCallArg>,
     pub sender: Option<String>,
     #[debug(skip)]
-    pub signer: Option<std::sync::Arc<dyn TransactionSigner>>,
+    pub signer: Option<Arc<dyn TransactionSigner>>,
     pub rekey_to: Option<String>,
     pub note: Option<Vec<u8>>,
     pub lease: Option<[u8; 32]>,
@@ -83,7 +77,7 @@ pub struct AppClientBareCallParams {
     pub args: Option<Vec<Vec<u8>>>,
     pub sender: Option<String>,
     #[debug(skip)]
-    pub signer: Option<std::sync::Arc<dyn TransactionSigner>>,
+    pub signer: Option<Arc<dyn TransactionSigner>>,
     pub rekey_to: Option<String>,
     pub note: Option<Vec<u8>>,
     pub lease: Option<[u8; 32]>,

@@ -16,8 +16,7 @@ pub struct BulkAssetOptInOutResult {
 
 /// Information about an Algorand Standard Asset (ASA).
 ///
-/// This type provides a flattened, developer-friendly interface to asset information
-/// that aligns with TypeScript and Python implementations.
+/// This type provides a flattened, developer-friendly interface to asset information.
 #[derive(Debug, Clone)]
 pub struct AssetInformation {
     /// The ID of the asset.

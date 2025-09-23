@@ -10,6 +10,7 @@ pub mod test_account;
 
 use algokit_abi::Arc56Contract;
 use algokit_utils::AppCreateParams;
+use algokit_utils::applications::app_factory;
 use algokit_utils::clients::app_manager::{
     AppManager, DeploymentMetadata, TealTemplateParams, TealTemplateValue,
 };
