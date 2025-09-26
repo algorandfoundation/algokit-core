@@ -1,8 +1,9 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 
 import { writeFileSync, mkdirSync } from "fs";
 import { join, dirname } from "path";
 import SwaggerParser from "@apidevtools/swagger-parser";
+import { fileURLToPath } from "node:url";
 
 // ===== TYPES =====
 
@@ -40,6 +41,11 @@ interface FieldTransform {
   addItems?: Record<string, any>; // properties to add to the target property, e.g., {"x-custom": true}
 }
 
+interface MsgpackOnlyEndpoint {
+  path: string; // Exact path to match (e.g., "/v2/blocks/{round}")
+  methods?: string[]; // HTTP methods to apply to (default: ["get"])
+}
+
 interface ProcessingConfig {
   sourceUrl: string;
   outputPath: string;
@@ -48,6 +54,7 @@ interface ProcessingConfig {
   vendorExtensionTransforms?: VendorExtensionTransform[];
   requiredFieldTransforms?: RequiredFieldTransform[];
   fieldTransforms?: FieldTransform[];
+  msgpackOnlyEndpoints?: MsgpackOnlyEndpoint[];
 }
 
 // ===== TRANSFORMATIONS =====
@@ -295,6 +302,9 @@ function fixBigInt(spec: OpenAPISpec): number {
     { fieldName: "last-round" },
     { fieldName: "confirmed-round" },
     { fieldName: "asset-id" },
+    { fieldName: "created-application-index" },
+    { fieldName: "created-asset-index" },
+    { fieldName: "txn-index" },
     { fieldName: "application-index" },
     { fieldName: "asset-index" },
     { fieldName: "current_round" },
@@ -467,6 +477,113 @@ function transformRequiredFields(spec: OpenAPISpec, requiredFieldTransforms: Req
   return transformedCount;
 }
 
+/**
+ * Enforce msgpack-only format for specific endpoints by removing JSON support
+ *
+ * This function modifies endpoints to only support msgpack format, aligning with
+ * Go and JavaScript SDK implementations that hardcode these endpoints to msgpack.
+ */
+function enforceMsgpackOnlyEndpoints(spec: OpenAPISpec, endpoints: MsgpackOnlyEndpoint[]): number {
+  let modifiedCount = 0;
+
+  if (!spec.paths || !endpoints?.length) {
+    return modifiedCount;
+  }
+
+  for (const endpoint of endpoints) {
+    const pathObj = spec.paths[endpoint.path];
+    if (!pathObj) {
+      console.warn(`⚠️  Path ${endpoint.path} not found in spec`);
+      continue;
+    }
+
+    const methods = endpoint.methods || ["get"];
+
+    for (const method of methods) {
+      const operation = pathObj[method];
+      if (!operation) {
+        continue;
+      }
+
+      // Look for format parameter in query parameters
+      if (operation.parameters && Array.isArray(operation.parameters)) {
+        for (const param of operation.parameters) {
+          // Handle both inline parameters and $ref parameters
+          const paramObj = param.$ref ? resolveRef(spec, param.$ref) : param;
+
+          if (paramObj && paramObj.name === "format" && paramObj.in === "query") {
+            // OpenAPI 3.0 has schema property containing the type information
+            const schemaObj = paramObj.schema || paramObj;
+
+            // Check if it has an enum with both json and msgpack
+            if (schemaObj.enum && Array.isArray(schemaObj.enum)) {
+              if (schemaObj.enum.includes("json") && schemaObj.enum.includes("msgpack")) {
+                // Remove json from enum, keep only msgpack
+                schemaObj.enum = ["msgpack"];
+                // Update default if it was json
+                if (schemaObj.default === "json") {
+                  schemaObj.default = "msgpack";
+                }
+                // Don't modify the description - preserve original documentation
+                modifiedCount++;
+                console.log(`ℹ️  Enforced msgpack-only for ${endpoint.path} (${method}) parameter`);
+              }
+            } else if (schemaObj.type === "string" && !schemaObj.enum) {
+              // If no enum is specified, add one with only msgpack
+              schemaObj.enum = ["msgpack"];
+              schemaObj.default = "msgpack";
+              // Don't modify the description - preserve original documentation
+              modifiedCount++;
+              console.log(`ℹ️  Enforced msgpack-only for ${endpoint.path} (${method}) parameter`);
+            }
+          }
+        }
+      }
+
+      // Also check for format in response content types
+      if (operation.responses) {
+        for (const [statusCode, response] of Object.entries(operation.responses)) {
+          if (response && typeof response === "object") {
+            const responseObj = response as any;
+
+            // If response has content with both json and msgpack, remove json
+            if (responseObj.content) {
+              if (responseObj.content["application/json"] && responseObj.content["application/msgpack"]) {
+                delete responseObj.content["application/json"];
+                modifiedCount++;
+                console.log(`ℹ️  Removed JSON response content-type for ${endpoint.path} (${method}) - ${statusCode}`);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return modifiedCount;
+}
+
+/**
+ * Helper function to resolve $ref references in the spec
+ */
+function resolveRef(spec: OpenAPISpec, ref: string): any {
+  if (!ref.startsWith("#/")) {
+    return null;
+  }
+
+  const parts = ref.substring(2).split("/");
+  let current: any = spec;
+
+  for (const part of parts) {
+    current = current?.[part];
+    if (!current) {
+      return null;
+    }
+  }
+
+  return current;
+}
+
 // ===== MAIN PROCESSOR =====
 
 class OpenAPIProcessor {
@@ -600,12 +717,12 @@ class OpenAPIProcessor {
         console.log(`ℹ️  Transformed ${transformedFieldsCount} required field states`);
       }
 
-       // 7. Transform properties if configured
-       let transformedPropertiesCount = 0;
-       if (this.config.fieldTransforms && this.config.fieldTransforms.length > 0) {
-         transformedPropertiesCount = transformProperties(spec, this.config.fieldTransforms);
-         console.log(`ℹ️  Applied ${transformedPropertiesCount} property transformations (additions/removals)`);
-       }
+      // 7. Transform properties if configured
+      let transformedPropertiesCount = 0;
+      if (this.config.fieldTransforms && this.config.fieldTransforms.length > 0) {
+        transformedPropertiesCount = transformProperties(spec, this.config.fieldTransforms);
+        console.log(`ℹ️  Applied ${transformedPropertiesCount} property transformations (additions/removals)`);
+      }
 
       // 8. Transform vendor extensions if configured
       if (this.config.vendorExtensionTransforms && this.config.vendorExtensionTransforms.length > 0) {
@@ -620,6 +737,12 @@ class OpenAPIProcessor {
             console.log(`ℹ️  Transformed ${count} ${sourceProperty}: ${sourceValue} to ${transform.targetProperty}`);
           }
         }
+      }
+
+      // 9. Enforce msgpack-only endpoints if configured
+      if (this.config.msgpackOnlyEndpoints && this.config.msgpackOnlyEndpoints.length > 0) {
+        const msgpackCount = enforceMsgpackOnlyEndpoints(spec, this.config.msgpackOnlyEndpoints);
+        console.log(`ℹ️  Enforced msgpack-only format for ${msgpackCount} endpoint parameters/responses`);
       }
 
       // Save the processed spec
@@ -768,6 +891,16 @@ async function processAlgodSpec() {
         removeSource: true,
       },
     ],
+    msgpackOnlyEndpoints: [
+      // Align with Go and JS SDKs that hardcode these to msgpack
+      { path: "/v2/blocks/{round}", methods: ["get"] },
+      { path: "/v2/transactions/pending", methods: ["get"] },
+      { path: "/v2/transactions/pending/{txid}", methods: ["get"] },
+      { path: "/v2/accounts/{address}/transactions/pending", methods: ["get"] },
+      { path: "/v2/deltas/{round}", methods: ["get"] },
+      { path: "/v2/deltas/txn/group/{id}", methods: ["get"] },
+      { path: "/v2/deltas/{round}/txn/group", methods: ["get"] },
+    ],
   };
 
   await processAlgorandSpec(config);
@@ -871,6 +1004,7 @@ async function main() {
 }
 
 // Run if this is the main module
-if (import.meta.main) {
-  main();
+const isMain = process.argv[1] && process.argv[1] === fileURLToPath(import.meta.url);
+if (isMain) {
+  void main();
 }

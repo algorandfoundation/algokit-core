@@ -4239,11 +4239,13 @@
           },
           "created-application-index": {
             "type": "integer",
-            "description": "Specifies an application index (ID) if an application was created with this transaction."
+            "description": "Specifies an application index (ID) if an application was created with this transaction.",
+            "x-algokit-bigint": true
           },
           "created-asset-index": {
             "type": "integer",
-            "description": "Specifies an asset index (ID) if an asset was created with this transaction."
+            "description": "Specifies an asset index (ID) if an asset was created with this transaction.",
+            "x-algokit-bigint": true
           },
           "fee": {
             "type": "integer",

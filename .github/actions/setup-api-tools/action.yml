@@ -1,5 +1,11 @@
 name: 'Setup API Tools'
-description: 'Setup Rust, Bun, and Python dependencies for API tools'
+description: 'Setup Rust and Python dependencies for API tools'
+
+inputs:
+  setup_algokit:
+    description: 'Whether to install and start algokit localnet'
+    required: false
+    default: 'false'
 
 runs:
   using: 'composite'
@@ -9,19 +15,20 @@ runs:
         toolchain: 1.85.0
         components: rustfmt
     
-    - uses: oven-sh/setup-bun@v2
-      with:
-        bun-version: latest
-    
     - name: Install uv
       uses: astral-sh/setup-uv@v5
-    
-    - name: Install bun dependencies
-      working-directory: api
-      shell: bash
-      run: bun install
     
     - name: Install uv dependencies
       working-directory: api/oas_generator
       shell: bash
       run: uv sync --extra dev
+
+    - name: Optionally install algokit
+      if: ${{ inputs.setup_algokit == 'true' }}
+      shell: bash
+      run: uv tool install algokit
+
+    - name: Optionally start localnet
+      if: ${{ inputs.setup_algokit == 'true' }}
+      shell: bash
+      run: algokit localnet start

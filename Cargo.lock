@@ -245,6 +245,7 @@ dependencies = [
  "clap",
  "color-eyre",
  "duct",
+ "once_cell",
  "shlex",
 ]
 

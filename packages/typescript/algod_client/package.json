@@ -25,7 +25,7 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "run-s build:*",
+    "build": "run-s lint build:*",
     "build-watch": "rolldown --watch -c",
     "build:0-clean": "rimraf dist coverage",
     "build:1-compile": "rolldown -c",
@@ -33,14 +33,16 @@
     "build:4-copy-readme": "cpy  README.md dist",
     "test": "vitest run --coverage --passWithNoTests",
     "test:watch": "vitest watch --coverage --passWithNoTests",
-    "lint": "eslint ./src/",
+    "lint": "eslint ./src/ --max-warnings=0",
     "lint:fix": "eslint ./src/ --fix",
     "check-types": "tsc --noEmit",
     "audit": "better-npm-audit audit",
     "format": "prettier --config ../.prettierrc.cjs --ignore-path ../../../.prettierignore --write .",
     "pre-commit": "run-s check-types audit test"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@algorandfoundation/algokit-transact": "../algokit_transact/dist"
+  },
   "peerDependencies": {},
   "devDependencies": {}
 }

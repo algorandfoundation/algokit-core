@@ -130,5 +130,5 @@ disallow_any_generics = false
 implicit_reexport = false
 show_error_codes = true
 
-[tool.uv]
-dev-dependencies = ["mypy>=1.14.1", "pytest>=8.3.5", "ruff>=0.12.0"]
+[dependency-groups]
+dev = ["mypy>=1.14.1", "pytest>=8.3.5", "ruff>=0.12.0"]

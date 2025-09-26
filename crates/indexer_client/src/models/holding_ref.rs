@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
 
 /// HoldingRef names a holding by referring to an Address and Asset it belongs to.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct HoldingRef {
     /// \[d\] Address in access list, or the sender of the transaction.
     #[serde(rename = "address")]

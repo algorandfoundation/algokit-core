@@ -16,6 +16,7 @@ use crate::models::LocalsRef;
 
 /// ResourceRef names a single resource. Only one of the fields should be set.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct ResourceRef {
     /// \[d\] Account whose balance record is accessible by the executing ApprovalProgram or ClearStateProgram.
     #[serde(rename = "address", skip_serializing_if = "Option::is_none")]

@@ -1,4 +1,5 @@
-import type { BaseHttpRequest, ApiRequestOptions } from "../core/BaseHttpRequest";
+import type { BaseHttpRequest, ApiRequestOptions } from '../core/base-http-request'
+import { AlgorandSerializer } from '../core/model-runtime'
 import type {
   AbortCatchup,
   Account,
@@ -41,7 +42,50 @@ import type {
   TransactionProof,
   Version,
   WaitForBlock,
-} from "../models/index";
+} from '../models/index'
+import {
+  AbortCatchupMeta,
+  AccountMeta,
+  AccountApplicationInformationMeta,
+  AccountAssetInformationMeta,
+  AccountAssetsInformationMeta,
+  AddParticipationKeyMeta,
+  ApplicationMeta,
+  AssetMeta,
+  BoxMeta,
+  DebugSettingsProfMeta,
+  DryrunRequestMeta,
+  GenesisMeta,
+  GetApplicationBoxesMeta,
+  GetBlockMeta,
+  GetBlockHashMeta,
+  GetBlockLogsMeta,
+  GetBlockTimeStampOffsetMeta,
+  GetBlockTxidsMeta,
+  GetPendingTransactionsMeta,
+  GetPendingTransactionsByAddressMeta,
+  GetStatusMeta,
+  GetSupplyMeta,
+  GetSyncRoundMeta,
+  GetTransactionGroupLedgerStateDeltasForRoundMeta,
+  LedgerStateDeltaMeta,
+  LightBlockHeaderProofMeta,
+  ParticipationKeyMeta,
+  PendingTransactionResponseMeta,
+  RawTransactionMeta,
+  ShutdownNodeMeta,
+  SimulateRequestMeta,
+  SimulateTransactionMeta,
+  StartCatchupMeta,
+  StateProofMeta,
+  TealCompileMeta,
+  TealDisassembleMeta,
+  TealDryrunMeta,
+  TransactionParamsMeta,
+  TransactionProofMeta,
+  VersionMeta,
+  WaitForBlockMeta,
+} from '../models/index'
 
 export class AlgodApi {
   constructor(public readonly httpRequest: BaseHttpRequest) {}
@@ -49,876 +93,1158 @@ export class AlgodApi {
   /**
    * Given a catchpoint, it aborts catching up to this catchpoint
    */
-  abortCatchup(catchpoint: string, requestOptions?: ApiRequestOptions): Promise<AbortCatchup> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async abortCatchup(catchpoint: string, requestOptions?: ApiRequestOptions): Promise<AbortCatchup> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "DELETE",
-      url: "/v2/catchup/{catchpoint}",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'DELETE',
+      url: '/v2/catchup/{catchpoint}',
       path: { catchpoint: catchpoint },
       query: {},
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = AbortCatchupMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as AbortCatchup
   }
 
   /**
    * Given a specific account public key and application ID, this call returns the account's application local state and global state (AppLocalState and AppParams, if either exists). Global state will only be returned if the provided address is the application's creator.
    */
-  accountApplicationInformation(
+  async accountApplicationInformation(
     address: string,
     applicationId: number | bigint,
-    params?: { format?: "json" | "msgpack" },
+    params?: { format?: 'json' | 'msgpack' },
     requestOptions?: ApiRequestOptions,
   ): Promise<AccountApplicationInformation> {
-    const headers: Record<string, string> = {};
-    // Content negotiation (aligned with Rust behavior):
-    // - Default to msgpack when available (better performance, smaller payload)
-    // - Only use JSON if explicitly requested via format=json
-    const useJson = params?.format === "json";
-    headers["Accept"] = useJson ? "application/json" : "application/msgpack";
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = (params?.format as 'json' | 'msgpack' | undefined) ?? 'msgpack'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/v2/accounts/{address}/applications/{application-id}",
-      path: { address: address, "application-id": typeof applicationId === "bigint" ? applicationId.toString() : applicationId },
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/v2/accounts/{address}/applications/{application-id}',
+      path: { address: address, 'application-id': typeof applicationId === 'bigint' ? applicationId.toString() : applicationId },
       query: { format: params?.format },
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = AccountApplicationInformationMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as AccountApplicationInformation
   }
 
   /**
    * Given a specific account public key and asset ID, this call returns the account's asset holding and asset parameters (if either exist). Asset parameters will only be returned if the provided address is the asset's creator.
    */
-  accountAssetInformation(
+  async accountAssetInformation(
     address: string,
     assetId: number | bigint,
-    params?: { format?: "json" | "msgpack" },
+    params?: { format?: 'json' | 'msgpack' },
     requestOptions?: ApiRequestOptions,
   ): Promise<AccountAssetInformation> {
-    const headers: Record<string, string> = {};
-    // Content negotiation (aligned with Rust behavior):
-    // - Default to msgpack when available (better performance, smaller payload)
-    // - Only use JSON if explicitly requested via format=json
-    const useJson = params?.format === "json";
-    headers["Accept"] = useJson ? "application/json" : "application/msgpack";
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = (params?.format as 'json' | 'msgpack' | undefined) ?? 'msgpack'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/v2/accounts/{address}/assets/{asset-id}",
-      path: { address: address, "asset-id": typeof assetId === "bigint" ? assetId.toString() : assetId },
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/v2/accounts/{address}/assets/{asset-id}',
+      path: { address: address, 'asset-id': typeof assetId === 'bigint' ? assetId.toString() : assetId },
       query: { format: params?.format },
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = AccountAssetInformationMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as AccountAssetInformation
   }
 
   /**
    * Lookup an account's asset holdings.
    */
-  accountAssetsInformation(
+  async accountAssetsInformation(
     address: string,
     params?: { limit?: number | bigint; next?: string },
     requestOptions?: ApiRequestOptions,
   ): Promise<AccountAssetsInformation> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/v2/accounts/{address}/assets",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/v2/accounts/{address}/assets',
       path: { address: address },
-      query: { limit: typeof params?.limit === "bigint" ? (params!.limit as bigint).toString() : params?.limit, next: params?.next },
+      query: { limit: typeof params?.limit === 'bigint' ? (params!.limit as bigint).toString() : params?.limit, next: params?.next },
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = AccountAssetsInformationMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as AccountAssetsInformation
   }
 
   /**
    * Given a specific account public key, this call returns the account's status, balance and spendable amounts
    */
-  accountInformation(
+  async accountInformation(
     address: string,
-    params?: { exclude?: "all" | "none"; format?: "json" | "msgpack" },
+    params?: { exclude?: 'all' | 'none'; format?: 'json' | 'msgpack' },
     requestOptions?: ApiRequestOptions,
   ): Promise<Account> {
-    const headers: Record<string, string> = {};
-    // Content negotiation (aligned with Rust behavior):
-    // - Default to msgpack when available (better performance, smaller payload)
-    // - Only use JSON if explicitly requested via format=json
-    const useJson = params?.format === "json";
-    headers["Accept"] = useJson ? "application/json" : "application/msgpack";
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = (params?.format as 'json' | 'msgpack' | undefined) ?? 'msgpack'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/v2/accounts/{address}",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/v2/accounts/{address}',
       path: { address: address },
       query: { exclude: params?.exclude, format: params?.format },
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = AccountMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as Account
   }
 
-  addParticipationKey(params?: { body: string }, requestOptions?: ApiRequestOptions): Promise<AddParticipationKey> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
-    headers["Content-Type"] = "application/msgpack";
+  async addParticipationKey(params?: { body: string }, requestOptions?: ApiRequestOptions): Promise<AddParticipationKey> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'msgpack'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const bodyMeta = undefined
+    const mediaType = bodyMeta ? (responseFormat === 'json' ? 'application/json' : 'application/msgpack') : undefined
+    if (mediaType) headers['Content-Type'] = mediaType
+    const serializedBody =
+      bodyMeta && params?.body !== undefined ? AlgorandSerializer.encode(params.body, bodyMeta, responseFormat) : params?.body
 
-    return this.httpRequest.request({
-      method: "POST",
-      url: "/v2/participation",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'POST',
+      url: '/v2/participation',
       path: {},
       query: {},
       headers,
-      body: params?.body,
-      // Only msgpack supported for request body
-      mediaType: "application/msgpack",
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = AddParticipationKeyMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as AddParticipationKey
   }
 
   /**
    * Given a participation ID, append state proof keys to a particular set of participation keys
    */
-  appendKeys(participationId: string, params?: { body: string }, requestOptions?: ApiRequestOptions): Promise<ParticipationKey> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
-    headers["Content-Type"] = "application/msgpack";
+  async appendKeys(participationId: string, params?: { body: string }, requestOptions?: ApiRequestOptions): Promise<ParticipationKey> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'msgpack'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const bodyMeta = undefined
+    const mediaType = bodyMeta ? (responseFormat === 'json' ? 'application/json' : 'application/msgpack') : undefined
+    if (mediaType) headers['Content-Type'] = mediaType
+    const serializedBody =
+      bodyMeta && params?.body !== undefined ? AlgorandSerializer.encode(params.body, bodyMeta, responseFormat) : params?.body
 
-    return this.httpRequest.request({
-      method: "POST",
-      url: "/v2/participation/{participation-id}",
-      path: { "participation-id": participationId },
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'POST',
+      url: '/v2/participation/{participation-id}',
+      path: { 'participation-id': participationId },
       query: {},
       headers,
-      body: params?.body,
-      // Only msgpack supported for request body
-      mediaType: "application/msgpack",
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = ParticipationKeyMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as ParticipationKey
   }
 
   /**
    * Delete a given participation key by ID
    */
-  deleteParticipationKeyById(participationId: string, requestOptions?: ApiRequestOptions): Promise<void> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async deleteParticipationKeyById(participationId: string, requestOptions?: ApiRequestOptions): Promise<void> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "DELETE",
-      url: "/v2/participation/{participation-id}",
-      path: { "participation-id": participationId },
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'DELETE',
+      url: '/v2/participation/{participation-id}',
+      path: { 'participation-id': participationId },
       query: {},
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = undefined
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as void
   }
 
-  experimentalCheck(requestOptions?: ApiRequestOptions): Promise<void> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async experimentalCheck(requestOptions?: ApiRequestOptions): Promise<void> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/v2/experimental",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/v2/experimental',
       path: {},
       query: {},
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = undefined
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as void
   }
 
-  generateParticipationKeys(
+  async generateParticipationKeys(
     address: string,
     params?: { dilution?: number | bigint; first: number | bigint; last: number | bigint },
     requestOptions?: ApiRequestOptions,
   ): Promise<string> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "POST",
-      url: "/v2/participation/generate/{address}",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'POST',
+      url: '/v2/participation/generate/{address}',
       path: { address: address },
       query: {
-        dilution: typeof params?.dilution === "bigint" ? (params!.dilution as bigint).toString() : params?.dilution,
-        first: typeof params?.first === "bigint" ? (params!.first as bigint).toString() : params?.first,
-        last: typeof params?.last === "bigint" ? (params!.last as bigint).toString() : params?.last,
+        dilution: typeof params?.dilution === 'bigint' ? (params!.dilution as bigint).toString() : params?.dilution,
+        first: typeof params?.first === 'bigint' ? (params!.first as bigint).toString() : params?.first,
+        last: typeof params?.last === 'bigint' ? (params!.last as bigint).toString() : params?.last,
       },
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = undefined
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as string
   }
 
   /**
    * Given an application ID and box name, it returns the round, box name, and value (each base64 encoded). Box names must be in the goal app call arg encoding form 'encoding:value'. For ints, use the form 'int:1234'. For raw bytes, use the form 'b64:A=='. For printable strings, use the form 'str:hello'. For addresses, use the form 'addr:XYZ...'.
    */
-  getApplicationBoxByName(applicationId: number | bigint, params?: { name: string }, requestOptions?: ApiRequestOptions): Promise<Box> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async getApplicationBoxByName(
+    applicationId: number | bigint,
+    params?: { name: string },
+    requestOptions?: ApiRequestOptions,
+  ): Promise<Box> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/v2/applications/{application-id}/box",
-      path: { "application-id": typeof applicationId === "bigint" ? applicationId.toString() : applicationId },
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/v2/applications/{application-id}/box',
+      path: { 'application-id': typeof applicationId === 'bigint' ? applicationId.toString() : applicationId },
       query: { name: params?.name },
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = BoxMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as Box
   }
 
   /**
    * Given an application ID, return all Box names. No particular ordering is guaranteed. Request fails when client or server-side configured limits prevent returning all Box names.
    */
-  getApplicationBoxes(
+  async getApplicationBoxes(
     applicationId: number | bigint,
     params?: { max?: number | bigint },
     requestOptions?: ApiRequestOptions,
   ): Promise<GetApplicationBoxes> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/v2/applications/{application-id}/boxes",
-      path: { "application-id": typeof applicationId === "bigint" ? applicationId.toString() : applicationId },
-      query: { max: typeof params?.max === "bigint" ? (params!.max as bigint).toString() : params?.max },
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/v2/applications/{application-id}/boxes',
+      path: { 'application-id': typeof applicationId === 'bigint' ? applicationId.toString() : applicationId },
+      query: { max: typeof params?.max === 'bigint' ? (params!.max as bigint).toString() : params?.max },
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = GetApplicationBoxesMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as GetApplicationBoxes
   }
 
   /**
    * Given a application ID, it returns application information including creator, approval and clear programs, global and local schemas, and global state.
    */
-  getApplicationById(applicationId: number | bigint, requestOptions?: ApiRequestOptions): Promise<Application> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async getApplicationById(applicationId: number | bigint, requestOptions?: ApiRequestOptions): Promise<Application> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/v2/applications/{application-id}",
-      path: { "application-id": typeof applicationId === "bigint" ? applicationId.toString() : applicationId },
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/v2/applications/{application-id}',
+      path: { 'application-id': typeof applicationId === 'bigint' ? applicationId.toString() : applicationId },
       query: {},
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = ApplicationMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as Application
   }
 
   /**
    * Given a asset ID, it returns asset information including creator, name, total supply and special addresses.
    */
-  getAssetById(assetId: number | bigint, requestOptions?: ApiRequestOptions): Promise<Asset> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async getAssetById(assetId: number | bigint, requestOptions?: ApiRequestOptions): Promise<Asset> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/v2/assets/{asset-id}",
-      path: { "asset-id": typeof assetId === "bigint" ? assetId.toString() : assetId },
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/v2/assets/{asset-id}',
+      path: { 'asset-id': typeof assetId === 'bigint' ? assetId.toString() : assetId },
       query: {},
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = AssetMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as Asset
   }
 
-  getBlock(
+  async getBlock(
     round: number | bigint,
-    params?: { headerOnly?: boolean; format?: "json" | "msgpack" },
+    params?: { headerOnly?: boolean; format?: 'msgpack' },
     requestOptions?: ApiRequestOptions,
   ): Promise<GetBlock> {
-    const headers: Record<string, string> = {};
-    // Content negotiation (aligned with Rust behavior):
-    // - Default to msgpack when available (better performance, smaller payload)
-    // - Only use JSON if explicitly requested via format=json
-    const useJson = params?.format === "json";
-    headers["Accept"] = useJson ? "application/json" : "application/msgpack";
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = (params?.format as 'json' | 'msgpack' | undefined) ?? 'msgpack'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/v2/blocks/{round}",
-      path: { round: typeof round === "bigint" ? round.toString() : round },
-      query: { "header-only": params?.headerOnly, format: params?.format },
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/v2/blocks/{round}',
+      path: { round: typeof round === 'bigint' ? round.toString() : round },
+      query: { 'header-only': params?.headerOnly, format: params?.format },
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = GetBlockMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as GetBlock
   }
 
-  getBlockHash(round: number | bigint, requestOptions?: ApiRequestOptions): Promise<GetBlockHash> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async getBlockHash(round: number | bigint, requestOptions?: ApiRequestOptions): Promise<GetBlockHash> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/v2/blocks/{round}/hash",
-      path: { round: typeof round === "bigint" ? round.toString() : round },
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/v2/blocks/{round}/hash',
+      path: { round: typeof round === 'bigint' ? round.toString() : round },
       query: {},
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = GetBlockHashMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as GetBlockHash
   }
 
   /**
    * Get all of the logs from outer and inner app calls in the given round
    */
-  getBlockLogs(round: number | bigint, requestOptions?: ApiRequestOptions): Promise<GetBlockLogs> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async getBlockLogs(round: number | bigint, requestOptions?: ApiRequestOptions): Promise<GetBlockLogs> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/v2/blocks/{round}/logs",
-      path: { round: typeof round === "bigint" ? round.toString() : round },
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/v2/blocks/{round}/logs',
+      path: { round: typeof round === 'bigint' ? round.toString() : round },
       query: {},
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = GetBlockLogsMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as GetBlockLogs
   }
 
   /**
    * Gets the current timestamp offset.
    */
-  getBlockTimeStampOffset(requestOptions?: ApiRequestOptions): Promise<GetBlockTimeStampOffset> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async getBlockTimeStampOffset(requestOptions?: ApiRequestOptions): Promise<GetBlockTimeStampOffset> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/v2/devmode/blocks/offset",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/v2/devmode/blocks/offset',
       path: {},
       query: {},
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = GetBlockTimeStampOffsetMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as GetBlockTimeStampOffset
   }
 
-  getBlockTxids(round: number | bigint, requestOptions?: ApiRequestOptions): Promise<GetBlockTxids> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async getBlockTxids(round: number | bigint, requestOptions?: ApiRequestOptions): Promise<GetBlockTxids> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/v2/blocks/{round}/txids",
-      path: { round: typeof round === "bigint" ? round.toString() : round },
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/v2/blocks/{round}/txids',
+      path: { round: typeof round === 'bigint' ? round.toString() : round },
       query: {},
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = GetBlockTxidsMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as GetBlockTxids
   }
 
   /**
    * Returns the merged (defaults + overrides) config file in json.
    */
-  getConfig(requestOptions?: ApiRequestOptions): Promise<string> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async getConfig(requestOptions?: ApiRequestOptions): Promise<string> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/debug/settings/config",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/debug/settings/config',
       path: {},
       query: {},
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = undefined
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as string
   }
 
   /**
    * Retrieves the current settings for blocking and mutex profiles
    */
-  getDebugSettingsProf(requestOptions?: ApiRequestOptions): Promise<DebugSettingsProf> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async getDebugSettingsProf(requestOptions?: ApiRequestOptions): Promise<DebugSettingsProf> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/debug/settings/pprof",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/debug/settings/pprof',
       path: {},
       query: {},
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = DebugSettingsProfMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as DebugSettingsProf
   }
 
   /**
    * Returns the entire genesis file in json.
    */
-  getGenesis(requestOptions?: ApiRequestOptions): Promise<Genesis> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async getGenesis(requestOptions?: ApiRequestOptions): Promise<Genesis> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/genesis",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/genesis',
       path: {},
       query: {},
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = GenesisMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as Genesis
   }
 
   /**
    * Get ledger deltas for a round.
    */
-  getLedgerStateDelta(
+  async getLedgerStateDelta(
     round: number | bigint,
-    params?: { format?: "json" | "msgpack" },
+    params?: { format?: 'msgpack' },
     requestOptions?: ApiRequestOptions,
   ): Promise<LedgerStateDelta> {
-    const headers: Record<string, string> = {};
-    // Content negotiation (aligned with Rust behavior):
-    // - Default to msgpack when available (better performance, smaller payload)
-    // - Only use JSON if explicitly requested via format=json
-    const useJson = params?.format === "json";
-    headers["Accept"] = useJson ? "application/json" : "application/msgpack";
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = (params?.format as 'json' | 'msgpack' | undefined) ?? 'msgpack'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/v2/deltas/{round}",
-      path: { round: typeof round === "bigint" ? round.toString() : round },
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/v2/deltas/{round}',
+      path: { round: typeof round === 'bigint' ? round.toString() : round },
       query: { format: params?.format },
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = LedgerStateDeltaMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as LedgerStateDelta
   }
 
   /**
    * Get a ledger delta for a given transaction group.
    */
-  getLedgerStateDeltaForTransactionGroup(
+  async getLedgerStateDeltaForTransactionGroup(
     id: string,
-    params?: { format?: "json" | "msgpack" },
+    params?: { format?: 'msgpack' },
     requestOptions?: ApiRequestOptions,
   ): Promise<LedgerStateDelta> {
-    const headers: Record<string, string> = {};
-    // Content negotiation (aligned with Rust behavior):
-    // - Default to msgpack when available (better performance, smaller payload)
-    // - Only use JSON if explicitly requested via format=json
-    const useJson = params?.format === "json";
-    headers["Accept"] = useJson ? "application/json" : "application/msgpack";
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = (params?.format as 'json' | 'msgpack' | undefined) ?? 'msgpack'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/v2/deltas/txn/group/{id}",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/v2/deltas/txn/group/{id}',
       path: { id: id },
       query: { format: params?.format },
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = LedgerStateDeltaMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as LedgerStateDelta
   }
 
-  getLightBlockHeaderProof(round: number | bigint, requestOptions?: ApiRequestOptions): Promise<LightBlockHeaderProof> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async getLightBlockHeaderProof(round: number | bigint, requestOptions?: ApiRequestOptions): Promise<LightBlockHeaderProof> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/v2/blocks/{round}/lightheader/proof",
-      path: { round: typeof round === "bigint" ? round.toString() : round },
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/v2/blocks/{round}/lightheader/proof',
+      path: { round: typeof round === 'bigint' ? round.toString() : round },
       query: {},
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = LightBlockHeaderProofMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as LightBlockHeaderProof
   }
 
   /**
    * Given a participation ID, return information about that participation key
    */
-  getParticipationKeyById(participationId: string, requestOptions?: ApiRequestOptions): Promise<ParticipationKey> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async getParticipationKeyById(participationId: string, requestOptions?: ApiRequestOptions): Promise<ParticipationKey> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/v2/participation/{participation-id}",
-      path: { "participation-id": participationId },
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/v2/participation/{participation-id}',
+      path: { 'participation-id': participationId },
       query: {},
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = ParticipationKeyMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as ParticipationKey
   }
 
   /**
    * Return a list of participation keys
    */
-  getParticipationKeys(requestOptions?: ApiRequestOptions): Promise<ParticipationKey[]> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async getParticipationKeys(requestOptions?: ApiRequestOptions): Promise<ParticipationKey[]> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/v2/participation",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/v2/participation',
       path: {},
       query: {},
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = { name: 'ParticipationKey[]', kind: 'array', arrayItems: { kind: 'model', meta: () => ParticipationKeyMeta } }
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as ParticipationKey[]
   }
 
   /**
    * Get the list of pending transactions, sorted by priority, in decreasing order, truncated at the end at MAX. If MAX = 0, returns all pending transactions.
    */
-  getPendingTransactions(
-    params?: { max?: number | bigint; format?: "json" | "msgpack" },
+  async getPendingTransactions(
+    params?: { max?: number | bigint; format?: 'msgpack' },
     requestOptions?: ApiRequestOptions,
   ): Promise<GetPendingTransactions> {
-    const headers: Record<string, string> = {};
-    // Content negotiation (aligned with Rust behavior):
-    // - Default to msgpack when available (better performance, smaller payload)
-    // - Only use JSON if explicitly requested via format=json
-    const useJson = params?.format === "json";
-    headers["Accept"] = useJson ? "application/json" : "application/msgpack";
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = (params?.format as 'json' | 'msgpack' | undefined) ?? 'msgpack'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/v2/transactions/pending",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/v2/transactions/pending',
       path: {},
-      query: { max: typeof params?.max === "bigint" ? (params!.max as bigint).toString() : params?.max, format: params?.format },
+      query: { max: typeof params?.max === 'bigint' ? (params!.max as bigint).toString() : params?.max, format: params?.format },
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = GetPendingTransactionsMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as GetPendingTransactions
   }
 
   /**
    * Get the list of pending transactions by address, sorted by priority, in decreasing order, truncated at the end at MAX. If MAX = 0, returns all pending transactions.
    */
-  getPendingTransactionsByAddress(
+  async getPendingTransactionsByAddress(
     address: string,
-    params?: { max?: number | bigint; format?: "json" | "msgpack" },
+    params?: { max?: number | bigint; format?: 'msgpack' },
     requestOptions?: ApiRequestOptions,
   ): Promise<GetPendingTransactionsByAddress> {
-    const headers: Record<string, string> = {};
-    // Content negotiation (aligned with Rust behavior):
-    // - Default to msgpack when available (better performance, smaller payload)
-    // - Only use JSON if explicitly requested via format=json
-    const useJson = params?.format === "json";
-    headers["Accept"] = useJson ? "application/json" : "application/msgpack";
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = (params?.format as 'json' | 'msgpack' | undefined) ?? 'msgpack'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/v2/accounts/{address}/transactions/pending",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/v2/accounts/{address}/transactions/pending',
       path: { address: address },
-      query: { max: typeof params?.max === "bigint" ? (params!.max as bigint).toString() : params?.max, format: params?.format },
+      query: { max: typeof params?.max === 'bigint' ? (params!.max as bigint).toString() : params?.max, format: params?.format },
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = GetPendingTransactionsByAddressMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as GetPendingTransactionsByAddress
   }
 
-  getReady(requestOptions?: ApiRequestOptions): Promise<void> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async getReady(requestOptions?: ApiRequestOptions): Promise<void> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/ready",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/ready',
       path: {},
       query: {},
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = undefined
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as void
   }
 
-  getStateProof(round: number | bigint, requestOptions?: ApiRequestOptions): Promise<StateProof> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async getStateProof(round: number | bigint, requestOptions?: ApiRequestOptions): Promise<StateProof> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/v2/stateproofs/{round}",
-      path: { round: typeof round === "bigint" ? round.toString() : round },
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/v2/stateproofs/{round}',
+      path: { round: typeof round === 'bigint' ? round.toString() : round },
       query: {},
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = StateProofMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as StateProof
   }
 
-  getStatus(requestOptions?: ApiRequestOptions): Promise<GetStatus> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async getStatus(requestOptions?: ApiRequestOptions): Promise<GetStatus> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/v2/status",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/v2/status',
       path: {},
       query: {},
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = GetStatusMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as GetStatus
   }
 
-  getSupply(requestOptions?: ApiRequestOptions): Promise<GetSupply> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async getSupply(requestOptions?: ApiRequestOptions): Promise<GetSupply> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/v2/ledger/supply",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/v2/ledger/supply',
       path: {},
       query: {},
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = GetSupplyMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as GetSupply
   }
 
   /**
    * Gets the minimum sync round for the ledger.
    */
-  getSyncRound(requestOptions?: ApiRequestOptions): Promise<GetSyncRound> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async getSyncRound(requestOptions?: ApiRequestOptions): Promise<GetSyncRound> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/v2/ledger/sync",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/v2/ledger/sync',
       path: {},
       query: {},
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = GetSyncRoundMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as GetSyncRound
   }
 
   /**
    * Get ledger deltas for transaction groups in a given round.
    */
-  getTransactionGroupLedgerStateDeltasForRound(
+  async getTransactionGroupLedgerStateDeltasForRound(
     round: number | bigint,
-    params?: { format?: "json" | "msgpack" },
+    params?: { format?: 'msgpack' },
     requestOptions?: ApiRequestOptions,
   ): Promise<GetTransactionGroupLedgerStateDeltasForRound> {
-    const headers: Record<string, string> = {};
-    // Content negotiation (aligned with Rust behavior):
-    // - Default to msgpack when available (better performance, smaller payload)
-    // - Only use JSON if explicitly requested via format=json
-    const useJson = params?.format === "json";
-    headers["Accept"] = useJson ? "application/json" : "application/msgpack";
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = (params?.format as 'json' | 'msgpack' | undefined) ?? 'msgpack'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/v2/deltas/{round}/txn/group",
-      path: { round: typeof round === "bigint" ? round.toString() : round },
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/v2/deltas/{round}/txn/group',
+      path: { round: typeof round === 'bigint' ? round.toString() : round },
       query: { format: params?.format },
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = GetTransactionGroupLedgerStateDeltasForRoundMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as GetTransactionGroupLedgerStateDeltasForRound
   }
 
-  getTransactionProof(
+  async getTransactionProof(
     round: number | bigint,
     txid: string,
-    params?: { hashtype?: "sha512_256" | "sha256"; format?: "json" | "msgpack" },
+    params?: { hashtype?: 'sha512_256' | 'sha256'; format?: 'json' | 'msgpack' },
     requestOptions?: ApiRequestOptions,
   ): Promise<TransactionProof> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/v2/blocks/{round}/transactions/{txid}/proof",
-      path: { round: typeof round === "bigint" ? round.toString() : round, txid: txid },
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/v2/blocks/{round}/transactions/{txid}/proof',
+      path: { round: typeof round === 'bigint' ? round.toString() : round, txid: txid },
       query: { hashtype: params?.hashtype, format: params?.format },
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = TransactionProofMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as TransactionProof
   }
 
   /**
    * Retrieves the supported API versions, binary build versions, and genesis information.
    */
-  getVersion(requestOptions?: ApiRequestOptions): Promise<Version> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async getVersion(requestOptions?: ApiRequestOptions): Promise<Version> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/versions",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/versions',
       path: {},
       query: {},
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = VersionMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as Version
   }
 
-  healthCheck(requestOptions?: ApiRequestOptions): Promise<void> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async healthCheck(requestOptions?: ApiRequestOptions): Promise<void> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/health",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/health',
       path: {},
       query: {},
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = undefined
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as void
   }
 
-  metrics(requestOptions?: ApiRequestOptions): Promise<void> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async metrics(requestOptions?: ApiRequestOptions): Promise<void> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/metrics",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/metrics',
       path: {},
       query: {},
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = undefined
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as void
   }
 
   /**
@@ -928,347 +1254,471 @@ export class AlgodApi {
    * - transaction removed from pool due to error (committed round = 0, pool error != "")
    * Or the transaction may have happened sufficiently long ago that the node no longer remembers it, and this will return an error.
    */
-  pendingTransactionInformation(
+  async pendingTransactionInformation(
     txid: string,
-    params?: { format?: "json" | "msgpack" },
+    params?: { format?: 'msgpack' },
     requestOptions?: ApiRequestOptions,
   ): Promise<PendingTransactionResponse> {
-    const headers: Record<string, string> = {};
-    // Content negotiation (aligned with Rust behavior):
-    // - Default to msgpack when available (better performance, smaller payload)
-    // - Only use JSON if explicitly requested via format=json
-    const useJson = params?.format === "json";
-    headers["Accept"] = useJson ? "application/json" : "application/msgpack";
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = (params?.format as 'json' | 'msgpack' | undefined) ?? 'msgpack'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/v2/transactions/pending/{txid}",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/v2/transactions/pending/{txid}',
       path: { txid: txid },
       query: { format: params?.format },
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = PendingTransactionResponseMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as PendingTransactionResponse
   }
 
   /**
    * Enables blocking and mutex profiles, and returns the old settings
    */
-  putDebugSettingsProf(requestOptions?: ApiRequestOptions): Promise<DebugSettingsProf> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async putDebugSettingsProf(requestOptions?: ApiRequestOptions): Promise<DebugSettingsProf> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "PUT",
-      url: "/debug/settings/pprof",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'PUT',
+      url: '/debug/settings/pprof',
       path: {},
       query: {},
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = DebugSettingsProfMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as DebugSettingsProf
   }
 
-  rawTransaction(params?: { body: Uint8Array }, requestOptions?: ApiRequestOptions): Promise<RawTransaction> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
-    headers["Content-Type"] = "application/x-binary";
+  async rawTransaction(params?: { body: Uint8Array }, requestOptions?: ApiRequestOptions): Promise<RawTransaction> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = params?.body ?? undefined
+    const mediaType = 'application/msgpack'
+    headers['Content-Type'] = mediaType
 
-    return this.httpRequest.request({
-      method: "POST",
-      url: "/v2/transactions",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'POST',
+      url: '/v2/transactions',
       path: {},
       query: {},
       headers,
-      body: params?.body,
-      mediaType: "application/x-binary",
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = RawTransactionMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as RawTransaction
   }
 
-  rawTransactionAsync(params?: { body: Uint8Array }, requestOptions?: ApiRequestOptions): Promise<void> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
-    headers["Content-Type"] = "application/x-binary";
+  async rawTransactionAsync(params?: { body: Uint8Array }, requestOptions?: ApiRequestOptions): Promise<void> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = params?.body ?? undefined
+    const mediaType = 'application/msgpack'
+    headers['Content-Type'] = mediaType
 
-    return this.httpRequest.request({
-      method: "POST",
-      url: "/v2/transactions/async",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'POST',
+      url: '/v2/transactions/async',
       path: {},
       query: {},
       headers,
-      body: params?.body,
-      mediaType: "application/x-binary",
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = undefined
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as void
   }
 
   /**
    * Sets the timestamp offset (seconds) for blocks in dev mode. Providing an offset of 0 will unset this value and try to use the real clock for the timestamp.
    */
-  setBlockTimeStampOffset(offset: number | bigint, requestOptions?: ApiRequestOptions): Promise<void> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async setBlockTimeStampOffset(offset: number | bigint, requestOptions?: ApiRequestOptions): Promise<void> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "POST",
-      url: "/v2/devmode/blocks/offset/{offset}",
-      path: { offset: typeof offset === "bigint" ? offset.toString() : offset },
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'POST',
+      url: '/v2/devmode/blocks/offset/{offset}',
+      path: { offset: typeof offset === 'bigint' ? offset.toString() : offset },
       query: {},
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = undefined
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as void
   }
 
   /**
    * Sets the minimum sync round on the ledger.
    */
-  setSyncRound(round: number | bigint, requestOptions?: ApiRequestOptions): Promise<void> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async setSyncRound(round: number | bigint, requestOptions?: ApiRequestOptions): Promise<void> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "POST",
-      url: "/v2/ledger/sync/{round}",
-      path: { round: typeof round === "bigint" ? round.toString() : round },
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'POST',
+      url: '/v2/ledger/sync/{round}',
+      path: { round: typeof round === 'bigint' ? round.toString() : round },
       query: {},
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = undefined
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as void
   }
 
   /**
    * Special management endpoint to shutdown the node. Optionally provide a timeout parameter to indicate that the node should begin shutting down after a number of seconds.
    */
-  shutdownNode(params?: { timeout?: number | bigint }, requestOptions?: ApiRequestOptions): Promise<ShutdownNode> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async shutdownNode(params?: { timeout?: number | bigint }, requestOptions?: ApiRequestOptions): Promise<ShutdownNode> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "POST",
-      url: "/v2/shutdown",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'POST',
+      url: '/v2/shutdown',
       path: {},
-      query: { timeout: typeof params?.timeout === "bigint" ? (params!.timeout as bigint).toString() : params?.timeout },
+      query: { timeout: typeof params?.timeout === 'bigint' ? (params!.timeout as bigint).toString() : params?.timeout },
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = ShutdownNodeMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as ShutdownNode
   }
 
-  simulateTransaction(
-    params?: { format?: "json" | "msgpack"; body: SimulateRequest },
+  async simulateTransaction(
+    params?: { format?: 'json' | 'msgpack'; body: SimulateRequest },
     requestOptions?: ApiRequestOptions,
   ): Promise<SimulateTransaction> {
-    const headers: Record<string, string> = {};
-    // Content negotiation (aligned with Rust behavior):
-    // - Default to msgpack when available (better performance, smaller payload)
-    // - Only use JSON if explicitly requested via format=json
-    const useJson = params?.format === "json";
-    headers["Accept"] = useJson ? "application/json" : "application/msgpack";
-    headers["Content-Type"] = params?.format === "json" ? "application/json" : "application/msgpack";
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = (params?.format as 'json' | 'msgpack' | undefined) ?? 'msgpack'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const bodyMeta = SimulateRequestMeta
+    const mediaType = bodyMeta ? (responseFormat === 'json' ? 'application/json' : 'application/msgpack') : undefined
+    if (mediaType) headers['Content-Type'] = mediaType
+    const serializedBody =
+      bodyMeta && params?.body !== undefined ? AlgorandSerializer.encode(params.body, bodyMeta, responseFormat) : params?.body
 
-    return this.httpRequest.request({
-      method: "POST",
-      url: "/v2/transactions/simulate",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'POST',
+      url: '/v2/transactions/simulate',
       path: {},
       query: { format: params?.format },
       headers,
-      body: params?.body,
-      // Dynamic mediaType based on format parameter (prefer msgpack by default)
-      mediaType: params?.format === "json" ? "application/json" : "application/msgpack",
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = SimulateTransactionMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as SimulateTransaction
   }
 
   /**
    * Given a catchpoint, it starts catching up to this catchpoint
    */
-  startCatchup(catchpoint: string, params?: { min?: number | bigint }, requestOptions?: ApiRequestOptions): Promise<StartCatchup> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async startCatchup(catchpoint: string, params?: { min?: number | bigint }, requestOptions?: ApiRequestOptions): Promise<StartCatchup> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "POST",
-      url: "/v2/catchup/{catchpoint}",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'POST',
+      url: '/v2/catchup/{catchpoint}',
       path: { catchpoint: catchpoint },
-      query: { min: typeof params?.min === "bigint" ? (params!.min as bigint).toString() : params?.min },
+      query: { min: typeof params?.min === 'bigint' ? (params!.min as bigint).toString() : params?.min },
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = StartCatchupMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as StartCatchup
   }
 
   /**
    * Returns the entire swagger spec in json.
    */
-  swaggerJson(requestOptions?: ApiRequestOptions): Promise<string> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async swaggerJson(requestOptions?: ApiRequestOptions): Promise<string> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/swagger.json",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/swagger.json',
       path: {},
       query: {},
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = undefined
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as string
   }
 
   /**
    * Given TEAL source code in plain text, return base64 encoded program bytes and base32 SHA512_256 hash of program bytes (Address style). This endpoint is only enabled when a node's configuration file sets EnableDeveloperAPI to true.
    */
-  tealCompile(params?: { sourcemap?: boolean; body: string }, requestOptions?: ApiRequestOptions): Promise<TealCompile> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
-    headers["Content-Type"] = "text/plain";
+  async tealCompile(params?: { sourcemap?: boolean; body: string }, requestOptions?: ApiRequestOptions): Promise<TealCompile> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const bodyMeta = undefined
+    const mediaType = bodyMeta ? (responseFormat === 'json' ? 'application/json' : 'application/msgpack') : undefined
+    if (mediaType) headers['Content-Type'] = mediaType
+    const serializedBody =
+      bodyMeta && params?.body !== undefined ? AlgorandSerializer.encode(params.body, bodyMeta, responseFormat) : params?.body
 
-    return this.httpRequest.request({
-      method: "POST",
-      url: "/v2/teal/compile",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'POST',
+      url: '/v2/teal/compile',
       path: {},
       query: { sourcemap: params?.sourcemap },
       headers,
-      body: params?.body,
-      mediaType: "text/plain",
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = TealCompileMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as TealCompile
   }
 
   /**
    * Given the program bytes, return the TEAL source code in plain text. This endpoint is only enabled when a node's configuration file sets EnableDeveloperAPI to true.
    */
-  tealDisassemble(params?: { body: Uint8Array }, requestOptions?: ApiRequestOptions): Promise<TealDisassemble> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
-    headers["Content-Type"] = "application/x-binary";
+  async tealDisassemble(params?: { body: Uint8Array }, requestOptions?: ApiRequestOptions): Promise<TealDisassemble> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = params?.body ?? undefined
+    const mediaType = 'application/msgpack'
+    headers['Content-Type'] = mediaType
 
-    return this.httpRequest.request({
-      method: "POST",
-      url: "/v2/teal/disassemble",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'POST',
+      url: '/v2/teal/disassemble',
       path: {},
       query: {},
       headers,
-      body: params?.body,
-      mediaType: "application/x-binary",
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = TealDisassembleMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as TealDisassemble
   }
 
   /**
    * Executes TEAL program(s) in context and returns debugging information about the execution. This endpoint is only enabled when a node's configuration file sets EnableDeveloperAPI to true.
    */
-  tealDryrun(params?: { body?: DryrunRequest }, requestOptions?: ApiRequestOptions): Promise<TealDryrun> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
-    headers["Content-Type"] = "application/msgpack";
+  async tealDryrun(params?: { body?: DryrunRequest }, requestOptions?: ApiRequestOptions): Promise<TealDryrun> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'msgpack'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const bodyMeta = DryrunRequestMeta
+    const mediaType = bodyMeta ? (responseFormat === 'json' ? 'application/json' : 'application/msgpack') : undefined
+    if (mediaType) headers['Content-Type'] = mediaType
+    const serializedBody =
+      bodyMeta && params?.body !== undefined ? AlgorandSerializer.encode(params.body, bodyMeta, responseFormat) : params?.body
 
-    return this.httpRequest.request({
-      method: "POST",
-      url: "/v2/teal/dryrun",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'POST',
+      url: '/v2/teal/dryrun',
       path: {},
       query: {},
       headers,
-      body: params?.body,
-      // Both supported, prefer msgpack for better performance
-      mediaType: "application/msgpack",
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = TealDryrunMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as TealDryrun
   }
 
-  transactionParams(requestOptions?: ApiRequestOptions): Promise<TransactionParams> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async transactionParams(requestOptions?: ApiRequestOptions): Promise<TransactionParams> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/v2/transactions/params",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/v2/transactions/params',
       path: {},
       query: {},
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = TransactionParamsMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as TransactionParams
   }
 
   /**
    * Unset the ledger sync round.
    */
-  unsetSyncRound(requestOptions?: ApiRequestOptions): Promise<void> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async unsetSyncRound(requestOptions?: ApiRequestOptions): Promise<void> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "DELETE",
-      url: "/v2/ledger/sync",
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'DELETE',
+      url: '/v2/ledger/sync',
       path: {},
       query: {},
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = undefined
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as void
   }
 
   /**
    * Waits for a block to appear after round {round} and returns the node's status at the time. There is a 1 minute timeout, when reached the current status is returned regardless of whether or not it is the round after the given round.
    */
-  waitForBlock(round: number | bigint, requestOptions?: ApiRequestOptions): Promise<WaitForBlock> {
-    const headers: Record<string, string> = {};
-    headers["Accept"] = "application/json";
+  async waitForBlock(round: number | bigint, requestOptions?: ApiRequestOptions): Promise<WaitForBlock> {
+    const headers: Record<string, string> = {}
+    const responseFormat: 'json' | 'msgpack' = 'json'
+    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    // Header parameters
+    const serializedBody = undefined
+    const mediaType = undefined
 
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/v2/status/wait-for-block-after/{round}",
-      path: { round: typeof round === "bigint" ? round.toString() : round },
+    const payload = await this.httpRequest.request<unknown>({
+      method: 'GET',
+      url: '/v2/status/wait-for-block-after/{round}',
+      path: { round: typeof round === 'bigint' ? round.toString() : round },
       query: {},
       headers,
-      body: undefined,
-      mediaType: undefined,
+      body: serializedBody,
+      mediaType: mediaType,
       ...(requestOptions ?? {}),
-    });
+    })
+
+    const responseMeta = WaitForBlockMeta
+    if (responseMeta) {
+      return AlgorandSerializer.decode(payload, responseMeta, responseFormat)
+    }
+    return payload as WaitForBlock
   }
 }

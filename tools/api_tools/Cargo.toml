@@ -8,3 +8,4 @@ clap = { version = "4.5.40", features = ["derive"] }
 color-eyre = "0.6.5"
 duct = "1.0.0"
 shlex = "1.3.0"
+once_cell = "1.19"

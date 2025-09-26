@@ -66,3 +66,28 @@ To install, follow the below:
 4. Remove `@algorandfoundation:registry=https://npm.pkg.github.com` from `~/.npmrc`, so NPM hosted `@algorandfoundation` packages can be resolved.
 
 Note: You will need to perform steps 2-4 each time your either install a package for the first time or update a GitHub package hosted dependency. Installing from the lock file only requires the token.
+
+## Per-model DTO codecs (TypeScript clients)
+
+The generated TypeScript API clients now emit per-model codecs alongside each TypeScript model type. For a given model `Foo` you will get:
+
+- `type Foo`: domain model with camelCase keys and rich types (e.g. `Uint8Array`, `bigint`)
+- `type FooDto`: JSON-serializable shape with wire keys (e.g. `kebab-case`) and JSON-safe primitives
+- `Foo.toDto(value: Foo): FooDto` and `Foo.fromDto(dto: FooDto): Foo`
+- `Foo.encodeMsgpack(value: Foo): Uint8Array` and `Foo.decodeMsgpack(bytes: Uint8Array): Foo`
+- `Foo.encodeJson(value: Foo): unknown` and `Foo.decodeJson(raw: unknown): Foo`
+
+Behavioral rules:
+
+- Key rename: camelCase in `Foo` is mapped to wire keys in `FooDto`
+- Bytes fields: represented as `Uint8Array` in `Foo`; JSON uses base64 strings; msgpack passes through bytes
+- Big integers: represented as `bigint` in `Foo`; JSON encodes as strings and decodes back to `bigint`
+- Nested refs/arrays: codecs recurse into child model codecs automatically
+- Signed transactions: encoded/decoded using `@algorandfoundation/algokit-transact`; for JSON arrays (e.g. simulate) raw object forms are preserved when already in DTO shape
+
+Services call these codecs automatically:
+
+- Request bodies: JSON uses `Model.encodeJson`, msgpack uses `Model.encodeMsgpack` (or passes `Uint8Array` through)
+- Responses: JSON uses `Model.decodeJson`, msgpack uses `Model.decodeMsgpack`
+
+This replaces centralized transformer/rename maps; only small runtime helpers remain (e.g. `json.ts` base64 and `msgpack.ts`).

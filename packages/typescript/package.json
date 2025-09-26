@@ -8,7 +8,8 @@
     "algokit_abi",
     "algokit_transact",
     "algod_client",
-    "algokit_utils"
+    "algokit_utils",
+    "indexer_client"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
@@ -33,6 +34,7 @@
     "@types/node": "^20.19.17",
     "@typescript-eslint/eslint-plugin": "^8.44.0",
     "@vitest/coverage-v8": "^3.2.4",
+    "algosdk": "^3.5.0",
     "better-npm-audit": "^3.11.0",
     "cpy-cli": "^6.0.0",
     "eslint": "^9.35.0",

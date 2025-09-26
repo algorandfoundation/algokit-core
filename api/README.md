@@ -7,7 +7,7 @@ This package contains tools for working with the Algorand API specifications and
 - [Python 3.12+](https://www.python.org/) - Required for the custom OAS generator
 - [uv](https://docs.astral.sh/uv/) - Python package manager
 - [Rust](https://rustup.rs/) - Required for compiling generated clients and running API tools
-- [Bun](https://bun.sh/) - JavaScript runtime (only for convert-openapi script)
+- [Node.js](https://nodejs.org/) - JavaScript runtime (only for convert-openapi script)
 
 ## Setup
 
@@ -18,7 +18,7 @@ uv install
 
 # Install JavaScript dependencies (only needed for convert-openapi)
 cd ../
-bun install
+npm install
 ```
 
 ## Available Scripts
@@ -44,6 +44,7 @@ cargo api convert-indexer
 ```
 
 The converted specs will be available at:
+
 - `specs/algod.oas3.json`
 - `specs/indexer.oas3.json`
 
@@ -66,8 +67,32 @@ cargo api generate-indexer
 ```
 
 The generated Rust clients will be available at:
+
 - `../crates/algod_client/`
 - `../crates/indexer_client/`
+
+### Generate TypeScript API Clients
+
+Generate both TypeScript API clients using the TypeScript generator:
+
+```bash
+cargo api generate-ts-all
+```
+
+Generate individual clients:
+
+```bash
+# Generate algod client only
+cargo api generate-ts-algod
+
+# Generate indexer client only
+cargo api generate-ts-indexer
+```
+
+The generated TypeScript clients will be available at:
+
+- `../packages/typescript/algod_client/`
+- `../packages/typescript/indexer_client/`
 
 ### Development Scripts
 

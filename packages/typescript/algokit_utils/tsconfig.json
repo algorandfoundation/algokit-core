@@ -10,6 +10,7 @@
     { "path": "../algokit_common" },
     { "path": "../algokit_abi" },
     { "path": "../algokit_transact" },
-    { "path": "../algod_client" }
+    { "path": "../algod_client" },
+    { "path": "../indexer_client" }
   ]
 }

@@ -52,7 +52,8 @@
     "@algorandfoundation/algod-client": "../algod_client/dist",
     "@algorandfoundation/algokit-abi": "../algokit_abi/dist",
     "@algorandfoundation/algokit-common": "../algokit_common/dist",
-    "@algorandfoundation/algokit-transact": "../algokit_transact/dist"
+    "@algorandfoundation/algokit-transact": "../algokit_transact/dist",
+    "@algorandfoundation/indexer-client": "../indexer_client/dist"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"

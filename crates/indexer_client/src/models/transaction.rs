@@ -79,13 +79,13 @@ pub struct Transaction {
         rename = "created-application-index",
         skip_serializing_if = "Option::is_none"
     )]
-    pub created_application_index: Option<u32>,
+    pub created_application_index: Option<u64>,
     /// Specifies an asset index (ID) if an asset was created with this transaction.
     #[serde(
         rename = "created-asset-index",
         skip_serializing_if = "Option::is_none"
     )]
-    pub created_asset_index: Option<u32>,
+    pub created_asset_index: Option<u64>,
     /// \[fee\] Transaction fee.
     #[serde(rename = "fee")]
     pub fee: u64,

@@ -12,6 +12,7 @@ on:
       - "tools/api_tools/**"
       - "crates/algod_client/**"
       - "crates/indexer_client/**"
+      - "packages/typescript/**"
       - ".github/workflows/api_ci.yml"
   pull_request:
     branches:
@@ -21,6 +22,7 @@ on:
       - "tools/api_tools/**"
       - "crates/algod_client/**"
       - "crates/indexer_client/**"
+      - "packages/typescript/**"
       - ".github/workflows/api_ci.yml"
   workflow_dispatch:
 
@@ -33,10 +35,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-api-tools
-      
+
       - name: Run OAS generator linting
         run: cargo api lint-oas
-      
+
       - name: Run OAS generator tests
         run: cargo api test-oas
 
@@ -54,10 +56,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-api-tools
-      
+
       - name: Generate ${{ matrix.client }} API client
         run: cargo api generate-${{ matrix.client }}
-      
+
       - name: Check for output stability
         run: |
           git add -N ${{ matrix.output_dir }}
@@ -66,6 +68,76 @@ jobs:
             echo "🔧 To fix: Run 'cargo api generate-${{ matrix.client }}' locally and commit the changes"
             exit 1
           fi
-      
+
       - name: Verify generated code compiles
         run: cargo check --manifest-path Cargo.toml -p ${{ matrix.client }}_client
+
+  ts_api_client_generation:
+    runs-on: ubuntu-latest
+    needs: oas_lint_and_test
+    strategy:
+      matrix:
+        client: [algod, indexer]
+        include:
+          - client: algod
+            package_dir: packages/typescript/algod_client
+            package_subdir: algod_client
+            workspace: "@algorandfoundation/algod-client"
+            algokit_utils_test_filter: tests/algod
+          - client: indexer
+            package_dir: packages/typescript/indexer_client
+            package_subdir: indexer_client
+            workspace: "@algorandfoundation/indexer-client"
+            algokit_utils_test_filter: tests/indexer
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-api-tools
+        with:
+          setup_algokit: "true"
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: packages/typescript/package-lock.json
+
+      - name: Install TypeScript workspace dependencies
+        working-directory: packages/typescript
+        run: npm ci
+
+      - name: Generate ${{ matrix.client }} TypeScript API client
+        run: cargo api generate-ts-${{ matrix.client }}
+
+      - name: Check output stability
+        run: |
+          git add -N ${{ matrix.package_dir }}
+          if ! git diff --exit-code --minimal ${{ matrix.package_dir }}; then
+            echo "❌ Generated ${{ matrix.client }} TypeScript client differs from committed version."
+            echo "🔧 To fix: run 'cargo api generate-ts-${{ matrix.client }}' locally and commit the changes."
+            exit 1
+          fi
+
+      - name: Prettier check
+        working-directory: packages/typescript
+        run: npx --yes prettier --check ${{ matrix.package_subdir }}
+
+      - name: Lint generated client
+        working-directory: packages/typescript
+        run: npm run lint --workspace ${{ matrix.workspace }}
+
+      - name: Build all TypeScript packages
+        working-directory: packages/typescript
+        run: |
+          npm run build --workspace @algorandfoundation/algokit-common
+          npm run build --workspace @algorandfoundation/algokit-abi
+          npm run build --workspace @algorandfoundation/algokit-transact
+          npm run build --workspace ${{ matrix.workspace }}
+
+      - name: Update package links after build
+        working-directory: packages/typescript
+        run: |
+          # Re-install to ensure dist folders are properly linked
+          npm install --prefer-offline --no-audit --no-fund
+
+      - name: Test generated client
+        working-directory: packages/typescript
+        run: npm test --workspace @algorandfoundation/algokit-utils -- ${{ matrix.algokit_utils_test_filter }}
