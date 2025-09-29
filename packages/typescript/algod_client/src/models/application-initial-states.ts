@@ -1,6 +1,6 @@
 import type { ModelMetadata } from '../core/model-runtime'
-import type { ApplicationKvstorage } from './application-kvstorage'
-import { ApplicationKvstorageMeta } from './application-kvstorage'
+import type { ApplicationKvStorage } from './application-kv-storage'
+import { ApplicationKvStorageMeta } from './application-kv-storage'
 
 /**
  * An application's initial global/local/box states that were accessed during simulation.
@@ -14,9 +14,9 @@ export type ApplicationInitialStates = {
   /**
    * An application's initial local states tied to different accounts.
    */
-  appLocals?: ApplicationKvstorage[]
-  appGlobals?: ApplicationKvstorage
-  appBoxes?: ApplicationKvstorage
+  appLocals?: ApplicationKvStorage[]
+  appGlobals?: ApplicationKvStorage
+  appBoxes?: ApplicationKvStorage
 }
 
 export const ApplicationInitialStatesMeta: ModelMetadata = {
@@ -35,21 +35,21 @@ export const ApplicationInitialStatesMeta: ModelMetadata = {
       wireKey: 'app-locals',
       optional: true,
       nullable: false,
-      type: { kind: 'array', item: { kind: 'model', meta: () => ApplicationKvstorageMeta } },
+      type: { kind: 'array', item: { kind: 'model', meta: () => ApplicationKvStorageMeta } },
     },
     {
       name: 'appGlobals',
       wireKey: 'app-globals',
       optional: true,
       nullable: false,
-      type: { kind: 'model', meta: () => ApplicationKvstorageMeta },
+      type: { kind: 'model', meta: () => ApplicationKvStorageMeta },
     },
     {
       name: 'appBoxes',
       wireKey: 'app-boxes',
       optional: true,
       nullable: false,
-      type: { kind: 'model', meta: () => ApplicationKvstorageMeta },
+      type: { kind: 'model', meta: () => ApplicationKvStorageMeta },
     },
   ],
 }

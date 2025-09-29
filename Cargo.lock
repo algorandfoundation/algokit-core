@@ -139,6 +139,7 @@ dependencies = [
  "hex",
  "indexer_client",
  "insta",
+ "kmd_client",
  "lazy_static",
  "log",
  "num-bigint",
@@ -1910,6 +1911,26 @@ checksum = "1cfaf33c695fc6e08064efbc1f72ec937429614f25eef83af942d0e227c3a28f"
 dependencies = [
  "once_cell",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "kmd_client"
+version = "0.0.1"
+dependencies = [
+ "algokit_http_client",
+ "algokit_transact_ffi",
+ "base64 0.22.1",
+ "serde",
+ "serde_bytes",
+ "serde_json",
+ "serde_repr",
+ "serde_with",
+ "snafu",
+ "tokio",
+ "tokio-test",
+ "uniffi",
+ "url",
+ "uuid",
 ]
 
 [[package]]

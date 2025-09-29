@@ -284,6 +284,8 @@ def detect_client_type(spec_title: str) -> str:
         return "Algod"
     if "indexer" in title_lower:
         return "Indexer"
+    if "kmd" in title_lower:
+        return "Kmd"
 
     # Fallback: extract first word and capitalize
     first_word = spec_title.split()[0] if spec_title.split() else "Api"

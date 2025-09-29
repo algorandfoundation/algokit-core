@@ -11,11 +11,13 @@ use algokit_utils::clients::algorand_client::AlgorandClientParams;
 use algokit_utils::transactions::TransactionComposerConfig;
 use algokit_utils::{AlgoConfig, AlgorandClient, ClientManager};
 use indexer_client::IndexerClient;
+use kmd_client::KmdClient;
 use rstest::*;
 
 pub struct AlgorandFixture {
     pub algod: Arc<AlgodClient>,
     pub indexer: Arc<IndexerClient>,
+    pub kmd: Arc<KmdClient>,
     pub algorand_client: AlgorandClient,
     pub test_account: TestAccount,
 }
@@ -41,11 +43,22 @@ impl AlgorandFixture {
             )
             .unwrap(),
         );
+        let kmd = Arc::new(
+            ClientManager::get_kmd_client(
+                &params
+                    .client_config
+                    .kmd_config
+                    .as_ref()
+                    .expect("KMD config required for localnet tests"),
+            )
+            .unwrap(),
+        );
 
         let mut algorand_client = AlgorandClient::new(params);
 
         let test_account = Self::generate_account_internal(
             algod.clone(),
+            kmd.clone(),
             &mut algorand_client,
             Some(TestAccountConfig {
                 initial_funds: 10_000_000,
@@ -59,6 +72,7 @@ impl AlgorandFixture {
         Ok(Self {
             algod,
             indexer,
+            kmd,
             algorand_client,
             test_account,
         })
@@ -66,11 +80,12 @@ impl AlgorandFixture {
 
     async fn generate_account_internal(
         algod: Arc<AlgodClient>,
+        kmd: Arc<KmdClient>,
         algorand_client: &mut AlgorandClient,
         config: Option<TestAccountConfig>,
     ) -> Result<TestAccount, Box<dyn std::error::Error + Send + Sync>> {
         let config = config.unwrap_or_default();
-        let mut dispenser = LocalNetDispenser::new(algod.clone());
+        let mut dispenser = LocalNetDispenser::new(algod.clone(), kmd.clone());
 
         // Generate new account using ed25519_dalek
         let test_account = TestAccount::generate()?;
@@ -107,7 +122,13 @@ impl AlgorandFixture {
         &mut self,
         config: Option<TestAccountConfig>,
     ) -> Result<TestAccount, Box<dyn std::error::Error + Send + Sync>> {
-        Self::generate_account_internal(self.algod.clone(), &mut self.algorand_client, config).await
+        Self::generate_account_internal(
+            self.algod.clone(),
+            self.kmd.clone(),
+            &mut self.algorand_client,
+            config,
+        )
+        .await
     }
 }
 

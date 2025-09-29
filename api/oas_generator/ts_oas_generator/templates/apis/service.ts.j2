@@ -79,12 +79,12 @@ export class {{ service_class_name }} {
 {%- for p in op.pathParameters %}
     {{ p.varName }}: {{ p.tsType }},
 {%- endfor %}
-{%- if op.otherParameters|length > 0 or op.requestBody %}
+{%- if op.otherParameters|length > 0 or (op.requestBody and op.method.upper() not in ['GET', 'HEAD', 'DELETE']) %}
     params?: {
 {%- for p in op.otherParameters %}
       {{ p.varName }}{% if not p.required %}?{% endif %}: {{ p.tsType }};
 {%- endfor %}
-{%- if op.requestBody %}
+{%- if op.requestBody and op.method.upper() not in ['GET', 'HEAD', 'DELETE'] %}
       body{% if not op.requestBody.required %}?{% endif %}: {{ op.requestBody.tsType }};
 {%- endif %}
     },
@@ -96,7 +96,7 @@ export class {{ service_class_name }} {
     const responseFormat: 'json' | 'msgpack' = {% if supports_msgpack %}{% if op.hasFormatParam and op.formatVarName %}(params?.{{ op.formatVarName }} as 'json' | 'msgpack' | undefined) ?? 'msgpack'{% else %}'msgpack'{% endif %}{% else %}'json'{% endif %};
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack';
 
-    {% if op.requestBody %}
+    {% if op.requestBody and op.method.upper() not in ['GET', 'HEAD', 'DELETE'] %}
       {% if is_raw_bytes_body %}
     const serializedBody = params?.body ?? undefined;
     const mediaType = 'application/msgpack';
@@ -109,9 +109,6 @@ export class {{ service_class_name }} {
       ? AlgorandSerializer.encode(params.body, bodyMeta, responseFormat)
       : params?.body;
       {% endif %}
-    {% else %}
-    const serializedBody = undefined;
-    const mediaType = undefined;
     {% endif %}
 
     {% set query_params = op.otherParameters | selectattr('in', 'equalto', 'query') | list %}
@@ -136,8 +133,13 @@ export class {{ service_class_name }} {
 {%- endfor %}
       },
       headers,
+      {% if op.requestBody and op.method.upper() not in ['GET', 'HEAD', 'DELETE'] %}
       body: serializedBody,
       mediaType: mediaType,
+      {% else %}
+      body: undefined,
+      mediaType: undefined,
+      {% endif %}
       ...(requestOptions ?? {}),
     });
 

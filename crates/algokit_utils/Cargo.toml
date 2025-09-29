@@ -19,6 +19,7 @@ algokit_http_client = { version = "0.1.0", path = "../algokit_http_client", defa
 algokit_transact = { version = "0.1.0", path = "../algokit_transact", features = [
   "test_utils",
 ] }
+kmd_client = { path = "../kmd_client" }
 async-trait = { version = "0.1.88" }
 base64 = "0.22.1"
 derive_more = { version = "2.0.1", features = ["full"] }

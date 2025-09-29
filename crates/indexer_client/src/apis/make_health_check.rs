@@ -35,7 +35,6 @@ pub async fn make_health_check(http_client: &dyn HttpClient) -> Result<HealthChe
     let query_params: HashMap<String, String> = HashMap::new();
 
     let mut headers: HashMap<String, String> = HashMap::new();
-    headers.insert("Content-Type".to_string(), "application/json".to_string());
     headers.insert("Accept".to_string(), "application/json".to_string());
 
     let body = None;

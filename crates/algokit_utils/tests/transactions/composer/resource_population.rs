@@ -1173,7 +1173,7 @@ async fn fund_app_account(
     app_id: u64,
     amount: u64,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let mut dispenser = LocalNetDispenser::new(context.algod.clone());
+    let mut dispenser = LocalNetDispenser::new(context.algod.clone(), context.kmd.clone());
     let app_address = Address::from_app_id(&app_id);
     dispenser
         .fund_account(&app_address.to_string(), amount)

@@ -37,9 +37,12 @@ cargo api <subcommand>
 - `test-oas` - Test the OAS generator
 - `format-oas` - Format the OAS generator code
 - `lint-oas` - Lint and type-check the OAS generator
-- `format-algod` - Format generated Rust code
-- `generate-algod` - Generate algod API client
-- `convert-openapi` - Convert OpenAPI specification
+- `format-algod` / `format-indexer` / `format-kmd` - Format generated Rust clients
+- `generate-algod` / `generate-indexer` / `generate-kmd` - Generate Rust API clients
+- `generate-ts-algod` / `generate-ts-indexer` / `generate-ts-kmd` - Generate TypeScript API clients
+- `generate-all` / `generate-ts-all` - Generate all Rust or TypeScript clients
+- `convert-openapi` - Convert all OpenAPI specifications
+- `convert-algod` / `convert-indexer` / `convert-kmd` - Convert individual OpenAPI specs
 
 #### 3. Documentation Building
 

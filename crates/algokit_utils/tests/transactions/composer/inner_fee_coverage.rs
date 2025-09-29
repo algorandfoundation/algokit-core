@@ -1802,7 +1802,8 @@ async fn fund_app_accounts(
     app_ids: &Vec<u64>,
     amount: u64,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let mut dispenser = LocalNetDispenser::new(algorand_fixture.algod.clone());
+    let mut dispenser =
+        LocalNetDispenser::new(algorand_fixture.algod.clone(), algorand_fixture.kmd.clone());
 
     for app_id in app_ids {
         let app_address = Address::from_app_id(app_id);

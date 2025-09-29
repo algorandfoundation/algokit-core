@@ -46,6 +46,9 @@ def ts_array(type_str: str) -> str:
 
 _WORD_BOUNDARY_RE = re.compile(r"([a-z0-9])([A-Z])")
 _NON_ALNUM_RE = re.compile(r"[^A-Za-z0-9]+")
+_SNAKE_CASE_DELIMITER_RE = re.compile(r"[\-\.\s]")
+_ACRONYM_SPLIT_RE = re.compile(r"([A-Z])([A-Z][a-z])")
+_LOWER_TO_UPPER_SPLIT_RE = re.compile(r"([a-z0-9])([A-Z])")
 
 _U32_MAX_VALUE = 4294967295
 _SMALL_INTEGER_MAX = 100
@@ -69,9 +72,22 @@ def _split_words(name: str) -> tuple[str, ...]:
     return parts or (name,)
 
 
+def _snake_case_like_rust(name: str) -> str:
+    """Convert a string to snake_case using the same rules as the Rust generator."""
+
+    # Replace common delimiters with underscore
+    s = _SNAKE_CASE_DELIMITER_RE.sub("_", name)
+    # Split acronym sequences before CamelCase words (e.g., "EMultisig" -> "E_Multisig")
+    s = _ACRONYM_SPLIT_RE.sub(r"\1_\2", s)
+    # Split lower/digit to upper transitions (e.g., "v1Delete" -> "v1_Delete")
+    s = _LOWER_TO_UPPER_SPLIT_RE.sub(r"\1_\2", s)
+    return s.lower()
+
+
 def ts_pascal_case(name: str) -> str:
-    """Convert name to PascalCase."""
-    return "".join(part.capitalize() for part in _split_words(name))
+    """Convert name to PascalCase (aligned with Rust pascalcase)."""
+    snake = _snake_case_like_rust(name)
+    return "".join(part.capitalize() for part in snake.split("_") if part)
 
 
 def ts_camel_case(name: str) -> str:
@@ -81,8 +97,8 @@ def ts_camel_case(name: str) -> str:
 
 
 def ts_kebab_case(name: str) -> str:
-    """Convert name to kebab-case."""
-    return "-".join(part.lower() for part in _split_words(name))
+    """Convert name to kebab-case (aligned with Rust snakecase rules)."""
+    return _snake_case_like_rust(name).replace("_", "-")
 
 
 def ts_property_name(name: str) -> str:

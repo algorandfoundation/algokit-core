@@ -13,6 +13,7 @@ use algokit_abi::Arc56Contract;
 use algokit_http_client::DefaultHttpClient;
 use base64::{Engine, engine::general_purpose};
 use indexer_client::IndexerClient;
+use kmd_client::KmdClient;
 use snafu::Snafu;
 use std::{env, sync::Arc};
 use tokio::sync::RwLock;
@@ -28,6 +29,9 @@ pub enum ClientManagerError {
     #[snafu(display("Indexer Error: {message}"))]
     IndexerError { message: String },
 
+    #[snafu(display("KMD Error: {message}"))]
+    KmdError { message: String },
+
     #[snafu(display("Algod client error: {source}"))]
     AlgodClientError { source: AlgodError },
 }
@@ -41,6 +45,7 @@ impl From<AlgodError> for ClientManagerError {
 pub struct ClientManager {
     algod: Arc<AlgodClient>,
     indexer: Option<Arc<IndexerClient>>,
+    kmd: Option<Arc<KmdClient>>,
     cached_network_details: RwLock<Option<Arc<NetworkDetails>>>,
 }
 
@@ -50,6 +55,10 @@ impl ClientManager {
             algod: Arc::new(Self::get_algod_client(&config.algod_config)?),
             indexer: match config.indexer_config.as_ref() {
                 Some(indexer_config) => Some(Arc::new(Self::get_indexer_client(indexer_config)?)),
+                None => None,
+            },
+            kmd: match config.kmd_config.as_ref() {
+                Some(kmd_config) => Some(Arc::new(Self::get_kmd_client(kmd_config)?)),
                 None => None,
             },
             cached_network_details: RwLock::new(None),
@@ -67,6 +76,23 @@ impl ClientManager {
             .ok_or(ClientManagerError::IndexerError {
                 message: "Indexer client not configured".to_string(),
             })
+    }
+
+    pub fn indexer_if_present(&self) -> Option<Arc<IndexerClient>> {
+        self.indexer.as_ref().map(Arc::clone)
+    }
+
+    pub fn kmd(&self) -> Result<Arc<KmdClient>, ClientManagerError> {
+        self.kmd
+            .as_ref()
+            .map(Arc::clone)
+            .ok_or(ClientManagerError::KmdError {
+                message: "KMD client not configured".to_string(),
+            })
+    }
+
+    pub fn kmd_if_present(&self) -> Option<Arc<KmdClient>> {
+        self.kmd.as_ref().map(Arc::clone)
     }
 
     pub async fn network(&self) -> Result<Arc<NetworkDetails>, ClientManagerError> {
@@ -170,6 +196,31 @@ impl ClientManager {
             })?;
         let port = env::var("ALGOD_PORT").ok().and_then(|p| p.parse().ok());
         let token = env::var("ALGOD_TOKEN").ok().map(TokenHeader::String);
+
+        Ok(AlgoClientConfig {
+            server,
+            port,
+            token,
+        })
+    }
+
+    pub fn get_kmd_config_from_environment() -> Result<AlgoClientConfig, ClientManagerError> {
+        let server = env::var("KMD_SERVER")
+            .or_else(|_| env::var("ALGOD_SERVER"))
+            .map_err(|_| ClientManagerError::EnvironmentError {
+                message: String::from("KMD_SERVER environment variable not found"),
+            })?;
+
+        let port = env::var("KMD_PORT")
+            .ok()
+            .and_then(|p| p.parse().ok())
+            .or_else(|| env::var("ALGOD_PORT").ok().and_then(|p| p.parse().ok()))
+            .or(Some(4002));
+
+        let token = env::var("KMD_TOKEN")
+            .ok()
+            .map(TokenHeader::String)
+            .or_else(|| env::var("ALGOD_TOKEN").ok().map(TokenHeader::String));
 
         Ok(AlgoClientConfig {
             server,
@@ -294,6 +345,43 @@ impl ClientManager {
     pub fn get_indexer_client_from_environment() -> Result<IndexerClient, ClientManagerError> {
         let config = Self::get_indexer_config_from_environment()?;
         Self::get_indexer_client(&config)
+    }
+
+    pub fn get_kmd_client(config: &AlgoClientConfig) -> Result<KmdClient, ClientManagerError> {
+        let base_url = if let Some(port) = config.port {
+            format!("{}:{}", config.server, port)
+        } else {
+            config.server.clone()
+        };
+
+        let token_value = match &config.token {
+            Some(TokenHeader::String(token)) => token.clone(),
+            Some(TokenHeader::Headers(headers)) => {
+                headers.values().next().cloned().unwrap_or_default()
+            }
+            None => String::new(),
+        };
+
+        let http_client = if token_value.is_empty() {
+            Arc::new(DefaultHttpClient::new(&base_url))
+        } else {
+            Arc::new(
+                DefaultHttpClient::with_header(&base_url, "X-KMD-API-Token", &token_value)
+                    .map_err(|e| ClientManagerError::HttpClientError {
+                        message: format!(
+                            "Failed to create HTTP client with KMD token header: {:?}",
+                            e
+                        ),
+                    })?,
+            )
+        };
+
+        Ok(KmdClient::new(http_client))
+    }
+
+    pub fn get_kmd_client_from_environment() -> Result<KmdClient, ClientManagerError> {
+        let config = Self::get_kmd_config_from_environment()?;
+        Self::get_kmd_client(&config)
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -488,5 +576,46 @@ mod tests {
         assert!(ClientManager::genesis_id_is_localnet("dockernet-v1"));
         assert!(!ClientManager::genesis_id_is_localnet("testnet-v1.0"));
         assert!(!ClientManager::genesis_id_is_localnet("mainnet-v1.0"));
+    }
+
+    #[test]
+    fn test_kmd_optional_accessors_when_configured() {
+        let config = AlgoConfig {
+            algod_config: AlgoClientConfig {
+                server: "http://localhost".to_string(),
+                port: Some(4001),
+                token: None,
+            },
+            indexer_config: None,
+            kmd_config: Some(AlgoClientConfig {
+                server: "http://localhost".to_string(),
+                port: Some(4002),
+                token: Some(TokenHeader::String("kmd-token".to_string())),
+            }),
+        };
+
+        let manager = ClientManager::new(&config).unwrap();
+        assert!(manager.kmd_if_present().is_some());
+        assert!(manager.kmd().is_ok());
+    }
+
+    #[test]
+    fn test_kmd_optional_accessors_when_missing() {
+        let config = AlgoConfig {
+            algod_config: AlgoClientConfig {
+                server: "http://localhost".to_string(),
+                port: Some(4001),
+                token: None,
+            },
+            indexer_config: None,
+            kmd_config: None,
+        };
+
+        let manager = ClientManager::new(&config).unwrap();
+        assert!(matches!(
+            manager.kmd(),
+            Err(ClientManagerError::KmdError { .. })
+        ));
+        assert!(manager.kmd_if_present().is_none());
     }
 }

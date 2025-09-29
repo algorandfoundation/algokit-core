@@ -62,9 +62,6 @@ export class IndexerApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/accounts/{account-id}/apps-local-state',
@@ -76,8 +73,8 @@ export class IndexerApi {
         next: params?.next,
       },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -100,9 +97,6 @@ export class IndexerApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/accounts/{account-id}/assets',
@@ -114,8 +108,8 @@ export class IndexerApi {
         next: params?.next,
       },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -142,9 +136,6 @@ export class IndexerApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/accounts/{account-id}',
@@ -155,8 +146,8 @@ export class IndexerApi {
         exclude: params?.exclude,
       },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -179,9 +170,6 @@ export class IndexerApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/accounts/{account-id}/created-applications',
@@ -193,8 +181,8 @@ export class IndexerApi {
         next: params?.next,
       },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -217,9 +205,6 @@ export class IndexerApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/accounts/{account-id}/created-assets',
@@ -231,8 +216,8 @@ export class IndexerApi {
         next: params?.next,
       },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -271,9 +256,6 @@ export class IndexerApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/accounts/{account-id}/transactions',
@@ -300,8 +282,8 @@ export class IndexerApi {
         'rekey-to': params?.rekeyTo,
       },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -315,7 +297,7 @@ export class IndexerApi {
   /**
    * Given an application ID and box name, returns base64 encoded box name and value. Box names must be in the goal app call arg form 'encoding:value'. For ints, use the form 'int:1234'. For raw bytes, encode base 64 and use 'b64' prefix as in 'b64:A=='. For printable strings, use the form 'str:hello'. For addresses, use the form 'addr:XYZ...'.
    */
-  async lookupApplicationBoxByIdandName(
+  async lookupApplicationBoxByIdAndName(
     applicationId: number | bigint,
     params?: { name: string },
     requestOptions?: ApiRequestOptions,
@@ -324,17 +306,14 @@ export class IndexerApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/applications/{application-id}/box',
       path: { 'application-id': typeof applicationId === 'bigint' ? applicationId.toString() : applicationId },
       query: { name: params?.name },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -357,17 +336,14 @@ export class IndexerApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/applications/{application-id}',
       path: { 'application-id': typeof applicationId === 'bigint' ? applicationId.toString() : applicationId },
       query: { 'include-all': params?.includeAll },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -397,9 +373,6 @@ export class IndexerApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/applications/{application-id}/logs',
@@ -413,8 +386,8 @@ export class IndexerApi {
         'sender-address': params?.senderAddress,
       },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -443,9 +416,6 @@ export class IndexerApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/assets/{asset-id}/balances',
@@ -462,8 +432,8 @@ export class IndexerApi {
           typeof params?.currencyLessThan === 'bigint' ? (params!.currencyLessThan as bigint).toString() : params?.currencyLessThan,
       },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -486,17 +456,14 @@ export class IndexerApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/assets/{asset-id}',
       path: { 'asset-id': typeof assetId === 'bigint' ? assetId.toString() : assetId },
       query: { 'include-all': params?.includeAll },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -537,9 +504,6 @@ export class IndexerApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/assets/{asset-id}/transactions',
@@ -568,8 +532,8 @@ export class IndexerApi {
         'rekey-to': params?.rekeyTo,
       },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -588,17 +552,14 @@ export class IndexerApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/blocks/{round-number}',
       path: { 'round-number': typeof roundNumber === 'bigint' ? roundNumber.toString() : roundNumber },
       query: { 'header-only': params?.headerOnly },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -617,17 +578,14 @@ export class IndexerApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/transactions/{txid}',
       path: { txid: txid },
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -643,17 +601,14 @@ export class IndexerApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/health',
       path: {},
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -687,9 +642,6 @@ export class IndexerApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/accounts',
@@ -712,8 +664,8 @@ export class IndexerApi {
         'online-only': params?.onlineOnly,
       },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -736,17 +688,14 @@ export class IndexerApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/applications/{application-id}/boxes',
       path: { 'application-id': typeof applicationId === 'bigint' ? applicationId.toString() : applicationId },
       query: { limit: typeof params?.limit === 'bigint' ? (params!.limit as bigint).toString() : params?.limit, next: params?.next },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -768,9 +717,6 @@ export class IndexerApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/applications',
@@ -783,8 +729,8 @@ export class IndexerApi {
         next: params?.next,
       },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -814,9 +760,6 @@ export class IndexerApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/assets',
@@ -831,8 +774,8 @@ export class IndexerApi {
         'asset-id': typeof params?.assetId === 'bigint' ? (params!.assetId as bigint).toString() : params?.assetId,
       },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -864,9 +807,6 @@ export class IndexerApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/block-headers',
@@ -883,8 +823,8 @@ export class IndexerApi {
         absent: params?.absent,
       },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -927,9 +867,6 @@ export class IndexerApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/transactions',
@@ -961,8 +898,8 @@ export class IndexerApi {
         'application-id': typeof params?.applicationId === 'bigint' ? (params!.applicationId as bigint).toString() : params?.applicationId,
       },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 

@@ -60,9 +60,12 @@ pub async fn simulate_transaction(
             "Content-Type".to_string(),
             "application/msgpack".to_string(),
         );
-        headers.insert("Accept".to_string(), "application/msgpack".to_string());
     } else {
         headers.insert("Content-Type".to_string(), "application/json".to_string());
+    }
+    if use_msgpack {
+        headers.insert("Accept".to_string(), "application/msgpack".to_string());
+    } else {
         headers.insert("Accept".to_string(), "application/json".to_string());
     }
 

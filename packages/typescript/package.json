@@ -9,7 +9,8 @@
     "algokit_transact",
     "algod_client",
     "algokit_utils",
-    "indexer_client"
+    "indexer_client",
+    "kmd_client"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",

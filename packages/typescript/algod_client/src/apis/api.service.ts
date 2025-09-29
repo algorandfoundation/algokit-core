@@ -98,17 +98,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'DELETE',
       url: '/v2/catchup/{catchpoint}',
       path: { catchpoint: catchpoint },
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -132,17 +129,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = (params?.format as 'json' | 'msgpack' | undefined) ?? 'msgpack'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/accounts/{address}/applications/{application-id}',
       path: { address: address, 'application-id': typeof applicationId === 'bigint' ? applicationId.toString() : applicationId },
       query: { format: params?.format },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -166,17 +160,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = (params?.format as 'json' | 'msgpack' | undefined) ?? 'msgpack'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/accounts/{address}/assets/{asset-id}',
       path: { address: address, 'asset-id': typeof assetId === 'bigint' ? assetId.toString() : assetId },
       query: { format: params?.format },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -199,17 +190,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/accounts/{address}/assets',
       path: { address: address },
       query: { limit: typeof params?.limit === 'bigint' ? (params!.limit as bigint).toString() : params?.limit, next: params?.next },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -232,17 +220,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = (params?.format as 'json' | 'msgpack' | undefined) ?? 'msgpack'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/accounts/{address}',
       path: { address: address },
       query: { exclude: params?.exclude, format: params?.format },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -322,17 +307,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'DELETE',
       url: '/v2/participation/{participation-id}',
       path: { 'participation-id': participationId },
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -348,17 +330,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/experimental',
       path: {},
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -378,9 +357,6 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'POST',
       url: '/v2/participation/generate/{address}',
@@ -391,8 +367,8 @@ export class AlgodApi {
         last: typeof params?.last === 'bigint' ? (params!.last as bigint).toString() : params?.last,
       },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -415,17 +391,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/applications/{application-id}/box',
       path: { 'application-id': typeof applicationId === 'bigint' ? applicationId.toString() : applicationId },
       query: { name: params?.name },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -448,17 +421,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/applications/{application-id}/boxes',
       path: { 'application-id': typeof applicationId === 'bigint' ? applicationId.toString() : applicationId },
       query: { max: typeof params?.max === 'bigint' ? (params!.max as bigint).toString() : params?.max },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -477,17 +447,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/applications/{application-id}',
       path: { 'application-id': typeof applicationId === 'bigint' ? applicationId.toString() : applicationId },
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -506,17 +473,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/assets/{asset-id}',
       path: { 'asset-id': typeof assetId === 'bigint' ? assetId.toString() : assetId },
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -536,17 +500,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = (params?.format as 'json' | 'msgpack' | undefined) ?? 'msgpack'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/blocks/{round}',
       path: { round: typeof round === 'bigint' ? round.toString() : round },
       query: { 'header-only': params?.headerOnly, format: params?.format },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -562,17 +523,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/blocks/{round}/hash',
       path: { round: typeof round === 'bigint' ? round.toString() : round },
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -591,17 +549,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/blocks/{round}/logs',
       path: { round: typeof round === 'bigint' ? round.toString() : round },
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -620,17 +575,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/devmode/blocks/offset',
       path: {},
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -646,17 +598,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/blocks/{round}/txids',
       path: { round: typeof round === 'bigint' ? round.toString() : round },
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -675,17 +624,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/debug/settings/config',
       path: {},
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -704,17 +650,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/debug/settings/pprof',
       path: {},
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -733,17 +676,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/genesis',
       path: {},
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -766,17 +706,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = (params?.format as 'json' | 'msgpack' | undefined) ?? 'msgpack'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/deltas/{round}',
       path: { round: typeof round === 'bigint' ? round.toString() : round },
       query: { format: params?.format },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -799,17 +736,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = (params?.format as 'json' | 'msgpack' | undefined) ?? 'msgpack'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/deltas/txn/group/{id}',
       path: { id: id },
       query: { format: params?.format },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -825,17 +759,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/blocks/{round}/lightheader/proof',
       path: { round: typeof round === 'bigint' ? round.toString() : round },
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -854,17 +785,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/participation/{participation-id}',
       path: { 'participation-id': participationId },
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -883,17 +811,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/participation',
       path: {},
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -915,17 +840,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = (params?.format as 'json' | 'msgpack' | undefined) ?? 'msgpack'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/transactions/pending',
       path: {},
       query: { max: typeof params?.max === 'bigint' ? (params!.max as bigint).toString() : params?.max, format: params?.format },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -948,17 +870,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = (params?.format as 'json' | 'msgpack' | undefined) ?? 'msgpack'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/accounts/{address}/transactions/pending',
       path: { address: address },
       query: { max: typeof params?.max === 'bigint' ? (params!.max as bigint).toString() : params?.max, format: params?.format },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -974,17 +893,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/ready',
       path: {},
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -1000,17 +916,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/stateproofs/{round}',
       path: { round: typeof round === 'bigint' ? round.toString() : round },
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -1026,17 +939,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/status',
       path: {},
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -1052,17 +962,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/ledger/supply',
       path: {},
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -1081,17 +988,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/ledger/sync',
       path: {},
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -1114,17 +1018,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = (params?.format as 'json' | 'msgpack' | undefined) ?? 'msgpack'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/deltas/{round}/txn/group',
       path: { round: typeof round === 'bigint' ? round.toString() : round },
       query: { format: params?.format },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -1145,17 +1046,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/blocks/{round}/transactions/{txid}/proof',
       path: { round: typeof round === 'bigint' ? round.toString() : round, txid: txid },
       query: { hashtype: params?.hashtype, format: params?.format },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -1174,17 +1072,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/versions',
       path: {},
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -1200,17 +1095,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/health',
       path: {},
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -1226,17 +1118,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/metrics',
       path: {},
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -1263,17 +1152,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = (params?.format as 'json' | 'msgpack' | undefined) ?? 'msgpack'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/transactions/pending/{txid}',
       path: { txid: txid },
       query: { format: params?.format },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -1292,17 +1178,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'PUT',
       url: '/debug/settings/pprof',
       path: {},
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -1375,17 +1258,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'POST',
       url: '/v2/devmode/blocks/offset/{offset}',
       path: { offset: typeof offset === 'bigint' ? offset.toString() : offset },
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -1404,17 +1284,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'POST',
       url: '/v2/ledger/sync/{round}',
       path: { round: typeof round === 'bigint' ? round.toString() : round },
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -1433,17 +1310,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'POST',
       url: '/v2/shutdown',
       path: {},
       query: { timeout: typeof params?.timeout === 'bigint' ? (params!.timeout as bigint).toString() : params?.timeout },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -1494,17 +1368,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'POST',
       url: '/v2/catchup/{catchpoint}',
       path: { catchpoint: catchpoint },
       query: { min: typeof params?.min === 'bigint' ? (params!.min as bigint).toString() : params?.min },
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -1523,17 +1394,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/swagger.json',
       path: {},
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -1643,17 +1511,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/transactions/params',
       path: {},
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -1672,17 +1537,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'DELETE',
       url: '/v2/ledger/sync',
       path: {},
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 
@@ -1701,17 +1563,14 @@ export class AlgodApi {
     const responseFormat: 'json' | 'msgpack' = 'json'
     headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
 
-    const serializedBody = undefined
-    const mediaType = undefined
-
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
       url: '/v2/status/wait-for-block-after/{round}',
       path: { round: typeof round === 'bigint' ? round.toString() : round },
       query: {},
       headers,
-      body: serializedBody,
-      mediaType: mediaType,
+      body: undefined,
+      mediaType: undefined,
       ...(requestOptions ?? {}),
     })
 

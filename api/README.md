@@ -27,7 +27,7 @@ npm install
 
 ### Convert OpenAPI 2.0 to OpenAPI 3.0
 
-Converts both Algod and Indexer OpenAPI 2.0 specs to OpenAPI 3.0:
+Converts the Algod, Indexer, and KMD OpenAPI 2.0 specs to OpenAPI 3.0:
 
 ```bash
 cargo api convert-openapi
@@ -39,18 +39,22 @@ Convert individual specifications:
 # Convert only algod spec
 cargo api convert-algod
 
-# Convert only indexer spec  
+# Convert only indexer spec
 cargo api convert-indexer
+
+# Convert only kmd spec
+cargo api convert-kmd
 ```
 
 The converted specs will be available at:
 
 - `specs/algod.oas3.json`
 - `specs/indexer.oas3.json`
+- `specs/kmd.oas3.json`
 
 ### Generate Rust API Clients
 
-Generate both Rust API clients using the custom Jinja2-based generator:
+Generate all Rust API clients using the custom Jinja2-based generator:
 
 ```bash
 cargo api generate-all
@@ -64,16 +68,20 @@ cargo api generate-algod
 
 # Generate indexer client only
 cargo api generate-indexer
+
+# Generate kmd client only
+cargo api generate-kmd
 ```
 
 The generated Rust clients will be available at:
 
 - `../crates/algod_client/`
 - `../crates/indexer_client/`
+- `../crates/kmd_client/`
 
 ### Generate TypeScript API Clients
 
-Generate both TypeScript API clients using the TypeScript generator:
+Generate all TypeScript API clients using the TypeScript generator:
 
 ```bash
 cargo api generate-ts-all
@@ -87,12 +95,16 @@ cargo api generate-ts-algod
 
 # Generate indexer client only
 cargo api generate-ts-indexer
+
+# Generate kmd client only
+cargo api generate-ts-kmd
 ```
 
 The generated TypeScript clients will be available at:
 
 - `../packages/typescript/algod_client/`
 - `../packages/typescript/indexer_client/`
+- `../packages/typescript/kmd_client/`
 
 ### Development Scripts
 
@@ -109,6 +121,7 @@ cargo api lint-oas
 # Format generated Rust code
 cargo api format-algod
 cargo api format-indexer
+cargo api format-kmd
 ```
 
 ## Custom Rust OAS Generator
@@ -128,7 +141,7 @@ The project uses a custom Jinja2-based generator located in `oas_generator/` tha
 The generator creates complete Rust crates with the following structure:
 
 ```
-crates/{algod_client,indexer_client}/
+crates/{algod_client,indexer_client,kmd_client}/
 ├── Cargo.toml
 ├── README.md
 └── src/
@@ -152,13 +165,17 @@ The `algod.oas2.json` is taken directly from [go-algorand](https://github.com/al
 
 The `indexer.oas2.json` is taken directly from [indexer](https://github.com/algorand/indexer/blob/master/api/indexer.oas2.json). To convert the spec to OpenAPI 3.0, use `cargo api convert-indexer` which runs the same TypeScript conversion script.
 
+### KMD
+
+The KMD Swagger 2.0 specification is sourced from [go-algorand](https://github.com/algorand/go-algorand/blob/master/daemon/kmd/api/swagger.json). Convert it to OpenAPI 3.0 with `cargo api convert-kmd` which invokes [scripts/convert-openapi.ts](scripts/convert-openapi.ts).
+
 The current approach is to manually edit and tweak the OAS2 specs fixing known issues from the source repositories, then use the custom Rust OAS generator to generate clients from the v3 specs. OpenAPI v3 is preferred for client generation as it offers enhanced schema features, better component reusability, and improved type definitions compared to v2.
 
 ## Generator Configuration
 
 The custom Rust generator is configured with:
 
-- **Package names**: `algod_client`, `indexer_client`
+- **Package names**: `algod_client`, `indexer_client`, `kmd_client`
 - **Msgpack detection**: Automatic handling of binary-encoded fields
 - **Algorand extensions**: Support for signed transaction via a vendor extension
 - **Type safety**: Complete OpenAPI to Rust type mapping

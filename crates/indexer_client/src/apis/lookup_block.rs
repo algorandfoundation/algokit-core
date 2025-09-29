@@ -46,7 +46,6 @@ pub async fn lookup_block(
     }
 
     let mut headers: HashMap<String, String> = HashMap::new();
-    headers.insert("Content-Type".to_string(), "application/json".to_string());
     headers.insert("Accept".to_string(), "application/json".to_string());
 
     let body = None;

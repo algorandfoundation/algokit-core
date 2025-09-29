@@ -30,6 +30,9 @@ _OPENAPI_TYPE_MAPPING: Final = {
         None: "u64",
         "int32": "u32",
         "int64": "u64",
+        "uint8": "u8",
+        "uint16": "u16",
+        "uint32": "u32",
         "uint64": "u64",
     },
     "number": {
@@ -887,11 +890,26 @@ class OASParser:
 
     def _parse_schema(self, name: str, schema_data: dict[str, Any]) -> Schema | None:
         """Parse a single schema."""
+        vendor_extensions = self._extract_vendor_extensions(schema_data)
+
+        # Handle pure $ref schemas as aliases to other types
+        if "$ref" in schema_data and not schema_data.get("properties"):
+            alias_rust_type = rust_type_from_openapi(schema_data, self.schemas, set())
+            return Schema(
+                name=name,
+                schema_type="alias",
+                description=schema_data.get("description"),
+                properties=[],
+                required_fields=[],
+                vendor_extensions=vendor_extensions,
+                underlying_rust_type=alias_rust_type,
+                enum_values=[],
+            )
+
         schema_type = schema_data.get("type", "object")
         properties_data = schema_data.get("properties", {})
         required_fields = schema_data.get("required", [])
 
-        vendor_extensions = self._extract_vendor_extensions(schema_data)
         enum_values = self._extract_enum_values(schema_type, schema_data)
 
         underlying_rust_type = None
@@ -899,6 +917,18 @@ class OASParser:
 
         if schema_type == "array":
             underlying_rust_type = self._handle_array_schema(schema_data)
+        elif schema_type in {"string", "integer", "number", "boolean"} and not enum_values:
+            underlying_rust_type = rust_type_from_openapi(schema_data, self.schemas, set())
+            return Schema(
+                name=name,
+                schema_type="alias",
+                description=schema_data.get("description"),
+                properties=[],
+                required_fields=[],
+                vendor_extensions=vendor_extensions,
+                underlying_rust_type=underlying_rust_type,
+                enum_values=enum_values,
+            )
         else:
             properties = self._parse_properties(properties_data, required_fields)
 

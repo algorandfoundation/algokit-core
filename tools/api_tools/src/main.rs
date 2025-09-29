@@ -45,12 +45,18 @@ enum Commands {
     /// Format generated indexer Rust code
     #[command(name = "format-indexer")]
     FormatIndexer,
+    /// Format generated KMD Rust code
+    #[command(name = "format-kmd")]
+    FormatKmd,
     /// Generate algod API client
     #[command(name = "generate-algod")]
     GenerateAlgod,
     /// Generate indexer API client
     #[command(name = "generate-indexer")]
     GenerateIndexer,
+    /// Generate KMD API client
+    #[command(name = "generate-kmd")]
+    GenerateKmd,
     /// Generate both algod and indexer API clients
     #[command(name = "generate-all")]
     GenerateAll,
@@ -60,6 +66,9 @@ enum Commands {
     /// Generate TypeScript indexer client
     #[command(name = "generate-ts-indexer")]
     GenerateTsIndexer,
+    /// Generate TypeScript KMD client
+    #[command(name = "generate-ts-kmd")]
+    GenerateTsKmd,
     /// Generate both TypeScript clients (algod and indexer)
     #[command(name = "generate-ts-all")]
     GenerateTsAll,
@@ -72,6 +81,9 @@ enum Commands {
     /// Convert indexer OpenAPI specification only
     #[command(name = "convert-indexer")]
     ConvertIndexer,
+    /// Convert kmd OpenAPI specification only
+    #[command(name = "convert-kmd")]
+    ConvertKmd,
 }
 
 fn repo_root() -> &'static Path {
@@ -159,6 +171,13 @@ const INDEXER_RS_CLIENT: RsClientConfig = RsClientConfig {
     description: "API client for indexer interaction.",
 };
 
+const KMD_RS_CLIENT: RsClientConfig = RsClientConfig {
+    spec: "kmd",
+    output_rel: "crates/kmd_client",
+    package_name: "kmd_client",
+    description: "API client for kmd interaction.",
+};
+
 fn generate_rs_client(config: &RsClientConfig) -> Result<()> {
     run(
         &format!(
@@ -201,6 +220,13 @@ const INDEXER_TS_CLIENT: TsClientConfig = TsClientConfig {
     output_rel: "packages/typescript/indexer_client",
     package_name: "indexer_client",
     description: "TypeScript client for indexer interaction.",
+};
+
+const KMD_TS_CLIENT: TsClientConfig = TsClientConfig {
+    spec: "kmd",
+    output_rel: "packages/typescript/kmd_client",
+    package_name: "kmd_client",
+    description: "TypeScript client for kmd interaction.",
 };
 
 fn generate_ts_client(config: &TsClientConfig) -> Result<()> {
@@ -261,15 +287,26 @@ fn execute_command(command: &Commands) -> Result<()> {
                 None,
             )?;
         }
+        Commands::FormatKmd => {
+            run(
+                "cargo fmt --manifest-path Cargo.toml -p kmd_client",
+                None,
+                None,
+            )?;
+        }
         Commands::GenerateAlgod => {
             generate_rs_client(&ALGOD_RS_CLIENT)?;
         }
         Commands::GenerateIndexer => {
             generate_rs_client(&INDEXER_RS_CLIENT)?;
         }
+        Commands::GenerateKmd => {
+            generate_rs_client(&KMD_RS_CLIENT)?;
+        }
         Commands::GenerateAll => {
             generate_rs_client(&ALGOD_RS_CLIENT)?;
             generate_rs_client(&INDEXER_RS_CLIENT)?;
+            generate_rs_client(&KMD_RS_CLIENT)?;
         }
         Commands::GenerateTsAlgod => {
             generate_ts_client(&ALGOD_TS_CLIENT)?;
@@ -277,9 +314,13 @@ fn execute_command(command: &Commands) -> Result<()> {
         Commands::GenerateTsIndexer => {
             generate_ts_client(&INDEXER_TS_CLIENT)?;
         }
+        Commands::GenerateTsKmd => {
+            generate_ts_client(&KMD_TS_CLIENT)?;
+        }
         Commands::GenerateTsAll => {
             generate_ts_client(&ALGOD_TS_CLIENT)?;
             generate_ts_client(&INDEXER_TS_CLIENT)?;
+            generate_ts_client(&KMD_TS_CLIENT)?;
         }
         Commands::ConvertOpenapi => {
             run("npm run convert-openapi", Some(Path::new("api")), None)?;
@@ -294,6 +335,13 @@ fn execute_command(command: &Commands) -> Result<()> {
         Commands::ConvertIndexer => {
             run(
                 "npm run convert-openapi -- --indexer-only",
+                Some(Path::new("api")),
+                None,
+            )?;
+        }
+        Commands::ConvertKmd => {
+            run(
+                "npm run convert-openapi -- --kmd-only",
                 Some(Path::new("api")),
                 None,
             )?;

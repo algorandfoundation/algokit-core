@@ -57,18 +57,20 @@ use algokit_transact::AlgorandMsgpack;
 {% for custom_type in custom_types %}
 use crate::models::{{ custom_type }};
 {% endfor %}
-{# If this is an alias to a Vec<Something>, ensure Something is imported #}
-{% if schema.schema_type == 'array' and schema.underlying_rust_type %}
+{# If this is an alias schema, ensure referenced types are imported #}
+{% if schema.underlying_rust_type %}
     {% if schema.underlying_rust_type.startswith('Vec<') %}
         {% set alias_inner = schema.underlying_rust_type[4:-1] %}
-        {% if alias_inner and alias_inner[0].isupper() and '::' not in alias_inner %}
+        {% if alias_inner and alias_inner[0].isupper() and '::' not in alias_inner and alias_inner not in ['String'] %}
 use crate::models::{{ alias_inner }};
         {% endif %}
+    {% elif schema.underlying_rust_type[0].isupper() and '::' not in schema.underlying_rust_type and schema.underlying_rust_type not in ['String'] %}
+use crate::models::{{ schema.underlying_rust_type }};
     {% endif %}
 {% endif %}
 
 {# Handle top-level array schemas as type aliases instead of empty structs #}
-{% if schema.schema_type == 'array' and schema.underlying_rust_type %}
+{% if schema.underlying_rust_type and schema.schema_type in ['array', 'alias'] %}
 {% if schema.description %}
 {{ schema.description | rust_doc_comment }}
 {% endif %}
@@ -181,7 +183,7 @@ impl Default for {{ schema.rust_struct_name }} {
 }
 {% endif %}
 
-{% if schema.vendor_extensions.get('x-algokit-signed-txn') %}
+{% if schema.vendor_extensions.get('x-algokit-signed-txn') and not schema.underlying_rust_type %}
 impl From<AlgokitSignedTransaction> for {{ schema.rust_struct_name }} {
     fn from(signed_tx: AlgokitSignedTransaction) -> Self {
         // Convert AlgoKit SignedTransaction to this struct
@@ -206,7 +208,7 @@ impl TryFrom<{{ schema.rust_struct_name }}> for AlgokitSignedTransaction {
 }
 {% endif %}
 
-{% if schema.implements_algokit_msgpack and not (schema.schema_type == 'array' and schema.underlying_rust_type) and not schema.is_string_enum %}
+{% if schema.implements_algokit_msgpack and not schema.underlying_rust_type and not schema.is_string_enum %}
 impl AlgorandMsgpack for {{ schema.rust_struct_name }} {
     {% if schema.vendor_extensions.get('x-algokit-signed-txn') %}
     const PREFIX: &'static [u8] = b"";  // No prefix for SignedTransaction
@@ -216,7 +218,7 @@ impl AlgorandMsgpack for {{ schema.rust_struct_name }} {
 }
 {% endif %}
 
-{% if not (schema.schema_type == 'array' and schema.underlying_rust_type) and not schema.is_string_enum %}
+{% if not schema.underlying_rust_type and not schema.is_string_enum %}
 impl {{ schema.rust_struct_name }} {
     {% if schema.has_required_fields %}
     /// Constructor for {{ schema.rust_struct_name }}

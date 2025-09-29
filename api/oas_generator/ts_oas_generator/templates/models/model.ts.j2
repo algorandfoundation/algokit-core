@@ -38,9 +38,24 @@ import type { ModelMetadata } from '../core/model-runtime';
 {% if uses_signed_txn %}
 import type { SignedTransaction } from '@algorandfoundation/algokit-transact';
 {% endif %}
+{% set ns = namespace(refs_with_meta=[]) %}
+{% if descriptor.is_object %}
+{%   for f in descriptor.fields %}
+{%     if f.ref_model and f.ref_model not in ns.refs_with_meta %}
+{%       set ns.refs_with_meta = ns.refs_with_meta + [f.ref_model] %}
+{%     endif %}
+{%   endfor %}
+{% endif %}
+{% if descriptor.is_array and descriptor.array_item_ref %}
+{%   if descriptor.array_item_ref not in ns.refs_with_meta %}
+{%     set ns.refs_with_meta = ns.refs_with_meta + [descriptor.array_item_ref] %}
+{%   endif %}
+{% endif %}
 {% for r in refTypes %}
 import type { {{ r }} } from './{{ r | ts_kebab_case }}';
+{%   if r in ns.refs_with_meta %}
 import { {{ r }}Meta } from './{{ r | ts_kebab_case }}';
+{%   endif %}
 {% endfor %}
 
 {{ schema.description | ts_doc_comment }}

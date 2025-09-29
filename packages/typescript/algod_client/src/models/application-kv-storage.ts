@@ -5,7 +5,7 @@ import { AvmKeyValueMeta } from './avm-key-value'
 /**
  * An application's global/local/box state.
  */
-export type ApplicationKvstorage = {
+export type ApplicationKvStorage = {
   /**
    * Key-Value pairs representing application states.
    */
@@ -17,8 +17,8 @@ export type ApplicationKvstorage = {
   account?: string
 }
 
-export const ApplicationKvstorageMeta: ModelMetadata = {
-  name: 'ApplicationKvstorage',
+export const ApplicationKvStorageMeta: ModelMetadata = {
+  name: 'ApplicationKvStorage',
   kind: 'object',
   fields: [
     {

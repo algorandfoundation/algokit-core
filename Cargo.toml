@@ -10,6 +10,7 @@ members = [
   "crates/ffi_macros",
   "crates/algod_client",
   "crates/indexer_client",
+  "crates/kmd_client",
   "tools/build_pkgs",
   "crates/uniffi-bindgen",
   "docs",

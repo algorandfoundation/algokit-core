@@ -48,6 +48,8 @@ export async function request<T>(config: ClientConfig, options: {
   if (apiToken) {
     {% if client_class_name == 'IndexerClient' %}
     headers['X-Indexer-API-Token'] = apiToken;
+    {% elif client_class_name == 'KmdClient' %}
+    headers['X-KMD-API-Token'] = apiToken;
     {% else %}
     headers['X-Algo-API-Token'] = apiToken;
     {% endif %}

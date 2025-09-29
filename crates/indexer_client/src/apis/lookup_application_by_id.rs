@@ -49,7 +49,6 @@ pub async fn lookup_application_by_id(
     }
 
     let mut headers: HashMap<String, String> = HashMap::new();
-    headers.insert("Content-Type".to_string(), "application/json".to_string());
     headers.insert("Accept".to_string(), "application/json".to_string());
 
     let body = None;

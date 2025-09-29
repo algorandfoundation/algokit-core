@@ -518,7 +518,8 @@ class OperationProcessor:
         # Collect from all type references
         context.import_types = extract_types(context.response_type)
 
-        if context.request_body:
+        # Only include request body types if the method actually uses a body
+        if context.request_body and context.method.upper() not in ["GET", "HEAD", "DELETE"]:
             context.import_types |= extract_types(context.request_body.ts_type)
 
         for param in context.parameters:

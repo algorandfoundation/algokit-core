@@ -58,7 +58,7 @@ pub enum {{ operation.rust_error_enum }} {
 {% endif %}
 pub async fn {{ operation.rust_function_name }}(
     http_client: &dyn HttpClient,
-{% if has_request_body(operation) %}
+{% if has_request_body(operation) and operation.method.upper() not in ['GET', 'HEAD', 'DELETE'] %}
     {% set request_body_name = get_request_body_name(operation) %}
     {% set request_body_type = get_request_body_type(operation) %}
     {% if is_request_body_required(operation) %}{{ request_body_name }}: {{ request_body_type }},
@@ -81,7 +81,7 @@ pub async fn {{ operation.rust_function_name }}(
     {% for param in operation.parameters %}
     let p_{{ param.rust_name }} = {{ param.rust_name }};
     {% endfor %}
-    {% if has_request_body(operation) %}
+    {% if has_request_body(operation) and operation.method.upper() not in ['GET', 'HEAD', 'DELETE'] %}
     let p_{{ get_request_body_name(operation) }} = {{ get_request_body_name(operation) }};
     {% endif %}
 
@@ -117,23 +117,27 @@ pub async fn {{ operation.rust_function_name }}(
     headers.insert("Content-Type".to_string(), "text/plain".to_string());
     headers.insert("Accept".to_string(), "application/json".to_string());
 
-    let body = {% if has_request_body(operation) %}Some(p_{{ get_request_body_name(operation) }}){% else %}None{% endif %};
+    let body = {% if has_request_body(operation) and operation.method.upper() not in ['GET', 'HEAD', 'DELETE'] %}Some(p_{{ get_request_body_name(operation) }}){% else %}None{% endif %};
     {% elif not operation.supports_msgpack %}
     let mut headers: HashMap<String, String> = HashMap::new();
+    {% if has_request_body(operation) and operation.method.upper() not in ['GET', 'HEAD', 'DELETE'] %}
     headers.insert("Content-Type".to_string(), "application/json".to_string());
+    {% endif %}
     headers.insert("Accept".to_string(), "application/json".to_string());
 
-    let body = {% if has_request_body(operation) %}
+    let body = {% if has_request_body(operation) and operation.method.upper() not in ['GET', 'HEAD', 'DELETE'] %}
         Some(serde_json::to_vec(&p_{{ get_request_body_name(operation) }}).map_err(|e| Error::Serde { message: e.to_string() })?)
     {% else %}
     None
     {% endif %};
     {% elif not has_format_parameter(operation) %}
     let mut headers: HashMap<String, String> = HashMap::new();
+    {% if has_request_body(operation) and operation.method.upper() not in ['GET', 'HEAD', 'DELETE'] %}
     headers.insert("Content-Type".to_string(), "application/msgpack".to_string());
+    {% endif %}
     headers.insert("Accept".to_string(), "application/msgpack".to_string());
 
-    let body = {% if has_request_body(operation) %}
+    let body = {% if has_request_body(operation) and operation.method.upper() not in ['GET', 'HEAD', 'DELETE'] %}
         {% if operation.request_body_supports_msgpack %}
         {% if request_body_type == "Vec<u8>" %}
         Some(p_{{ get_request_body_name(operation) }})
@@ -150,15 +154,20 @@ pub async fn {{ operation.rust_function_name }}(
     let use_msgpack = {% for param in operation.parameters if param.name == "format" %}{% if param.is_enum_parameter %}p_{{ param.rust_name }}.map(|f| f != Format::Json).unwrap_or(true){% else %}p_{{ param.rust_name }}.map(|f| f != "json").unwrap_or(true){% endif %}{% endfor %};
 
     let mut headers: HashMap<String, String> = HashMap::new();
+    {% if has_request_body(operation) and operation.method.upper() not in ['GET', 'HEAD', 'DELETE'] %}
     if use_msgpack {
         headers.insert("Content-Type".to_string(), "application/msgpack".to_string());
-        headers.insert("Accept".to_string(), "application/msgpack".to_string());
     } else {
         headers.insert("Content-Type".to_string(), "application/json".to_string());
+    }
+    {% endif %}
+    if use_msgpack {
+        headers.insert("Accept".to_string(), "application/msgpack".to_string());
+    } else {
         headers.insert("Accept".to_string(), "application/json".to_string());
     }
 
-    let body = {% if has_request_body(operation) %}
+    let body = {% if has_request_body(operation) and operation.method.upper() not in ['GET', 'HEAD', 'DELETE'] %}
         {% if operation.request_body_supports_msgpack %}
         if use_msgpack {
             {% if request_body_type == "Vec<u8>" %}

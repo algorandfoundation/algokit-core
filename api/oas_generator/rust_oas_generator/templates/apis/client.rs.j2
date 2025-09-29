@@ -77,7 +77,7 @@ impl {{ client_type }}Client {
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
     pub fn testnet() -> Self {
         let http_client = Arc::new(DefaultHttpClient::new(
-            {% if client_type == "Indexer" %}"https://testnet-idx.4160.nodely.dev"{% else %}"https://testnet-api.4160.nodely.dev"{% endif %}
+            {% if client_type == "Indexer" %}"https://testnet-idx.4160.nodely.dev"{% elif client_type == "Kmd" %}"http://localhost:7833"{% else %}"https://testnet-api.4160.nodely.dev"{% endif %}
         ));
         Self::new(http_client)
     }
@@ -87,7 +87,7 @@ impl {{ client_type }}Client {
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
     pub fn mainnet() -> Self {
         let http_client = Arc::new(DefaultHttpClient::new(
-            {% if client_type == "Indexer" %}"https://mainnet-idx.4160.nodely.dev"{% else %}"https://mainnet-api.4160.nodely.dev"{% endif %}
+            {% if client_type == "Indexer" %}"https://mainnet-idx.4160.nodely.dev"{% elif client_type == "Kmd" %}"http://localhost:7833"{% else %}"https://mainnet-api.4160.nodely.dev"{% endif %}
         ));
         Self::new(http_client)
     }
@@ -97,8 +97,8 @@ impl {{ client_type }}Client {
     #[cfg_attr(feature = "ffi_uniffi", uniffi::constructor)]
     pub fn localnet() -> Self {
         let http_client = Arc::new(DefaultHttpClient::with_header(
-            {% if client_type == "Indexer" %}"http://localhost:8980"{% else %}"http://localhost:4001"{% endif %},
-            {% if client_type == "Indexer" %}"X-Indexer-API-Token"{% else %}"X-Algo-API-Token"{% endif %},
+            {% if client_type == "Indexer" %}"http://localhost:8980"{% elif client_type == "Kmd" %}"http://localhost:4002"{% else %}"http://localhost:4001"{% endif %},
+            {% if client_type == "Indexer" %}"X-Indexer-API-Token"{% elif client_type == "Kmd" %}"X-KMD-API-Token"{% else %}"X-Algo-API-Token"{% endif %},
             "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         ).expect("Failed to create HTTP client with API token header"));
         Self::new(http_client)
@@ -116,7 +116,7 @@ impl {{ client_type }}Client {
     {% endif %}
     pub async fn {{ operation.rust_function_name }}(
         &self,
-    {% if has_request_body(operation) %}
+    {% if has_request_body(operation) and operation.method.upper() not in ['GET', 'HEAD', 'DELETE'] %}
         {% set request_body_name = get_request_body_name(operation) %}
         {% set request_body_type = get_request_body_type(operation) %}
         {% if is_request_body_required(operation) %}{{ request_body_name }}: {{ request_body_type }},
@@ -139,7 +139,7 @@ impl {{ client_type }}Client {
     get_success_response_type(operation) }}{% endif %}{% else %}(){% endif %}, Error> {
         let result = super::{{ operation.rust_function_name }}::{{ operation.rust_function_name }}(
             self.http_client.as_ref(),
-        {% if has_request_body(operation) %}
+        {% if has_request_body(operation) and operation.method.upper() not in ['GET', 'HEAD', 'DELETE'] %}
             {{ get_request_body_name(operation) }},
         {% endif %}
         {% for param in operation.parameters %}

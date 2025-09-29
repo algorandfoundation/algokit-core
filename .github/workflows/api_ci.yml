@@ -47,7 +47,7 @@ jobs:
     needs: oas_lint_and_test
     strategy:
       matrix:
-        client: [algod, indexer]
+        client: [algod, indexer, kmd]
         include:
           - client: algod
             output_dir: crates/algod_client
@@ -77,7 +77,7 @@ jobs:
     needs: oas_lint_and_test
     strategy:
       matrix:
-        client: [algod, indexer]
+        client: [algod, indexer, kmd]
         include:
           - client: algod
             package_dir: packages/typescript/algod_client
@@ -89,6 +89,11 @@ jobs:
             package_subdir: indexer_client
             workspace: "@algorandfoundation/indexer-client"
             algokit_utils_test_filter: tests/indexer
+          - client: kmd
+            package_dir: packages/typescript/kmd_client
+            package_subdir: kmd_client
+            workspace: "@algorandfoundation/kmd-client"
+            algokit_utils_test_filter: tests/kmd
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-api-tools

@@ -361,6 +361,7 @@ class RustTemplateEngine:
             "get_request_body_name": lambda op: "request" if op.request_body else None,
             "is_request_body_required": lambda op: bool(op.request_body and op.request_body.get("required", False)),
             "should_import_request_body_type": type_analyzer.should_import_request_body_type,
+            "is_empty_request_body": lambda op: self._is_empty_request_body(op),
             # Client type detection
             "get_client_type": lambda spec: self._detect_client_type_from_spec(spec),
         }
@@ -397,6 +398,34 @@ class RustTemplateEngine:
     def _rust_vec(rust_type: str) -> str:
         """Wrap Rust type in Vec."""
         return f"Vec<{rust_type}>"
+
+    def _is_empty_request_body(self, operation: Operation) -> bool:
+        """Check if a request body has no meaningful content (empty object)."""
+        if not operation.request_body:
+            return True
+
+        # Check the content schemas
+        content = operation.request_body.get("content", {})
+        for _, media_obj in content.items():
+            schema = media_obj.get("schema", {})
+
+            # If there's a $ref, we need to resolve it
+            if "$ref" in schema:
+                ref_name = schema["$ref"].split("/")[-1]
+                # Look up the schema in components
+                if hasattr(self, "spec") and self.spec:
+                    components = self.spec.get("components", {})
+                    schemas = components.get("schemas", {})
+                    schema = schemas.get(ref_name, {})
+
+            # Check if schema has any properties
+            properties = schema.get("properties", {})
+            required = schema.get("required", [])
+
+            if properties or required:
+                return False
+
+        return True
 
     def _detect_client_type_from_spec(self, spec: ParsedSpec | dict[str, Any]) -> str:
         """Detect client type from the OpenAPI specification.

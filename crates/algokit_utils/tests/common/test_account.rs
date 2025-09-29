@@ -112,6 +112,34 @@ impl TestAccount {
         Ok(Self { secret_key })
     }
 
+    /// Create an account directly from a 64-byte secret key (private + public key material)
+    pub fn from_secret_key(
+        secret_key: &[u8],
+    ) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
+        let key_slice = match secret_key.len() {
+            ALGORAND_SECRET_KEY_BYTE_LENGTH => secret_key,
+            len if len == ALGORAND_SECRET_KEY_BYTE_LENGTH * 2 => {
+                &secret_key[..ALGORAND_SECRET_KEY_BYTE_LENGTH]
+            }
+            other => {
+                return Err(format!(
+                    "Secret key must be {} or {} bytes, got {}",
+                    ALGORAND_SECRET_KEY_BYTE_LENGTH,
+                    ALGORAND_SECRET_KEY_BYTE_LENGTH * 2,
+                    other
+                )
+                .into());
+            }
+        };
+
+        let mut key_bytes = [0u8; ALGORAND_SECRET_KEY_BYTE_LENGTH];
+        key_bytes.copy_from_slice(key_slice);
+
+        Ok(Self {
+            secret_key: key_bytes,
+        })
+    }
+
     /// Get the account's address using algokit_transact
     pub fn account(&self) -> KeyPairAccount {
         let signing_key = SigningKey::from_bytes(&self.secret_key);

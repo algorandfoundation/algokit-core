@@ -63,13 +63,8 @@ pub async fn get_pending_transactions_by_address(
 
     let mut headers: HashMap<String, String> = HashMap::new();
     if use_msgpack {
-        headers.insert(
-            "Content-Type".to_string(),
-            "application/msgpack".to_string(),
-        );
         headers.insert("Accept".to_string(), "application/msgpack".to_string());
     } else {
-        headers.insert("Content-Type".to_string(), "application/json".to_string());
         headers.insert("Accept".to_string(), "application/json".to_string());
     }
 
