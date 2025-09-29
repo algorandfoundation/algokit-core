@@ -1,0 +1,151 @@
+{
+    "name": "application",
+    "structs": {},
+    "methods": [
+        {
+            "name": "create",
+            "args": [
+                {
+                    "type": "pay",
+                    "name": "pay_txn"
+                }
+            ],
+            "returns": {
+                "type": "string"
+            },
+            "actions": {
+                "create": [
+                    "NoOp"
+                ],
+                "call": []
+            },
+            "readonly": false,
+            "desc": "Create the application",
+            "events": [],
+            "recommendations": {}
+        },
+        {
+            "name": "delete",
+            "args": [
+                {
+                    "type": "pay",
+                    "name": "pay_txn"
+                }
+            ],
+            "returns": {
+                "type": "string"
+            },
+            "actions": {
+                "create": [],
+                "call": [
+                    "DeleteApplication"
+                ]
+            },
+            "readonly": false,
+            "desc": "Delete the application",
+            "events": [],
+            "recommendations": {}
+        }
+    ],
+    "arcs": [
+        22,
+        28
+    ],
+    "networks": {},
+    "state": {
+        "schema": {
+            "global": {
+                "ints": 0,
+                "bytes": 0
+            },
+            "local": {
+                "ints": 0,
+                "bytes": 0
+            }
+        },
+        "keys": {
+            "global": {},
+            "local": {},
+            "box": {}
+        },
+        "maps": {
+            "global": {},
+            "local": {},
+            "box": {}
+        }
+    },
+    "bareActions": {
+        "create": [],
+        "call": [
+            "UpdateApplication"
+        ]
+    },
+    "sourceInfo": {
+        "approval": {
+            "sourceInfo": [
+                {
+                    "pc": [
+                        34
+                    ],
+                    "errorMessage": "OnCompletion is not DeleteApplication"
+                },
+                {
+                    "pc": [
+                        73
+                    ],
+                    "errorMessage": "OnCompletion is not NoOp"
+                },
+                {
+                    "pc": [
+                        77
+                    ],
+                    "errorMessage": "can only call when creating"
+                },
+                {
+                    "pc": [
+                        37,
+                        118
+                    ],
+                    "errorMessage": "can only call when not creating"
+                },
+                {
+                    "pc": [
+                        47,
+                        86
+                    ],
+                    "errorMessage": "transaction type is pay"
+                }
+            ],
+            "pcOffsetMethod": "cblocks"
+        },
+        "clear": {
+            "sourceInfo": [],
+            "pcOffsetMethod": "none"
+        }
+    },
+    "source": {
+        "approval": "I3ByYWdtYSB2ZXJzaW9uIDEwCiNwcmFnbWEgdHlwZXRyYWNrIGZhbHNlCgovLyBhbGdvcHkuYXJjNC5BUkM0Q29udHJhY3QuYXBwcm92YWxfcHJvZ3JhbSgpIC0+IHVpbnQ2NDoKbWFpbjoKICAgIGludGNibG9jayAxIFRNUExfVVBEQVRBQkxFIFRNUExfREVMRVRBQkxFCiAgICAvLyBjb250cmFjdC5weTo0CiAgICAvLyBjbGFzcyBhcHBsaWNhdGlvbihBUkM0Q29udHJhY3QpOgogICAgdHhuIE51bUFwcEFyZ3MKICAgIGJ6IG1haW5fYmFyZV9yb3V0aW5nQDcKICAgIHB1c2hieXRlc3MgMHhjNjY5NWYzOSAweDg4ZDZjZTlkIC8vIG1ldGhvZCAiY3JlYXRlKHBheSlzdHJpbmciLCBtZXRob2QgImRlbGV0ZShwYXkpc3RyaW5nIgogICAgdHhuYSBBcHBsaWNhdGlvbkFyZ3MgMAogICAgbWF0Y2ggbWFpbl9jcmVhdGVfcm91dGVAMyBtYWluX2RlbGV0ZV9yb3V0ZUA0CgptYWluX2FmdGVyX2lmX2Vsc2VAMTE6CiAgICAvLyBjb250cmFjdC5weTo0CiAgICAvLyBjbGFzcyBhcHBsaWNhdGlvbihBUkM0Q29udHJhY3QpOgogICAgcHVzaGludCAwIC8vIDAKICAgIHJldHVybgoKbWFpbl9kZWxldGVfcm91dGVANDoKICAgIC8vIGNvbnRyYWN0LnB5OjE0CiAgICAvLyBAYXJjNC5hYmltZXRob2QoYWxsb3dfYWN0aW9ucz1bIkRlbGV0ZUFwcGxpY2F0aW9uIl0pCiAgICB0eG4gT25Db21wbGV0aW9uCiAgICBwdXNoaW50IDUgLy8gRGVsZXRlQXBwbGljYXRpb24KICAgID09CiAgICBhc3NlcnQgLy8gT25Db21wbGV0aW9uIGlzIG5vdCBEZWxldGVBcHBsaWNhdGlvbgogICAgdHhuIEFwcGxpY2F0aW9uSUQKICAgIGFzc2VydCAvLyBjYW4gb25seSBjYWxsIHdoZW4gbm90IGNyZWF0aW5nCiAgICAvLyBjb250cmFjdC5weTo0CiAgICAvLyBjbGFzcyBhcHBsaWNhdGlvbihBUkM0Q29udHJhY3QpOgogICAgdHhuIEdyb3VwSW5kZXgKICAgIGludGNfMCAvLyAxCiAgICAtCiAgICBkdXAKICAgIGd0eG5zIFR5cGVFbnVtCiAgICBpbnRjXzAgLy8gcGF5CiAgICA9PQogICAgYXNzZXJ0IC8vIHRyYW5zYWN0aW9uIHR5cGUgaXMgcGF5CiAgICAvLyBjb250cmFjdC5weToxNAogICAgLy8gQGFyYzQuYWJpbWV0aG9kKGFsbG93X2FjdGlvbnM9WyJEZWxldGVBcHBsaWNhdGlvbiJdKQogICAgY2FsbHN1YiBkZWxldGUKICAgIGR1cAogICAgbGVuCiAgICBpdG9iCiAgICBleHRyYWN0IDYgMgogICAgc3dhcAogICAgY29uY2F0CiAgICBwdXNoYnl0ZXMgMHgxNTFmN2M3NQogICAgc3dhcAogICAgY29uY2F0CiAgICBsb2cKICAgIGludGNfMCAvLyAxCiAgICByZXR1cm4KCm1haW5fY3JlYXRlX3JvdXRlQDM6CiAgICAvLyBjb250cmFjdC5weTo1CiAgICAvLyBAYXJjNC5hYmltZXRob2QoY3JlYXRlPSJyZXF1aXJlIikKICAgIHR4biBPbkNvbXBsZXRpb24KICAgICEKICAgIGFzc2VydCAvLyBPbkNvbXBsZXRpb24gaXMgbm90IE5vT3AKICAgIHR4biBBcHBsaWNhdGlvbklECiAgICAhCiAgICBhc3NlcnQgLy8gY2FuIG9ubHkgY2FsbCB3aGVuIGNyZWF0aW5nCiAgICAvLyBjb250cmFjdC5weTo0CiAgICAvLyBjbGFzcyBhcHBsaWNhdGlvbihBUkM0Q29udHJhY3QpOgogICAgdHhuIEdyb3VwSW5kZXgKICAgIGludGNfMCAvLyAxCiAgICAtCiAgICBndHhucyBUeXBlRW51bQogICAgaW50Y18wIC8vIHBheQogICAgPT0KICAgIGFzc2VydCAvLyB0cmFuc2FjdGlvbiB0eXBlIGlzIHBheQogICAgLy8gY29udHJhY3QucHk6NQogICAgLy8gQGFyYzQuYWJpbWV0aG9kKGNyZWF0ZT0icmVxdWlyZSIpCiAgICBwdXNoYnl0ZXMgMHgxNTFmN2M3NTAwMDc2MzcyNjU2MTc0NjU2NAogICAgbG9nCiAgICBpbnRjXzAgLy8gMQogICAgcmV0dXJuCgptYWluX2JhcmVfcm91dGluZ0A3OgogICAgLy8gY29udHJhY3QucHk6NAogICAgLy8gY2xhc3MgYXBwbGljYXRpb24oQVJDNENvbnRyYWN0KToKICAgIHB1c2hpbnQgNCAvLyA0CiAgICB0eG4gT25Db21wbGV0aW9uCiAgICBtYXRjaCBtYWluX3VwZGF0ZUA4CiAgICBiIG1haW5fYWZ0ZXJfaWZfZWxzZUAxMQoKbWFpbl91cGRhdGVAODoKICAgIC8vIGNvbnRyYWN0LnB5OjEwCiAgICAvLyBAYXJjNC5iYXJlbWV0aG9kKGFsbG93X2FjdGlvbnM9WyJVcGRhdGVBcHBsaWNhdGlvbiJdKQogICAgdHhuIEFwcGxpY2F0aW9uSUQKICAgIGFzc2VydCAvLyBjYW4gb25seSBjYWxsIHdoZW4gbm90IGNyZWF0aW5nCiAgICBjYWxsc3ViIHVwZGF0ZQogICAgaW50Y18wIC8vIDEKICAgIHJldHVybgoKCi8vIGNvbnRyYWN0LmFwcGxpY2F0aW9uLnVwZGF0ZSgpIC0+IHZvaWQ6CnVwZGF0ZToKICAgIC8vIGNvbnRyYWN0LnB5OjEyCiAgICAvLyBhc3NlcnQgVGVtcGxhdGVWYXJbYm9vbF0oIlVQREFUQUJMRSIpCiAgICBpbnRjXzEgLy8gVE1QTF9VUERBVEFCTEUKICAgIGFzc2VydAogICAgcmV0c3ViCgoKLy8gY29udHJhY3QuYXBwbGljYXRpb24uZGVsZXRlKHBheV90eG46IHVpbnQ2NCkgLT4gYnl0ZXM6CmRlbGV0ZToKICAgIC8vIGNvbnRyYWN0LnB5OjE0LTE1CiAgICAvLyBAYXJjNC5hYmltZXRob2QoYWxsb3dfYWN0aW9ucz1bIkRlbGV0ZUFwcGxpY2F0aW9uIl0pCiAgICAvLyBkZWYgZGVsZXRlKHNlbGYsIHBheV90eG46IGd0eG4uUGF5bWVudFRyYW5zYWN0aW9uKSAtPiBTdHJpbmc6CiAgICBwcm90byAxIDEKICAgIC8vIGNvbnRyYWN0LnB5OjE3CiAgICAvLyBhc3NlcnQgVGVtcGxhdGVWYXJbVUludDY0XSgiREVMRVRBQkxFIikKICAgIGludGNfMiAvLyBUTVBMX0RFTEVUQUJMRQogICAgYXNzZXJ0CiAgICAvLyBjb250cmFjdC5weToxOAogICAgLy8gcmV0dXJuIFN0cmluZygiZGVsZXRlZCIpCiAgICBwdXNoYnl0ZXMgImRlbGV0ZWQiCiAgICByZXRzdWIK",
+        "clear": "I3ByYWdtYSB2ZXJzaW9uIDEwCiNwcmFnbWEgdHlwZXRyYWNrIGZhbHNlCgovLyBhbGdvcHkuYXJjNC5BUkM0Q29udHJhY3QuY2xlYXJfc3RhdGVfcHJvZ3JhbSgpIC0+IHVpbnQ2NDoKbWFpbjoKICAgIHB1c2hpbnQgMSAvLyAxCiAgICByZXR1cm4K"
+    },
+    "byteCode": {
+        "approval": "CiADAQAAMRtBAGSCAgTGaV85BIjWzp02GgCOAgAsAAOBAEMxGYEFEkQxGEQxFiIJSTgQIhJEiABMSRUWVwYCTFCABBUffHVMULAiQzEZFEQxGBREMRYiCTgQIhJEgA0VH3x1AAdjcmVhdGVksCJDgQQxGY4BAANC/6YxGESIAAIiQyNEiYoBASREgAdkZWxldGVkiQ==",
+        "clear": "CoEBQw=="
+    },
+    "compilerInfo": {
+        "compiler": "puya",
+        "compilerVersion": {
+            "major": 4,
+            "minor": 10,
+            "patch": 0
+        }
+    },
+    "events": [],
+    "templateVariables": {
+        "UPDATABLE": {
+            "type": "AVMUint64"
+        },
+        "DELETABLE": {
+            "type": "AVMUint64"
+        }
+    }
+}

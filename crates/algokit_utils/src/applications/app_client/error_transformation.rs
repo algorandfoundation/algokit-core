@@ -1,7 +1,7 @@
 use super::types::LogicError;
 use super::{AppClient, AppSourceMaps};
 use crate::AlgorandClient;
-use crate::transactions::TransactionResultError;
+use crate::{AppClientError, TransactionSenderError};
 use algokit_abi::{Arc56Contract, arc56_contract::PcOffsetMethod};
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -63,19 +63,18 @@ impl LogicErrorContext<'_> {
     /// Create an enhanced LogicError from a transaction error, applying source maps if available.
     pub(crate) fn expose_logic_error(
         &self,
-        error: &TransactionResultError,
+        error_message: &str,
         is_clear_state_program: bool,
     ) -> LogicError {
-        let err_str = format!("{}", error);
-        let parsed_logic_error_data = extract_logic_error_data(&err_str);
+        let parsed_logic_error_data = extract_logic_error_data(error_message);
         let (mut line_no_opt, mut listing) =
-            self.apply_source_map_for_message(&err_str, is_clear_state_program);
+            self.apply_source_map_for_message(error_message, is_clear_state_program);
         let source_map = self.get_source_map(is_clear_state_program).cloned();
-        let transaction_id = Self::extract_transaction_id(&err_str);
-        let pc_opt = Self::extract_pc(&err_str);
+        let transaction_id = Self::extract_transaction_id(error_message);
+        let pc_opt = Self::extract_pc(error_message);
 
         let mut logic = LogicError {
-            message: err_str.clone(),
+            message: error_message.to_string(),
             program: None,
             source_map,
             transaction_id,
@@ -87,7 +86,7 @@ impl LogicErrorContext<'_> {
                 Some(listing.clone())
             },
             traces: None,
-            logic_error_str: Some(err_str.clone()),
+            logic_error_str: Some(error_message.to_string()),
         };
 
         let (tx_id, parsed_pc, msg_msg) = if let Some(p) = parsed_logic_error_data {
@@ -162,7 +161,7 @@ impl LogicErrorContext<'_> {
         }
 
         if let Some(emsg) = arc56_error_message.or(msg_msg) {
-            let app_id_from_msg = Self::extract_app_id(&err_str);
+            let app_id_from_msg = Self::extract_app_id(error_message);
             let app_id = app_id_from_msg
                 .or_else(|| Some(self.app_id.to_string()))
                 .unwrap_or_else(|| "N/A".to_string());
@@ -396,19 +395,40 @@ impl LogicErrorContext<'_> {
 }
 
 impl AppClient {
-    /// Create an enhanced LogicError from a transaction error, applying source maps if available.
-    pub fn expose_logic_error(
+    pub(crate) fn transform_transaction_error(
         &self,
-        error: &TransactionResultError,
+        err: TransactionSenderError,
         is_clear_state_program: bool,
-    ) -> LogicError {
-        let context = LogicErrorContext {
-            app_id: self.app_id(),
-            app_spec: self.app_spec(),
-            algorand: self.algorand(),
-            source_maps: self.source_maps.as_ref(),
-        };
+    ) -> AppClientError {
+        let error_message = err.to_string();
 
-        context.expose_logic_error(error, is_clear_state_program)
+        // Only transform errors that are for this app (when app_id is known)
+        if self.app_id() != 0 {
+            let app_tag = format!("app={}", self.app_id());
+            if !error_message.contains(&app_tag) {
+                return AppClientError::TransactionSenderError { source: err };
+            }
+        }
+
+        let parsed_logic_error_data = extract_logic_error_data(&error_message);
+
+        match parsed_logic_error_data {
+            Some(_) => {
+                let context = LogicErrorContext {
+                    app_id: self.app_id(),
+                    app_spec: self.app_spec(),
+                    algorand: self.algorand(),
+                    source_maps: self.source_maps.as_ref(),
+                };
+
+                let logic_error =
+                    context.expose_logic_error(&error_message, is_clear_state_program);
+                AppClientError::LogicError {
+                    message: logic_error.message.clone(),
+                    logic: Box::new(logic_error),
+                }
+            }
+            None => AppClientError::TransactionSenderError { source: err },
+        }
     }
 }

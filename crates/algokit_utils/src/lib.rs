@@ -11,6 +11,8 @@ pub use clients::{
 };
 // Re-export ABI types for convenience
 pub use algokit_abi::ABIReturn;
+pub use applications::app_client::{AppClient, AppClientError, AppClientParams, AppSourceMaps};
+pub use config::{Config, EventType};
 pub use transactions::{
     AccountCloseParams, AppCallMethodCallParams, AppCallParams, AppCreateMethodCallParams,
     AppCreateParams, AppDeleteMethodCallParams, AppDeleteParams, AppMethodCallArg,
@@ -18,12 +20,8 @@ pub use transactions::{
     AssetCreateParams, AssetDestroyParams, AssetFreezeParams, AssetOptInParams, AssetOptOutParams,
     AssetTransferParams, AssetUnfreezeParams, Composer, ComposerError, ComposerTransaction,
     EmptySigner, NonParticipationKeyRegistrationParams, OfflineKeyRegistrationParams,
-    OnlineKeyRegistrationParams, PaymentParams, ResourcePopulation, SendAppCallResult,
-    SendAppCreateResult, SendAppUpdateResult, SendAssetCreateResult, SendParams,
-    SendTransactionComposerResults, SendTransactionResult, TransactionCreator,
-    TransactionResultError, TransactionSender, TransactionSenderError, TransactionSigner,
-    TransactionWithSigner,
+    OnlineKeyRegistrationParams, PaymentParams, ResourcePopulation, SendAppCreateMethodCallResult,
+    SendAppCreateResult, SendAppMethodCallResult, SendAssetCreateResult, SendParams, SendResult,
+    SendTransactionComposerResults, TransactionCreator, TransactionSender, TransactionSenderError,
+    TransactionSigner, TransactionWithSigner,
 };
-
-pub use applications::app_client::{AppClient, AppClientError, AppClientParams, AppSourceMaps};
-pub use config::{Config, EventType};

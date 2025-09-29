@@ -37,11 +37,7 @@ async fn test_payment_returns_rich_result(
         .await?;
 
     // Validate rich result orchestration - Sender's unique value
-    assert!(!result.tx_ids.is_empty());
-    assert!(!result.confirmations.is_empty());
     assert!(result.confirmation.confirmed_round.is_some());
-    assert!(!result.transactions.is_empty());
-    assert_eq!(result.transactions.len(), 1);
 
     Ok(())
 }
@@ -70,13 +66,10 @@ async fn test_zero_amount_payment_allowed(
         .await?;
 
     // Validate that zero-amount payment succeeds
-    assert!(!result.tx_ids.is_empty());
-    assert!(!result.confirmations.is_empty());
     assert!(result.confirmation.confirmed_round.is_some());
-    assert_eq!(result.transactions.len(), 1);
 
     // Verify the transaction has amount 0
-    if let algokit_transact::Transaction::Payment(payment_fields) = &result.transactions[0] {
+    if let algokit_transact::Transaction::Payment(payment_fields) = &result.transaction {
         assert_eq!(payment_fields.amount, 0);
     } else {
         return Err("Expected payment transaction".into());
@@ -111,8 +104,7 @@ async fn test_asset_create_extracts_asset_id(
 
     // Validate ID extraction from confirmation - Sender's orchestration value
     assert!(result.asset_id > 0);
-    assert!(!result.common_params.tx_ids.is_empty());
-    assert!(result.common_params.confirmation.confirmed_round.is_some());
+    assert!(result.confirmation.confirmed_round.is_some());
 
     Ok(())
 }
@@ -142,8 +134,7 @@ async fn test_app_create_extracts_app_id(
 
     // Validate ID extraction from confirmation - Sender's orchestration value
     assert!(result.app_id > 0);
-    assert!(!result.common_params.tx_ids.is_empty());
-    assert!(result.common_params.confirmation.confirmed_round.is_some());
+    assert!(result.confirmation.confirmed_round.is_some());
 
     Ok(())
 }
@@ -193,9 +184,8 @@ async fn test_abi_method_returns_enhanced_processing(
         .await?;
 
     // Validate enhanced ABI return processing with AppManager - Sender's orchestration value
-    assert!(!result.common_params.tx_ids.is_empty());
-    assert!(result.common_params.confirmation.confirmed_round.is_some());
-    assert!(result.abi_return.is_some());
+    assert!(!result.transaction_ids.is_empty());
+    assert!(result.confirmation.confirmed_round.is_some());
 
     Ok(())
 }
@@ -237,7 +227,6 @@ async fn test_asset_opt_out_uses_asset_manager_coordination(
         .await?;
 
     // Validate Sender orchestrated AssetManager to resolve creator automatically
-    assert!(!result.tx_ids.is_empty());
     assert!(result.confirmation.confirmed_round.is_some());
 
     Ok(())
@@ -366,10 +355,6 @@ async fn test_transaction_confirmation_integration(
     // Validate Sender's coordination of transaction confirmation
     assert!(result.confirmation.confirmed_round.is_some());
     assert!(result.confirmation.confirmed_round.unwrap() > 0);
-    assert!(!result.tx_ids.is_empty());
-
-    // Validate transaction parsing integration
-    assert_eq!(result.transactions.len(), 1);
 
     Ok(())
 }
@@ -384,40 +369,6 @@ async fn test_new_group_creates_composer(
 
     // Validate Sender's Composer orchestration capability
     // Implementation details tested in composer tests
-    Ok(())
-}
-
-#[rstest]
-#[tokio::test]
-async fn test_utility_methods(#[future] algorand_fixture: AlgorandFixtureResult) -> TestResult {
-    let algorand_fixture = algorand_fixture.await?;
-
-    // Test lease encoding utilities - Sender's utility orchestration
-    let short_data = b"test";
-    let lease1 = algorand_fixture
-        .algorand_client
-        .send()
-        .encode_lease(short_data)?;
-    assert_eq!(lease1.len(), 32);
-
-    let long_data = vec![1u8; 100];
-    let lease2 = algorand_fixture
-        .algorand_client
-        .send()
-        .encode_lease(&long_data)?;
-    assert_eq!(lease2.len(), 32);
-
-    // Test string lease consistency
-    let lease3 = algorand_fixture
-        .algorand_client
-        .send()
-        .string_lease("test-identifier");
-    let lease4 = algorand_fixture
-        .algorand_client
-        .send()
-        .string_lease("test-identifier");
-    assert_eq!(lease3, lease4);
-
     Ok(())
 }
 

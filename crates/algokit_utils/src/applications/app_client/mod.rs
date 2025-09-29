@@ -3,7 +3,7 @@ use crate::clients::app_manager::{AppState, BoxName};
 use crate::clients::network_client::NetworkDetails;
 use crate::transactions::{TransactionComposerConfig, TransactionSigner};
 use crate::{AlgorandClient, clients::app_manager::BoxIdentifier};
-use crate::{SendParams, SendTransactionResult};
+use crate::{SendParams, SendResult};
 use algokit_abi::{ABIType, ABIValue, Arc56Contract};
 use algokit_transact::Address;
 use std::collections::HashMap;
@@ -39,7 +39,7 @@ pub use transaction_builder::TransactionBuilder;
 pub use transaction_sender::TransactionSender;
 pub use types::{
     AppClientBareCallParams, AppClientMethodCallParams, AppClientParams, AppSourceMaps,
-    CompilationParams, FundAppAccountParams,
+    CompilationParams, FundAppAccountParams, LogicError,
 };
 
 type BoxNameFilter = Box<dyn Fn(&BoxName) -> bool>;
@@ -262,7 +262,7 @@ impl AppClient {
         &self,
         params: FundAppAccountParams,
         send_params: Option<SendParams>,
-    ) -> Result<SendTransactionResult, AppClientError> {
+    ) -> Result<SendResult, AppClientError> {
         self.send().fund_app_account(params, send_params).await
     }
 

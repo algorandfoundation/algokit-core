@@ -53,11 +53,8 @@ impl AlgorandClient {
         let app_manager = AppManager::new(algod_client.clone());
 
         // Create closure for new_group function
-        let transaction_sender = TransactionSender::new(
-            new_group.clone(),
-            asset_manager.clone(),
-            app_manager.clone(),
-        );
+        let transaction_sender = TransactionSender::new(new_group.clone(), asset_manager.clone());
+
         // Create closure for TransactionCreator
         let transaction_creator = TransactionCreator::new(new_group.clone());
 

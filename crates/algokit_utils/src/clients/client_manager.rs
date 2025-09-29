@@ -1,7 +1,8 @@
 use crate::AlgorandClient;
-use crate::applications::app_client::{AppClient, AppClientError, AppClientParams, AppSourceMaps};
+use crate::applications::app_client::{
+    AppClient, AppClientError, AppClientParams, AppSourceMaps, CompilationParams,
+};
 use crate::applications::app_factory::{AppFactory, AppFactoryParams};
-use crate::clients::app_manager::TealTemplateValue;
 use crate::clients::network_client::{
     AlgoClientConfig, AlgoConfig, AlgorandService, NetworkDetails, TokenHeader,
     genesis_id_is_localnet,
@@ -13,7 +14,7 @@ use algokit_http_client::DefaultHttpClient;
 use base64::{Engine, engine::general_purpose};
 use indexer_client::IndexerClient;
 use snafu::Snafu;
-use std::{collections::HashMap, env, sync::Arc};
+use std::{env, sync::Arc};
 use tokio::sync::RwLock;
 
 #[derive(Debug, Snafu)]
@@ -304,9 +305,7 @@ impl ClientManager {
         default_sender: Option<String>,
         default_signer: Option<Arc<dyn TransactionSigner>>,
         version: Option<String>,
-        deploy_time_params: Option<HashMap<String, TealTemplateValue>>,
-        updatable: Option<bool>,
-        deletable: Option<bool>,
+        compilation_params: Option<CompilationParams>,
         source_maps: Option<AppSourceMaps>,
         transaction_composer_config: Option<TransactionComposerConfig>,
     ) -> AppFactory {
@@ -317,9 +316,7 @@ impl ClientManager {
             default_sender,
             default_signer,
             version,
-            deploy_time_params,
-            updatable,
-            deletable,
+            compilation_params,
             source_maps,
             transaction_composer_config,
         })

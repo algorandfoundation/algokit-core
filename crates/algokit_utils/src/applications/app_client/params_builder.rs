@@ -365,12 +365,12 @@ impl<'app_client> ParamsBuilder<'app_client> {
 
                 let app_call_result =
                     Box::pin(self.client.send().call(method_call_params, None, None)).await?;
+
                 let abi_return = app_call_result.abi_return.ok_or_else(|| {
                     AppClientError::ParamsBuilderError {
                         message: "Method call did not return a value".to_string(),
                     }
                 })?;
-
                 match abi_return.return_value {
                     None => Err(AppClientError::ParamsBuilderError {
                         message: "Method call did not return a value".to_string(),

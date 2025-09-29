@@ -1,10 +1,14 @@
 use crate::AlgorandClient;
-use crate::clients::app_manager::TealTemplateValue;
+use crate::clients::app_manager::{CompiledPrograms, TealTemplateValue};
 use crate::transactions::TransactionComposerConfig;
 use crate::transactions::TransactionSigner;
 use crate::transactions::app_call::AppMethodCallArg;
+use algod_client::models::PendingTransactionResponse;
+use algokit_abi::ABIReturn;
 use algokit_abi::Arc56Contract;
 use algokit_transact::BoxReference;
+use algokit_transact::Byte32;
+use algokit_transact::Transaction;
 use derive_more::Debug;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -150,4 +154,40 @@ pub struct CompilationParams {
     pub deploy_time_params: Option<HashMap<String, TealTemplateValue>>,
     pub updatable: Option<bool>,
     pub deletable: Option<bool>,
+}
+
+#[derive(Clone, Debug)]
+pub struct AppClientUpdateMethodCallResult {
+    /// The primary transaction that has been sent
+    pub transaction: Transaction,
+    /// The response from sending and waiting for the primary transaction
+    pub confirmation: PendingTransactionResponse,
+    /// The transaction ID of the primary transaction that has been sent
+    pub transaction_id: String,
+    /// The ABI return value from the primary method call (optional)
+    pub abi_return: Option<ABIReturn>,
+    /// The transactions that were sent
+    pub transactions: Vec<Transaction>,
+    /// The responses from sending and waiting for the transactions
+    pub confirmations: Vec<PendingTransactionResponse>,
+    /// The transaction IDs that have been sent
+    pub transaction_ids: Vec<String>,
+    /// The returned values of ABI methods
+    pub abi_returns: Vec<ABIReturn>,
+    /// The group ID (optional)
+    pub group: Option<Byte32>,
+    /// The compiled programs (approval and clear state)
+    pub compiled_programs: CompiledPrograms,
+}
+
+#[derive(Clone, Debug)]
+pub struct AppClientUpdateResult {
+    /// The primary transaction that has been sent
+    pub transaction: Transaction,
+    /// The response from sending and waiting for the primary transaction
+    pub confirmation: PendingTransactionResponse,
+    /// The transaction ID of the primary transaction that has been sent
+    pub transaction_id: String,
+    /// The compiled programs (approval and clear state)
+    pub compiled_programs: CompiledPrograms,
 }

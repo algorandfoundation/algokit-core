@@ -87,7 +87,7 @@ async fn test_construct_transaction_with_abi_encoding_including_transaction(
         )
         .await?;
 
-    assert_eq!(result.common_params.transactions.len(), 2);
+    assert_eq!(result.transactions.len(), 2);
 
     let abi_return = result.abi_return.as_ref().expect("Expected ABI return");
     let expected_return = format!("Sent {}. {}", amount, "test");
@@ -404,7 +404,7 @@ async fn bare_call_with_box_reference_builds_and_sends(
         )
         .await?;
 
-    match &result.common_params.transaction {
+    match &result.transaction {
         algokit_transact::Transaction::AppCall(fields) => {
             assert_eq!(fields.app_id, f.app_id);
             assert_eq!(

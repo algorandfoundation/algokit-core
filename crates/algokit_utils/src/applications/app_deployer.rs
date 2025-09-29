@@ -1,13 +1,16 @@
 use crate::clients::app_manager::{
-    AppInformation, AppManager, AppManagerError, DeploymentMetadata, TealTemplateParams,
+    AppInformation, AppManager, AppManagerError, CompiledPrograms, CompiledTeal,
+    DeploymentMetadata, TealTemplateParams,
 };
 use crate::transactions::{TransactionSender, TransactionSenderError};
 use crate::{
     AppCreateMethodCallParams, AppCreateParams, AppDeleteMethodCallParams, AppDeleteParams,
-    AppMethodCallArg, AppUpdateMethodCallParams, AppUpdateParams, ComposerError, SendParams,
-    SendTransactionComposerResults, create_transaction_params,
+    AppMethodCallArg, AppUpdateMethodCallParams, AppUpdateParams, Composer, ComposerError,
+    SendParams, create_transaction_params,
 };
-use algokit_transact::{Address, OnApplicationComplete};
+use algod_client::models::PendingTransactionResponse;
+use algokit_abi::ABIReturn;
+use algokit_transact::{Address, Byte32, OnApplicationComplete, Transaction};
 use base64::{Engine as _, engine::general_purpose};
 use indexer_client::{IndexerClient, apis::Error as IndexerError};
 use log::{debug, info, warn};
@@ -245,23 +248,103 @@ pub struct AppDeployParams {
     pub send_params: SendParams,
 }
 
+#[derive(Clone, Debug)]
+pub struct AppDeployerCreateResult {
+    /// The create transaction
+    pub transaction: Transaction,
+    /// The response from sending and waiting for the create transaction
+    pub confirmation: PendingTransactionResponse,
+    /// The create transaction ID
+    pub transaction_id: String,
+    /// The ABI return value of the create
+    pub abi_return: Option<ABIReturn>,
+    /// The group ID for the transaction group (if any)
+    pub group: Option<Byte32>,
+    /// All transaction IDs in the group
+    pub transaction_ids: Vec<String>,
+    /// All transactions in the group
+    pub transactions: Vec<Transaction>,
+    /// All confirmations in the group
+    pub confirmations: Vec<PendingTransactionResponse>,
+    /// The compiled approval and clear programs
+    pub compiled_programs: CompiledPrograms,
+    /// The ABI return values
+    pub abi_returns: Vec<ABIReturn>,
+}
+
+#[derive(Clone, Debug)]
+pub struct AppDeployerUpdateResult {
+    /// The update transaction
+    pub transaction: Transaction,
+    /// The response from sending and waiting for the update transaction
+    pub confirmation: PendingTransactionResponse,
+    /// The update transaction ID
+    pub transaction_id: String,
+    /// The ABI return value of the update transaction
+    pub abi_return: Option<ABIReturn>,
+    /// The group ID for the transaction group (if any)
+    pub group: Option<Byte32>,
+    /// All transaction IDs in the group
+    pub transaction_ids: Vec<String>,
+    /// All transactions in the group
+    pub transactions: Vec<Transaction>,
+    /// All confirmations in the group
+    pub confirmations: Vec<PendingTransactionResponse>,
+    /// The compiled approval and clear programs
+    pub compiled_programs: CompiledPrograms,
+    /// The ABI return values
+    pub abi_returns: Vec<ABIReturn>,
+}
+
+#[derive(Clone, Debug)]
+pub struct AppDeployerReplaceResult {
+    /// The create transaction
+    pub create_transaction: Transaction,
+    /// The response from sending and waiting for the create transaction
+    pub create_confirmation: PendingTransactionResponse,
+    /// The create transaction ID
+    pub create_transaction_id: String,
+    /// The ABI return value of the create transaction
+    pub create_abi_return: Option<ABIReturn>,
+    /// The delete transaction
+    pub delete_transaction: Transaction,
+    /// The response from sending and waiting for the delete transaction
+    pub delete_confirmation: PendingTransactionResponse,
+    /// The delete transaction ID
+    pub delete_transaction_id: String,
+    /// The ABI return value of the delete transaction
+    pub delete_abi_return: Option<ABIReturn>,
+    /// The group ID for the transaction group (if any)
+    pub group: Option<Byte32>,
+    /// All transaction IDs in the group
+    pub transaction_ids: Vec<String>,
+    /// All transactions in the group
+    pub transactions: Vec<Transaction>,
+    /// All confirmations in the group
+    pub confirmations: Vec<PendingTransactionResponse>,
+    /// The compiled approval and clear programs
+    pub compiled_programs: CompiledPrograms,
+    /// The ABI return values
+    pub abi_returns: Vec<ABIReturn>,
+}
+
 /// The result of an app deployment operation
 #[derive(Debug)]
 pub enum AppDeployResult {
     /// Application was created
     Create {
         app: AppMetadata,
-        result: SendTransactionComposerResults,
+        result: AppDeployerCreateResult,
     },
     /// Application was updated
     Update {
         app: AppMetadata,
-        result: SendTransactionComposerResults,
+        result: AppDeployerUpdateResult,
     },
     /// Application was replaced (deleted and recreated)
     Replace {
         app: AppMetadata,
-        result: SendTransactionComposerResults,
+        result: AppDeployerReplaceResult,
     },
     /// No operation was performed
     Nothing { app: AppMetadata },
@@ -373,7 +456,7 @@ impl AppDeployer {
             });
         }
         // Compile TEAL code if needed and handle template replacement
-        let (approval_bytes, clear_bytes) = self
+        let compiled_programs = self
             .compile_app_programs(
                 match &create_params {
                     CreateParams::AppCreateCall(params) => &params.approval_program,
@@ -392,8 +475,8 @@ impl AppDeployer {
             "Idempotently deploying app \"{}\" from creator {} using {} bytes of approval program and {} bytes of clear state program",
             metadata.name,
             sender,
-            approval_bytes.len(),
-            clear_bytes.len()
+            compiled_programs.approval.compiled_base64_to_bytes.len(),
+            compiled_programs.clear.compiled_base64_to_bytes.len()
         );
 
         // Get existing apps
@@ -410,13 +493,7 @@ impl AppDeployer {
                 metadata.name, sender, metadata.version
             );
             return self
-                .create_app(
-                    &metadata,
-                    &create_params,
-                    &approval_bytes,
-                    &clear_bytes,
-                    &send_params,
-                )
+                .create_app(&metadata, &create_params, compiled_programs, &send_params)
                 .await;
         }
 
@@ -433,9 +510,17 @@ impl AppDeployer {
             .map_err(|e| AppDeployError::AppManagerError { source: e })?;
 
         // Check for changes
-        let is_update = self.is_program_different(&approval_bytes, &clear_bytes, &existing_app)?;
-        let is_schema_break =
-            self.is_schema_break(&create_params, &existing_app, &approval_bytes, &clear_bytes)?;
+        let is_update = self.is_program_different(
+            &compiled_programs.approval.compiled_base64_to_bytes,
+            &compiled_programs.clear.compiled_base64_to_bytes,
+            &existing_app,
+        )?;
+        let is_schema_break = self.is_schema_break(
+            &create_params,
+            &existing_app,
+            &compiled_programs.approval.compiled_base64_to_bytes,
+            &compiled_programs.clear.compiled_base64_to_bytes,
+        )?;
 
         if is_schema_break {
             self.handle_schema_break(
@@ -443,8 +528,7 @@ impl AppDeployer {
                 existing_app_metadata,
                 &metadata,
                 &create_params,
-                &approval_bytes,
-                &clear_bytes,
+                compiled_programs,
                 &delete_params,
                 &send_params,
             )
@@ -456,8 +540,7 @@ impl AppDeployer {
                 &metadata,
                 &create_params,
                 &update_params,
-                &approval_bytes,
-                &clear_bytes,
+                compiled_programs,
                 &delete_params,
                 &send_params,
             )
@@ -643,8 +726,8 @@ impl AppDeployer {
         clear_state_program: &AppProgram,
         deployment_metadata: &AppDeployMetadata,
         deploy_time_params: Option<&TealTemplateParams>,
-    ) -> Result<(Vec<u8>, Vec<u8>), AppDeployError> {
-        let approval_bytes = match approval_program {
+    ) -> Result<CompiledPrograms, AppDeployError> {
+        let approval = match approval_program {
             AppProgram::Teal(code) => {
                 let metadata = DeploymentMetadata {
                     updatable: deployment_metadata.updatable,
@@ -655,29 +738,36 @@ impl AppDeployer {
                 } else {
                     None
                 };
-                let compiled = self
-                    .app_manager
+                self.app_manager
                     .compile_teal_template(code, deploy_time_params, metadata_opt)
                     .await
-                    .map_err(|e| AppDeployError::AppManagerError { source: e })?;
-                compiled.compiled_base64_to_bytes
+                    .map_err(|e| AppDeployError::AppManagerError { source: e })?
             }
-            AppProgram::CompiledBytes(bytes) => bytes.clone(),
+            AppProgram::CompiledBytes(bytes) => CompiledTeal {
+                teal: String::new(), // Not available for pre-compiled bytes
+                compiled: base64::engine::general_purpose::STANDARD.encode(bytes),
+                compiled_hash: String::new(), // Not available for pre-compiled bytes
+                compiled_base64_to_bytes: bytes.clone(),
+                source_map: None,
+            },
         };
 
-        let clear_state_bytes = match clear_state_program {
-            AppProgram::Teal(code) => {
-                let compiled = self
-                    .app_manager
-                    .compile_teal_template(code, deploy_time_params, None)
-                    .await
-                    .map_err(|e| AppDeployError::AppManagerError { source: e })?;
-                compiled.compiled_base64_to_bytes
-            }
-            AppProgram::CompiledBytes(bytes) => bytes.clone(),
+        let clear = match clear_state_program {
+            AppProgram::Teal(code) => self
+                .app_manager
+                .compile_teal_template(code, deploy_time_params, None)
+                .await
+                .map_err(|e| AppDeployError::AppManagerError { source: e })?,
+            AppProgram::CompiledBytes(bytes) => CompiledTeal {
+                teal: String::new(), // Not available for pre-compiled bytes
+                compiled: base64::engine::general_purpose::STANDARD.encode(bytes),
+                compiled_hash: String::new(), // Not available for pre-compiled bytes
+                compiled_base64_to_bytes: bytes.clone(),
+                source_map: None,
+            },
         };
 
-        Ok((approval_bytes, clear_state_bytes))
+        Ok(CompiledPrograms { approval, clear })
     }
 
     fn parse_deploy_note(note: &[u8]) -> Option<AppDeployMetadata> {
@@ -747,8 +837,7 @@ impl AppDeployer {
         existing_app_metadata: &AppMetadata,
         metadata: &AppDeployMetadata,
         create_params: &CreateParams,
-        approval_program: &[u8],
-        clear_state_program: &[u8],
+        compiled_programs: CompiledPrograms,
         delete_params: &DeleteParams,
         send_params: &SendParams,
     ) -> Result<AppDeployResult, AppDeployError> {
@@ -767,14 +856,8 @@ impl AppDeployer {
                 info!(
                     "Executing the append on schema break strategy, will attempt to create a new app"
                 );
-                self.create_app(
-                    metadata,
-                    create_params,
-                    approval_program,
-                    clear_state_program,
-                    send_params,
-                )
-                .await
+                self.create_app(metadata, create_params, compiled_programs, send_params)
+                    .await
             }
             OnSchemaBreak::Replace => {
                 if existing_app_metadata.deletable.unwrap_or(false) {
@@ -790,9 +873,8 @@ impl AppDeployer {
                     existing_app_metadata,
                     metadata,
                     create_params,
-                    approval_program,
-                    clear_state_program,
                     delete_params,
+                    compiled_programs,
                     send_params,
                 )
                 .await
@@ -808,8 +890,7 @@ impl AppDeployer {
         metadata: &AppDeployMetadata,
         create_params: &CreateParams,
         update_params: &UpdateParams,
-        approval_program: &[u8],
-        clear_state_program: &[u8],
+        compiled_programs: CompiledPrograms,
         delete_params: &DeleteParams,
         send_params: &SendParams,
     ) -> Result<AppDeployResult, AppDeployError> {
@@ -826,14 +907,8 @@ impl AppDeployer {
             }),
             OnUpdate::Append => {
                 info!("Executing the append on update strategy, will attempt to create a new app");
-                self.create_app(
-                    metadata,
-                    create_params,
-                    approval_program,
-                    clear_state_program,
-                    send_params,
-                )
-                .await
+                self.create_app(metadata, create_params, compiled_programs, send_params)
+                    .await
             }
             OnUpdate::Update => {
                 if existing_app_metadata.updatable.unwrap_or(false) {
@@ -847,8 +922,7 @@ impl AppDeployer {
                     existing_app_metadata,
                     metadata,
                     update_params,
-                    approval_program,
-                    clear_state_program,
+                    compiled_programs,
                     send_params,
                 )
                 .await
@@ -867,9 +941,8 @@ impl AppDeployer {
                     existing_app_metadata,
                     metadata,
                     create_params,
-                    approval_program,
-                    clear_state_program,
                     delete_params,
+                    compiled_programs,
                     send_params,
                 )
                 .await
@@ -881,14 +954,17 @@ impl AppDeployer {
         &mut self,
         metadata: &AppDeployMetadata,
         create_params: &CreateParams,
-        approval_program: &[u8],
-        clear_state_program: &[u8],
+        compiled_programs: CompiledPrograms,
         send_params: &SendParams,
     ) -> Result<AppDeployResult, AppDeployError> {
-        let result = match create_params {
+        let mut composer = self.transaction_sender.new_group(None);
+
+        match create_params {
             CreateParams::AppCreateCall(params) => {
-                let computed_extra_pages =
-                    Self::calculate_extra_program_pages(approval_program, clear_state_program);
+                let computed_extra_pages = Self::calculate_extra_program_pages(
+                    &compiled_programs.approval.compiled_base64_to_bytes,
+                    &compiled_programs.clear.compiled_base64_to_bytes,
+                );
                 let app_create_params = AppCreateParams {
                     sender: params.sender.clone(),
                     signer: params.signer.clone(),
@@ -902,8 +978,8 @@ impl AppDeployer {
                     first_valid_round: params.first_valid_round,
                     last_valid_round: params.last_valid_round,
                     on_complete: params.on_complete,
-                    approval_program: approval_program.to_vec(),
-                    clear_state_program: clear_state_program.to_vec(),
+                    approval_program: compiled_programs.approval.compiled_base64_to_bytes.clone(),
+                    clear_state_program: compiled_programs.clear.compiled_base64_to_bytes.clone(),
                     global_state_schema: params.global_state_schema.clone(),
                     local_state_schema: params.local_state_schema.clone(),
                     extra_program_pages: params.extra_program_pages.or(Some(computed_extra_pages)),
@@ -913,14 +989,15 @@ impl AppDeployer {
                     asset_references: params.asset_references.clone(),
                     box_references: params.box_references.clone(),
                 };
-                self.transaction_sender
-                    .app_create(app_create_params, Some(send_params.clone()))
-                    .await
-                    .map_err(|e| AppDeployError::TransactionSenderError { source: e })?
+                composer
+                    .add_app_create(app_create_params)
+                    .map_err(|e| AppDeployError::ComposerError { source: e })?;
             }
             CreateParams::AppCreateMethodCall(params) => {
-                let computed_extra_pages =
-                    Self::calculate_extra_program_pages(approval_program, clear_state_program);
+                let computed_extra_pages = Self::calculate_extra_program_pages(
+                    &compiled_programs.approval.compiled_base64_to_bytes,
+                    &compiled_programs.clear.compiled_base64_to_bytes,
+                );
                 let app_create_method_params = AppCreateMethodCallParams {
                     sender: params.sender.clone(),
                     signer: params.signer.clone(),
@@ -934,8 +1011,8 @@ impl AppDeployer {
                     first_valid_round: params.first_valid_round,
                     last_valid_round: params.last_valid_round,
                     on_complete: params.on_complete,
-                    approval_program: approval_program.to_vec(),
-                    clear_state_program: clear_state_program.to_vec(),
+                    approval_program: compiled_programs.approval.compiled_base64_to_bytes.clone(),
+                    clear_state_program: compiled_programs.clear.compiled_base64_to_bytes.clone(),
                     global_state_schema: params.global_state_schema.clone(),
                     local_state_schema: params.local_state_schema.clone(),
                     extra_program_pages: params.extra_program_pages.or(Some(computed_extra_pages)),
@@ -946,18 +1023,37 @@ impl AppDeployer {
                     asset_references: params.asset_references.clone(),
                     box_references: params.box_references.clone(),
                 };
-                self.transaction_sender
-                    .app_create_method_call(app_create_method_params, Some(send_params.clone()))
-                    .await
-                    .map_err(|e| AppDeployError::TransactionSenderError { source: e })?
+                composer
+                    .add_app_create_method_call(app_create_method_params)
+                    .map_err(|e| AppDeployError::ComposerError { source: e })?;
             }
         };
 
-        let confirmed_round = result.common_params.confirmation.confirmed_round.unwrap();
+        let composer_result = composer
+            .send(Some(send_params.clone()))
+            .await
+            .map_err(|e| AppDeployError::ComposerError { source: e })?;
+
+        let create_transaction_index = composer_result.confirmations.len() - 1;
+
+        let confirmation = composer_result.confirmations[create_transaction_index].clone();
+        let app_id = confirmation
+            .app_id
+            .ok_or_else(|| AppDeployError::DeploymentFailed {
+                message: "App creation confirmation missing application-index".to_string(),
+            })?;
+
+        let app_address = Address::from_app_id(&app_id);
+        let confirmed_round =
+            confirmation
+                .confirmed_round
+                .ok_or_else(|| AppDeployError::DeploymentFailed {
+                    message: "App creation confirmation missing confirmed-round".to_string(),
+                })?;
 
         let app_metadata = AppMetadata {
-            app_id: result.app_id,
-            app_address: result.app_address,
+            app_id,
+            app_address,
             created_round: confirmed_round,
             updated_round: confirmed_round,
             created_metadata: metadata.clone(),
@@ -975,14 +1071,33 @@ impl AppDeployer {
 
         self.update_app_lookup(sender, &app_metadata);
 
+        // Extract results from the last transaction in the group (the create transaction)
+        let transaction = composer_result.transactions[create_transaction_index].clone();
+        let transaction_id = composer_result.transaction_ids[create_transaction_index].clone();
+        // Extract ABI return because the abi_returns from the composer isn't 1:1 with the transactions
+        let abi_return = match create_params {
+            CreateParams::AppCreateCall(_) => None,
+            CreateParams::AppCreateMethodCall(params) => Some(
+                Composer::extract_abi_return_from_logs(&confirmation, &params.method),
+            ),
+        };
+
+        let create_result = AppDeployerCreateResult {
+            transaction,
+            confirmation,
+            transaction_id,
+            abi_return,
+            group: composer_result.group,
+            transaction_ids: composer_result.transaction_ids,
+            transactions: composer_result.transactions,
+            confirmations: composer_result.confirmations,
+            abi_returns: composer_result.abi_returns,
+            compiled_programs,
+        };
+
         Ok(AppDeployResult::Create {
             app: app_metadata,
-            result: SendTransactionComposerResults {
-                group: None,
-                transaction_ids: result.common_params.tx_ids.clone(),
-                confirmations: vec![result.common_params.confirmation.clone()],
-                abi_returns: result.abi_return.map_or(vec![], |r| vec![r]),
-            },
+            result: create_result,
         })
     }
 
@@ -991,15 +1106,16 @@ impl AppDeployer {
         existing_app_metadata: &AppMetadata,
         metadata: &AppDeployMetadata,
         update_params: &UpdateParams,
-        approval_program: &[u8],
-        clear_state_program: &[u8],
+        compiled_programs: CompiledPrograms,
         send_params: &SendParams,
     ) -> Result<AppDeployResult, AppDeployError> {
         info!(
             "Updating existing {} app to version {}.",
             metadata.name, metadata.version
         );
-        let result = match update_params {
+        let mut composer = self.transaction_sender.new_group(None);
+
+        match update_params {
             UpdateParams::AppUpdateCall(params) => {
                 let app_update_params = AppUpdateParams {
                     sender: params.sender.clone(),
@@ -1014,18 +1130,17 @@ impl AppDeployer {
                     first_valid_round: params.first_valid_round,
                     last_valid_round: params.last_valid_round,
                     app_id: existing_app_metadata.app_id,
-                    approval_program: approval_program.to_vec(),
-                    clear_state_program: clear_state_program.to_vec(),
+                    approval_program: compiled_programs.approval.compiled_base64_to_bytes.to_vec(),
+                    clear_state_program: compiled_programs.clear.compiled_base64_to_bytes.to_vec(),
                     args: params.args.clone(),
                     account_references: params.account_references.clone(),
                     app_references: params.app_references.clone(),
                     asset_references: params.asset_references.clone(),
                     box_references: params.box_references.clone(),
                 };
-                self.transaction_sender
-                    .app_update(app_update_params, Some(send_params.clone()))
-                    .await
-                    .map_err(|e| AppDeployError::TransactionSenderError { source: e })?
+                composer
+                    .add_app_update(app_update_params)
+                    .map_err(|e| AppDeployError::ComposerError { source: e })?;
             }
             UpdateParams::AppUpdateMethodCall(params) => {
                 let app_update_method_params = AppUpdateMethodCallParams {
@@ -1041,8 +1156,8 @@ impl AppDeployer {
                     first_valid_round: params.first_valid_round,
                     last_valid_round: params.last_valid_round,
                     app_id: existing_app_metadata.app_id,
-                    approval_program: approval_program.to_vec(),
-                    clear_state_program: clear_state_program.to_vec(),
+                    approval_program: compiled_programs.approval.compiled_base64_to_bytes.to_vec(),
+                    clear_state_program: compiled_programs.clear.compiled_base64_to_bytes.to_vec(),
                     method: params.method.clone(),
                     args: params.args.clone(),
                     account_references: params.account_references.clone(),
@@ -1050,18 +1165,26 @@ impl AppDeployer {
                     asset_references: params.asset_references.clone(),
                     box_references: params.box_references.clone(),
                 };
-                self.transaction_sender
-                    .app_update_method_call(app_update_method_params, Some(send_params.clone()))
-                    .await
-                    .map_err(|e| AppDeployError::TransactionSenderError { source: e })?
+                composer
+                    .add_app_update_method_call(app_update_method_params)
+                    .map_err(|e| AppDeployError::ComposerError { source: e })?;
             }
         };
+
+        let composer_result = composer
+            .send(Some(send_params.clone()))
+            .await
+            .map_err(|e| AppDeployError::ComposerError { source: e })?;
+
+        let update_transaction_index = composer_result.confirmations.len() - 1;
+
+        let confirmation = composer_result.confirmations[update_transaction_index].clone();
 
         let app_metadata = AppMetadata {
             app_id: existing_app_metadata.app_id,
             app_address: existing_app_metadata.app_address.clone(),
             created_round: existing_app_metadata.created_round,
-            updated_round: result.common_params.confirmation.confirmed_round.unwrap(),
+            updated_round: confirmation.confirmed_round.unwrap(),
             created_metadata: existing_app_metadata.created_metadata.clone(),
             deleted: false,
             name: metadata.name.clone(),
@@ -1077,14 +1200,32 @@ impl AppDeployer {
 
         self.update_app_lookup(sender, &app_metadata);
 
+        let transaction = composer_result.transactions[update_transaction_index].clone();
+        let transaction_id = composer_result.transaction_ids[update_transaction_index].clone();
+        // Extract ABI return because the abi_returns from the composer isn't 1:1 with the transactions
+        let abi_return = match update_params {
+            UpdateParams::AppUpdateCall(_) => None,
+            UpdateParams::AppUpdateMethodCall(params) => Some(
+                Composer::extract_abi_return_from_logs(&confirmation, &params.method),
+            ),
+        };
+
+        let update_result = AppDeployerUpdateResult {
+            transaction,
+            confirmation,
+            transaction_id,
+            abi_return,
+            group: composer_result.group,
+            transaction_ids: composer_result.transaction_ids,
+            transactions: composer_result.transactions,
+            confirmations: composer_result.confirmations,
+            abi_returns: composer_result.abi_returns,
+            compiled_programs,
+        };
+
         Ok(AppDeployResult::Update {
             app: app_metadata,
-            result: SendTransactionComposerResults {
-                group: None,
-                transaction_ids: result.common_params.tx_ids.clone(),
-                confirmations: vec![result.common_params.confirmation.clone()],
-                abi_returns: result.abi_return.map_or(vec![], |r| vec![r]),
-            },
+            result: update_result,
         })
     }
 
@@ -1122,9 +1263,8 @@ impl AppDeployer {
         existing_app_metadata: &AppMetadata,
         metadata: &AppDeployMetadata,
         create_params: &CreateParams,
-        approval_program: &[u8],
-        clear_state_program: &[u8],
         delete_params: &DeleteParams,
+        compiled_programs: CompiledPrograms,
         send_params: &SendParams,
     ) -> Result<AppDeployResult, AppDeployError> {
         info!(
@@ -1138,11 +1278,13 @@ impl AppDeployer {
 
         let mut composer = self.transaction_sender.new_group(None);
 
-        // Add create transaction
+        // Add create transaction and track its index
         match create_params {
             CreateParams::AppCreateCall(params) => {
-                let computed_extra_pages =
-                    Self::calculate_extra_program_pages(approval_program, clear_state_program);
+                let computed_extra_pages = Self::calculate_extra_program_pages(
+                    &compiled_programs.approval.compiled_base64_to_bytes,
+                    &compiled_programs.clear.compiled_base64_to_bytes,
+                );
                 let app_create_params = AppCreateParams {
                     sender: params.sender.clone(),
                     signer: params.signer.clone(),
@@ -1156,8 +1298,8 @@ impl AppDeployer {
                     first_valid_round: params.first_valid_round,
                     last_valid_round: params.last_valid_round,
                     on_complete: params.on_complete,
-                    approval_program: approval_program.to_vec(),
-                    clear_state_program: clear_state_program.to_vec(),
+                    approval_program: compiled_programs.approval.compiled_base64_to_bytes.to_vec(),
+                    clear_state_program: compiled_programs.clear.compiled_base64_to_bytes.to_vec(),
                     global_state_schema: params.global_state_schema.clone(),
                     local_state_schema: params.local_state_schema.clone(),
                     extra_program_pages: params.extra_program_pages.or(Some(computed_extra_pages)),
@@ -1172,8 +1314,10 @@ impl AppDeployer {
                     .map_err(|e| AppDeployError::ComposerError { source: e })?;
             }
             CreateParams::AppCreateMethodCall(params) => {
-                let computed_extra_pages =
-                    Self::calculate_extra_program_pages(approval_program, clear_state_program);
+                let computed_extra_pages = Self::calculate_extra_program_pages(
+                    &compiled_programs.approval.compiled_base64_to_bytes,
+                    &compiled_programs.clear.compiled_base64_to_bytes,
+                );
                 let app_create_method_params = AppCreateMethodCallParams {
                     sender: params.sender.clone(),
                     signer: params.signer.clone(),
@@ -1187,8 +1331,8 @@ impl AppDeployer {
                     first_valid_round: params.first_valid_round,
                     last_valid_round: params.last_valid_round,
                     on_complete: params.on_complete,
-                    approval_program: approval_program.to_vec(),
-                    clear_state_program: clear_state_program.to_vec(),
+                    approval_program: compiled_programs.approval.compiled_base64_to_bytes.to_vec(),
+                    clear_state_program: compiled_programs.clear.compiled_base64_to_bytes.to_vec(),
                     global_state_schema: params.global_state_schema.clone(),
                     local_state_schema: params.local_state_schema.clone(),
                     extra_program_pages: params.extra_program_pages.or(Some(computed_extra_pages)),
@@ -1203,7 +1347,9 @@ impl AppDeployer {
                     .add_app_create_method_call(app_create_method_params)
                     .map_err(|e| AppDeployError::ComposerError { source: e })?;
             }
-        }
+        };
+
+        let create_transaction_index = composer.count() - 1;
 
         // Add delete transaction
         match delete_params {
@@ -1261,24 +1407,26 @@ impl AppDeployer {
             .await
             .map_err(|e| AppDeployError::ComposerError { source: e })?;
 
-        // The first confirmation is for the create, second is for delete
-        let create_confirmation =
-            result
-                .confirmations
-                .first()
-                .ok_or(AppDeployError::ComposerError {
-                    source: ComposerError::TransactionError {
-                        message: String::from("Could not get create confirmation"),
-                    },
+        // Get create confirmation from the tracked index
+        let create_confirmation = result.confirmations[create_transaction_index].clone();
+        let app_id =
+            create_confirmation
+                .app_id
+                .ok_or_else(|| AppDeployError::DeploymentFailed {
+                    message: "App creation confirmation missing application-index".to_string(),
                 })?;
-        let app_id = create_confirmation.app_id.unwrap();
+        let confirmed_round = create_confirmation.confirmed_round.ok_or_else(|| {
+            AppDeployError::DeploymentFailed {
+                message: "App creation confirmation missing confirmed-round".to_string(),
+            }
+        })?;
         let app_address = Address::from_app_id(&app_id);
 
         let app_metadata = AppMetadata {
             app_id,
             app_address,
-            created_round: create_confirmation.confirmed_round.unwrap(),
-            updated_round: create_confirmation.confirmed_round.unwrap(),
+            created_round: confirmed_round,
+            updated_round: confirmed_round,
             created_metadata: metadata.clone(),
             deleted: false,
             name: metadata.name.clone(),
@@ -1294,9 +1442,49 @@ impl AppDeployer {
 
         self.update_app_lookup(sender, &app_metadata);
 
+        let delete_transaction_index = result.confirmations.len() - 1;
+
+        let create_transaction = result.transactions[create_transaction_index].clone();
+        let create_transaction_id = result.transaction_ids[create_transaction_index].clone();
+        // Extract ABI return for method calls because the abi_returns from the composer isn't 1:1 with the transactions
+        let create_abi_return = match create_params {
+            CreateParams::AppCreateCall(_) => None,
+            CreateParams::AppCreateMethodCall(params) => Some(
+                Composer::extract_abi_return_from_logs(&create_confirmation, &params.method),
+            ),
+        };
+
+        let delete_transaction = result.transactions[delete_transaction_index].clone();
+        let delete_confirmation = result.confirmations[delete_transaction_index].clone();
+        let delete_transaction_id = result.transaction_ids[delete_transaction_index].clone();
+        // Extract ABI return for method calls because the abi_returns from the composer isn't 1:1 with the transactions
+        let delete_abi_return = match delete_params {
+            DeleteParams::AppDeleteCall(_) => None,
+            DeleteParams::AppDeleteMethodCall(params) => Some(
+                Composer::extract_abi_return_from_logs(&delete_confirmation, &params.method),
+            ),
+        };
+
+        let replace_result = AppDeployerReplaceResult {
+            create_transaction,
+            create_confirmation,
+            create_transaction_id,
+            create_abi_return,
+            delete_transaction,
+            delete_confirmation,
+            delete_transaction_id,
+            delete_abi_return,
+            group: result.group,
+            transaction_ids: result.transaction_ids,
+            transactions: result.transactions,
+            confirmations: result.confirmations,
+            abi_returns: result.abi_returns,
+            compiled_programs,
+        };
+
         Ok(AppDeployResult::Replace {
             app: app_metadata,
-            result,
+            result: replace_result,
         })
     }
 

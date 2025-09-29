@@ -1,10 +1,7 @@
 use super::{AppFactory, AppFactoryError};
-use crate::applications::app_client::CompilationParams;
 use crate::applications::app_factory::{AppFactoryCreateMethodCallParams, AppFactoryCreateParams};
-use crate::clients::app_manager::CompiledPrograms;
 use crate::transactions::{
-    AppCreateMethodCallParams, AppCreateParams, AppMethodCallArg, TransactionSenderError,
-    TransactionSigner,
+    AppCreateMethodCallParams, AppCreateParams, AppMethodCallArg, TransactionSigner,
 };
 use algokit_abi::ABIMethod;
 use algokit_abi::abi_type::ABIType;
@@ -14,25 +11,6 @@ use base64::Engine;
 use base64::engine::general_purpose::STANDARD as Base64;
 use std::str::FromStr;
 use std::sync::Arc;
-
-impl AppFactory {
-    pub(crate) async fn prepare_compiled_method(
-        &self,
-        method_sig: &str,
-        compilation_params: Option<CompilationParams>,
-        sender_opt: &Option<String>,
-    ) -> Result<(CompiledPrograms, ABIMethod, Address), AppFactoryError> {
-        let compiled = self.compile_programs_with(compilation_params).await?;
-        let method = self
-            .app_spec()
-            .find_abi_method(method_sig)
-            .map_err(|e| AppFactoryError::ABIError { source: e })?;
-        let sender = self
-            .get_sender_address(sender_opt)
-            .map_err(|message| AppFactoryError::ValidationError { message })?;
-        Ok((compiled, method, sender))
-    }
-}
 
 /// Merge user-provided ABI method arguments with ARC-56 literal defaults.
 /// Only 'literal' default values are supported; others will be ignored and treated as missing.
@@ -146,22 +124,6 @@ fn decode_literal_default_value(
         .map_err(|e| AppFactoryError::ABIError { source: e })?;
 
     Ok(abi_value)
-}
-
-/// Transform a transaction error using AppClient logic error exposure for factory flows.
-pub(crate) fn transform_transaction_error_for_factory(
-    factory: &AppFactory,
-    err: TransactionSenderError,
-    is_clear: bool,
-) -> TransactionSenderError {
-    let err_str = err.to_string();
-    if let Some(logic_message) = factory.logic_error_for(&err_str, is_clear) {
-        TransactionSenderError::ValidationError {
-            message: logic_message,
-        }
-    } else {
-        err
-    }
 }
 
 /// Resolve signer: prefer explicit signer; otherwise use factory default signer when

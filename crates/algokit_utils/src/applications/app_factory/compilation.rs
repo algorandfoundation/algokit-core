@@ -1,43 +1,50 @@
+use algokit_abi::CallOnApplicationComplete;
+
 use super::{AppFactory, AppFactoryError};
 use crate::applications::app_client::CompilationParams;
 use crate::clients::app_manager::{
     CompiledPrograms, DELETABLE_TEMPLATE_NAME, DeploymentMetadata, UPDATABLE_TEMPLATE_NAME,
 };
-use algokit_abi::arc56_contract::CallOnApplicationComplete;
 
 impl AppFactory {
     pub(crate) fn resolve_compilation_params(
         &self,
-        override_cp: Option<CompilationParams>,
+        compilation_params: Option<CompilationParams>,
     ) -> CompilationParams {
-        let mut resolved = override_cp.unwrap_or_default();
-        if resolved.deploy_time_params.is_none() {
-            resolved.deploy_time_params = self.deploy_time_params.clone();
+        let mut resolved = compilation_params.unwrap_or_default();
+
+        // Merge factory params if available
+        if let Some(factory_params) = &self.compilation_params {
+            resolved.deploy_time_params = resolved
+                .deploy_time_params
+                .or_else(|| factory_params.deploy_time_params.clone());
+            resolved.updatable = resolved.updatable.or(factory_params.updatable);
+            resolved.deletable = resolved.deletable.or(factory_params.deletable);
         }
-        if resolved.updatable.is_none() {
-            resolved.updatable = self.updatable.or_else(|| {
-                self.detect_deploy_time_control_flag(
-                    UPDATABLE_TEMPLATE_NAME,
-                    CallOnApplicationComplete::UpdateApplication,
-                )
-            });
-        }
-        if resolved.deletable.is_none() {
-            resolved.deletable = self.deletable.or_else(|| {
-                self.detect_deploy_time_control_flag(
-                    DELETABLE_TEMPLATE_NAME,
-                    CallOnApplicationComplete::DeleteApplication,
-                )
-            });
-        }
+
+        // Auto-detect flags from spec if still unset
+        resolved.updatable = resolved.updatable.or_else(|| {
+            self.detect_deploy_time_control_flag(
+                UPDATABLE_TEMPLATE_NAME,
+                CallOnApplicationComplete::UpdateApplication,
+            )
+        });
+        resolved.deletable = resolved.deletable.or_else(|| {
+            self.detect_deploy_time_control_flag(
+                DELETABLE_TEMPLATE_NAME,
+                CallOnApplicationComplete::DeleteApplication,
+            )
+        });
+
         resolved
     }
 
-    pub(crate) async fn compile_programs_with(
+    pub(crate) async fn compile(
         &self,
-        override_cp: Option<CompilationParams>,
+        compilation_params: Option<CompilationParams>,
     ) -> Result<CompiledPrograms, AppFactoryError> {
-        let cp = self.resolve_compilation_params(override_cp);
+        let compilation_params = self.resolve_compilation_params(compilation_params);
+
         let (approval_teal, clear_teal) =
             self.app_spec()
                 .decoded_teal()
@@ -46,8 +53,8 @@ impl AppFactory {
                 })?;
 
         let metadata = DeploymentMetadata {
-            updatable: cp.updatable,
-            deletable: cp.deletable,
+            updatable: compilation_params.updatable,
+            deletable: compilation_params.deletable,
         };
 
         let approval = self
@@ -55,7 +62,7 @@ impl AppFactory {
             .app()
             .compile_teal_template(
                 &approval_teal,
-                cp.deploy_time_params.as_ref(),
+                compilation_params.deploy_time_params.as_ref(),
                 Some(&metadata),
             )
             .await
@@ -66,7 +73,11 @@ impl AppFactory {
         let clear = self
             .algorand()
             .app()
-            .compile_teal_template(&clear_teal, cp.deploy_time_params.as_ref(), None)
+            .compile_teal_template(
+                &clear_teal,
+                compilation_params.deploy_time_params.as_ref(),
+                None,
+            )
             .await
             .map_err(|e| AppFactoryError::CompilationError {
                 message: e.to_string(),

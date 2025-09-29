@@ -206,7 +206,7 @@ async fn params_construct_txn_with_abi_tx_arg_and_return(
         )
         .await?;
 
-    assert_eq!(result.common_params.transactions.len(), 2);
+    assert_eq!(result.transactions.len(), 2);
     let abi_ret = result.abi_return.as_ref().expect("abi return expected");
     match &abi_ret.return_value {
         Some(ABIValue::Uint(u)) => assert_eq!(*u, num_bigint::BigUint::from(123u32)),

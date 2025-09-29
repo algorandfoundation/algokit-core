@@ -226,3 +226,9 @@ pub mod box_map_test {
     /// Contract for testing box map operations and complex data handling.
     pub const APPLICATION_ARC56: &str = include_str!("../contracts/boxmap/application.arc56.json");
 }
+
+pub mod abi_create_and_delete {
+    /// Simple contract that create and delete by ABI method (ARC56)
+    pub const APPLICATION_ARC56: &str =
+        include_str!("../contracts/abi-create-and-delete/application.arc56.json");
+}
