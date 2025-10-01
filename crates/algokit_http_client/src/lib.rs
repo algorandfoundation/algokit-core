@@ -54,7 +54,7 @@ pub struct HttpResponse {
 pub trait HttpClient: Send + Sync {
     async fn request(
         &self,
-        method: HttpMethod,
+        http_method: HttpMethod,
         path: String,
         query: Option<HashMap<String, String>>,
         body: Option<Vec<u8>>,

@@ -1,5 +1,5 @@
 mod multisig;
-mod transactions;
+pub mod transactions;
 
 use algokit_transact::constants::*;
 use algokit_transact::{

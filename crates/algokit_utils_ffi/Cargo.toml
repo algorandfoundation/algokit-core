@@ -1,0 +1,23 @@
+[package]
+name = "algokit_utils_ffi"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[dependencies]
+algod_client = { version = "0.0.1", path = "../algod_client", default-features = false }
+algokit_abi = { version = "0.1.0", path = "../algokit_abi" }
+algokit_http_client = { version = "0.1.0", path = "../algokit_http_client", features = ["ffi_uniffi"], default-features = false }
+algokit_transact = { version = "0.1.0", path = "../algokit_transact" }
+algokit_transact_ffi = { version = "0.1.0", path = "../algokit_transact_ffi" }
+algokit_utils = { version = "0.1.0", path = "../algokit_utils" }
+async-trait = "0.1.89"
+derive_more = "2.0.1"
+num-bigint = "0.4.6"
+snafu.workspace = true
+tokio = "1.47.1"
+uniffi = { workspace = true, features = [
+  "scaffolding-ffi-buffer-fns",
+] }

@@ -1,0 +1,5 @@
+[bindings.python.external_packages]
+algokit_transact_ffi = "algokit_transact"
+
+[bindings.swift]
+module_name = "algokit_utils"

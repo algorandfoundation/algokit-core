@@ -1,0 +1,43 @@
+[project]
+requires-python = ">=3.10,<4.0"
+name = "algokit_utils"
+version = "0.1.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0", "setuptools", "wheel"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "algokit_utils"
+version = "0.1.0"
+description = ""
+packages = [
+    { include = "algokit_utils" }
+]
+include = [
+    { path = "algokit_utils/*.so", format = "wheel" },
+    { path = "algokit_utils/*.dll", format = "wheel" },
+    { path = "algokit_utils/*.dylib", format = "wheel" }
+]
+
+
+[tool.poetry.dependencies]
+algokit-transact = {path = "../algokit_transact"}
+
+[tool.poetry.group.test.dependencies]
+pynacl = ">=1.5.0,<2.0.0"
+pytest = ">=7.4.4"
+requests = "^2.32.3"
+asyncio = "^3.4.3"
+pytest-asyncio = "^1.0.0"
+
+[tool.poetry.group.build.dependencies]
+auditwheel = "^6.4.0"
+patchelf = { version = "^0.17.2.2", markers = "sys_platform == 'linux'" }
+
+[tool.poetry.group.dev.dependencies]
+algosdk = "^2.7.0"
+pytest = "^8.4.1"
+requests = "^2.32.5"
+types-requests = "^2.32.4.20250809"
+

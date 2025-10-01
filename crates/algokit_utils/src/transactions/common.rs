@@ -20,7 +20,7 @@ pub trait TransactionSigner: Send + Sync {
     }
 }
 
-pub trait TransactionSignerGetter {
+pub trait TransactionSignerGetter: Send + Sync {
     fn get_signer(&self, address: Address) -> Result<Arc<dyn TransactionSigner>, String>;
 }
 

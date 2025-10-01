@@ -17,7 +17,8 @@ packages = [
 include = [
     { path = "algokit_transact/*.so", format = "wheel" },
     { path = "algokit_transact/*.dll", format = "wheel" },
-    { path = "algokit_transact/*.dylib", format = "wheel" }
+    { path = "algokit_transact/*.dylib", format = "wheel" },
+    { path = "algokit_transact/algokit_transact_ffi.py", format = "wheel" }
 ]
 
 [tool.poetry.dependencies]

@@ -28,7 +28,7 @@ use algokit_transact::{
 };
 use derive_more::Debug;
 use snafu::Snafu;
-use std::{collections::HashMap, sync::Arc};
+use std::sync::Arc;
 
 use crate::{
     AppMethodCallArg,
@@ -1237,8 +1237,7 @@ impl Composer {
         })
     }
 
-    async fn get_suggested_params(&self) -> Result<TransactionParams, ComposerError> {
-        // TODO: Add caching with expiration
+    pub async fn get_suggested_params(&self) -> Result<TransactionParams, ComposerError> {
         Ok(self.algod_client.transaction_params().await?)
     }
 
@@ -2089,23 +2088,24 @@ impl Composer {
 
         // Group transactions by signer
         let mut transactions = Vec::new();
-        let mut signer_groups: HashMap<*const dyn TransactionSigner, Vec<usize>> = HashMap::new();
+        let mut signer_groups: Vec<(Arc<dyn TransactionSigner>, Vec<usize>)> = Vec::new();
+
         for (group_index, txn_with_signer) in transactions_with_signers.iter().enumerate() {
-            let signer_ptr = Arc::as_ptr(&txn_with_signer.signer);
-            signer_groups
-                .entry(signer_ptr)
-                .or_default()
-                .push(group_index);
+            let found_group = signer_groups
+                .iter_mut()
+                .find(|(existing_signer, _)| Arc::ptr_eq(existing_signer, &txn_with_signer.signer));
+
+            match found_group {
+                Some((_, indices)) => indices.push(group_index),
+                None => signer_groups.push((txn_with_signer.signer.clone(), vec![group_index])),
+            }
             transactions.push(txn_with_signer.transaction.to_owned());
         }
 
         let mut signed_transactions: Vec<Option<SignedTransaction>> =
             vec![None; transactions_with_signers.len()];
 
-        for (_signer_ptr, indices) in signer_groups {
-            // Get the signer from the first transaction with this signer
-            let signer = &transactions_with_signers[indices[0]].signer;
-
+        for (signer, indices) in signer_groups {
             // Sign all transactions for this signer
             let signed_txns: Vec<SignedTransaction> = signer
                 .sign_transactions(&transactions, &indices)
