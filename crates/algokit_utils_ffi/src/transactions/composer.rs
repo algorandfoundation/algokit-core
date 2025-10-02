@@ -3,7 +3,7 @@ use std::sync::Arc;
 use crate::{
     clients::algod_client::AlgodClientTrait,
     transactions::{
-        asset_config::{AssetCreateParams, AssetDestroyParams, AssetReconfigureParams},
+        asset_config::{AssetConfigParams, AssetCreateParams, AssetDestroyParams},
         asset_freeze::{AssetFreezeParams, AssetUnfreezeParams},
         asset_transfer::{
             AssetClawbackParams, AssetOptInParams, AssetOptOutParams, AssetTransferParams,
@@ -111,7 +111,7 @@ impl Composer {
             })
     }
 
-    pub fn add_asset_reconfigure(&self, params: AssetReconfigureParams) -> Result<(), UtilsError> {
+    pub fn add_asset_config(&self, params: AssetConfigParams) -> Result<(), UtilsError> {
         let mut composer = self.inner_composer.blocking_lock();
         composer
             .add_asset_config(params.try_into()?)
@@ -182,6 +182,99 @@ impl Composer {
                 message: e.to_string(),
             })
     }
+
+    pub fn add_app_create(
+        &self,
+        params: super::app_call::AppCreateParams,
+    ) -> Result<(), UtilsError> {
+        let mut composer = self.inner_composer.blocking_lock();
+        composer
+            .add_app_create(params.try_into()?)
+            .map_err(|e| UtilsError::UtilsError {
+                message: e.to_string(),
+            })
+    }
+
+    pub fn add_app_call(&self, params: super::app_call::AppCallParams) -> Result<(), UtilsError> {
+        let mut composer = self.inner_composer.blocking_lock();
+        composer
+            .add_app_call(params.try_into()?)
+            .map_err(|e| UtilsError::UtilsError {
+                message: e.to_string(),
+            })
+    }
+
+    pub fn add_app_update(
+        &self,
+        params: super::app_call::AppUpdateParams,
+    ) -> Result<(), UtilsError> {
+        let mut composer = self.inner_composer.blocking_lock();
+        composer
+            .add_app_update(params.try_into()?)
+            .map_err(|e| UtilsError::UtilsError {
+                message: e.to_string(),
+            })
+    }
+
+    pub fn add_app_delete(
+        &self,
+        params: super::app_call::AppDeleteParams,
+    ) -> Result<(), UtilsError> {
+        let mut composer = self.inner_composer.blocking_lock();
+        composer
+            .add_app_delete(params.try_into()?)
+            .map_err(|e| UtilsError::UtilsError {
+                message: e.to_string(),
+            })
+    }
+
+    pub fn add_app_call_method_call(
+        &self,
+        params: super::app_call::AppCallMethodCallParams,
+    ) -> Result<(), UtilsError> {
+        let mut composer = self.inner_composer.blocking_lock();
+        composer
+            .add_app_call_method_call(params.try_into()?)
+            .map_err(|e| UtilsError::UtilsError {
+                message: e.to_string(),
+            })
+    }
+
+    pub fn add_app_create_method_call(
+        &self,
+        params: super::app_call::AppCreateMethodCallParams,
+    ) -> Result<(), UtilsError> {
+        let mut composer = self.inner_composer.blocking_lock();
+        composer
+            .add_app_create_method_call(params.try_into()?)
+            .map_err(|e| UtilsError::UtilsError {
+                message: e.to_string(),
+            })
+    }
+
+    pub fn add_app_update_method_call(
+        &self,
+        params: super::app_call::AppUpdateMethodCallParams,
+    ) -> Result<(), UtilsError> {
+        let mut composer = self.inner_composer.blocking_lock();
+        composer
+            .add_app_update_method_call(params.try_into()?)
+            .map_err(|e| UtilsError::UtilsError {
+                message: e.to_string(),
+            })
+    }
+
+    pub fn add_app_delete_method_call(
+        &self,
+        params: super::app_call::AppDeleteMethodCallParams,
+    ) -> Result<(), UtilsError> {
+        let mut composer = self.inner_composer.blocking_lock();
+        composer
+            .add_app_delete_method_call(params.try_into()?)
+            .map_err(|e| UtilsError::UtilsError {
+                message: e.to_string(),
+            })
+    }
 }
 
 // Implement ComposerTrait for Composer to keep them in sync
@@ -217,13 +310,13 @@ impl ComposerTrait for Composer {
         Composer::add_asset_create(self, params)
     }
 
-    async fn add_asset_reconfigure(
+    async fn add_asset_config(
         &self,
-        params: AssetReconfigureParams,
+        params: AssetConfigParams,
         _algod_client: Arc<dyn AlgodClientTrait>,
         _signer_getter: Arc<dyn TransactionSignerGetter>,
     ) -> Result<(), UtilsError> {
-        Composer::add_asset_reconfigure(self, params)
+        Composer::add_asset_config(self, params)
     }
 
     async fn add_asset_destroy(
@@ -288,6 +381,78 @@ impl ComposerTrait for Composer {
     ) -> Result<(), UtilsError> {
         Composer::add_asset_clawback(self, params)
     }
+
+    async fn add_app_create(
+        &self,
+        params: super::app_call::AppCreateParams,
+        _algod_client: Arc<dyn AlgodClientTrait>,
+        _signer_getter: Arc<dyn TransactionSignerGetter>,
+    ) -> Result<(), UtilsError> {
+        Composer::add_app_create(self, params)
+    }
+
+    async fn add_app_call(
+        &self,
+        params: super::app_call::AppCallParams,
+        _algod_client: Arc<dyn AlgodClientTrait>,
+        _signer_getter: Arc<dyn TransactionSignerGetter>,
+    ) -> Result<(), UtilsError> {
+        Composer::add_app_call(self, params)
+    }
+
+    async fn add_app_update(
+        &self,
+        params: super::app_call::AppUpdateParams,
+        _algod_client: Arc<dyn AlgodClientTrait>,
+        _signer_getter: Arc<dyn TransactionSignerGetter>,
+    ) -> Result<(), UtilsError> {
+        Composer::add_app_update(self, params)
+    }
+
+    async fn add_app_delete(
+        &self,
+        params: super::app_call::AppDeleteParams,
+        _algod_client: Arc<dyn AlgodClientTrait>,
+        _signer_getter: Arc<dyn TransactionSignerGetter>,
+    ) -> Result<(), UtilsError> {
+        Composer::add_app_delete(self, params)
+    }
+
+    async fn add_app_call_method_call(
+        &self,
+        params: super::app_call::AppCallMethodCallParams,
+        _algod_client: Arc<dyn AlgodClientTrait>,
+        _signer_getter: Arc<dyn TransactionSignerGetter>,
+    ) -> Result<(), UtilsError> {
+        Composer::add_app_call_method_call(self, params)
+    }
+
+    async fn add_app_create_method_call(
+        &self,
+        params: super::app_call::AppCreateMethodCallParams,
+        _algod_client: Arc<dyn AlgodClientTrait>,
+        _signer_getter: Arc<dyn TransactionSignerGetter>,
+    ) -> Result<(), UtilsError> {
+        Composer::add_app_create_method_call(self, params)
+    }
+
+    async fn add_app_update_method_call(
+        &self,
+        params: super::app_call::AppUpdateMethodCallParams,
+        _algod_client: Arc<dyn AlgodClientTrait>,
+        _signer_getter: Arc<dyn TransactionSignerGetter>,
+    ) -> Result<(), UtilsError> {
+        Composer::add_app_update_method_call(self, params)
+    }
+
+    async fn add_app_delete_method_call(
+        &self,
+        params: super::app_call::AppDeleteMethodCallParams,
+        _algod_client: Arc<dyn AlgodClientTrait>,
+        _signer_getter: Arc<dyn TransactionSignerGetter>,
+    ) -> Result<(), UtilsError> {
+        Composer::add_app_delete_method_call(self, params)
+    }
 }
 
 //
@@ -318,9 +483,9 @@ pub trait ComposerTrait: Send + Sync {
         signer_getter: Arc<dyn TransactionSignerGetter>,
     ) -> Result<(), UtilsError>;
 
-    async fn add_asset_reconfigure(
+    async fn add_asset_config(
         &self,
-        params: AssetReconfigureParams,
+        params: AssetConfigParams,
         algod_client: Arc<dyn AlgodClientTrait>,
         signer_getter: Arc<dyn TransactionSignerGetter>,
     ) -> Result<(), UtilsError>;
@@ -370,6 +535,62 @@ pub trait ComposerTrait: Send + Sync {
     async fn add_asset_clawback(
         &self,
         params: AssetClawbackParams,
+        algod_client: Arc<dyn AlgodClientTrait>,
+        signer_getter: Arc<dyn TransactionSignerGetter>,
+    ) -> Result<(), UtilsError>;
+
+    async fn add_app_create(
+        &self,
+        params: super::app_call::AppCreateParams,
+        algod_client: Arc<dyn AlgodClientTrait>,
+        signer_getter: Arc<dyn TransactionSignerGetter>,
+    ) -> Result<(), UtilsError>;
+
+    async fn add_app_call(
+        &self,
+        params: super::app_call::AppCallParams,
+        algod_client: Arc<dyn AlgodClientTrait>,
+        signer_getter: Arc<dyn TransactionSignerGetter>,
+    ) -> Result<(), UtilsError>;
+
+    async fn add_app_update(
+        &self,
+        params: super::app_call::AppUpdateParams,
+        algod_client: Arc<dyn AlgodClientTrait>,
+        signer_getter: Arc<dyn TransactionSignerGetter>,
+    ) -> Result<(), UtilsError>;
+
+    async fn add_app_delete(
+        &self,
+        params: super::app_call::AppDeleteParams,
+        algod_client: Arc<dyn AlgodClientTrait>,
+        signer_getter: Arc<dyn TransactionSignerGetter>,
+    ) -> Result<(), UtilsError>;
+
+    async fn add_app_call_method_call(
+        &self,
+        params: super::app_call::AppCallMethodCallParams,
+        algod_client: Arc<dyn AlgodClientTrait>,
+        signer_getter: Arc<dyn TransactionSignerGetter>,
+    ) -> Result<(), UtilsError>;
+
+    async fn add_app_create_method_call(
+        &self,
+        params: super::app_call::AppCreateMethodCallParams,
+        algod_client: Arc<dyn AlgodClientTrait>,
+        signer_getter: Arc<dyn TransactionSignerGetter>,
+    ) -> Result<(), UtilsError>;
+
+    async fn add_app_update_method_call(
+        &self,
+        params: super::app_call::AppUpdateMethodCallParams,
+        algod_client: Arc<dyn AlgodClientTrait>,
+        signer_getter: Arc<dyn TransactionSignerGetter>,
+    ) -> Result<(), UtilsError>;
+
+    async fn add_app_delete_method_call(
+        &self,
+        params: super::app_call::AppDeleteMethodCallParams,
         algod_client: Arc<dyn AlgodClientTrait>,
         signer_getter: Arc<dyn TransactionSignerGetter>,
     ) -> Result<(), UtilsError>;

@@ -56,7 +56,7 @@ create_transaction_params! {
 
 create_transaction_params! {
     #[derive(uniffi::Record)]
-    pub struct AssetReconfigureParams {
+    pub struct AssetConfigParams {
         /// ID of the existing asset to be reconfigured.
         pub asset_id: u64,
 
@@ -164,10 +164,10 @@ impl TryFrom<AssetCreateParams> for RustAssetCreateParams {
     }
 }
 
-impl TryFrom<AssetReconfigureParams> for RustAssetConfigParams {
+impl TryFrom<AssetConfigParams> for RustAssetConfigParams {
     type Error = UtilsError;
 
-    fn try_from(params: AssetReconfigureParams) -> Result<Self, Self::Error> {
+    fn try_from(params: AssetConfigParams) -> Result<Self, Self::Error> {
         Ok(RustAssetConfigParams {
             sender: params.sender.parse().map_err(|e| UtilsError::UtilsError {
                 message: format!("Invalid sender address: {}", e),
@@ -237,5 +237,85 @@ impl TryFrom<AssetDestroyParams> for RustAssetDestroyParams {
             last_valid_round: params.last_valid_round,
             asset_id: params.asset_id,
         })
+    }
+}
+
+impl From<RustAssetCreateParams> for AssetCreateParams {
+    fn from(params: RustAssetCreateParams) -> Self {
+        AssetCreateParams {
+            sender: params.sender.to_string(),
+            signer: params.signer.map(|s| {
+                std::sync::Arc::new(super::common::FfiTransactionSignerFromRust { rust_signer: s })
+                    as std::sync::Arc<dyn super::common::TransactionSigner>
+            }),
+            rekey_to: params.rekey_to.map(|r| r.to_string()),
+            note: params.note,
+            lease: params.lease.map(|l| l.to_vec()),
+            static_fee: params.static_fee,
+            extra_fee: params.extra_fee,
+            max_fee: params.max_fee,
+            validity_window: params.validity_window,
+            first_valid_round: params.first_valid_round,
+            last_valid_round: params.last_valid_round,
+            total: params.total,
+            decimals: params.decimals,
+            default_frozen: params.default_frozen,
+            asset_name: params.asset_name,
+            unit_name: params.unit_name,
+            url: params.url,
+            metadata_hash: params.metadata_hash.map(|h| h.to_vec()),
+            manager: params.manager.map(|m| m.to_string()),
+            reserve: params.reserve.map(|r| r.to_string()),
+            freeze: params.freeze.map(|f| f.to_string()),
+            clawback: params.clawback.map(|c| c.to_string()),
+        }
+    }
+}
+
+impl From<RustAssetConfigParams> for AssetConfigParams {
+    fn from(params: RustAssetConfigParams) -> Self {
+        AssetConfigParams {
+            sender: params.sender.to_string(),
+            signer: params.signer.map(|s| {
+                std::sync::Arc::new(super::common::FfiTransactionSignerFromRust { rust_signer: s })
+                    as std::sync::Arc<dyn super::common::TransactionSigner>
+            }),
+            rekey_to: params.rekey_to.map(|r| r.to_string()),
+            note: params.note,
+            lease: params.lease.map(|l| l.to_vec()),
+            static_fee: params.static_fee,
+            extra_fee: params.extra_fee,
+            max_fee: params.max_fee,
+            validity_window: params.validity_window,
+            first_valid_round: params.first_valid_round,
+            last_valid_round: params.last_valid_round,
+            asset_id: params.asset_id,
+            manager: params.manager.map(|m| m.to_string()),
+            reserve: params.reserve.map(|r| r.to_string()),
+            freeze: params.freeze.map(|f| f.to_string()),
+            clawback: params.clawback.map(|c| c.to_string()),
+        }
+    }
+}
+
+impl From<RustAssetDestroyParams> for AssetDestroyParams {
+    fn from(params: RustAssetDestroyParams) -> Self {
+        AssetDestroyParams {
+            sender: params.sender.to_string(),
+            signer: params.signer.map(|s| {
+                std::sync::Arc::new(super::common::FfiTransactionSignerFromRust { rust_signer: s })
+                    as std::sync::Arc<dyn super::common::TransactionSigner>
+            }),
+            rekey_to: params.rekey_to.map(|r| r.to_string()),
+            note: params.note,
+            lease: params.lease.map(|l| l.to_vec()),
+            static_fee: params.static_fee,
+            extra_fee: params.extra_fee,
+            max_fee: params.max_fee,
+            validity_window: params.validity_window,
+            first_valid_round: params.first_valid_round,
+            last_valid_round: params.last_valid_round,
+            asset_id: params.asset_id,
+        }
     }
 }

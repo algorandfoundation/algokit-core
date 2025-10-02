@@ -45,7 +45,7 @@ impl AlgorandFixture {
         );
         let kmd = Arc::new(
             ClientManager::get_kmd_client(
-                &params
+                params
                     .client_config
                     .kmd_config
                     .as_ref()

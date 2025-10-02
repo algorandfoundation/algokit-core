@@ -145,6 +145,7 @@ impl TransactionSignerGetter for FfiTransactionSignerGetterFromRust {
     }
 }
 
+#[derive(uniffi::Record)]
 pub struct TransactionWithSigner {
     pub transaction: Transaction,
     pub signer: Arc<dyn TransactionSigner>,

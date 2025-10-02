@@ -227,3 +227,121 @@ impl TryFrom<AssetClawbackParams> for RustAssetClawbackParams {
         })
     }
 }
+
+// impl From<RustPaymentParams> for PaymentParams {
+//     fn from(params: RustPaymentParams) -> Self {
+//         PaymentParams {
+//             sender: params.sender.to_string(),
+//             signer: params.signer.map(|s| {
+//                 Arc::new(FfiTransactionSignerFromRust { rust_signer: s })
+//                     as Arc<dyn TransactionSigner>
+//             }),
+//
+//             rekey_to: params.rekey_to.map(|r| r.to_string()),
+//             note: params.note,
+//             lease: params.lease.map(|l| l.to_vec()),
+//             static_fee: params.static_fee,
+//             extra_fee: params.extra_fee,
+//             max_fee: params.max_fee,
+//             validity_window: params.validity_window,
+//             first_valid_round: params.first_valid_round,
+//             last_valid_round: params.last_valid_round,
+//             receiver: params.receiver.to_string(),
+//             amount: params.amount,
+//         }
+//     }
+// }
+
+impl From<RustAssetTransferParams> for AssetTransferParams {
+    fn from(params: RustAssetTransferParams) -> Self {
+        AssetTransferParams {
+            sender: params.sender.to_string(),
+            signer: params.signer.map(|s| {
+                std::sync::Arc::new(super::common::FfiTransactionSignerFromRust { rust_signer: s })
+                    as std::sync::Arc<dyn super::common::TransactionSigner>
+            }),
+            rekey_to: params.rekey_to.map(|r| r.to_string()),
+            note: params.note,
+            lease: params.lease.map(|l| l.to_vec()),
+            static_fee: params.static_fee,
+            extra_fee: params.extra_fee,
+            max_fee: params.max_fee,
+            validity_window: params.validity_window,
+            first_valid_round: params.first_valid_round,
+            last_valid_round: params.last_valid_round,
+            asset_id: params.asset_id,
+            amount: params.amount,
+            receiver: params.receiver.to_string(),
+        }
+    }
+}
+
+impl From<RustAssetOptInParams> for AssetOptInParams {
+    fn from(params: RustAssetOptInParams) -> Self {
+        AssetOptInParams {
+            sender: params.sender.to_string(),
+            signer: params.signer.map(|s| {
+                std::sync::Arc::new(super::common::FfiTransactionSignerFromRust { rust_signer: s })
+                    as std::sync::Arc<dyn super::common::TransactionSigner>
+            }),
+            rekey_to: params.rekey_to.map(|r| r.to_string()),
+            note: params.note,
+            lease: params.lease.map(|l| l.to_vec()),
+            static_fee: params.static_fee,
+            extra_fee: params.extra_fee,
+            max_fee: params.max_fee,
+            validity_window: params.validity_window,
+            first_valid_round: params.first_valid_round,
+            last_valid_round: params.last_valid_round,
+            asset_id: params.asset_id,
+        }
+    }
+}
+
+impl From<RustAssetOptOutParams> for AssetOptOutParams {
+    fn from(params: RustAssetOptOutParams) -> Self {
+        AssetOptOutParams {
+            sender: params.sender.to_string(),
+            signer: params.signer.map(|s| {
+                std::sync::Arc::new(super::common::FfiTransactionSignerFromRust { rust_signer: s })
+                    as std::sync::Arc<dyn super::common::TransactionSigner>
+            }),
+            rekey_to: params.rekey_to.map(|r| r.to_string()),
+            note: params.note,
+            lease: params.lease.map(|l| l.to_vec()),
+            static_fee: params.static_fee,
+            extra_fee: params.extra_fee,
+            max_fee: params.max_fee,
+            validity_window: params.validity_window,
+            first_valid_round: params.first_valid_round,
+            last_valid_round: params.last_valid_round,
+            asset_id: params.asset_id,
+            close_remainder_to: params.close_remainder_to.map(|addr| addr.to_string()),
+        }
+    }
+}
+
+impl From<RustAssetClawbackParams> for AssetClawbackParams {
+    fn from(params: RustAssetClawbackParams) -> Self {
+        AssetClawbackParams {
+            sender: params.sender.to_string(),
+            signer: params.signer.map(|s| {
+                std::sync::Arc::new(super::common::FfiTransactionSignerFromRust { rust_signer: s })
+                    as std::sync::Arc<dyn super::common::TransactionSigner>
+            }),
+            rekey_to: params.rekey_to.map(|r| r.to_string()),
+            note: params.note,
+            lease: params.lease.map(|l| l.to_vec()),
+            static_fee: params.static_fee,
+            extra_fee: params.extra_fee,
+            max_fee: params.max_fee,
+            validity_window: params.validity_window,
+            first_valid_round: params.first_valid_round,
+            last_valid_round: params.last_valid_round,
+            asset_id: params.asset_id,
+            amount: params.amount,
+            receiver: params.receiver.to_string(),
+            clawback_target: params.clawback_target.to_string(),
+        }
+    }
+}

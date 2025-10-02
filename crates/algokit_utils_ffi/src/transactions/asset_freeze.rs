@@ -5,6 +5,8 @@ use algokit_utils::transactions::{
     AssetFreezeParams as RustAssetFreezeParams, AssetUnfreezeParams as RustAssetUnfreezeParams,
 };
 
+use super::common::TransactionSigner;
+
 create_transaction_params! {
     #[derive(uniffi::Record)]
     pub struct AssetFreezeParams {
@@ -108,5 +110,51 @@ impl TryFrom<AssetUnfreezeParams> for RustAssetUnfreezeParams {
                     message: "Invalid target address".to_string(),
                 })?,
         })
+    }
+}
+
+impl From<RustAssetFreezeParams> for AssetFreezeParams {
+    fn from(params: RustAssetFreezeParams) -> Self {
+        AssetFreezeParams {
+            sender: params.sender.to_string(),
+            signer: params.signer.map(|s| {
+                std::sync::Arc::new(super::common::FfiTransactionSignerFromRust { rust_signer: s })
+                    as std::sync::Arc<dyn TransactionSigner>
+            }),
+            rekey_to: params.rekey_to.map(|r| r.to_string()),
+            note: params.note,
+            lease: params.lease.map(|l| l.to_vec()),
+            static_fee: params.static_fee,
+            extra_fee: params.extra_fee,
+            max_fee: params.max_fee,
+            validity_window: params.validity_window,
+            first_valid_round: params.first_valid_round,
+            last_valid_round: params.last_valid_round,
+            asset_id: params.asset_id,
+            target_address: params.target_address.to_string(),
+        }
+    }
+}
+
+impl From<RustAssetUnfreezeParams> for AssetUnfreezeParams {
+    fn from(params: RustAssetUnfreezeParams) -> Self {
+        AssetUnfreezeParams {
+            sender: params.sender.to_string(),
+            signer: params.signer.map(|s| {
+                std::sync::Arc::new(super::common::FfiTransactionSignerFromRust { rust_signer: s })
+                    as std::sync::Arc<dyn TransactionSigner>
+            }),
+            rekey_to: params.rekey_to.map(|r| r.to_string()),
+            note: params.note,
+            lease: params.lease.map(|l| l.to_vec()),
+            static_fee: params.static_fee,
+            extra_fee: params.extra_fee,
+            max_fee: params.max_fee,
+            validity_window: params.validity_window,
+            first_valid_round: params.first_valid_round,
+            last_valid_round: params.last_valid_round,
+            asset_id: params.asset_id,
+            target_address: params.target_address.to_string(),
+        }
     }
 }

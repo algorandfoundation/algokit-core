@@ -181,3 +181,72 @@ impl TryFrom<NonParticipationKeyRegistrationParams> for RustNonParticipationKeyR
         })
     }
 }
+
+impl From<RustOnlineKeyRegistrationParams> for OnlineKeyRegistrationParams {
+    fn from(params: RustOnlineKeyRegistrationParams) -> Self {
+        OnlineKeyRegistrationParams {
+            sender: params.sender.to_string(),
+            signer: params.signer.map(|s| {
+                std::sync::Arc::new(super::common::FfiTransactionSignerFromRust { rust_signer: s })
+                    as std::sync::Arc<dyn super::common::TransactionSigner>
+            }),
+            rekey_to: params.rekey_to.map(|r| r.to_string()),
+            note: params.note,
+            lease: params.lease.map(|l| l.to_vec()),
+            static_fee: params.static_fee,
+            extra_fee: params.extra_fee,
+            max_fee: params.max_fee,
+            validity_window: params.validity_window,
+            first_valid_round: params.first_valid_round,
+            last_valid_round: params.last_valid_round,
+            vote_key: params.vote_key.to_vec(),
+            selection_key: params.selection_key.to_vec(),
+            vote_first: params.vote_first,
+            vote_last: params.vote_last,
+            vote_key_dilution: params.vote_key_dilution,
+            state_proof_key: params.state_proof_key.map(|k| k.to_vec()),
+        }
+    }
+}
+
+impl From<RustOfflineKeyRegistrationParams> for OfflineKeyRegistrationParams {
+    fn from(params: RustOfflineKeyRegistrationParams) -> Self {
+        OfflineKeyRegistrationParams {
+            sender: params.sender.to_string(),
+            signer: params.signer.map(|s| {
+                std::sync::Arc::new(super::common::FfiTransactionSignerFromRust { rust_signer: s })
+                    as std::sync::Arc<dyn super::common::TransactionSigner>
+            }),
+            rekey_to: params.rekey_to.map(|r| r.to_string()),
+            note: params.note,
+            lease: params.lease.map(|l| l.to_vec()),
+            static_fee: params.static_fee,
+            extra_fee: params.extra_fee,
+            max_fee: params.max_fee,
+            validity_window: params.validity_window,
+            first_valid_round: params.first_valid_round,
+            last_valid_round: params.last_valid_round,
+        }
+    }
+}
+
+impl From<RustNonParticipationKeyRegistrationParams> for NonParticipationKeyRegistrationParams {
+    fn from(params: RustNonParticipationKeyRegistrationParams) -> Self {
+        NonParticipationKeyRegistrationParams {
+            sender: params.sender.to_string(),
+            signer: params.signer.map(|s| {
+                std::sync::Arc::new(super::common::FfiTransactionSignerFromRust { rust_signer: s })
+                    as std::sync::Arc<dyn super::common::TransactionSigner>
+            }),
+            rekey_to: params.rekey_to.map(|r| r.to_string()),
+            note: params.note,
+            lease: params.lease.map(|l| l.to_vec()),
+            static_fee: params.static_fee,
+            extra_fee: params.extra_fee,
+            max_fee: params.max_fee,
+            validity_window: params.validity_window,
+            first_valid_round: params.first_valid_round,
+            last_valid_round: params.last_valid_round,
+        }
+    }
+}
