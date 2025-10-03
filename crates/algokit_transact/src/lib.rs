@@ -17,9 +17,13 @@ pub use traits::{AlgorandMsgpack, EstimateTransactionSize, TransactionId, Transa
 pub use transactions::{
     AppCallTransactionBuilder, AppCallTransactionFields, AssetConfigTransactionBuilder,
     AssetConfigTransactionFields, AssetFreezeTransactionBuilder, AssetFreezeTransactionFields,
-    AssetTransferTransactionBuilder, AssetTransferTransactionFields, BoxReference, FeeParams,
-    KeyRegistrationTransactionBuilder, KeyRegistrationTransactionFields, OnApplicationComplete,
-    PaymentTransactionBuilder, PaymentTransactionFields, SignedTransaction, StateSchema,
+    AssetTransferTransactionBuilder, AssetTransferTransactionFields, BoxReference,
+    FalconSignatureStruct, FalconVerifier, FeeParams, HashFactory, HeartbeatProof,
+    HeartbeatProofBuilder, HeartbeatTransactionBuilder, HeartbeatTransactionFields,
+    KeyRegistrationTransactionBuilder, KeyRegistrationTransactionFields, MerkleArrayProof,
+    MerkleSignatureVerifier, OnApplicationComplete, Participant, PaymentTransactionBuilder,
+    PaymentTransactionFields, Reveal, SignedTransaction, SigslotCommit, StateProof,
+    StateProofMessage, StateProofTransactionBuilder, StateProofTransactionFields, StateSchema,
     Transaction, TransactionHeader, TransactionHeaderBuilder,
 };
 

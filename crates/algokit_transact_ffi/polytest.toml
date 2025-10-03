@@ -27,6 +27,14 @@ groups = ["Transaction Group Tests"]
 desc = "Tests for key registration transactions"
 groups = ["Transaction Tests"]
 
+[suite.Heartbeat]
+desc = "Tests for heartbeat transactions"
+groups = ["Transaction Tests"]
+
+[suite."State Proof"]
+desc = "Tests for state proof transactions"
+groups = ["Transaction Tests"]
+
 # Test Group: Generic Transaction Tests
 
 [group."Generic Transaction Tests"]
@@ -95,9 +103,6 @@ desc = "A collection of signed transactions can be encoded"
 
 
 # Test Targets
-
-[target.bun]
-out_dir = "../../packages/typescript/algokit_transact/tests"
 
 [target.pytest]
 out_dir = "../../packages/python/algokit_transact/tests"

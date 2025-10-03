@@ -85,6 +85,7 @@ version = "0.1.0"
 name = "algokit_transact"
 version = "0.1.0"
 dependencies = [
+ "algokit_test_artifacts",
  "algokit_transact",
  "base32",
  "base64 0.22.1",

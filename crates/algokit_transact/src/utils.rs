@@ -8,34 +8,214 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use serde_with::{Bytes, serde_as, skip_serializing_none};
 use sha2::{Digest, Sha512_256};
-use std::collections::BTreeMap;
 
-pub fn sort_msgpack_value(value: rmpv::Value) -> rmpv::Value {
+pub fn sort_msgpack_value(value: rmpv::Value) -> Result<rmpv::Value, AlgoKitTransactError> {
     match value {
         rmpv::Value::Map(m) => {
-            let mut sorted_map: BTreeMap<String, rmpv::Value> = BTreeMap::new();
+            if m.is_empty() {
+                return Ok(rmpv::Value::Map(Vec::new()));
+            }
 
-            // Convert and sort all key-value pairs
+            // Categorize keys into integers, strings, and binary. Any other key types are unsupported.
+            let mut int_entries: Vec<(rmpv::Integer, rmpv::Value)> = Vec::new();
+            let mut string_entries: Vec<(String, rmpv::Value)> = Vec::new();
+            let mut binary_entries: Vec<(Vec<u8>, rmpv::Value)> = Vec::new();
+
             for (k, v) in m {
-                if let rmpv::Value::String(key) = k {
-                    let key_str = key.into_str().unwrap_or_default();
-                    sorted_map.insert(key_str, sort_msgpack_value(v));
+                let sorted_v = sort_msgpack_value(v)?;
+                match k {
+                    rmpv::Value::Integer(int_key) => int_entries.push((int_key, sorted_v)),
+                    rmpv::Value::String(key) => {
+                        let s = key.as_str().unwrap_or("").to_string();
+                        string_entries.push((s, sorted_v));
+                    }
+                    rmpv::Value::Binary(bytes) => binary_entries.push((bytes, sorted_v)),
+                    _ => {
+                        return Err(AlgoKitTransactError::InputError {
+                            message: "Unsupported MessagePack map key type; only integer, string, and binary keys are supported".to_string(),
+                        })
+                    }
                 }
             }
 
-            // Convert back to rmpv::Value::Map
-            rmpv::Value::Map(
-                sorted_map
+            // Sort each category
+            int_entries.sort_by(|(a, _), (b, _)| {
+                let a_val: i128 = if let Some(i) = a.as_i64() {
+                    i as i128
+                } else if let Some(u) = a.as_u64() {
+                    u as i128
+                } else {
+                    0
+                };
+                let b_val: i128 = if let Some(i) = b.as_i64() {
+                    i as i128
+                } else if let Some(u) = b.as_u64() {
+                    u as i128
+                } else {
+                    0
+                };
+                a_val.cmp(&b_val)
+            });
+
+            string_entries.sort_by(|(a, _), (b, _)| a.cmp(b));
+
+            binary_entries.sort_by(|(a, _), (b, _)| a.cmp(b));
+
+            // Concatenate in canonical category order: integers, then strings, then binary
+            let mut result: Vec<(rmpv::Value, rmpv::Value)> =
+                Vec::with_capacity(int_entries.len() + string_entries.len() + binary_entries.len());
+
+            result.extend(
+                int_entries
                     .into_iter()
-                    .map(|(k, v)| (rmpv::Value::String(k.into()), v))
-                    .collect(),
-            )
+                    .map(|(k, v)| (rmpv::Value::Integer(k), v)),
+            );
+            result.extend(
+                string_entries
+                    .into_iter()
+                    .map(|(k, v)| (rmpv::Value::String(k.into()), v)),
+            );
+            result.extend(
+                binary_entries
+                    .into_iter()
+                    .map(|(k, v)| (rmpv::Value::Binary(k), v)),
+            );
+
+            Ok(rmpv::Value::Map(result))
         }
         rmpv::Value::Array(arr) => {
-            rmpv::Value::Array(arr.into_iter().map(sort_msgpack_value).collect())
+            let result: Result<Vec<rmpv::Value>, AlgoKitTransactError> =
+                arr.into_iter().map(sort_msgpack_value).collect();
+            Ok(rmpv::Value::Array(result?))
         }
         // For all other types, return as-is
-        v => v,
+        v => Ok(v),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::sort_msgpack_value;
+    use crate::AlgoKitTransactError;
+    use base64::{Engine, prelude::BASE64_STANDARD};
+    use rmpv::Value;
+
+    fn map(entries: Vec<(Value, Value)>) -> Value {
+        Value::Map(entries)
+    }
+
+    #[test]
+    fn sort_integers_strings_binary_ordering() -> Result<(), AlgoKitTransactError> {
+        let value = map(vec![
+            (Value::String("b".into()), Value::from(2)),
+            (Value::String("a".into()), Value::from(1)),
+            (Value::Integer(10i64.into()), Value::from(3)),
+            (Value::Integer(2i64.into()), Value::from(4)),
+            (Value::Binary(vec![2, 0, 0]), Value::from(5)),
+            (Value::Binary(vec![1, 0, 0]), Value::from(6)),
+        ]);
+
+        let sorted = sort_msgpack_value(value)?;
+        let arr = match sorted {
+            Value::Map(m) => m,
+            _ => unreachable!(),
+        };
+
+        // integers come first and are ascending
+        let (k0, k1) = (&arr[0].0, &arr[1].0);
+        assert!(matches!(k0, Value::Integer(_)) && matches!(k1, Value::Integer(_)));
+        let i0 = if let Value::Integer(i) = k0 {
+            i.as_i64().unwrap()
+        } else {
+            0
+        };
+        let i1 = if let Value::Integer(i) = k1 {
+            i.as_i64().unwrap()
+        } else {
+            0
+        };
+        assert_eq!((i0, i1), (2, 10));
+
+        // then strings in lexicographic order
+        let (k2, k3) = (&arr[2].0, &arr[3].0);
+        let s2 = if let Value::String(s) = k2 {
+            s.as_str().unwrap()
+        } else {
+            ""
+        };
+        let s3 = if let Value::String(s) = k3 {
+            s.as_str().unwrap()
+        } else {
+            ""
+        };
+        assert_eq!((s2, s3), ("a", "b"));
+
+        // then binary keys ascending
+        let (k4, k5) = (&arr[4].0, &arr[5].0);
+        let b4 = if let Value::Binary(b) = k4 {
+            b.clone()
+        } else {
+            vec![]
+        };
+        let b5 = if let Value::Binary(b) = k5 {
+            b.clone()
+        } else {
+            vec![]
+        };
+        assert!(b4 < b5);
+        Ok(())
+    }
+
+    #[test]
+    fn nested_maps_sorted_recursively() -> Result<(), AlgoKitTransactError> {
+        let inner = map(vec![
+            (Value::String("z".into()), Value::from(1)),
+            (Value::String("a".into()), Value::from(2)),
+        ]);
+        let outer = map(vec![(Value::Integer(1i64.into()), inner)]);
+
+        let sorted = sort_msgpack_value(outer)?;
+        if let Value::Map(m) = sorted {
+            if let Value::Map(inner_sorted) = &m[0].1 {
+                let first_key = if let Value::String(s) = &inner_sorted[0].0 {
+                    s.as_str().unwrap()
+                } else {
+                    ""
+                };
+                assert_eq!(first_key, "a");
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn fixture_global_state_delta_binary_keys_sorted() -> Result<(), AlgoKitTransactError> {
+        let json = algokit_test_artifacts::msgpack::TESTNET_GLOBAL_STATE_DELTA_TX;
+        let v: serde_json::Value = serde_json::from_str(json).unwrap();
+        let entries = v["transaction"]["global-state-delta"].as_array().unwrap();
+        let mut m = Vec::new();
+        for e in entries {
+            let k_b64 = e["key"].as_str().unwrap();
+            let key_bytes = BASE64_STANDARD.decode(k_b64).unwrap();
+            m.push((Value::Binary(key_bytes), Value::from(0)));
+        }
+        let sorted = sort_msgpack_value(Value::Map(m))?;
+        if let Value::Map(arr) = sorted {
+            let keys: Vec<Vec<u8>> = arr
+                .iter()
+                .map(|(k, _)| {
+                    if let Value::Binary(b) = k {
+                        b.clone()
+                    } else {
+                        vec![]
+                    }
+                })
+                .collect();
+            let mut sorted_keys = keys.clone();
+            sorted_keys.sort();
+            assert_eq!(keys, sorted_keys);
+        }
+        Ok(())
     }
 }
 

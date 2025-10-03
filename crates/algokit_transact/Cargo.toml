@@ -4,7 +4,11 @@ version = "0.1.0"
 edition = "2024"
 
 [features]
-test_utils = ["dep:ed25519-dalek", "dep:convert_case"]
+test_utils = [
+  "dep:ed25519-dalek",
+  "dep:convert_case",
+  "dep:algokit_test_artifacts",
+]
 
 [dependencies]
 base32 = { workspace = true }
@@ -22,6 +26,7 @@ serde_repr = "0.1.20"
 serde_with = "3.11.0"
 sha2 = { workspace = true }
 snafu = "0.8"
+algokit_test_artifacts = { path = "../algokit_test_artifacts", optional = true }
 
 [dev-dependencies]
 pretty_assertions = "1.4.1"

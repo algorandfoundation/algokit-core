@@ -232,3 +232,11 @@ pub mod abi_create_and_delete {
     pub const APPLICATION_ARC56: &str =
         include_str!("../contracts/abi-create-and-delete/application.arc56.json");
 }
+
+pub mod msgpack {
+    pub const TESTNET_STATE_PROOF_TX: &str = include_str!("../msgpack/testnet_state_proof_tx.json");
+    pub const TESTNET_GLOBAL_STATE_DELTA_TX: &str =
+        include_str!("../msgpack/testnet_global_state_delta_tx.json");
+    pub const TESTNET_LOCAL_STATE_DELTA_TX: &str =
+        include_str!("../msgpack/testnet_local_state_delta_tx.json");
+}

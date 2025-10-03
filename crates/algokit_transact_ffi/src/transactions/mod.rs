@@ -1,9 +1,13 @@
 pub mod app_call;
 pub mod asset_config;
 pub mod asset_freeze;
+pub mod heartbeat;
+pub mod state_proof;
 
 pub use app_call::AppCallTransactionFields;
 pub use asset_config::AssetConfigTransactionFields;
+pub use heartbeat::{HeartbeatProof, HeartbeatTransactionFields};
+pub use state_proof::StateProofTransactionFields;
 
 pub mod key_registration;
 pub use asset_freeze::AssetFreezeTransactionFields;

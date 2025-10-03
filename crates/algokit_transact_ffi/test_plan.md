@@ -37,6 +37,18 @@
 | --- | --- |
 | [Transaction Tests](#transaction-tests) | Tests that apply to all transaction types |
 
+### Heartbeat
+
+| Name | Description |
+| --- | --- |
+| [Transaction Tests](#transaction-tests) | Tests that apply to all transaction types |
+
+### State Proof
+
+| Name | Description |
+| --- | --- |
+| [Transaction Tests](#transaction-tests) | Tests that apply to all transaction types |
+
 ## Test Groups
 
 ### Generic Transaction Tests

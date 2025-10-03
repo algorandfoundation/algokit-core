@@ -1,12 +1,15 @@
 mod app_call;
 mod asset_config;
 mod asset_freeze;
+mod heartbeat;
 mod key_registration;
+mod state_proof;
 
 use crate::{
     ALGORAND_PUBLIC_KEY_BYTE_LENGTH, Address, AlgorandMsgpack, Byte32, EMPTY_SIGNATURE,
     HASH_BYTES_LENGTH, KeyPairAccount, MultisigSignature, MultisigSubsignature, SignedTransaction,
     Transaction, TransactionHeaderBuilder, TransactionId,
+    test_utils::state_proof::StateProofTransactionMother,
     transactions::{AssetTransferTransactionBuilder, PaymentTransactionBuilder},
 };
 use base64::{Engine, prelude::BASE64_STANDARD};
@@ -20,6 +23,7 @@ use std::{fs::File, str::FromStr};
 pub use app_call::AppCallTransactionMother;
 pub use asset_config::AssetConfigTransactionMother;
 pub use asset_freeze::AssetFreezeTransactionMother;
+pub use heartbeat::HeartbeatTransactionMother;
 pub use key_registration::KeyRegistrationTransactionMother;
 
 pub struct TransactionHeaderMother {}
@@ -475,26 +479,28 @@ impl TestDataMother {
         TransactionTestData::new(transaction, SIGNING_PRIVATE_KEY)
     }
 
+    pub fn heartbeat() -> TransactionTestData {
+        let transaction = HeartbeatTransactionMother::heartbeat().build().unwrap();
+        TransactionTestData::new(transaction, SIGNING_PRIVATE_KEY)
+    }
+
+    pub fn state_proof() -> TransactionTestData {
+        let transaction = StateProofTransactionMother::state_proof().build().unwrap();
+        TransactionTestData::new(transaction, SIGNING_PRIVATE_KEY)
+    }
+
     pub fn asset_freeze() -> TransactionTestData {
-        let signing_private_key: Byte32 = [
-            2, 205, 103, 33, 67, 14, 82, 196, 115, 196, 206, 254, 50, 110, 63, 182, 149, 229, 184,
-            216, 93, 11, 13, 99, 69, 213, 218, 165, 134, 118, 47, 44,
-        ];
         let transaction = AssetFreezeTransactionMother::asset_freeze()
             .build()
             .unwrap();
-        TransactionTestData::new(transaction, signing_private_key)
+        TransactionTestData::new(transaction, SIGNING_PRIVATE_KEY)
     }
 
     pub fn asset_unfreeze() -> TransactionTestData {
-        let signing_private_key: Byte32 = [
-            2, 205, 103, 33, 67, 14, 82, 196, 115, 196, 206, 254, 50, 110, 63, 182, 149, 229, 184,
-            216, 93, 11, 13, 99, 69, 213, 218, 165, 134, 118, 47, 44,
-        ];
         let transaction = AssetFreezeTransactionMother::asset_unfreeze()
             .build()
             .unwrap();
-        TransactionTestData::new(transaction, signing_private_key)
+        TransactionTestData::new(transaction, SIGNING_PRIVATE_KEY)
     }
 
     pub fn export<F, T>(path: &std::path::Path, transform: Option<F>)
@@ -519,8 +525,10 @@ impl TestDataMother {
             "online_key_registration": Self::online_key_registration().as_json(&transform),
             "offline_key_registration": Self::offline_key_registration().as_json(&transform),
             "non_participation_key_registration": Self::non_participation_key_registration().as_json(&transform),
+            "heartbeat": Self::heartbeat().as_json(&transform),
             "asset_freeze": Self::asset_freeze().as_json(&transform),
             "asset_unfreeze": Self::asset_unfreeze().as_json(&transform),
+            "state_proof": Self::state_proof().as_json(&transform),
         }));
 
         let file = File::create(path).expect("Failed to create export file");

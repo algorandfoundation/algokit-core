@@ -82,10 +82,13 @@ The hooks will automatically run `cargo fmt --check`, `cargo clippy`, `cargo che
 
 1. **Make changes to the core crates** (e.g., `algokit_transact`)
 1. **Run tests** to ensure functionality works:
+
    ```bash
    cargo test -p algokit_transact
    ```
+
 1. **Test FFI layer** if your changes affect the interface:
+
    ```bash
    cargo test -p algokit_transact_ffi
    ```
@@ -95,10 +98,13 @@ The hooks will automatically run `cargo fmt --check`, `cargo clippy`, `cargo che
 #### Python Development
 
 1. **Build the Python bindings**:
+
    ```bash
    cargo pkg algokit_transact python
    ```
+
 1. **Test Python bindings**:
+
    ```bash
    cd packages/python/algokit_transact
    poetry run pytest
@@ -107,6 +113,7 @@ The hooks will automatically run `cargo fmt --check`, `cargo clippy`, `cargo che
 #### Swift Development
 
 1. **Build the Swift bindings**:
+
    ```bash
    cargo pkg algokit_transact swift
    ```
@@ -129,9 +136,6 @@ The hooks will automatically run `cargo fmt --check`, `cargo clippy`, `cargo che
 1. **Run language-specific tests**:
 
    ```bash
-   # TypeScript
-   cd packages/typescript/algokit_transact && bun test
-
    # Python
    cd packages/python/algokit_transact && poetry run pytest
    ```
@@ -146,8 +150,6 @@ Or manually:
 
 ```bash
 cargo test                                    # Rust tests
-cargo pkg algokit_transact typescript        # Build TS
-cd packages/typescript/algokit_transact && bun test  # Test TS
 cargo pkg algokit_transact python            # Build Python
 cd packages/python/algokit_transact && poetry run pytest  # Test Python
 ```
@@ -160,10 +162,12 @@ The `algokit_abi` crate uses [insta](https://insta.rs/) for snapshot testing to 
 
 - Tests may fail if snapshots need updating after code changes
 - To review and approve new snapshots, run:
+
   ```bash
   cd crates/algokit_abi
   cargo insta review
   ```
+
 - The `cargo-insta` tool is available in the workspace (no global installation needed)
 - For more information on snapshot testing, see the [insta documentation](https://insta.rs/docs/)
 

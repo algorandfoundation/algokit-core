@@ -1,0 +1,87 @@
+{
+  "current-round": 56069466,
+  "transaction": {
+    "application-transaction": {
+      "access": [],
+      "accounts": [],
+      "application-args": [
+        "AAAAAAAAAAE=",
+        "AAAAAAAAABQ=",
+        "AAAAAAAAABQ=",
+        "AAAAAAAAAGQ="
+      ],
+      "application-id": 0,
+      "approval-program": "AiAFAAQBBQImCgdDcmVhdG9yCFJlZ0JlZ2luBlJlZ0VuZAlWb3RlQmVnaW4HVm90ZUVuZAhyZWdpc3RlcgR2b3RlBXZvdGVkCmNhbmRpZGF0ZWEKY2FuZGlkYXRlYiIxGBJBACYoMQBnMRsjEkEA9Sk2GgAXZyo2GgEXZys2GgIXZycENhoDF2ckQyUxGRJBAAooZDEAEkEAyyRDIzEZEkEACihkMQASQQC6JEMhBDEZEkAArjYaACcFEkAAkDYaACcGEkAAAiJDMgYrZA8yBicEZA4QQQCNIjEYYUEAhiIhBHAASCQPQQB7MgQhBBJBAHMzARAjEkEAayhkMwEUEkEAYjMBESEEEkEAWTMBEiQSQQBRIjEYJwdjQAAuSDYaAScIEjYaAScJEhFBADciNhoBZUAAAkgiJAg1ATYaATQBZyInBzYaAWYkQ0gkQzIGKWQPMgYqZA4QJDEZEhBBAAQkQyRDIkMkQw==",
+      "box-references": [],
+      "clear-state-program": "AiABASJD",
+      "foreign-apps": [],
+      "foreign-assets": [],
+      "global-state-schema": {
+        "num-byte-slice": 1,
+        "num-uint": 6
+      },
+      "local-state-schema": {
+        "num-byte-slice": 1,
+        "num-uint": 0
+      },
+      "on-completion": "noop"
+    },
+    "close-rewards": 0,
+    "closing-amount": 0,
+    "confirmed-round": 8857943,
+    "created-application-index": 12174882,
+    "fee": 1000,
+    "first-valid": 8857942,
+    "genesis-hash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
+    "global-state-delta": [
+      {
+        "key": "Q3JlYXRvcg==",
+        "value": {
+          "action": 1,
+          "bytes": "qeMggTYHygVwGLKA/ZoFmlt85RIfshe8xPuTaMROtl4=",
+          "uint": 0
+        }
+      },
+      {
+        "key": "UmVnQmVnaW4=",
+        "value": {
+          "action": 2,
+          "uint": 1
+        }
+      },
+      {
+        "key": "UmVnRW5k",
+        "value": {
+          "action": 2,
+          "uint": 20
+        }
+      },
+      {
+        "key": "Vm90ZUJlZ2lu",
+        "value": {
+          "action": 2,
+          "uint": 20
+        }
+      },
+      {
+        "key": "Vm90ZUVuZA==",
+        "value": {
+          "action": 2,
+          "uint": 100
+        }
+      }
+    ],
+    "id": "VZYK7GZDVP3SHM3EORCYO7TEVK25XXFNX426NOGFVK6NUOQHJGAA",
+    "intra-round-offset": 0,
+    "last-valid": 8858942,
+    "note": "um0Fzh7xt2M=",
+    "receiver-rewards": 0,
+    "round-time": 1598463260,
+    "sender": "VHRSBAJWA7FAK4AYWKAP3GQFTJNXZZISD6ZBPPGE7OJWRRCOWZPDYMBIY4",
+    "sender-rewards": 0,
+    "signature": {
+      "sig": "TnoJSmvGlPfQz6Zsg+lLgA83o2LSLzpz5L8qG4+3ouxTHMVgWHWeXH8ODtJ+eUwC3894Npwj+xaBbed3ffZyBg=="
+    },
+    "tx-type": "appl"
+  }
+}

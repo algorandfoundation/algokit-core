@@ -9,8 +9,10 @@ mod asset_config;
 mod asset_freeze;
 mod asset_transfer;
 mod common;
+mod heartbeat;
 mod key_registration;
 mod payment;
+pub mod state_proof;
 
 pub use app_call::{
     AppCallTransactionBuilder, AppCallTransactionFields, BoxReference, OnApplicationComplete,
@@ -24,8 +26,17 @@ pub use asset_config::{
 pub use asset_freeze::{AssetFreezeTransactionBuilder, AssetFreezeTransactionFields};
 pub use asset_transfer::{AssetTransferTransactionBuilder, AssetTransferTransactionFields};
 pub use common::{TransactionHeader, TransactionHeaderBuilder};
+pub use heartbeat::{
+    HeartbeatProof, HeartbeatProofBuilder, HeartbeatTransactionBuilder, HeartbeatTransactionFields,
+    heartbeat_deserializer, heartbeat_serializer,
+};
 pub use key_registration::{KeyRegistrationTransactionBuilder, KeyRegistrationTransactionFields};
 pub use payment::{PaymentTransactionBuilder, PaymentTransactionFields};
+pub use state_proof::{
+    FalconSignatureStruct, FalconVerifier, HashFactory, MerkleArrayProof, MerkleSignatureVerifier,
+    Participant, Reveal, SigslotCommit, StateProof, StateProofMessage,
+    StateProofTransactionBuilder, StateProofTransactionFields,
+};
 
 use crate::constants::{
     ALGORAND_SIGNATURE_BYTE_LENGTH, ALGORAND_SIGNATURE_ENCODING_INCR, HASH_BYTES_LENGTH,
@@ -63,6 +74,14 @@ pub enum Transaction {
 
     #[serde(rename = "keyreg")]
     KeyRegistration(KeyRegistrationTransactionFields),
+
+    #[serde(serialize_with = "heartbeat_serializer")]
+    #[serde(deserialize_with = "heartbeat_deserializer")]
+    #[serde(rename = "hb")]
+    Heartbeat(HeartbeatTransactionFields),
+
+    #[serde(rename = "stpf")]
+    StateProof(StateProofTransactionFields),
 }
 
 #[derive(Default)]
@@ -82,6 +101,8 @@ impl Transaction {
             Transaction::AppCall(a) => &a.header,
             Transaction::KeyRegistration(k) => &k.header,
             Transaction::AssetFreeze(f) => &f.header,
+            Transaction::Heartbeat(h) => &h.header,
+            Transaction::StateProof(s) => &s.header,
         }
     }
 
@@ -93,6 +114,8 @@ impl Transaction {
             Transaction::AppCall(a) => &mut a.header,
             Transaction::KeyRegistration(k) => &mut k.header,
             Transaction::AssetFreeze(f) => &mut f.header,
+            Transaction::Heartbeat(h) => &mut h.header,
+            Transaction::StateProof(s) => &mut s.header,
         }
     }
 

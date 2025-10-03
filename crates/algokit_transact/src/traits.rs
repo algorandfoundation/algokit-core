@@ -40,7 +40,7 @@ pub trait AlgorandMsgpack: Serialize + for<'de> Deserialize<'de> {
 
         // Deserialize into a Value and sort recursively
         let value = rmpv::decode::read_value(&mut temp_buf.as_slice())?;
-        let sorted_value = sort_msgpack_value(value);
+        let sorted_value = sort_msgpack_value(value)?;
 
         // Serialize the sorted value
         let mut final_buf = Vec::new();

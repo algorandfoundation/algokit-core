@@ -1,0 +1,64 @@
+{
+  "current-round": 56069466,
+  "transaction": {
+    "application-transaction": {
+      "access": [],
+      "accounts": [],
+      "application-args": [],
+      "application-id": 12190476,
+      "box-references": [],
+      "foreign-apps": [],
+      "foreign-assets": [],
+      "global-state-schema": {
+        "num-byte-slice": 0,
+        "num-uint": 0
+      },
+      "local-state-schema": {
+        "num-byte-slice": 0,
+        "num-uint": 0
+      },
+      "on-completion": "noop"
+    },
+    "close-rewards": 0,
+    "closing-amount": 0,
+    "confirmed-round": 8881500,
+    "fee": 1000,
+    "first-valid": 8881498,
+    "genesis-hash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
+    "genesis-id": "testnet-v1.0",
+    "global-state-delta": [
+      {
+        "key": "Y291bnRlcg==",
+        "value": {
+          "action": 2,
+          "uint": 1
+        }
+      }
+    ],
+    "id": "DV6Y3GHKDQSSGCRRLQQ4QTT57CK3N4I6EXLFEFUM3REKQWLGF7EA",
+    "intra-round-offset": 3,
+    "last-valid": 8882498,
+    "local-state-delta": [
+      {
+        "address": "GG7UDCTXNHADKSJ22GG64BZNKXXLXMSYWVZDD2UGHBZ6RLVXWGRLMW52DU",
+        "delta": [
+          {
+            "key": "Y291bnRlcg==",
+            "value": {
+              "action": 2,
+              "uint": 1
+            }
+          }
+        ]
+      }
+    ],
+    "receiver-rewards": 0,
+    "round-time": 1598563050,
+    "sender": "GG7UDCTXNHADKSJ22GG64BZNKXXLXMSYWVZDD2UGHBZ6RLVXWGRLMW52DU",
+    "sender-rewards": 0,
+    "signature": {
+      "sig": "uearc+wYzxuOStc0ktqgy/2ZKajvjC+RdgkWYyAzpaEQXV2iDBBALWUbikE2xF/+jtZdWQzn7hvh4snq3ulVCQ=="
+    },
+    "tx-type": "appl"
+  }
+}

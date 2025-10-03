@@ -1,0 +1,42 @@
+{
+    "tx": {
+        "global-state-delta": [
+            {
+                "key": "Q3JlYXRvcg==",
+                "value": {
+                    "action": 1,
+                    "bytes": "qeMggTYHygVwGLKA/ZoFmlt85RIfshe8xPuTaMROtl4=",
+                    "uint": 0
+                }
+            },
+            {
+                "key": "UmVnQmVnaW4=",
+                "value": {
+                    "action": 2,
+                    "uint": 1
+                }
+            },
+            {
+                "key": "UmVnRW5k",
+                "value": {
+                    "action": 2,
+                    "uint": 20
+                }
+            },
+            {
+                "key": "Vm90ZUJlZ2lu",
+                "value": {
+                    "action": 2,
+                    "uint": 20
+                }
+            },
+            {
+                "key": "Vm90ZUVuZA==",
+                "value": {
+                    "action": 2,
+                    "uint": 100
+                }
+            }
+        ]
+    }
+}
