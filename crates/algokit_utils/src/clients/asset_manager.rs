@@ -5,7 +5,8 @@ use snafu::Snafu;
 use std::{str::FromStr, sync::Arc};
 
 use crate::transactions::{
-    AssetOptInParams, AssetOptOutParams, Composer, ComposerError, TransactionComposerConfig,
+    AssetOptInParams, AssetOptOutParams, ComposerError, TransactionComposer,
+    TransactionComposerConfig,
 };
 
 #[derive(Debug, Clone)]
@@ -153,17 +154,17 @@ pub struct AssetValidationError {
 #[derive(Clone)]
 pub struct AssetManager {
     algod_client: Arc<AlgodClient>,
-    new_group: Arc<dyn Fn(Option<TransactionComposerConfig>) -> Composer>,
+    new_composer: Arc<dyn Fn(Option<TransactionComposerConfig>) -> TransactionComposer>,
 }
 
 impl AssetManager {
     pub fn new(
         algod_client: Arc<AlgodClient>,
-        new_group: impl Fn(Option<TransactionComposerConfig>) -> Composer + 'static,
+        new_composer: impl Fn(Option<TransactionComposerConfig>) -> TransactionComposer + 'static,
     ) -> Self {
         Self {
             algod_client,
-            new_group: Arc::new(new_group),
+            new_composer: Arc::new(new_composer),
         }
     }
 
@@ -202,7 +203,7 @@ impl AssetManager {
             return Ok(Vec::new());
         }
 
-        let mut composer = (self.new_group)(None);
+        let mut composer = (self.new_composer)(None);
 
         // Add asset opt-in transactions for each asset
         for &asset_id in asset_ids {
@@ -218,7 +219,7 @@ impl AssetManager {
         }
 
         // Send the transaction group
-        let results = composer
+        let composer_result = composer
             .send(Default::default())
             .await
             .map_err(|e| AssetManagerError::ComposerError { source: e })?;
@@ -226,10 +227,10 @@ impl AssetManager {
         // Map transaction IDs back to assets
         let bulk_results: Vec<BulkAssetOptInOutResult> = asset_ids
             .iter()
-            .zip(results.transaction_ids.iter())
-            .map(|(&asset_id, transaction_id)| BulkAssetOptInOutResult {
+            .zip(composer_result.results.iter())
+            .map(|(&asset_id, result)| BulkAssetOptInOutResult {
                 asset_id,
-                transaction_id: transaction_id.clone(),
+                transaction_id: result.transaction_id.clone(),
             })
             .collect();
 
@@ -276,7 +277,7 @@ impl AssetManager {
             asset_creators.push(creator);
         }
 
-        let mut composer = (self.new_group)(None);
+        let mut composer = (self.new_composer)(None);
 
         // Add asset opt-out transactions for each asset
         for (i, &asset_id) in asset_ids.iter().enumerate() {
@@ -293,7 +294,7 @@ impl AssetManager {
         }
 
         // Send the transaction group
-        let results = composer
+        let composer_result = composer
             .send(Default::default())
             .await
             .map_err(|e| AssetManagerError::ComposerError { source: e })?;
@@ -301,10 +302,10 @@ impl AssetManager {
         // Map transaction IDs back to assets
         let bulk_results: Vec<BulkAssetOptInOutResult> = asset_ids
             .iter()
-            .zip(results.transaction_ids.iter())
-            .map(|(&asset_id, transaction_id)| BulkAssetOptInOutResult {
+            .zip(composer_result.results.iter())
+            .map(|(&asset_id, result)| BulkAssetOptInOutResult {
                 asset_id,
-                transaction_id: transaction_id.clone(),
+                transaction_id: result.transaction_id.clone(),
             })
             .collect();
 

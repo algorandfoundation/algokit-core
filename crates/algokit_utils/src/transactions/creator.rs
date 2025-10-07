@@ -10,20 +10,20 @@ use super::{
     AssetFreezeParams, AssetOptInParams, AssetOptOutParams, AssetTransferParams,
     AssetUnfreezeParams, NonParticipationKeyRegistrationParams, OfflineKeyRegistrationParams,
     OnlineKeyRegistrationParams, PaymentParams,
-    composer::{Composer, ComposerError},
+    composer::{ComposerError, TransactionComposer},
 };
 
 /// Creates Algorand transactions.
 pub struct TransactionCreator {
-    new_group: Arc<dyn Fn(Option<TransactionComposerConfig>) -> Composer>,
+    new_composer: Arc<dyn Fn(Option<TransactionComposerConfig>) -> TransactionComposer>,
 }
 
 impl TransactionCreator {
     pub fn new(
-        new_group: impl Fn(Option<TransactionComposerConfig>) -> Composer + 'static,
+        new_composer: impl Fn(Option<TransactionComposerConfig>) -> TransactionComposer + 'static,
     ) -> Self {
         Self {
-            new_group: Arc::new(new_group),
+            new_composer: Arc::new(new_composer),
         }
     }
 
@@ -32,9 +32,9 @@ impl TransactionCreator {
         composer_method: F,
     ) -> Result<Transaction, ComposerError>
     where
-        F: FnOnce(&mut Composer) -> Result<(), ComposerError>,
+        F: FnOnce(&mut TransactionComposer) -> Result<(), ComposerError>,
     {
-        let mut composer = (self.new_group)(None);
+        let mut composer = (self.new_composer)(None);
         composer_method(&mut composer)?;
         let built_transactions = composer.build().await?;
 
@@ -400,9 +400,9 @@ impl TransactionCreator {
         composer_method: F,
     ) -> Result<Vec<Transaction>, ComposerError>
     where
-        F: FnOnce(&mut Composer) -> Result<(), ComposerError>,
+        F: FnOnce(&mut TransactionComposer) -> Result<(), ComposerError>,
     {
-        let mut composer = (self.new_group)(None);
+        let mut composer = (self.new_composer)(None);
         composer_method(&mut composer)?;
         let transactions_with_signers = composer.build().await?;
 

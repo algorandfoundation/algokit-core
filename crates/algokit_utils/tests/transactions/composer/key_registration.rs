@@ -19,11 +19,11 @@ async fn test_offline_key_registration_transaction(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer.add_offline_key_registration(offline_key_reg_params)?;
 
     let result = composer.send(None).await?;
-    let confirmation = &result.confirmations[0];
+    let confirmation = &result.results[0].confirmation;
     // Assert transaction was confirmed
     assert!(
         confirmation.confirmed_round.is_some(),
@@ -115,13 +115,16 @@ async fn test_non_participation_key_registration_transaction(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer.add_online_key_registration(online_key_reg_params)?;
 
     let online_result = composer.send(None).await?;
 
     assert!(
-        online_result.confirmations[0].confirmed_round.is_some(),
+        online_result.results[0]
+            .confirmation
+            .confirmed_round
+            .is_some(),
         "Online transaction should be confirmed"
     );
 
@@ -142,11 +145,11 @@ async fn test_non_participation_key_registration_transaction(
         ..Default::default()
     };
 
-    let mut composer2 = algorand_fixture.algorand_client.new_group(None);
+    let mut composer2 = algorand_fixture.algorand_client.new_composer(None);
     composer2.add_non_participation_key_registration(non_participation_params)?;
 
     let result = composer2.send(None).await?;
-    let confirmation = &result.confirmations[0];
+    let confirmation = &result.results[0].confirmation;
 
     // Assert transaction was confirmed
     assert!(
@@ -212,7 +215,7 @@ async fn test_non_participation_key_registration_transaction(
         ..Default::default()
     };
 
-    let mut composer3 = algorand_fixture.algorand_client.new_group(None);
+    let mut composer3 = algorand_fixture.algorand_client.new_composer(None);
     composer3.add_online_key_registration(try_online_again_params)?;
 
     // This should fail because the account is permanently marked as non-participating
@@ -279,12 +282,12 @@ async fn test_online_key_registration_transaction(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer.add_online_key_registration(online_key_reg_params)?;
 
     // Submit the transaction - should succeed with proper keys and voting rounds
     let result = composer.send(None).await?;
-    let confirmation = &result.confirmations[0];
+    let confirmation = &result.results[0].confirmation;
 
     // Assert transaction was confirmed
     assert!(

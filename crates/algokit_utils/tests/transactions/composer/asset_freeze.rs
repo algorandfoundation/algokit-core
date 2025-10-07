@@ -38,7 +38,7 @@ async fn test_asset_freeze_unfreeze(
     let target_addr = target_account.account().address();
 
     // Create a composer for the target account that can send transactions
-    let target_composer = algorand_fixture.algorand_client.new_group(None);
+    let target_composer = algorand_fixture.algorand_client.new_composer(None);
 
     // SETUP PHASE
 
@@ -59,11 +59,12 @@ async fn test_asset_freeze_unfreeze(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer.add_asset_create(asset_create_params)?;
 
     let create_result = composer.send(None).await?;
-    let asset_id = create_result.confirmations[0]
+    let asset_id = create_result.results[0]
+        .confirmation
         .asset_id
         .expect("Failed to get asset ID");
 
@@ -80,7 +81,10 @@ async fn test_asset_freeze_unfreeze(
     let opt_in_result = composer.send(None).await?;
 
     assert!(
-        opt_in_result.confirmations[0].confirmed_round.is_some(),
+        opt_in_result.results[0]
+            .confirmation
+            .confirmed_round
+            .is_some(),
         "Asset opt-in should be confirmed"
     );
 
@@ -93,13 +97,16 @@ async fn test_asset_freeze_unfreeze(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer.add_asset_transfer(asset_transfer_params)?;
 
     let transfer_result = composer.send(None).await?;
 
     assert!(
-        transfer_result.confirmations[0].confirmed_round.is_some(),
+        transfer_result.results[0]
+            .confirmation
+            .confirmed_round
+            .is_some(),
         "Asset transfer should be confirmed"
     );
 
@@ -113,13 +120,13 @@ async fn test_asset_freeze_unfreeze(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer.add_asset_freeze(asset_freeze_params)?;
 
     let freeze_result = composer.send(None).await?;
 
     // Step 5: Verify freeze transaction was confirmed and has correct structure
-    let freeze_confirmation = &freeze_result.confirmations[0];
+    let freeze_confirmation = &freeze_result.results[0].confirmation;
     assert!(
         freeze_confirmation.confirmed_round.is_some(),
         "Asset freeze transaction should be confirmed"
@@ -192,13 +199,13 @@ async fn test_asset_freeze_unfreeze(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer.add_asset_unfreeze(asset_unfreeze_params)?;
 
     let unfreeze_result = composer.send(None).await?;
 
     // Step 9: Verify unfreeze transaction was confirmed and has correct structure
-    let unfreeze_confirmation = &unfreeze_result.confirmations[0];
+    let unfreeze_confirmation = &unfreeze_result.results[0].confirmation;
     assert!(
         unfreeze_confirmation.confirmed_round.is_some(),
         "Asset unfreeze transaction should be confirmed"
@@ -252,7 +259,8 @@ async fn test_asset_freeze_unfreeze(
     let test_transfer_result = composer.send(None).await?;
 
     assert!(
-        test_transfer_result.confirmations[0]
+        test_transfer_result.results[0]
+            .confirmation
             .confirmed_round
             .is_some(),
         "Test asset transfer should be confirmed, proving asset is unfrozen"

@@ -39,7 +39,7 @@ async fn test_payment_and_asset_create_group(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer.add_payment(payment_params)?;
     composer.add_asset_create(asset_create_params)?;
 
@@ -47,12 +47,12 @@ async fn test_payment_and_asset_create_group(
 
     // Verify group properties
     assert_eq!(
-        result.transaction_ids.len(),
+        result.results.len(),
         2,
         "Should have 2 transaction IDs in the group"
     );
     assert_eq!(
-        result.confirmations.len(),
+        result.results.len(),
         2,
         "Should have 2 confirmations in the group"
     );
@@ -60,7 +60,7 @@ async fn test_payment_and_asset_create_group(
     assert!(result.group.is_some(), "Group ID should be set");
 
     // Verify payment transaction
-    let payment_confirmation = &result.confirmations[0];
+    let payment_confirmation = &result.results[0].confirmation;
     assert!(
         payment_confirmation.confirmed_round.is_some(),
         "Payment transaction should be confirmed"
@@ -81,7 +81,7 @@ async fn test_payment_and_asset_create_group(
     }
 
     // Verify asset creation transaction
-    let asset_confirmation = &result.confirmations[1];
+    let asset_confirmation = &result.results[1].confirmation;
     assert!(
         asset_confirmation.confirmed_round.is_some(),
         "Asset creation transaction should be confirmed"
@@ -145,7 +145,7 @@ async fn test_add_transactions_to_group_max_size(
     let receiver = algorand_fixture.generate_account(None).await?;
     let receiver_addr = receiver.account().address();
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
 
     for i in 0..MAX_TX_GROUP_SIZE - 2 {
         let payment_params = PaymentParams {
@@ -187,7 +187,7 @@ async fn test_add_transaction_to_group_too_big(
     let receiver = algorand_fixture.generate_account(None).await?;
     let receiver_addr = receiver.account().address();
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
 
     for i in 0..MAX_TX_GROUP_SIZE {
         let payment_params = PaymentParams {

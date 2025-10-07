@@ -43,11 +43,11 @@ async fn test_app_call_transaction(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer.add_app_call(app_call_params)?;
 
     let result = composer.send(None).await?;
-    let confirmation = &result.confirmations[0];
+    let confirmation = &result.results[0].confirmation;
 
     assert!(
         confirmation.confirmed_round.is_some(),
@@ -90,11 +90,11 @@ async fn test_app_create_transaction(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer.add_app_create(app_create_params)?;
 
     let result = composer.send(None).await?;
-    let confirmation = &result.confirmations[0];
+    let confirmation = &result.results[0].confirmation;
 
     assert!(
         confirmation.confirmed_round.is_some(),
@@ -151,11 +151,11 @@ async fn test_app_delete_transaction(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer.add_app_delete(app_delete_params)?;
 
     let result = composer.send(None).await?;
-    let confirmation = &result.confirmations[0];
+    let confirmation = &result.results[0].confirmation;
 
     assert!(
         confirmation.confirmed_round.is_some(),
@@ -204,12 +204,12 @@ async fn test_app_update_transaction(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer.add_app_update(app_update_params)?;
 
     let result = composer.send(None).await?;
 
-    let confirmation = &result.confirmations[0];
+    let confirmation = &result.results[0].confirmation;
 
     assert!(
         confirmation.confirmed_round.is_some(),
@@ -274,11 +274,11 @@ async fn test_hello_world_app_method_call(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer.add_app_call_method_call(method_call_params)?;
 
     let result = composer.send(None).await?;
-    let abi_return = get_abi_return(&result.abi_returns, 0)?;
+    let abi_return = ensure_abi_return(&result.results[0].abi_return)?;
 
     match &abi_return.return_value {
         Some(ABIValue::String(value)) => {
@@ -316,12 +316,12 @@ async fn test_add_app_call_method_call(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer.add_app_call_method_call(method_call_params)?;
 
     let result = composer.send(None).await?;
 
-    let abi_return = get_abi_return(&result.abi_returns, 0)?;
+    let abi_return = ensure_abi_return(&result.results[0].abi_return)?;
 
     match &abi_return.return_value {
         Some(ABIValue::Uint(value)) => {
@@ -364,12 +364,12 @@ async fn test_echo_byte_app_call_method_call(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer.add_app_call_method_call(method_call_params)?;
 
     let result = composer.send(None).await?;
 
-    let abi_return = get_abi_return(&result.abi_returns, 0)?;
+    let abi_return = ensure_abi_return(&result.results[0].abi_return)?;
 
     match &abi_return.return_value {
         Some(ABIValue::Array(value)) => {
@@ -412,12 +412,12 @@ async fn test_echo_static_array_app_call_method_call(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer.add_app_call_method_call(method_call_params)?;
 
     let result = composer.send(None).await?;
 
-    let abi_return = get_abi_return(&result.abi_returns, 0)?;
+    let abi_return = ensure_abi_return(&result.results[0].abi_return)?;
 
     match &abi_return.return_value {
         Some(ABIValue::Array(value)) => {
@@ -459,12 +459,12 @@ async fn test_echo_dynamic_array_app_call_method_call(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer.add_app_call_method_call(method_call_params)?;
 
     let result = composer.send(None).await?;
 
-    let abi_return = get_abi_return(&result.abi_returns, 0)?;
+    let abi_return = ensure_abi_return(&result.results[0].abi_return)?;
 
     match &abi_return.return_value {
         Some(ABIValue::Array(value)) => {
@@ -522,12 +522,12 @@ async fn test_nest_array_and_tuple_app_call_method_call(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer.add_app_call_method_call(method_call_params)?;
 
     let result = composer.send(None).await?;
 
-    let abi_return = get_abi_return(&result.abi_returns, 0)?;
+    let abi_return = ensure_abi_return(&result.results[0].abi_return)?;
 
     match &abi_return.return_value {
         Some(ABIValue::Array(returned_tuple)) => {
@@ -599,12 +599,13 @@ async fn test_get_pay_txn_amount_app_call_method_call(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer.add_app_call_method_call(method_call_params)?;
 
     let result = composer.send(None).await?;
 
-    let abi_return = get_abi_return(&result.abi_returns, 0)?;
+    // Transaction 0 is payment, Transaction 1 is the method call
+    let abi_return = ensure_abi_return(&result.results[1].abi_return)?;
 
     match &abi_return.return_value {
         Some(ABIValue::Uint(returned_amount)) => {
@@ -657,12 +658,13 @@ async fn test_get_pay_txn_amount_app_call_method_call_using_a_different_signer(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer.add_app_call_method_call(method_call_params)?;
 
     let result = composer.send(None).await?;
 
-    let abi_return = get_abi_return(&result.abi_returns, 0)?;
+    // Transaction 0 is payment, Transaction 1 is the method call
+    let abi_return = ensure_abi_return(&result.results[1].abi_return)?;
 
     match &abi_return.return_value {
         Some(ABIValue::Uint(returned_amount)) => {
@@ -698,7 +700,7 @@ async fn test_get_returned_value_of_app_call_txn_app_call_method_call(
         get_abi_method(&arc56_contract, "get_returned_value_of_app_call_txn")?;
 
     let payment_amount = 2_500_000u64;
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
 
     let first_method_call_params = AppCallMethodCallParams {
         sender: sender_address.clone(),
@@ -727,7 +729,8 @@ async fn test_get_returned_value_of_app_call_txn_app_call_method_call(
 
     let result = composer.send(None).await?;
 
-    let abi_return = get_abi_return(&result.abi_returns, 0)?;
+    // Transaction order: [payment, first_method_call, second_method_call]
+    let abi_return = ensure_abi_return(&result.results[2].abi_return)?;
 
     match &abi_return.return_value {
         Some(ABIValue::Uint(returned_amount)) => {
@@ -763,7 +766,7 @@ async fn test_get_returned_value_of_nested_app_call_method_calls(
         get_abi_method(&arc56_contract, "get_pay_txns_amount_sum")?;
 
     let payment_amount = 5_000u64;
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
 
     let get_pay_txn_amount_method_call_params = AppCallMethodCallParams {
         sender: sender_address.clone(),
@@ -800,7 +803,8 @@ async fn test_get_returned_value_of_nested_app_call_method_calls(
 
     let result = composer.send(None).await?;
 
-    let abi_return = get_abi_return(&result.abi_returns, 1)?;
+    // Transaction order: [payment1, payment2, inner_app_call, outer_app_call]
+    let abi_return = ensure_abi_return(&result.results[3].abi_return)?;
 
     let expected_result = BigUint::from(15_000u64);
     match &abi_return.return_value {
@@ -828,7 +832,7 @@ async fn group_simulate_matches_send(
     } = arc56_algorand_fixture.await?;
 
     // Compose group: add(uint64,uint64)uint64 + payment + hello_world(string)string
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
 
     // 1) add(uint64,uint64)uint64
     let method_add = get_abi_method(&arc56_contract, "add")?;
@@ -874,15 +878,23 @@ async fn group_simulate_matches_send(
         .await?;
     let send = composer.send(None).await?;
 
-    assert_eq!(simulate.transaction_ids, send.transaction_ids);
-    // Compare all ABI returns in order where both sides have a value
-    for (simulate_abi_return, send_abi_return) in
-        simulate.abi_returns.iter().zip(send.abi_returns.iter())
-    {
-        assert_eq!(
-            simulate_abi_return.return_value,
-            send_abi_return.return_value
-        );
+    for (simulate_result, send_result) in simulate.results.iter().zip(send.results.iter()) {
+        // Compare ABI return values
+        match (&simulate_result.abi_return, &send_result.abi_return) {
+            (Some(sim_return), Some(send_return)) => {
+                assert_eq!(
+                    sim_return.return_value, send_return.return_value,
+                    "ABI return values should match between simulate and send"
+                );
+            }
+            (None, None) => {
+                // Both are None, which is fine
+            }
+            _ => {
+                return Err("One result has ABI return while the other doesn't".into());
+            }
+        }
+        assert_eq!(simulate_result.transaction_id, send_result.transaction_id);
     }
     Ok(())
 }
@@ -949,13 +961,14 @@ async fn create_test_app(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
 
     composer.add_app_create(app_create_params)?;
 
     let result = composer.send(None).await?;
 
-    Ok(result.confirmations[0]
+    Ok(result.results[0]
+        .confirmation
         .app_id
         .expect("App Id must be returned"))
 }
@@ -996,11 +1009,12 @@ async fn test_more_than_15_args_with_ref_types_app_call_method_call(
         ..Default::default()
     };
 
-    let mut asset_composer = algorand_fixture.algorand_client.new_group(None);
+    let mut asset_composer = algorand_fixture.algorand_client.new_composer(None);
     asset_composer.add_asset_create(asset_create_params)?;
 
     let asset_result = asset_composer.send(None).await?;
-    let asset_id = asset_result.confirmations[0]
+    let asset_id = asset_result.results[0]
+        .confirmation
         .asset_id
         .expect("No asset ID returned");
 
@@ -1062,12 +1076,13 @@ async fn test_more_than_15_args_with_ref_types_app_call_method_call(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer.add_app_call_method_call(method_call_params)?;
 
     let result = composer.send(None).await?;
 
-    let abi_return = get_abi_return(&result.abi_returns, 0)?;
+    // Transaction 0 is the payment from args, Transaction 1 is the method call
+    let abi_return = ensure_abi_return(&result.results[1].abi_return)?;
 
     match &abi_return.return_value {
         Some(ABIValue::Array(returned_tuple)) => {
@@ -1174,12 +1189,12 @@ async fn test_more_than_15_args_app_call_method_call(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer.add_app_call_method_call(method_call_params)?;
 
     let result = composer.send(None).await?;
 
-    let abi_return = get_abi_return(&result.abi_returns, 0)?;
+    let abi_return = ensure_abi_return(&result.results[0].abi_return)?;
 
     match &abi_return.return_value {
         Some(ABIValue::Array(returned_array)) => {
@@ -1225,7 +1240,7 @@ async fn test_app_call_validation_errors(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer
         .add_app_call(invalid_app_call_params)
         .expect("Adding invalid app call should succeed at composer level");
@@ -1265,16 +1280,13 @@ fn get_abi_method(
         .map_err(|e| format!("Failed to convert ARC56 method to ABI method: {}", e))?)
 }
 
-fn get_abi_return(
-    abi_returns: &[ABIReturn],
-    index: usize,
+fn ensure_abi_return(
+    abi_return: &Option<ABIReturn>,
 ) -> Result<&ABIReturn, Box<dyn std::error::Error + Send + Sync>> {
-    if index >= abi_returns.len() {
-        return Err("Index out of range".into());
-    }
-    match &abi_returns[index].decode_error {
+    let abi_return = abi_return.as_ref().ok_or("No ABI return value")?;
+    match &abi_return.decode_error {
         Some(err) => Err(format!("Failed to parse ABI result: {}", err).into()),
-        None => Ok(&abi_returns[index]),
+        None => Ok(abi_return),
     }
 }
 
@@ -1282,7 +1294,7 @@ fn get_abi_return(
 #[tokio::test]
 async fn test_double_nested(#[future] algorand_fixture: AlgorandFixtureResult) -> TestResult {
     let mut algorand_fixture = algorand_fixture.await?;
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
 
     let sender_address = algorand_fixture.test_account.account().address();
     let receiver = algorand_fixture.generate_account(None).await?;
@@ -1330,9 +1342,10 @@ async fn test_double_nested(#[future] algorand_fixture: AlgorandFixtureResult) -
     };
 
     composer.add_app_call_method_call(method_call_params)?;
-    let result: algokit_utils::SendTransactionComposerResults = composer.send(None).await?;
+    let result: algokit_utils::TransactionComposerSendResult = composer.send(None).await?;
 
-    let abi_return_0 = get_abi_return(&result.abi_returns, 0)?;
+    // result.results[0] is payment, result.results[1] is first method call
+    let abi_return_0 = ensure_abi_return(&result.results[1].abi_return)?;
     if let Some(ABIValue::Address(value)) = &abi_return_0.return_value {
         assert_eq!(
             *value,
@@ -1343,8 +1356,8 @@ async fn test_double_nested(#[future] algorand_fixture: AlgorandFixtureResult) -
         return Err("First return value should be an Address".into());
     }
 
-    // Second assertion
-    let abi_return_1 = get_abi_return(&result.abi_returns, 1)?;
+    // result.results[2] is payment, result.results[3] is second method call
+    let abi_return_1 = ensure_abi_return(&result.results[3].abi_return)?;
     if let Some(ABIValue::Address(value)) = &abi_return_1.return_value {
         assert_eq!(
             *value,
@@ -1355,8 +1368,8 @@ async fn test_double_nested(#[future] algorand_fixture: AlgorandFixtureResult) -
         return Err("Second return value should be an Address".into());
     }
 
-    // Third assertion
-    let abi_return_2 = get_abi_return(&result.abi_returns, 2)?;
+    // result.results[4] is the outer method call
+    let abi_return_2 = ensure_abi_return(&result.results[4].abi_return)?;
     if let Some(ABIValue::Uint(value)) = &abi_return_2.return_value {
         assert_eq!(
             *value,
@@ -1409,12 +1422,13 @@ async fn deploy_nested_app(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer.add_app_create(app_create_params)?;
 
     let result = composer.send(None).await?;
 
-    result.confirmations[0]
+    result.results[0]
+        .confirmation
         .app_id
         .ok_or_else(|| "No app id returned".into())
 }

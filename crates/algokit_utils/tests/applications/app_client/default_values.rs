@@ -29,6 +29,7 @@ async fn test_default_value_from_literal(
         )
         .await?;
     let defined_ret = defined
+        .result
         .abi_return
         .and_then(|r| r.return_value)
         .expect("Expected ABI return value");
@@ -51,6 +52,7 @@ async fn test_default_value_from_literal(
         )
         .await?;
     let default_ret = defaulted
+        .result
         .abi_return
         .and_then(|r| r.return_value)
         .expect("Expected ABI return value");
@@ -85,6 +87,7 @@ async fn test_default_value_from_method(
         )
         .await?;
     let defined_ret = defined
+        .result
         .abi_return
         .and_then(|r| r.return_value)
         .expect("Expected ABI return value");
@@ -107,6 +110,7 @@ async fn test_default_value_from_method(
         )
         .await?;
     let default_ret = defaulted
+        .result
         .abi_return
         .and_then(|r| r.return_value)
         .expect("Expected ABI return value");
@@ -165,6 +169,7 @@ async fn test_default_value_from_global_state(
         )
         .await?;
     let defined_ret = defined
+        .result
         .abi_return
         .and_then(|r| r.return_value)
         .expect("Expected ABI return value");
@@ -187,6 +192,7 @@ async fn test_default_value_from_global_state(
         )
         .await?;
     let default_ret = defaulted
+        .result
         .abi_return
         .and_then(|r| r.return_value)
         .expect("Expected ABI return value");
@@ -258,6 +264,7 @@ async fn test_default_value_from_local_state(
         )
         .await?;
     let defined_ret = defined
+        .result
         .abi_return
         .and_then(|r| r.return_value)
         .expect("Expected ABI return value");
@@ -280,6 +287,7 @@ async fn test_default_value_from_local_state(
         )
         .await?;
     let default_ret = defaulted
+        .result
         .abi_return
         .and_then(|r| r.return_value)
         .expect("Expected ABI return value");

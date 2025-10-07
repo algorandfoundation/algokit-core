@@ -28,7 +28,9 @@ use algod_client::AlgodClient as RustAlgodClient;
 use algokit_http_client::HttpClient;
 
 // algokit_utils
-use algokit_utils::transactions::{ComposerParams, composer::Composer as RustComposer};
+use algokit_utils::transactions::{
+    TransactionComposerParams, composer::TransactionComposer as RustComposer,
+};
 
 #[derive(uniffi::Object)]
 pub struct AlgodClient {
@@ -71,7 +73,7 @@ impl Composer {
 
         let rust_composer = {
             let rust_algod_client = algod_client.inner_algod_client.blocking_lock();
-            RustComposer::new(ComposerParams {
+            RustComposer::new(TransactionComposerParams {
                 algod_client: Arc::new(rust_algod_client.clone()),
                 signer_getter: Arc::new(rust_signer_getter),
                 composer_config: None,
@@ -101,8 +103,16 @@ impl Composer {
                 message: e.to_string(),
             })?;
         Ok(TempSendResponse {
-            transaction_ids: result.transaction_ids,
-            app_ids: result.confirmations.iter().map(|c| c.app_id).collect(),
+            transaction_ids: result
+                .results
+                .iter()
+                .map(|r| r.transaction_id.clone())
+                .collect(),
+            app_ids: result
+                .results
+                .iter()
+                .map(|r| r.confirmation.app_id)
+                .collect(),
         })
     }
 

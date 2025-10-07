@@ -8,7 +8,7 @@ use super::{
     asset_transfer::{
         AssetClawbackParams, AssetOptInParams, AssetOptOutParams, AssetTransferParams,
     },
-    composer::{Composer, ComposerError, SendParams},
+    composer::{ComposerError, SendParams, TransactionComposer, TransactionResult},
     key_registration::{
         NonParticipationKeyRegistrationParams, OfflineKeyRegistrationParams,
         OnlineKeyRegistrationParams,
@@ -19,7 +19,6 @@ use crate::clients::asset_manager::{AssetManager, AssetManagerError};
 use crate::{clients::app_manager::AppManagerError, transactions::TransactionComposerConfig};
 use algod_client::apis::AlgodApiError;
 use algod_client::models::PendingTransactionResponse;
-use algokit_abi::ABIReturn;
 use algokit_transact::{Address, Byte32, Transaction};
 use snafu::Snafu;
 
@@ -107,22 +106,10 @@ pub struct SendAppCreateResult {
 /// Result from sending an app method call transaction.
 #[derive(Debug, Clone)]
 pub struct SendAppMethodCallResult {
-    /// The primary transaction that has been sent
-    pub transaction: Transaction,
-    /// The response from sending and waiting for the primary transaction
-    pub confirmation: PendingTransactionResponse,
-    /// The transaction ID of the primary transaction that has been sent
-    pub transaction_id: String,
-    /// The ABI return value from the primary method call (optional)
-    pub abi_return: Option<ABIReturn>,
-    /// The transactions that were sent
-    pub transactions: Vec<Transaction>,
-    /// The responses from sending and waiting for the transactions
-    pub confirmations: Vec<PendingTransactionResponse>,
-    /// The transaction IDs that have been sent
-    pub transaction_ids: Vec<String>,
-    /// The returned values of ABI methods
-    pub abi_returns: Vec<ABIReturn>,
+    /// The result of the primary (last) transaction
+    pub result: TransactionResult,
+    /// All transaction results from the composer
+    pub group_results: Vec<TransactionResult>,
     /// The group ID (optional)
     pub group: Option<Byte32>,
 }
@@ -130,22 +117,10 @@ pub struct SendAppMethodCallResult {
 /// Result from sending an app create method call transaction.
 #[derive(Debug, Clone)]
 pub struct SendAppCreateMethodCallResult {
-    /// The primary transaction that has been sent
-    pub transaction: Transaction,
-    /// The response from sending and waiting for the primary transaction
-    pub confirmation: PendingTransactionResponse,
-    /// The transaction ID of the primary transaction that has been sent
-    pub transaction_id: String,
-    /// The ABI return value from the primary method call (optional)
-    pub abi_return: Option<ABIReturn>,
-    /// The transactions that were sent
-    pub transactions: Vec<Transaction>,
-    /// The responses from sending and waiting for the transactions
-    pub confirmations: Vec<PendingTransactionResponse>,
-    /// The transaction IDs that have been sent
-    pub transaction_ids: Vec<String>,
-    /// The returned values of ABI methods
-    pub abi_returns: Vec<ABIReturn>,
+    /// The result of the primary (last) transaction
+    pub result: TransactionResult,
+    /// All transaction results from the composer
+    pub group_results: Vec<TransactionResult>,
     /// The group ID (optional)
     pub group: Option<Byte32>,
     /// The ID of the created app
@@ -158,25 +133,25 @@ pub struct SendAppCreateMethodCallResult {
 #[derive(Clone)]
 pub struct TransactionSender {
     asset_manager: AssetManager,
-    new_group: Arc<dyn Fn(Option<TransactionComposerConfig>) -> Composer>,
+    new_composer: Arc<dyn Fn(Option<TransactionComposerConfig>) -> TransactionComposer>,
 }
 
 impl TransactionSender {
     /// Create a new transaction sender.
     ///
     /// # Arguments
-    /// * `new_group` - Factory function for creating new transaction composers
+    /// * `new_composer` - Factory function for creating new transaction composers
     /// * `asset_manager` - Asset manager for handling asset operations
     ///
     /// # Returns
     /// A new `TransactionSender` instance
     pub fn new(
-        new_group: impl Fn(Option<TransactionComposerConfig>) -> Composer + 'static,
+        new_composer: impl Fn(Option<TransactionComposerConfig>) -> TransactionComposer + 'static,
         asset_manager: AssetManager,
     ) -> Self {
         Self {
             asset_manager,
-            new_group: Arc::new(new_group),
+            new_composer: Arc::new(new_composer),
         }
     }
 
@@ -187,8 +162,8 @@ impl TransactionSender {
     ///
     /// # Returns
     /// A new `Composer` instance
-    pub fn new_group(&self, params: Option<TransactionComposerConfig>) -> Composer {
-        (self.new_group)(params)
+    pub fn new_composer(&self, params: Option<TransactionComposerConfig>) -> TransactionComposer {
+        (self.new_composer)(params)
     }
 
     async fn send_single_transaction<F>(
@@ -197,34 +172,24 @@ impl TransactionSender {
         send_params: Option<SendParams>,
     ) -> Result<SendResult, TransactionSenderError>
     where
-        F: FnOnce(&mut Composer) -> Result<(), ComposerError>,
+        F: FnOnce(&mut TransactionComposer) -> Result<(), ComposerError>,
     {
-        let mut composer = self.new_group(None);
+        let mut composer = self.new_composer(None);
         add_transaction(&mut composer)?;
         let composer_results = composer.send(send_params).await?;
 
-        Ok(SendResult {
-            transaction: composer_results
-                .transactions
+        let result =
+            composer_results
+                .results
                 .last()
                 .ok_or(TransactionSenderError::ValidationError {
                     message: "No transaction returned".to_string(),
-                })?
-                .clone(),
-            confirmation: composer_results
-                .confirmations
-                .last()
-                .ok_or(TransactionSenderError::ValidationError {
-                    message: "No confirmation returned".to_string(),
-                })?
-                .clone(),
-            transaction_id: composer_results
-                .transaction_ids
-                .last()
-                .ok_or(TransactionSenderError::ValidationError {
-                    message: "No transaction Id returned".to_string(),
-                })?
-                .clone(),
+                })?;
+
+        Ok(SendResult {
+            transaction: result.transaction.clone(),
+            confirmation: result.confirmation.clone(),
+            transaction_id: result.transaction_id.clone(),
         })
     }
 
@@ -235,7 +200,7 @@ impl TransactionSender {
         send_params: Option<SendParams>,
     ) -> Result<R, TransactionSenderError>
     where
-        F: FnOnce(&mut Composer) -> Result<(), ComposerError>,
+        F: FnOnce(&mut TransactionComposer) -> Result<(), ComposerError>,
         T: FnOnce(SendResult) -> Result<R, TransactionSenderError>,
     {
         let base_result = self
@@ -250,39 +215,23 @@ impl TransactionSender {
         send_params: Option<SendParams>,
     ) -> Result<SendAppMethodCallResult, TransactionSenderError>
     where
-        F: FnOnce(&mut Composer) -> Result<(), ComposerError>,
+        F: FnOnce(&mut TransactionComposer) -> Result<(), ComposerError>,
     {
-        let mut composer = self.new_group(None);
+        let mut composer = self.new_composer(None);
         add_transaction(&mut composer)?;
         let composer_results = composer.send(send_params).await?;
 
+        let result = composer_results
+            .results
+            .last()
+            .ok_or(TransactionSenderError::ValidationError {
+                message: "No transaction returned".to_string(),
+            })?
+            .clone();
+
         Ok(SendAppMethodCallResult {
-            transaction: composer_results
-                .transactions
-                .last()
-                .ok_or(TransactionSenderError::ValidationError {
-                    message: "No transaction returned".to_string(),
-                })?
-                .clone(),
-            confirmation: composer_results
-                .confirmations
-                .last()
-                .ok_or(TransactionSenderError::ValidationError {
-                    message: "No confirmation returned".to_string(),
-                })?
-                .clone(),
-            transaction_id: composer_results
-                .transaction_ids
-                .last()
-                .ok_or(TransactionSenderError::ValidationError {
-                    message: "No transaction Id returned".to_string(),
-                })?
-                .clone(),
-            abi_return: composer_results.abi_returns.last().cloned(),
-            transactions: composer_results.transactions,
-            abi_returns: composer_results.abi_returns,
-            confirmations: composer_results.confirmations,
-            transaction_ids: composer_results.transaction_ids,
+            result,
+            group_results: composer_results.results,
             group: composer_results.group,
         })
     }
@@ -294,7 +243,7 @@ impl TransactionSender {
         send_params: Option<SendParams>,
     ) -> Result<R, TransactionSenderError>
     where
-        F: FnOnce(&mut Composer) -> Result<(), ComposerError>,
+        F: FnOnce(&mut TransactionComposer) -> Result<(), ComposerError>,
         T: FnOnce(SendAppMethodCallResult) -> Result<R, TransactionSenderError>,
     {
         let base_result = self.send_method_call(add_transaction, send_params).await?;
@@ -700,20 +649,14 @@ impl TransactionSender {
         self.send_method_call_with_result(
             |composer| composer.add_app_create_method_call(params),
             |base_result| {
-                let app_id = base_result.confirmation.app_id.ok_or_else(|| {
+                let app_id = base_result.result.confirmation.app_id.ok_or_else(|| {
                     TransactionSenderError::ValidationError {
                         message: "App creation confirmation missing application-index".to_string(),
                     }
                 })?;
                 Ok(SendAppCreateMethodCallResult {
-                    transaction: base_result.transaction,
-                    confirmation: base_result.confirmation,
-                    transaction_id: base_result.transaction_id,
-                    abi_return: base_result.abi_return,
-                    transactions: base_result.transactions,
-                    confirmations: base_result.confirmations,
-                    transaction_ids: base_result.transaction_ids,
-                    abi_returns: base_result.abi_returns,
+                    result: base_result.result,
+                    group_results: base_result.group_results,
                     group: base_result.group,
                     app_id,
                     app_address: Address::from_app_id(&app_id),

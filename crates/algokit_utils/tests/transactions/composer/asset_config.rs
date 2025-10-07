@@ -27,11 +27,11 @@ async fn test_asset_create_transaction(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer.add_asset_create(asset_create_params)?;
 
     let result = composer.send(None).await?;
-    let confirmation = &result.confirmations[0];
+    let confirmation = &result.results[0].confirmation;
 
     // Assert transaction was confirmed
     assert!(
@@ -107,11 +107,12 @@ async fn test_asset_config_transaction(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer.add_asset_create(asset_create_params)?;
 
     let create_result = composer.send(None).await?;
-    let asset_id = create_result.confirmations[0]
+    let asset_id = create_result.results[0]
+        .confirmation
         .asset_id
         .ok_or("Failed to get asset ID")?;
 
@@ -126,12 +127,12 @@ async fn test_asset_config_transaction(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer.add_asset_config(asset_config_params)?;
 
     let result = composer.send(None).await?;
 
-    let confirmation = &result.confirmations[0];
+    let confirmation = &result.results[0].confirmation;
 
     // Assert transaction was confirmed
     assert!(
@@ -182,11 +183,12 @@ async fn test_asset_destroy_transaction(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer.add_asset_create(asset_create_params)?;
 
     let create_result = composer.send(None).await?;
-    let asset_id = create_result.confirmations[0]
+    let asset_id = create_result.results[0]
+        .confirmation
         .asset_id
         .ok_or("Failed to get asset ID")?;
 
@@ -197,11 +199,11 @@ async fn test_asset_destroy_transaction(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer.add_asset_destroy(asset_destroy_params)?;
 
     let result = composer.send(None).await?;
-    let confirmation = &result.confirmations[0];
+    let confirmation = &result.results[0].confirmation;
 
     // Assert transaction was confirmed
     assert!(
@@ -239,7 +241,7 @@ async fn test_asset_create_validation_errors(
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer.add_asset_create(invalid_asset_create_params)?;
 
     // The validation should fail when building the transaction group

@@ -4,7 +4,8 @@ use crate::clients::asset_manager::AssetManager;
 use crate::clients::client_manager::ClientManager;
 use crate::clients::network_client::{AlgoConfig, AlgorandService};
 use crate::transactions::{
-    Composer, ComposerParams, TransactionComposerConfig, TransactionCreator, TransactionSender,
+    TransactionComposer, TransactionComposerConfig, TransactionComposerParams, TransactionCreator,
+    TransactionSender,
 };
 use crate::{AccountManager, TransactionSigner};
 use algod_client::models::TransactionParams;
@@ -35,12 +36,12 @@ impl AlgorandClient {
 
         let account_manager = Arc::new(Mutex::new(AccountManager::new()));
 
-        let new_group = {
+        let new_composer = {
             let algod_client = algod_client.clone();
             let account_manager = account_manager.clone();
             let default_composer_config = params.composer_config.clone();
             move |composer_config: Option<TransactionComposerConfig>| {
-                Composer::new(ComposerParams {
+                TransactionComposer::new(TransactionComposerParams {
                     algod_client: algod_client.clone(),
                     signer_getter: account_manager.clone(),
                     composer_config: composer_config.or_else(|| default_composer_config.clone()),
@@ -49,14 +50,15 @@ impl AlgorandClient {
         };
 
         let algod_client_for_asset = algod_client.clone();
-        let asset_manager = AssetManager::new(algod_client_for_asset.clone(), new_group.clone());
+        let asset_manager = AssetManager::new(algod_client_for_asset.clone(), new_composer.clone());
         let app_manager = AppManager::new(algod_client.clone());
 
-        // Create closure for new_group function
-        let transaction_sender = TransactionSender::new(new_group.clone(), asset_manager.clone());
+        // Create closure for new_composer function
+        let transaction_sender =
+            TransactionSender::new(new_composer.clone(), asset_manager.clone());
 
         // Create closure for TransactionCreator
-        let transaction_creator = TransactionCreator::new(new_group.clone());
+        let transaction_creator = TransactionCreator::new(new_composer.clone());
 
         let app_deployer = AppDeployer::new(
             app_manager.clone(),
@@ -107,8 +109,8 @@ impl AlgorandClient {
     }
 
     /// Create a new transaction composer for building transaction groups
-    pub fn new_group(&self, params: Option<TransactionComposerConfig>) -> Composer {
-        Composer::new(ComposerParams {
+    pub fn new_composer(&self, params: Option<TransactionComposerConfig>) -> TransactionComposer {
+        TransactionComposer::new(TransactionComposerParams {
             algod_client: self.client_manager.algod().clone(),
             signer_getter: self.account_manager.clone(),
             composer_config: params.or_else(|| self.default_composer_config.clone()),

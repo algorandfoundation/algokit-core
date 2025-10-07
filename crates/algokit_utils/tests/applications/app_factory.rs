@@ -258,7 +258,7 @@ async fn abi_based_create_returns_value(
         )
         .await?;
 
-    match call_return.abi_return.and_then(|r| r.return_value) {
+    match call_return.result.abi_return.and_then(|r| r.return_value) {
         Some(ABIValue::String(s)) => assert_eq!(s, "string_io"),
         other => return Err(format!("expected string return, got {other:?}").into()),
     }
@@ -304,7 +304,11 @@ async fn create_then_call_via_app_client(
         )
         .await?;
 
-    let abi_ret = send_res.abi_return.clone().expect("abi return expected");
+    let abi_ret = send_res
+        .result
+        .abi_return
+        .clone()
+        .expect("abi return expected");
     if let Some(algokit_abi::ABIValue::String(s)) = abi_ret.return_value {
         assert_eq!(s, "Hello, test");
     } else {
@@ -466,7 +470,11 @@ async fn delete_app_with_abi_direct(
         )
         .await?;
 
-    let abi_ret = delete_res.abi_return.clone().expect("abi return expected");
+    let abi_ret = delete_res
+        .result
+        .abi_return
+        .clone()
+        .expect("abi return expected");
     if let Some(algokit_abi::ABIValue::String(s)) = abi_ret.return_value {
         assert_eq!(s, "string_io");
     } else {
@@ -521,7 +529,11 @@ async fn update_app_with_abi_direct(
         )
         .await?;
 
-    let abi_ret = update_res.abi_return.clone().expect("abi return expected");
+    let abi_ret = update_res
+        .result
+        .abi_return
+        .clone()
+        .expect("abi return expected");
     if let Some(algokit_abi::ABIValue::String(s)) = abi_ret.return_value {
         assert_eq!(s, "string_io");
     } else {
@@ -590,14 +602,19 @@ async fn deploy_app_create(#[future] algorand_fixture: AlgorandFixtureResult) ->
 
     let (client, deploy_result) = factory.deploy(Default::default(), None).await?;
 
-    let (app_metadata, create_result) = match &deploy_result {
-        AppDeployResult::Create { app, result } => (app, result),
+    let (app_metadata, compiled_programs, create_result) = match &deploy_result {
+        AppDeployResult::Create {
+            app,
+            compiled_programs,
+            create_result,
+            ..
+        } => (app, compiled_programs, create_result),
         _ => return Err("expected Create".into()),
     };
     assert!(client.app_id() > 0);
     assert_eq!(client.app_id(), app_metadata.app_id);
-    assert!(!create_result.compiled_programs.approval.compiled.is_empty());
-    assert!(!create_result.compiled_programs.clear.compiled.is_empty());
+    assert!(!compiled_programs.approval.compiled.is_empty());
+    assert!(!compiled_programs.clear.compiled.is_empty());
     assert_eq!(
         create_result.confirmation.app_id.unwrap_or_default(),
         app_metadata.app_id
@@ -644,8 +661,13 @@ async fn deploy_app_create_abi(#[future] algorand_fixture: AlgorandFixtureResult
         )
         .await?;
 
-    let (app_metadata, create_result) = match &deploy_result {
-        AppDeployResult::Create { app, result } => (app, result),
+    let (app_metadata, compiled_programs, create_result) = match &deploy_result {
+        AppDeployResult::Create {
+            app,
+            compiled_programs,
+            create_result,
+            ..
+        } => (app, compiled_programs, create_result),
         _ => return Err("expected Create".into()),
     };
     assert!(client.app_id() > 0);
@@ -660,8 +682,8 @@ async fn deploy_app_create_abi(#[future] algorand_fixture: AlgorandFixtureResult
         other => return Err(format!("expected string abi return, got {other:?}").into()),
     };
     assert_eq!(abi_value, "arg_io");
-    assert!(!create_result.compiled_programs.approval.compiled.is_empty());
-    assert!(!create_result.compiled_programs.clear.compiled.is_empty());
+    assert!(!compiled_programs.approval.compiled.is_empty());
+    assert!(!compiled_programs.clear.compiled.is_empty());
     Ok(())
 }
 
@@ -689,8 +711,13 @@ async fn deploy_app_update(#[future] algorand_fixture: AlgorandFixtureResult) ->
 
     // Initial create (updatable)
     let (_client1, create_res) = factory.deploy(Default::default(), None).await?;
-    let (create_app_metadata, initial_create) = match &create_res {
-        AppDeployResult::Create { app, result } => (app, result),
+    let (create_app_metadata, initial_compiled_programs, _initial_create) = match &create_res {
+        AppDeployResult::Create {
+            app,
+            compiled_programs,
+            create_result,
+            ..
+        } => (app, compiled_programs, create_result),
         _ => return Err("expected Create".into()),
     };
 
@@ -721,8 +748,13 @@ async fn deploy_app_update(#[future] algorand_fixture: AlgorandFixtureResult) ->
         )
         .await?;
 
-    let (update_app_metadata, updated) = match &update_res {
-        AppDeployResult::Update { app, result } => (app, result),
+    let (update_app_metadata, updated_compiled_programs, updated) = match &update_res {
+        AppDeployResult::Update {
+            app,
+            compiled_programs,
+            update_result,
+            ..
+        } => (app, compiled_programs, update_result),
         _ => return Err("expected Update".into()),
     };
     assert_eq!(create_app_metadata.app_id, update_app_metadata.app_id);
@@ -731,18 +763,12 @@ async fn deploy_app_update(#[future] algorand_fixture: AlgorandFixtureResult) ->
         update_app_metadata.app_address
     );
     assert!(update_app_metadata.updated_round >= create_app_metadata.created_round);
-    assert!(
-        !initial_create
-            .compiled_programs
-            .approval
-            .compiled
-            .is_empty()
-    );
-    assert!(!initial_create.compiled_programs.clear.compiled.is_empty());
-    assert!(!updated.compiled_programs.approval.compiled.is_empty());
-    assert!(!updated.compiled_programs.clear.compiled.is_empty());
-    assert!(updated.compiled_programs.approval.source_map.is_some());
-    assert!(updated.compiled_programs.clear.source_map.is_some());
+    assert!(!initial_compiled_programs.approval.compiled.is_empty());
+    assert!(!initial_compiled_programs.clear.compiled.is_empty());
+    assert!(!updated_compiled_programs.approval.compiled.is_empty());
+    assert!(!updated_compiled_programs.clear.compiled.is_empty());
+    assert!(updated_compiled_programs.approval.source_map.is_some());
+    assert!(updated_compiled_programs.clear.source_map.is_some());
     assert_eq!(
         updated.confirmation.confirmed_round,
         Some(update_app_metadata.updated_round)
@@ -779,8 +805,13 @@ async fn deploy_app_update_detects_extra_pages_as_breaking_change(
 
     // Create using small
     let (_small_client, create_res) = factory.deploy(Default::default(), None).await?;
-    let (small_app_metadata, _) = match &create_res {
-        AppDeployResult::Create { app, result } => (app, result),
+    let (small_app_metadata, _, _) = match &create_res {
+        AppDeployResult::Create {
+            app,
+            compiled_programs,
+            create_result,
+            ..
+        } => (app, compiled_programs, create_result),
         _ => return Err("expected Create for small".into()),
     };
 
@@ -943,8 +974,13 @@ async fn deploy_app_update_abi(#[future] algorand_fixture: AlgorandFixtureResult
             None,
         )
         .await?;
-    let (_, update_result) = match &update_res {
-        AppDeployResult::Update { app, result } => (app, result),
+    let (_, update_compiled_programs, update_result) = match &update_res {
+        AppDeployResult::Update {
+            app,
+            compiled_programs,
+            update_result,
+            ..
+        } => (app, compiled_programs, update_result),
         _ => return Err("expected Update".into()),
     };
     let abi_value = update_result
@@ -957,16 +993,10 @@ async fn deploy_app_update_abi(#[future] algorand_fixture: AlgorandFixtureResult
         other => return Err(format!("expected string return, got {other:?}").into()),
     };
     assert_eq!(abi_return, "args_io");
-    assert!(!update_result.compiled_programs.approval.compiled.is_empty());
-    assert!(!update_result.compiled_programs.clear.compiled.is_empty());
-    assert!(
-        update_result
-            .compiled_programs
-            .approval
-            .source_map
-            .is_some()
-    );
-    assert!(update_result.compiled_programs.clear.source_map.is_some());
+    assert!(!update_compiled_programs.approval.compiled.is_empty());
+    assert!(!update_compiled_programs.clear.compiled.is_empty());
+    assert!(update_compiled_programs.approval.source_map.is_some());
+    assert!(update_compiled_programs.clear.source_map.is_some());
     // Ensure update onComplete is UpdateApplication
     match &update_result.transaction {
         algokit_transact::Transaction::AppCall(fields) => {
@@ -1033,22 +1063,23 @@ async fn deploy_app_replace(#[future] algorand_fixture: AlgorandFixtureResult) -
             None,
         )
         .await?;
-    let (replace_app_metadata, replace_result) = match &replace_res {
-        AppDeployResult::Replace { app, result } => (app, result),
-        _ => return Err("expected Replace".into()),
-    };
+    let (replace_app_metadata, replace_compiled_programs, replace_delete_result, _) =
+        match &replace_res {
+            AppDeployResult::Replace {
+                app,
+                compiled_programs,
+                delete_result,
+                create_result,
+                ..
+            } => (app, compiled_programs, delete_result, create_result),
+            _ => return Err("expected Replace".into()),
+        };
     assert!(replace_app_metadata.app_id > old_app_id);
-    assert!(
-        !replace_result
-            .compiled_programs
-            .approval
-            .compiled
-            .is_empty()
-    );
-    assert!(!replace_result.compiled_programs.clear.compiled.is_empty());
-    assert!(replace_result.delete_confirmation.confirmed_round.is_some());
+    assert!(!replace_compiled_programs.approval.compiled.is_empty());
+    assert!(!replace_compiled_programs.clear.compiled.is_empty());
+    assert!(replace_delete_result.confirmation.confirmed_round.is_some());
     // Ensure delete app call references old app id and correct onComplete
-    match &replace_result.delete_transaction {
+    match &replace_delete_result.transaction {
         algokit_transact::Transaction::AppCall(fields) => {
             assert_eq!(
                 fields.on_complete,
@@ -1140,15 +1171,22 @@ async fn deploy_app_replace_abi(#[future] algorand_fixture: AlgorandFixtureResul
             None,
         )
         .await?;
-    let (replace_app_metadata_2, replace_result_2) = match &replace_res {
-        AppDeployResult::Replace { app, result } => (app, result),
-        _ => return Err("expected Replace".into()),
-    };
+    let (replace_app_metadata_2, _, replace_delete_result_2, replace_create_result_2) =
+        match &replace_res {
+            AppDeployResult::Replace {
+                app,
+                compiled_programs,
+                delete_result,
+                create_result,
+                ..
+            } => (app, compiled_programs, delete_result, create_result),
+            _ => return Err("expected Replace".into()),
+        };
     assert!(replace_app_metadata_2.app_id > old_app_id);
     // Validate ABI return values for create/delete
 
-    let create_value = replace_result_2
-        .create_abi_return
+    let create_value = replace_create_result_2
+        .abi_return
         .clone()
         .and_then(|r| r.return_value)
         .expect("create abi return");
@@ -1158,8 +1196,8 @@ async fn deploy_app_replace_abi(#[future] algorand_fixture: AlgorandFixtureResul
     };
     assert_eq!(create_ret, "arg_io");
 
-    if let Some(algokit_abi::ABIValue::String(s)) = replace_result_2
-        .delete_abi_return
+    if let Some(algokit_abi::ABIValue::String(s)) = replace_delete_result_2
+        .abi_return
         .clone()
         .and_then(|r| r.return_value)
     {

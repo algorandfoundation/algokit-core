@@ -11,7 +11,7 @@ async fn test_asset_transfer_transaction(
     let mut algorand_fixture = algorand_fixture.await?;
     let asset_creator_address = algorand_fixture.test_account.account().address();
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
 
     composer.add_asset_create(AssetCreateParams {
         sender: asset_creator_address.clone(),
@@ -22,11 +22,12 @@ async fn test_asset_transfer_transaction(
     })?;
 
     let asset_create_result = composer.send(None).await?;
-    let asset_id = asset_create_result.confirmations[0]
+    let asset_id = asset_create_result.results[0]
+        .confirmation
         .asset_id
         .ok_or("Failed to get asset ID")?;
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
 
     let asset_receiver = algorand_fixture.generate_account(None).await?;
     let asset_receive_address = asset_receiver.account().address();
@@ -46,8 +47,8 @@ async fn test_asset_transfer_transaction(
 
     let send_result = composer.send(None).await?;
 
-    let asset_opt_in_transaction = &send_result.confirmations[0].txn.transaction;
-    let asset_transfer_transaction = &send_result.confirmations[1].txn.transaction;
+    let asset_opt_in_transaction = &send_result.results[0].confirmation.txn.transaction;
+    let asset_transfer_transaction = &send_result.results[1].confirmation.txn.transaction;
 
     match asset_opt_in_transaction {
         algokit_transact::Transaction::AssetTransfer(asset_opt_in_fields) => {

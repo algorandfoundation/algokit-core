@@ -48,7 +48,7 @@ impl<'app_client> TransactionSender<'app_client> {
             let mut composer = self
                 .client
                 .algorand()
-                .new_group(transaction_composer_config.clone());
+                .new_composer(transaction_composer_config.clone());
 
             if transaction_composer_config
                 .clone()
@@ -79,33 +79,17 @@ impl<'app_client> TransactionSender<'app_client> {
                 .await
                 .map_err(|e| AppClientError::ComposerError { source: e })?;
 
+            let last_result = simulate_results
+                .results
+                .last()
+                .ok_or(AppClientError::ValidationError {
+                    message: "No transaction returned".to_string(),
+                })?
+                .clone();
+
             Ok(SendAppMethodCallResult {
-                transaction: simulate_results
-                    .transactions
-                    .last()
-                    .ok_or(AppClientError::ValidationError {
-                        message: "No transaction returned".to_string(),
-                    })?
-                    .clone(),
-                confirmation: simulate_results
-                    .confirmations
-                    .last()
-                    .ok_or(AppClientError::ValidationError {
-                        message: "No confirmation returned".to_string(),
-                    })?
-                    .clone(),
-                transaction_id: simulate_results
-                    .transaction_ids
-                    .last()
-                    .ok_or(AppClientError::ValidationError {
-                        message: "No transaction Id returned".to_string(),
-                    })?
-                    .clone(),
-                abi_return: simulate_results.abi_returns.last().cloned(),
-                transactions: simulate_results.transactions,
-                abi_returns: simulate_results.abi_returns,
-                confirmations: simulate_results.confirmations,
-                transaction_ids: simulate_results.transaction_ids,
+                result: last_result,
+                group_results: simulate_results.results,
                 group: simulate_results.group,
             })
         } else {
@@ -188,14 +172,8 @@ impl<'app_client> TransactionSender<'app_client> {
             .map_err(|e| self.client.transform_transaction_error(e, false))?;
 
         Ok(AppClientUpdateMethodCallResult {
-            transaction: result.transaction,
-            confirmation: result.confirmation,
-            transaction_id: result.transaction_id,
-            abi_return: result.abi_return,
-            transactions: result.transactions,
-            confirmations: result.confirmations,
-            transaction_ids: result.transaction_ids,
-            abi_returns: result.abi_returns,
+            result: result.result,
+            group_results: result.group_results,
             group: result.group,
             compiled_programs,
         })

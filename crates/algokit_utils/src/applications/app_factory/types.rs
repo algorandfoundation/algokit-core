@@ -2,9 +2,11 @@ use crate::AlgorandClient;
 use crate::AppSourceMaps;
 use crate::applications::app_client::CompilationParams;
 use crate::clients::app_manager::CompiledPrograms;
-use crate::transactions::{AppMethodCallArg, TransactionComposerConfig, TransactionSigner};
+use crate::transactions::{
+    AppMethodCallArg, TransactionComposerConfig, TransactionResult, TransactionSigner,
+};
 use algod_client::models::PendingTransactionResponse;
-use algokit_abi::{ABIReturn, Arc56Contract};
+use algokit_abi::Arc56Contract;
 use algokit_transact::Byte32;
 use algokit_transact::{Address, Transaction};
 use std::sync::Arc;
@@ -29,30 +31,18 @@ pub struct AppFactoryCreateResult {
 /// Result from sending an app create method call via AppFactory.
 #[derive(Clone, Debug)]
 pub struct AppFactoryCreateMethodCallResult {
-    /// The create transaction
-    pub transaction: Transaction,
-    /// The response from sending and waiting for the create transaction
-    pub confirmation: PendingTransactionResponse,
-    /// The create transaction ID
-    pub transaction_id: String,
-    /// The ABI return value of the create
-    pub abi_return: Option<ABIReturn>,
+    /// The result of the primary (last) transaction
+    pub result: TransactionResult,
+    /// All transaction results
+    pub group_results: Vec<TransactionResult>,
     /// The group ID for the transaction group (if any)
     pub group: Option<Byte32>,
-    /// All transaction IDs in the group
-    pub transaction_ids: Vec<String>,
-    /// All transactions in the group
-    pub transactions: Vec<Transaction>,
-    /// All confirmations in the group
-    pub confirmations: Vec<PendingTransactionResponse>,
     /// The ID of the created app
     pub app_id: u64,
     /// The address of the created app
     pub app_address: Address,
     /// The compiled approval and clear programs
     pub compiled_programs: CompiledPrograms,
-    /// The ABI return value
-    pub abi_returns: Vec<ABIReturn>,
 }
 
 pub struct AppFactoryParams {

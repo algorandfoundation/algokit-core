@@ -2,15 +2,13 @@ use crate::clients::app_manager::{
     AppInformation, AppManager, AppManagerError, CompiledPrograms, CompiledTeal,
     DeploymentMetadata, TealTemplateParams,
 };
-use crate::transactions::{TransactionSender, TransactionSenderError};
+use crate::transactions::{TransactionResult, TransactionSender, TransactionSenderError};
 use crate::{
     AppCreateMethodCallParams, AppCreateParams, AppDeleteMethodCallParams, AppDeleteParams,
-    AppMethodCallArg, AppUpdateMethodCallParams, AppUpdateParams, Composer, ComposerError,
-    SendParams, create_transaction_params,
+    AppMethodCallArg, AppUpdateMethodCallParams, AppUpdateParams, ComposerError, SendParams,
+    create_transaction_params,
 };
-use algod_client::models::PendingTransactionResponse;
-use algokit_abi::ABIReturn;
-use algokit_transact::{Address, Byte32, OnApplicationComplete, Transaction};
+use algokit_transact::{Address, Byte32, OnApplicationComplete};
 use base64::{Engine as _, engine::general_purpose};
 use indexer_client::{IndexerClient, apis::Error as IndexerError};
 use log::{debug, info, warn};
@@ -248,103 +246,46 @@ pub struct AppDeployParams {
     pub send_params: SendParams,
 }
 
-#[derive(Clone, Debug)]
-pub struct AppDeployerCreateResult {
-    /// The create transaction
-    pub transaction: Transaction,
-    /// The response from sending and waiting for the create transaction
-    pub confirmation: PendingTransactionResponse,
-    /// The create transaction ID
-    pub transaction_id: String,
-    /// The ABI return value of the create
-    pub abi_return: Option<ABIReturn>,
-    /// The group ID for the transaction group (if any)
-    pub group: Option<Byte32>,
-    /// All transaction IDs in the group
-    pub transaction_ids: Vec<String>,
-    /// All transactions in the group
-    pub transactions: Vec<Transaction>,
-    /// All confirmations in the group
-    pub confirmations: Vec<PendingTransactionResponse>,
-    /// The compiled approval and clear programs
-    pub compiled_programs: CompiledPrograms,
-    /// The ABI return values
-    pub abi_returns: Vec<ABIReturn>,
-}
-
-#[derive(Clone, Debug)]
-pub struct AppDeployerUpdateResult {
-    /// The update transaction
-    pub transaction: Transaction,
-    /// The response from sending and waiting for the update transaction
-    pub confirmation: PendingTransactionResponse,
-    /// The update transaction ID
-    pub transaction_id: String,
-    /// The ABI return value of the update transaction
-    pub abi_return: Option<ABIReturn>,
-    /// The group ID for the transaction group (if any)
-    pub group: Option<Byte32>,
-    /// All transaction IDs in the group
-    pub transaction_ids: Vec<String>,
-    /// All transactions in the group
-    pub transactions: Vec<Transaction>,
-    /// All confirmations in the group
-    pub confirmations: Vec<PendingTransactionResponse>,
-    /// The compiled approval and clear programs
-    pub compiled_programs: CompiledPrograms,
-    /// The ABI return values
-    pub abi_returns: Vec<ABIReturn>,
-}
-
-#[derive(Clone, Debug)]
-pub struct AppDeployerReplaceResult {
-    /// The create transaction
-    pub create_transaction: Transaction,
-    /// The response from sending and waiting for the create transaction
-    pub create_confirmation: PendingTransactionResponse,
-    /// The create transaction ID
-    pub create_transaction_id: String,
-    /// The ABI return value of the create transaction
-    pub create_abi_return: Option<ABIReturn>,
-    /// The delete transaction
-    pub delete_transaction: Transaction,
-    /// The response from sending and waiting for the delete transaction
-    pub delete_confirmation: PendingTransactionResponse,
-    /// The delete transaction ID
-    pub delete_transaction_id: String,
-    /// The ABI return value of the delete transaction
-    pub delete_abi_return: Option<ABIReturn>,
-    /// The group ID for the transaction group (if any)
-    pub group: Option<Byte32>,
-    /// All transaction IDs in the group
-    pub transaction_ids: Vec<String>,
-    /// All transactions in the group
-    pub transactions: Vec<Transaction>,
-    /// All confirmations in the group
-    pub confirmations: Vec<PendingTransactionResponse>,
-    /// The compiled approval and clear programs
-    pub compiled_programs: CompiledPrograms,
-    /// The ABI return values
-    pub abi_returns: Vec<ABIReturn>,
-}
-
 /// The result of an app deployment operation
 #[derive(Debug)]
 pub enum AppDeployResult {
     /// Application was created
     Create {
         app: AppMetadata,
-        result: AppDeployerCreateResult,
+        /// The result of create transaction
+        create_result: TransactionResult,
+        /// All transaction results
+        group_results: Vec<TransactionResult>,
+        /// The group ID for the transaction group (if any)
+        group: Option<Byte32>,
+        /// The compiled approval and clear programs
+        compiled_programs: CompiledPrograms,
     },
     /// Application was updated
     Update {
         app: AppMetadata,
-        result: AppDeployerUpdateResult,
+        /// The result of the update transaction
+        update_result: TransactionResult,
+        /// All transaction results
+        group_results: Vec<TransactionResult>,
+        /// The group ID for the transaction group (if any)
+        group: Option<Byte32>,
+        /// The compiled approval and clear programs
+        compiled_programs: CompiledPrograms,
     },
     /// Application was replaced (deleted and recreated)
     Replace {
         app: AppMetadata,
-        result: AppDeployerReplaceResult,
+        /// The result of the delete transaction
+        delete_result: TransactionResult,
+        /// The result of the create transaction
+        create_result: TransactionResult,
+        /// All transaction results
+        group_results: Vec<TransactionResult>,
+        /// The group ID for the transaction group (if any)
+        group: Option<Byte32>,
+        /// The compiled approval and clear programs
+        compiled_programs: CompiledPrograms,
     },
     /// No operation was performed
     Nothing { app: AppMetadata },
@@ -957,7 +898,7 @@ impl AppDeployer {
         compiled_programs: CompiledPrograms,
         send_params: &SendParams,
     ) -> Result<AppDeployResult, AppDeployError> {
-        let mut composer = self.transaction_sender.new_group(None);
+        let mut composer = self.transaction_sender.new_composer(None);
 
         match create_params {
             CreateParams::AppCreateCall(params) => {
@@ -1034,9 +975,12 @@ impl AppDeployer {
             .await
             .map_err(|e| AppDeployError::ComposerError { source: e })?;
 
-        let create_transaction_index = composer_result.confirmations.len() - 1;
+        let create_transaction_index = composer_result.results.len() - 1;
 
-        let confirmation = composer_result.confirmations[create_transaction_index].clone();
+        // Extract results from the create transaction
+        let create_result = composer_result.results[create_transaction_index].clone();
+
+        let confirmation = create_result.confirmation.clone();
         let app_id = confirmation
             .app_id
             .ok_or_else(|| AppDeployError::DeploymentFailed {
@@ -1071,33 +1015,12 @@ impl AppDeployer {
 
         self.update_app_lookup(sender, &app_metadata);
 
-        // Extract results from the last transaction in the group (the create transaction)
-        let transaction = composer_result.transactions[create_transaction_index].clone();
-        let transaction_id = composer_result.transaction_ids[create_transaction_index].clone();
-        // Extract ABI return because the abi_returns from the composer isn't 1:1 with the transactions
-        let abi_return = match create_params {
-            CreateParams::AppCreateCall(_) => None,
-            CreateParams::AppCreateMethodCall(params) => Some(
-                Composer::extract_abi_return_from_logs(&confirmation, &params.method),
-            ),
-        };
-
-        let create_result = AppDeployerCreateResult {
-            transaction,
-            confirmation,
-            transaction_id,
-            abi_return,
-            group: composer_result.group,
-            transaction_ids: composer_result.transaction_ids,
-            transactions: composer_result.transactions,
-            confirmations: composer_result.confirmations,
-            abi_returns: composer_result.abi_returns,
-            compiled_programs,
-        };
-
         Ok(AppDeployResult::Create {
             app: app_metadata,
-            result: create_result,
+            create_result,
+            group_results: composer_result.results,
+            group: composer_result.group,
+            compiled_programs,
         })
     }
 
@@ -1113,7 +1036,7 @@ impl AppDeployer {
             "Updating existing {} app to version {}.",
             metadata.name, metadata.version
         );
-        let mut composer = self.transaction_sender.new_group(None);
+        let mut composer = self.transaction_sender.new_composer(None);
 
         match update_params {
             UpdateParams::AppUpdateCall(params) => {
@@ -1176,15 +1099,22 @@ impl AppDeployer {
             .await
             .map_err(|e| AppDeployError::ComposerError { source: e })?;
 
-        let update_transaction_index = composer_result.confirmations.len() - 1;
+        let update_transaction_index = composer_result.results.len() - 1;
 
-        let confirmation = composer_result.confirmations[update_transaction_index].clone();
+        // Extract results from the update transaction
+        let update_result = composer_result.results[update_transaction_index].clone();
+
+        let confirmed_round = update_result.confirmation.confirmed_round.ok_or_else(|| {
+            AppDeployError::DeploymentFailed {
+                message: "App update confirmation missing confirmed-round".to_string(),
+            }
+        })?;
 
         let app_metadata = AppMetadata {
             app_id: existing_app_metadata.app_id,
             app_address: existing_app_metadata.app_address.clone(),
             created_round: existing_app_metadata.created_round,
-            updated_round: confirmation.confirmed_round.unwrap(),
+            updated_round: confirmed_round,
             created_metadata: existing_app_metadata.created_metadata.clone(),
             deleted: false,
             name: metadata.name.clone(),
@@ -1200,32 +1130,12 @@ impl AppDeployer {
 
         self.update_app_lookup(sender, &app_metadata);
 
-        let transaction = composer_result.transactions[update_transaction_index].clone();
-        let transaction_id = composer_result.transaction_ids[update_transaction_index].clone();
-        // Extract ABI return because the abi_returns from the composer isn't 1:1 with the transactions
-        let abi_return = match update_params {
-            UpdateParams::AppUpdateCall(_) => None,
-            UpdateParams::AppUpdateMethodCall(params) => Some(
-                Composer::extract_abi_return_from_logs(&confirmation, &params.method),
-            ),
-        };
-
-        let update_result = AppDeployerUpdateResult {
-            transaction,
-            confirmation,
-            transaction_id,
-            abi_return,
-            group: composer_result.group,
-            transaction_ids: composer_result.transaction_ids,
-            transactions: composer_result.transactions,
-            confirmations: composer_result.confirmations,
-            abi_returns: composer_result.abi_returns,
-            compiled_programs,
-        };
-
         Ok(AppDeployResult::Update {
             app: app_metadata,
-            result: update_result,
+            update_result,
+            group_results: composer_result.results,
+            group: composer_result.group,
+            compiled_programs,
         })
     }
 
@@ -1276,7 +1186,7 @@ impl AppDeployer {
             metadata.name, existing_app_metadata.app_id
         );
 
-        let mut composer = self.transaction_sender.new_group(None);
+        let mut composer = self.transaction_sender.new_composer(None);
 
         // Add create transaction and track its index
         match create_params {
@@ -1407,8 +1317,13 @@ impl AppDeployer {
             .await
             .map_err(|e| AppDeployError::ComposerError { source: e })?;
 
+        // Extract create and delete results directly
+        let delete_transaction_index = result.results.len() - 1;
+        let create_result = result.results[create_transaction_index].clone();
+        let delete_result = result.results[delete_transaction_index].clone();
+
         // Get create confirmation from the tracked index
-        let create_confirmation = result.confirmations[create_transaction_index].clone();
+        let create_confirmation = create_result.confirmation.clone();
         let app_id =
             create_confirmation
                 .app_id
@@ -1442,49 +1357,13 @@ impl AppDeployer {
 
         self.update_app_lookup(sender, &app_metadata);
 
-        let delete_transaction_index = result.confirmations.len() - 1;
-
-        let create_transaction = result.transactions[create_transaction_index].clone();
-        let create_transaction_id = result.transaction_ids[create_transaction_index].clone();
-        // Extract ABI return for method calls because the abi_returns from the composer isn't 1:1 with the transactions
-        let create_abi_return = match create_params {
-            CreateParams::AppCreateCall(_) => None,
-            CreateParams::AppCreateMethodCall(params) => Some(
-                Composer::extract_abi_return_from_logs(&create_confirmation, &params.method),
-            ),
-        };
-
-        let delete_transaction = result.transactions[delete_transaction_index].clone();
-        let delete_confirmation = result.confirmations[delete_transaction_index].clone();
-        let delete_transaction_id = result.transaction_ids[delete_transaction_index].clone();
-        // Extract ABI return for method calls because the abi_returns from the composer isn't 1:1 with the transactions
-        let delete_abi_return = match delete_params {
-            DeleteParams::AppDeleteCall(_) => None,
-            DeleteParams::AppDeleteMethodCall(params) => Some(
-                Composer::extract_abi_return_from_logs(&delete_confirmation, &params.method),
-            ),
-        };
-
-        let replace_result = AppDeployerReplaceResult {
-            create_transaction,
-            create_confirmation,
-            create_transaction_id,
-            create_abi_return,
-            delete_transaction,
-            delete_confirmation,
-            delete_transaction_id,
-            delete_abi_return,
-            group: result.group,
-            transaction_ids: result.transaction_ids,
-            transactions: result.transactions,
-            confirmations: result.confirmations,
-            abi_returns: result.abi_returns,
-            compiled_programs,
-        };
-
         Ok(AppDeployResult::Replace {
             app: app_metadata,
-            result: replace_result,
+            delete_result,
+            create_result,
+            group_results: result.results,
+            group: result.group,
+            compiled_programs,
         })
     }
 

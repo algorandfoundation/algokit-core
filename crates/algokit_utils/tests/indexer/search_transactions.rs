@@ -27,10 +27,10 @@ async fn finds_sent_transaction(#[future] algorand_fixture: AlgorandFixtureResul
         ..Default::default()
     };
 
-    let mut composer = algorand_fixture.algorand_client.new_group(None);
+    let mut composer = algorand_fixture.algorand_client.new_composer(None);
     composer.add_payment(payment_params).unwrap();
     let result = composer.send(None).await.unwrap();
-    let txid = result.confirmations[0].txn.id().unwrap();
+    let txid = result.results[0].confirmation.txn.id().unwrap();
 
     let config = ClientManager::get_config_from_environment_or_localnet();
     let indexer_config = config.indexer_config.unwrap();

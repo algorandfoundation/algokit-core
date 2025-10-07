@@ -184,8 +184,8 @@ async fn test_abi_method_returns_enhanced_processing(
         .await?;
 
     // Validate enhanced ABI return processing with AppManager - Sender's orchestration value
-    assert!(!result.transaction_ids.is_empty());
-    assert!(result.confirmation.confirmed_round.is_some());
+    assert!(!result.group_results.is_empty());
+    assert!(result.result.confirmation.confirmed_round.is_some());
 
     Ok(())
 }
@@ -361,11 +361,11 @@ async fn test_transaction_confirmation_integration(
 
 #[rstest]
 #[tokio::test]
-async fn test_new_group_creates_composer(
+async fn test_new_composer_creates_composer(
     #[future] algorand_fixture: AlgorandFixtureResult,
 ) -> TestResult {
     let algorand_fixture = algorand_fixture.await?;
-    let _composer = algorand_fixture.algorand_client.send().new_group(None);
+    let _composer = algorand_fixture.algorand_client.send().new_composer(None);
 
     // Validate Sender's Composer orchestration capability
     // Implementation details tested in composer tests

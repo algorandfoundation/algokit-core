@@ -89,18 +89,12 @@ impl<'app_factory> TransactionSender<'app_factory> {
         let app_address = Address::from_app_id(&app_id);
 
         let factory_result = AppFactoryCreateMethodCallResult {
-            transaction: result.transaction,
-            confirmation: result.confirmation,
-            transaction_id: result.transaction_id,
+            result: result.result,
+            group_results: result.group_results,
             group: result.group,
-            abi_return: result.abi_return,
-            transaction_ids: result.transaction_ids,
-            transactions: result.transactions,
-            confirmations: result.confirmations,
             app_id,
             app_address,
             compiled_programs: compiled,
-            abi_returns: result.abi_returns,
         };
 
         Ok((app_client, factory_result))
