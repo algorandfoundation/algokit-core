@@ -7,8 +7,8 @@ echo "=== Running all tests as done in CI ==="
 echo "1-4. Running sanity checks (formatting, clippy, cargo check, basic tests)..."
 ./scripts/sanity.sh
 
-echo "5. Comprehensive Rust tests..."
-cargo test --workspace --verbose -- --nocapture
+echo "5. Comprehensive Rust tests with cargo t (cargo-nextest)..."
+cargo t --workspace --all-targets --profile default --failure-output=immediate --status-level=all
 
 echo "6. Building and testing TypeScript..."
 cargo pkg algokit_transact typescript

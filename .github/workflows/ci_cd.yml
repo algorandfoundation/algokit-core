@@ -36,11 +36,10 @@ jobs:
 
       - name: Check formatting
         run: cargo fmt --check
+
       - name: Clippy
         # Run clippy and treat warnings as errors
         run: cargo clippy -- -D warnings
-      - name: Check
-        run: cargo check
 
       - name: Start localnet
         run: algokit localnet start
@@ -48,8 +47,8 @@ jobs:
       - name: Build all crates
         run: cargo build --workspace
 
-      - name: Run all Rust tests with verbose output
-        run: cargo test --workspace --verbose -- --nocapture
+      - name: Run Rust tests with cargo t (cargo-nextest)
+        run: cargo t --workspace --all-targets --failure-output=immediate --status-level=all
 
   # A setup job to define the matricies that will be used across all of the jobs in this workflow
   setup:

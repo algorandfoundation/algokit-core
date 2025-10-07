@@ -15,7 +15,8 @@ members = [
   "crates/uniffi-bindgen",
   "docs",
   "tools/cargo-bin",
-  "tools/api_tools", "crates/algokit_utils_ffi",
+  "tools/api_tools",
+  "crates/algokit_utils_ffi",
 ]
 
 [workspace.dependencies]
@@ -28,3 +29,4 @@ rstest = { version = "0.25.0" }
 [workspace.metadata.bin]
 polytest = { version = "0.3.0", locked = true }
 cargo-insta = { version = "1.43.1", locked = true }
+cargo-nextest = { version = "0.9.100", locked = true }

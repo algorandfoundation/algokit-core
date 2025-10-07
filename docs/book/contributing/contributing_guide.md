@@ -74,7 +74,7 @@ pre-commit run --all-files
 pre-commit install # to auto run on each commit
 ```
 
-The hooks will automatically run `cargo fmt --check`, `cargo clippy`, `cargo check`, `cargo test` on every commit.
+The hooks will automatically run `cargo fmt --check`, `cargo clippy`, `cargo check`, and the Rust test suite via `cargo t` (cargo-nextest, plus doc tests) on every commit.
 
 ## Development Workflow
 
@@ -84,13 +84,13 @@ The hooks will automatically run `cargo fmt --check`, `cargo clippy`, `cargo che
 1. **Run tests** to ensure functionality works:
 
    ```bash
-   cargo test -p algokit_transact
+   cargo t -p algokit_transact
    ```
 
 1. **Test FFI layer** if your changes affect the interface:
 
    ```bash
-   cargo test -p algokit_transact_ffi
+   cargo t -p algokit_transact_ffi
    ```
 
 ### When Developing Language Bindings
@@ -123,14 +123,14 @@ The hooks will automatically run `cargo fmt --check`, `cargo clippy`, `cargo che
 1. **Run Rust tests**:
 
    ```bash
-   cargo test
+   cargo t
    ```
 
 1. **Run specific crate tests**:
 
    ```bash
-   cargo test -p algokit_transact
-   cargo test -p algokit_transact_ffi
+   cargo t -p algokit_transact
+   cargo t -p algokit_transact_ffi
    ```
 
 1. **Run language-specific tests**:
@@ -149,7 +149,7 @@ The hooks will automatically run `cargo fmt --check`, `cargo clippy`, `cargo che
 Or manually:
 
 ```bash
-cargo test                                    # Rust tests
+cargo t                                        # Rust tests (cargo-nextest)
 cargo pkg algokit_transact python            # Build Python
 cd packages/python/algokit_transact && poetry run pytest  # Test Python
 ```

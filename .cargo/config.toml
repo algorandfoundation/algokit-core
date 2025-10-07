@@ -2,6 +2,7 @@
 bin = ["run", "--package", "cargo-bin", "--"]
 pkg = ["run", "--bin", "build_pkgs", "--"]
 api = ["run", "--bin", "api_tools", "--"]
+t = "bin cargo-nextest run"
 
 # We need to enable dynamic linking for musl targets
 # See https://github.com/rust-lang/rust/issues/59302#issue-422994250

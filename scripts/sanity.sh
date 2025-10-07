@@ -13,4 +13,4 @@ cargo clippy -- -D warnings
 
 cargo check
 
-cargo test
+cargo t

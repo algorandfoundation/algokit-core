@@ -28,9 +28,9 @@ repos:
         require_serial: true
         pass_filenames: false
       - id: cargo-test
-        name: cargo-test
-        description: "Run 'cargo test' to execute all tests"
-        entry: cargo test
+        name: cargo-nextest
+        description: "Run 'cargo nextest' and doc tests"
+        entry: cargo nextest run
         language: system
         types: [rust]
         require_serial: true
