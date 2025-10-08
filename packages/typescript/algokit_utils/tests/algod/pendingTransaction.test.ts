@@ -37,7 +37,7 @@ describe('Algod pendingTransaction', () => {
     let pending: PendingTransactionResponse | undefined
     const maxAttempts = 10
     for (let i = 0; i < maxAttempts; i++) {
-      pending = await client.pendingTransactionInformation(txId, { format: 'msgpack' })
+      pending = await client.pendingTransactionInformation(txId)
       if (pending?.confirmedRound || pending?.poolError) {
         break
       }

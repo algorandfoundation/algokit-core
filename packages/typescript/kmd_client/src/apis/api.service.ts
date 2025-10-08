@@ -1,5 +1,6 @@
 import type { BaseHttpRequest, ApiRequestOptions } from '../core/base-http-request'
 import { AlgorandSerializer } from '../core/model-runtime'
+import type { BodyFormat } from '../core/model-runtime'
 import type {
   CreateWalletRequest,
   DeleteKeyResponse,
@@ -88,16 +89,24 @@ import {
 export class KmdApi {
   constructor(public readonly httpRequest: BaseHttpRequest) {}
 
+  private static acceptFor(format: BodyFormat): string {
+    return format === 'json' ? 'application/json' : 'application/msgpack'
+  }
+
+  private static mediaFor(format: BodyFormat): string {
+    return format === 'json' ? 'application/json' : 'application/msgpack'
+  }
+
   /**
    * Create a new wallet (collection of keys) with the given parameters.
    */
   async createWallet(params?: { body: CreateWalletRequest }, requestOptions?: ApiRequestOptions): Promise<PostWalletResponse> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = KmdApi.acceptFor(responseFormat)
 
     const bodyMeta = CreateWalletRequestMeta
-    const mediaType = bodyMeta ? (responseFormat === 'json' ? 'application/json' : 'application/msgpack') : undefined
+    const mediaType = bodyMeta ? KmdApi.mediaFor(responseFormat) : undefined
     if (mediaType) headers['Content-Type'] = mediaType
     const serializedBody =
       bodyMeta && params?.body !== undefined ? AlgorandSerializer.encode(params.body, bodyMeta, responseFormat) : params?.body
@@ -125,8 +134,8 @@ export class KmdApi {
    */
   async deleteKey(requestOptions?: ApiRequestOptions): Promise<DeleteKeyResponse> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = KmdApi.acceptFor(responseFormat)
 
     const payload = await this.httpRequest.request<unknown>({
       method: 'DELETE',
@@ -151,8 +160,8 @@ export class KmdApi {
    */
   async deleteMultisig(requestOptions?: ApiRequestOptions): Promise<DeleteMultisigResponse> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = KmdApi.acceptFor(responseFormat)
 
     const payload = await this.httpRequest.request<unknown>({
       method: 'DELETE',
@@ -177,11 +186,11 @@ export class KmdApi {
    */
   async exportKey(params?: { body: ExportKeyRequest }, requestOptions?: ApiRequestOptions): Promise<PostKeyExportResponse> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = KmdApi.acceptFor(responseFormat)
 
     const bodyMeta = ExportKeyRequestMeta
-    const mediaType = bodyMeta ? (responseFormat === 'json' ? 'application/json' : 'application/msgpack') : undefined
+    const mediaType = bodyMeta ? KmdApi.mediaFor(responseFormat) : undefined
     if (mediaType) headers['Content-Type'] = mediaType
     const serializedBody =
       bodyMeta && params?.body !== undefined ? AlgorandSerializer.encode(params.body, bodyMeta, responseFormat) : params?.body
@@ -212,11 +221,11 @@ export class KmdApi {
     requestOptions?: ApiRequestOptions,
   ): Promise<PostMasterKeyExportResponse> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = KmdApi.acceptFor(responseFormat)
 
     const bodyMeta = ExportMasterKeyRequestMeta
-    const mediaType = bodyMeta ? (responseFormat === 'json' ? 'application/json' : 'application/msgpack') : undefined
+    const mediaType = bodyMeta ? KmdApi.mediaFor(responseFormat) : undefined
     if (mediaType) headers['Content-Type'] = mediaType
     const serializedBody =
       bodyMeta && params?.body !== undefined ? AlgorandSerializer.encode(params.body, bodyMeta, responseFormat) : params?.body
@@ -244,11 +253,11 @@ export class KmdApi {
    */
   async exportMultisig(params?: { body: ExportMultisigRequest }, requestOptions?: ApiRequestOptions): Promise<PostMultisigExportResponse> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = KmdApi.acceptFor(responseFormat)
 
     const bodyMeta = ExportMultisigRequestMeta
-    const mediaType = bodyMeta ? (responseFormat === 'json' ? 'application/json' : 'application/msgpack') : undefined
+    const mediaType = bodyMeta ? KmdApi.mediaFor(responseFormat) : undefined
     if (mediaType) headers['Content-Type'] = mediaType
     const serializedBody =
       bodyMeta && params?.body !== undefined ? AlgorandSerializer.encode(params.body, bodyMeta, responseFormat) : params?.body
@@ -276,11 +285,11 @@ export class KmdApi {
    */
   async generateKey(params?: { body: GenerateKeyRequest }, requestOptions?: ApiRequestOptions): Promise<PostKeyResponse> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = KmdApi.acceptFor(responseFormat)
 
     const bodyMeta = GenerateKeyRequestMeta
-    const mediaType = bodyMeta ? (responseFormat === 'json' ? 'application/json' : 'application/msgpack') : undefined
+    const mediaType = bodyMeta ? KmdApi.mediaFor(responseFormat) : undefined
     if (mediaType) headers['Content-Type'] = mediaType
     const serializedBody =
       bodyMeta && params?.body !== undefined ? AlgorandSerializer.encode(params.body, bodyMeta, responseFormat) : params?.body
@@ -305,8 +314,8 @@ export class KmdApi {
 
   async getVersion(requestOptions?: ApiRequestOptions): Promise<VersionsResponse> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = KmdApi.acceptFor(responseFormat)
 
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
@@ -331,11 +340,11 @@ export class KmdApi {
    */
   async getWalletInfo(params?: { body: WalletInfoRequest }, requestOptions?: ApiRequestOptions): Promise<PostWalletInfoResponse> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = KmdApi.acceptFor(responseFormat)
 
     const bodyMeta = WalletInfoRequestMeta
-    const mediaType = bodyMeta ? (responseFormat === 'json' ? 'application/json' : 'application/msgpack') : undefined
+    const mediaType = bodyMeta ? KmdApi.mediaFor(responseFormat) : undefined
     if (mediaType) headers['Content-Type'] = mediaType
     const serializedBody =
       bodyMeta && params?.body !== undefined ? AlgorandSerializer.encode(params.body, bodyMeta, responseFormat) : params?.body
@@ -363,11 +372,11 @@ export class KmdApi {
    */
   async importKey(params?: { body: ImportKeyRequest }, requestOptions?: ApiRequestOptions): Promise<PostKeyImportResponse> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = KmdApi.acceptFor(responseFormat)
 
     const bodyMeta = ImportKeyRequestMeta
-    const mediaType = bodyMeta ? (responseFormat === 'json' ? 'application/json' : 'application/msgpack') : undefined
+    const mediaType = bodyMeta ? KmdApi.mediaFor(responseFormat) : undefined
     if (mediaType) headers['Content-Type'] = mediaType
     const serializedBody =
       bodyMeta && params?.body !== undefined ? AlgorandSerializer.encode(params.body, bodyMeta, responseFormat) : params?.body
@@ -395,11 +404,11 @@ export class KmdApi {
    */
   async importMultisig(params?: { body: ImportMultisigRequest }, requestOptions?: ApiRequestOptions): Promise<PostMultisigImportResponse> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = KmdApi.acceptFor(responseFormat)
 
     const bodyMeta = ImportMultisigRequestMeta
-    const mediaType = bodyMeta ? (responseFormat === 'json' ? 'application/json' : 'application/msgpack') : undefined
+    const mediaType = bodyMeta ? KmdApi.mediaFor(responseFormat) : undefined
     if (mediaType) headers['Content-Type'] = mediaType
     const serializedBody =
       bodyMeta && params?.body !== undefined ? AlgorandSerializer.encode(params.body, bodyMeta, responseFormat) : params?.body
@@ -430,11 +439,11 @@ export class KmdApi {
     requestOptions?: ApiRequestOptions,
   ): Promise<PostWalletInitResponse> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = KmdApi.acceptFor(responseFormat)
 
     const bodyMeta = InitWalletHandleTokenRequestMeta
-    const mediaType = bodyMeta ? (responseFormat === 'json' ? 'application/json' : 'application/msgpack') : undefined
+    const mediaType = bodyMeta ? KmdApi.mediaFor(responseFormat) : undefined
     if (mediaType) headers['Content-Type'] = mediaType
     const serializedBody =
       bodyMeta && params?.body !== undefined ? AlgorandSerializer.encode(params.body, bodyMeta, responseFormat) : params?.body
@@ -462,11 +471,11 @@ export class KmdApi {
    */
   async listKeysInWallet(params?: { body: ListKeysRequest }, requestOptions?: ApiRequestOptions): Promise<PostKeyListResponse> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = KmdApi.acceptFor(responseFormat)
 
     const bodyMeta = ListKeysRequestMeta
-    const mediaType = bodyMeta ? (responseFormat === 'json' ? 'application/json' : 'application/msgpack') : undefined
+    const mediaType = bodyMeta ? KmdApi.mediaFor(responseFormat) : undefined
     if (mediaType) headers['Content-Type'] = mediaType
     const serializedBody =
       bodyMeta && params?.body !== undefined ? AlgorandSerializer.encode(params.body, bodyMeta, responseFormat) : params?.body
@@ -494,11 +503,11 @@ export class KmdApi {
    */
   async listMultisg(params?: { body: ListMultisigRequest }, requestOptions?: ApiRequestOptions): Promise<PostMultisigListResponse> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = KmdApi.acceptFor(responseFormat)
 
     const bodyMeta = ListMultisigRequestMeta
-    const mediaType = bodyMeta ? (responseFormat === 'json' ? 'application/json' : 'application/msgpack') : undefined
+    const mediaType = bodyMeta ? KmdApi.mediaFor(responseFormat) : undefined
     if (mediaType) headers['Content-Type'] = mediaType
     const serializedBody =
       bodyMeta && params?.body !== undefined ? AlgorandSerializer.encode(params.body, bodyMeta, responseFormat) : params?.body
@@ -526,8 +535,8 @@ export class KmdApi {
    */
   async listWallets(requestOptions?: ApiRequestOptions): Promise<GetWalletsResponse> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = KmdApi.acceptFor(responseFormat)
 
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
@@ -555,11 +564,11 @@ export class KmdApi {
     requestOptions?: ApiRequestOptions,
   ): Promise<PostWalletReleaseResponse> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = KmdApi.acceptFor(responseFormat)
 
     const bodyMeta = ReleaseWalletHandleTokenRequestMeta
-    const mediaType = bodyMeta ? (responseFormat === 'json' ? 'application/json' : 'application/msgpack') : undefined
+    const mediaType = bodyMeta ? KmdApi.mediaFor(responseFormat) : undefined
     if (mediaType) headers['Content-Type'] = mediaType
     const serializedBody =
       bodyMeta && params?.body !== undefined ? AlgorandSerializer.encode(params.body, bodyMeta, responseFormat) : params?.body
@@ -587,11 +596,11 @@ export class KmdApi {
    */
   async renameWallet(params?: { body: RenameWalletRequest }, requestOptions?: ApiRequestOptions): Promise<PostWalletRenameResponse> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = KmdApi.acceptFor(responseFormat)
 
     const bodyMeta = RenameWalletRequestMeta
-    const mediaType = bodyMeta ? (responseFormat === 'json' ? 'application/json' : 'application/msgpack') : undefined
+    const mediaType = bodyMeta ? KmdApi.mediaFor(responseFormat) : undefined
     if (mediaType) headers['Content-Type'] = mediaType
     const serializedBody =
       bodyMeta && params?.body !== undefined ? AlgorandSerializer.encode(params.body, bodyMeta, responseFormat) : params?.body
@@ -622,11 +631,11 @@ export class KmdApi {
     requestOptions?: ApiRequestOptions,
   ): Promise<PostWalletRenewResponse> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = KmdApi.acceptFor(responseFormat)
 
     const bodyMeta = RenewWalletHandleTokenRequestMeta
-    const mediaType = bodyMeta ? (responseFormat === 'json' ? 'application/json' : 'application/msgpack') : undefined
+    const mediaType = bodyMeta ? KmdApi.mediaFor(responseFormat) : undefined
     if (mediaType) headers['Content-Type'] = mediaType
     const serializedBody =
       bodyMeta && params?.body !== undefined ? AlgorandSerializer.encode(params.body, bodyMeta, responseFormat) : params?.body
@@ -657,11 +666,11 @@ export class KmdApi {
     requestOptions?: ApiRequestOptions,
   ): Promise<PostMultisigProgramSignResponse> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = KmdApi.acceptFor(responseFormat)
 
     const bodyMeta = SignProgramMultisigRequestMeta
-    const mediaType = bodyMeta ? (responseFormat === 'json' ? 'application/json' : 'application/msgpack') : undefined
+    const mediaType = bodyMeta ? KmdApi.mediaFor(responseFormat) : undefined
     if (mediaType) headers['Content-Type'] = mediaType
     const serializedBody =
       bodyMeta && params?.body !== undefined ? AlgorandSerializer.encode(params.body, bodyMeta, responseFormat) : params?.body
@@ -692,11 +701,11 @@ export class KmdApi {
     requestOptions?: ApiRequestOptions,
   ): Promise<PostMultisigTransactionSignResponse> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = KmdApi.acceptFor(responseFormat)
 
     const bodyMeta = SignMultisigRequestMeta
-    const mediaType = bodyMeta ? (responseFormat === 'json' ? 'application/json' : 'application/msgpack') : undefined
+    const mediaType = bodyMeta ? KmdApi.mediaFor(responseFormat) : undefined
     if (mediaType) headers['Content-Type'] = mediaType
     const serializedBody =
       bodyMeta && params?.body !== undefined ? AlgorandSerializer.encode(params.body, bodyMeta, responseFormat) : params?.body
@@ -724,11 +733,11 @@ export class KmdApi {
    */
   async signProgram(params?: { body: SignProgramRequest }, requestOptions?: ApiRequestOptions): Promise<PostProgramSignResponse> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = KmdApi.acceptFor(responseFormat)
 
     const bodyMeta = SignProgramRequestMeta
-    const mediaType = bodyMeta ? (responseFormat === 'json' ? 'application/json' : 'application/msgpack') : undefined
+    const mediaType = bodyMeta ? KmdApi.mediaFor(responseFormat) : undefined
     if (mediaType) headers['Content-Type'] = mediaType
     const serializedBody =
       bodyMeta && params?.body !== undefined ? AlgorandSerializer.encode(params.body, bodyMeta, responseFormat) : params?.body
@@ -759,11 +768,11 @@ export class KmdApi {
     requestOptions?: ApiRequestOptions,
   ): Promise<PostTransactionSignResponse> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = KmdApi.acceptFor(responseFormat)
 
     const bodyMeta = SignTransactionRequestMeta
-    const mediaType = bodyMeta ? (responseFormat === 'json' ? 'application/json' : 'application/msgpack') : undefined
+    const mediaType = bodyMeta ? KmdApi.mediaFor(responseFormat) : undefined
     if (mediaType) headers['Content-Type'] = mediaType
     const serializedBody =
       bodyMeta && params?.body !== undefined ? AlgorandSerializer.encode(params.body, bodyMeta, responseFormat) : params?.body
@@ -791,8 +800,8 @@ export class KmdApi {
    */
   async swaggerHandler(requestOptions?: ApiRequestOptions): Promise<string> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = KmdApi.acceptFor(responseFormat)
 
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',

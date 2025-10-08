@@ -359,6 +359,9 @@ class Operation:
     request_body_supports_msgpack: bool = False
     request_body_supports_text_plain: bool = False
     has_optional_string: bool = False
+    # When the original spec had a query param `format` with enum ['msgpack'] only,
+    # we don't expose it to callers but still need to set it implicitly on requests
+    force_msgpack_query: bool = False
 
     def __post_init__(self) -> None:
         for param in self.parameters:
@@ -706,6 +709,19 @@ class OASParser:
             operation_data,
         )
 
+        # Detect if the original spec constrained `format` to only msgpack
+        force_msgpack_query = False
+        for p in operation_data.get("parameters", []) or []:
+            p_obj = self._resolve_reference(p["$ref"]) if isinstance(p, dict) and "$ref" in p else p
+            if not isinstance(p_obj, dict):
+                continue
+            if p_obj.get("in", "query") == "query" and p_obj.get("name") == "format":
+                schema_obj = p_obj.get("schema", {}) or {}
+                enum_vals = schema_obj.get("enum")
+                if isinstance(enum_vals, list) and len(enum_vals) == 1 and enum_vals[0] == "msgpack":
+                    force_msgpack_query = True
+                    break
+
         parameters = []
         for param_data in operation_data.get("parameters", []):
             param = self._parse_parameter(param_data)
@@ -730,6 +746,7 @@ class OASParser:
             supports_msgpack=supports_msgpack,
             request_body_supports_msgpack=request_body_supports_msgpack,
             request_body_supports_text_plain=request_body_supports_text_plain,
+            force_msgpack_query=force_msgpack_query,
         )
 
     def _check_request_body_msgpack_support(
@@ -770,13 +787,21 @@ class OASParser:
         if not name:
             return None
 
+        # Skip `format` query parameter when constrained to msgpack only
+        in_location = param_data.get("in", "query")
+        if name == "format" and in_location == "query":
+            schema_obj = param_data.get("schema", {}) or {}
+            enum_vals = schema_obj.get("enum")
+            if isinstance(enum_vals, list) and len(enum_vals) == 1 and enum_vals[0] == "msgpack":
+                return None
+
         schema = param_data.get("schema", {})
         rust_type = rust_type_from_openapi(schema, self.schemas, set())
         enum_values = schema.get("enum", []) if schema.get("type") == "string" else []
 
         return Parameter(
             name=name,
-            param_type=param_data.get("in", "query"),
+            param_type=in_location,
             rust_type=rust_type,
             required=param_data.get("required", False),
             description=param_data.get("description"),

@@ -1,7 +1,6 @@
 use crate::common::{
     AlgorandFixtureResult, NetworkType, TestAccountConfig, TestResult, algorand_fixture,
 };
-use algod_client::apis::Format;
 use algokit_transact::{
     AlgorandMsgpack, PaymentTransactionBuilder, Transaction, TransactionHeaderBuilder,
 };
@@ -82,7 +81,7 @@ async fn test_pending_transaction_broadcast(
     );
 
     let pending_transaction = algod_client
-        .pending_transaction_information(&response.tx_id, Some(Format::Msgpack))
+        .pending_transaction_information(&response.tx_id)
         .await?;
 
     assert_eq!(pending_transaction.pool_error, "");

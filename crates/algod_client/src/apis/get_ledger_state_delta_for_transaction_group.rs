@@ -12,7 +12,6 @@ use algokit_http_client::{HttpClient, HttpMethod};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use super::parameter_enums::*;
 use super::{AlgodApiError, ContentType, Error};
 use algokit_transact::AlgorandMsgpack;
 
@@ -40,10 +39,8 @@ pub enum GetLedgerStateDeltaForTransactionGroupError {
 pub async fn get_ledger_state_delta_for_transaction_group(
     http_client: &dyn HttpClient,
     id: &str,
-    format: Option<Format>,
 ) -> Result<LedgerStateDelta, Error> {
     let p_id = id;
-    let p_format = format;
 
     let path = format!(
         "/v2/deltas/txn/group/{id}",
@@ -51,18 +48,10 @@ pub async fn get_ledger_state_delta_for_transaction_group(
     );
 
     let mut query_params: HashMap<String, String> = HashMap::new();
-    if let Some(value) = p_format {
-        query_params.insert("format".to_string(), value.to_string());
-    }
-
-    let use_msgpack = p_format.map(|f| f != Format::Json).unwrap_or(true);
+    query_params.insert("format".to_string(), "msgpack".to_string());
 
     let mut headers: HashMap<String, String> = HashMap::new();
-    if use_msgpack {
-        headers.insert("Accept".to_string(), "application/msgpack".to_string());
-    } else {
-        headers.insert("Accept".to_string(), "application/json".to_string());
-    }
+    headers.insert("Accept".to_string(), "application/msgpack".to_string());
 
     let body = None;
 

@@ -1,5 +1,6 @@
 import type { BaseHttpRequest, ApiRequestOptions } from '../core/base-http-request'
 import { AlgorandSerializer } from '../core/model-runtime'
+import type { BodyFormat } from '../core/model-runtime'
 import type {
   Block,
   Box,
@@ -50,6 +51,14 @@ import {
 export class IndexerApi {
   constructor(public readonly httpRequest: BaseHttpRequest) {}
 
+  private static acceptFor(format: BodyFormat): string {
+    return format === 'json' ? 'application/json' : 'application/msgpack'
+  }
+
+  private static mediaFor(format: BodyFormat): string {
+    return format === 'json' ? 'application/json' : 'application/msgpack'
+  }
+
   /**
    * Lookup an account's asset holdings, optionally for a specific ID.
    */
@@ -59,8 +68,8 @@ export class IndexerApi {
     requestOptions?: ApiRequestOptions,
   ): Promise<LookupAccountAppLocalStates> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = IndexerApi.acceptFor(responseFormat)
 
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
@@ -94,8 +103,8 @@ export class IndexerApi {
     requestOptions?: ApiRequestOptions,
   ): Promise<LookupAccountAssets> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = IndexerApi.acceptFor(responseFormat)
 
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
@@ -133,8 +142,8 @@ export class IndexerApi {
     requestOptions?: ApiRequestOptions,
   ): Promise<LookupAccountById> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = IndexerApi.acceptFor(responseFormat)
 
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
@@ -167,8 +176,8 @@ export class IndexerApi {
     requestOptions?: ApiRequestOptions,
   ): Promise<LookupAccountCreatedApplications> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = IndexerApi.acceptFor(responseFormat)
 
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
@@ -202,8 +211,8 @@ export class IndexerApi {
     requestOptions?: ApiRequestOptions,
   ): Promise<LookupAccountCreatedAssets> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = IndexerApi.acceptFor(responseFormat)
 
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
@@ -253,8 +262,8 @@ export class IndexerApi {
     requestOptions?: ApiRequestOptions,
   ): Promise<LookupAccountTransactions> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = IndexerApi.acceptFor(responseFormat)
 
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
@@ -303,8 +312,8 @@ export class IndexerApi {
     requestOptions?: ApiRequestOptions,
   ): Promise<Box> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = IndexerApi.acceptFor(responseFormat)
 
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
@@ -333,8 +342,8 @@ export class IndexerApi {
     requestOptions?: ApiRequestOptions,
   ): Promise<LookupApplicationById> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = IndexerApi.acceptFor(responseFormat)
 
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
@@ -370,8 +379,8 @@ export class IndexerApi {
     requestOptions?: ApiRequestOptions,
   ): Promise<LookupApplicationLogsById> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = IndexerApi.acceptFor(responseFormat)
 
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
@@ -413,8 +422,8 @@ export class IndexerApi {
     requestOptions?: ApiRequestOptions,
   ): Promise<LookupAssetBalances> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = IndexerApi.acceptFor(responseFormat)
 
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
@@ -453,8 +462,8 @@ export class IndexerApi {
     requestOptions?: ApiRequestOptions,
   ): Promise<LookupAssetById> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = IndexerApi.acceptFor(responseFormat)
 
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
@@ -501,8 +510,8 @@ export class IndexerApi {
     requestOptions?: ApiRequestOptions,
   ): Promise<LookupAssetTransactions> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = IndexerApi.acceptFor(responseFormat)
 
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
@@ -549,8 +558,8 @@ export class IndexerApi {
    */
   async lookupBlock(roundNumber: number | bigint, params?: { headerOnly?: boolean }, requestOptions?: ApiRequestOptions): Promise<Block> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = IndexerApi.acceptFor(responseFormat)
 
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
@@ -575,8 +584,8 @@ export class IndexerApi {
    */
   async lookupTransaction(txid: string, requestOptions?: ApiRequestOptions): Promise<LookupTransaction> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = IndexerApi.acceptFor(responseFormat)
 
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
@@ -598,8 +607,8 @@ export class IndexerApi {
 
   async makeHealthCheck(requestOptions?: ApiRequestOptions): Promise<HealthCheck> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = IndexerApi.acceptFor(responseFormat)
 
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
@@ -639,8 +648,8 @@ export class IndexerApi {
     requestOptions?: ApiRequestOptions,
   ): Promise<SearchForAccounts> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = IndexerApi.acceptFor(responseFormat)
 
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
@@ -685,8 +694,8 @@ export class IndexerApi {
     requestOptions?: ApiRequestOptions,
   ): Promise<SearchForApplicationBoxes> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = IndexerApi.acceptFor(responseFormat)
 
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
@@ -714,8 +723,8 @@ export class IndexerApi {
     requestOptions?: ApiRequestOptions,
   ): Promise<SearchForApplications> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = IndexerApi.acceptFor(responseFormat)
 
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
@@ -757,8 +766,8 @@ export class IndexerApi {
     requestOptions?: ApiRequestOptions,
   ): Promise<SearchForAssets> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = IndexerApi.acceptFor(responseFormat)
 
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
@@ -804,8 +813,8 @@ export class IndexerApi {
     requestOptions?: ApiRequestOptions,
   ): Promise<SearchForBlockHeaders> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = IndexerApi.acceptFor(responseFormat)
 
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',
@@ -864,8 +873,8 @@ export class IndexerApi {
     requestOptions?: ApiRequestOptions,
   ): Promise<SearchForTransactions> {
     const headers: Record<string, string> = {}
-    const responseFormat: 'json' | 'msgpack' = 'json'
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack'
+    const responseFormat: BodyFormat = 'json'
+    headers['Accept'] = IndexerApi.acceptFor(responseFormat)
 
     const payload = await this.httpRequest.request<unknown>({
       method: 'GET',

@@ -30,7 +30,7 @@ repos:
       - id: cargo-test
         name: cargo-nextest
         description: "Run 'cargo nextest' and doc tests"
-        entry: cargo nextest run
+        entry: cargo t
         language: system
         types: [rust]
         require_serial: true

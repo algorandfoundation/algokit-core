@@ -93,7 +93,7 @@ pub async fn {{ operation.rust_function_name }}(
     let path = "{{ rust_path }}".to_string();
     {% endif %}
 
-    let{% if get_query_parameters(operation) %} mut{% endif %} query_params: HashMap<String, String> = HashMap::new();
+    let{% if get_query_parameters(operation) or operation.force_msgpack_query %} mut{% endif %} query_params: HashMap<String, String> = HashMap::new();
     {% for param in get_query_parameters(operation) %}
     {% if param.required %}
         {% if param.is_array %}
@@ -111,6 +111,9 @@ pub async fn {{ operation.rust_function_name }}(
     }
     {% endif %}
     {% endfor %}
+    {% if operation.force_msgpack_query %}
+    query_params.insert("format".to_string(), "msgpack".to_string());
+    {% endif %}
 
     {% if operation.request_body_supports_text_plain %}
     let mut headers: HashMap<String, String> = HashMap::new();

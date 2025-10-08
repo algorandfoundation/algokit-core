@@ -50,6 +50,9 @@ class OperationContext:
     returns_msgpack: bool = False
     has_format_param: bool = False
     format_var_name: str | None = None
+    # When the original spec had a query param `format` with enum ['msgpack'] only,
+    # we don't expose it to callers but still need to set it implicitly on requests
+    force_msgpack_query: bool = False
     error_types: list[ErrorDescriptor] | None = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -67,6 +70,7 @@ class OperationContext:
             "returnsMsgpack": self.returns_msgpack,
             "hasFormatParam": self.has_format_param,
             "formatVarName": self.format_var_name,
+            "forceMsgpackQuery": self.force_msgpack_query,
             "errorTypes": [self._error_to_dict(e) for e in (self.error_types or [])],
         }
 

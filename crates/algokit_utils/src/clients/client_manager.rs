@@ -237,7 +237,7 @@ impl ClientManager {
         };
 
         AlgoClientConfig {
-            server: format!("https://{}-{}.algonode.cloud/", network, subdomain),
+            server: format!("https://{}-{}.4160.nodely.dev", network, subdomain),
             port: Some(443),
             token: None,
         }
@@ -492,6 +492,7 @@ impl ClientManager {
 mod tests {
     use super::*;
     use crate::clients::network_client::AlgorandService;
+    use rstest::rstest;
 
     #[test]
     fn test_cache_initially_empty() {
@@ -554,11 +555,45 @@ mod tests {
         assert!(matches!(config.token, Some(TokenHeader::String(_))));
     }
 
-    #[test]
-    fn test_algonode_config() {
-        let config = ClientManager::get_algonode_config("testnet", AlgorandService::Algod);
-        assert_eq!(config.server, "https://testnet-api.algonode.cloud/");
+    #[rstest]
+    #[case(
+        "mainnet",
+        AlgorandService::Algod,
+        "https://mainnet-api.4160.nodely.dev"
+    )]
+    #[case(
+        "mainnet",
+        AlgorandService::Indexer,
+        "https://mainnet-idx.4160.nodely.dev"
+    )]
+    #[case(
+        "testnet",
+        AlgorandService::Algod,
+        "https://testnet-api.4160.nodely.dev"
+    )]
+    #[case(
+        "testnet",
+        AlgorandService::Indexer,
+        "https://testnet-idx.4160.nodely.dev"
+    )]
+    fn test_algonode_config_variations(
+        #[case] network: &str,
+        #[case] service: AlgorandService,
+        #[case] expected_server: &str,
+    ) {
+        let config = ClientManager::get_algonode_config(network, service);
+
+        assert_eq!(config.server, expected_server);
         assert_eq!(config.port, Some(443));
+        assert!(config.token.is_none());
+    }
+
+    #[rstest]
+    #[case("mainnet")]
+    #[case("testnet")]
+    #[should_panic(expected = "KMD is not available on algonode")]
+    fn test_algonode_config_panics_for_kmd(#[case] network: &str) {
+        ClientManager::get_algonode_config(network, AlgorandService::Kmd);
     }
 
     #[test]

@@ -2168,7 +2168,7 @@ impl TransactionComposer {
         while current_round < start_round + max_rounds_to_wait as u64 {
             match self
                 .algod_client
-                .pending_transaction_information(tx_id, Some(Format::Msgpack))
+                .pending_transaction_information(tx_id)
                 .await
             {
                 Ok(response) => {

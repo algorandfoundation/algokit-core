@@ -12,7 +12,6 @@ use algokit_http_client::{HttpClient, HttpMethod};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use super::parameter_enums::*;
 use super::{AlgodApiError, ContentType, Error};
 use algokit_transact::AlgorandMsgpack;
 
@@ -40,11 +39,9 @@ pub async fn get_block(
     http_client: &dyn HttpClient,
     round: u64,
     header_only: Option<bool>,
-    format: Option<Format>,
 ) -> Result<GetBlock, Error> {
     let p_round = round;
     let p_header_only = header_only;
-    let p_format = format;
 
     let path = format!("/v2/blocks/{round}", round = p_round);
 
@@ -52,18 +49,10 @@ pub async fn get_block(
     if let Some(value) = p_header_only {
         query_params.insert("header-only".to_string(), value.to_string());
     }
-    if let Some(value) = p_format {
-        query_params.insert("format".to_string(), value.to_string());
-    }
-
-    let use_msgpack = p_format.map(|f| f != Format::Json).unwrap_or(true);
+    query_params.insert("format".to_string(), "msgpack".to_string());
 
     let mut headers: HashMap<String, String> = HashMap::new();
-    if use_msgpack {
-        headers.insert("Accept".to_string(), "application/msgpack".to_string());
-    } else {
-        headers.insert("Accept".to_string(), "application/json".to_string());
-    }
+    headers.insert("Accept".to_string(), "application/msgpack".to_string());
 
     let body = None;
 

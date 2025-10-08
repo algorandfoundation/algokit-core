@@ -1,5 +1,6 @@
 import type { BaseHttpRequest, ApiRequestOptions } from '../core/base-http-request';
 import { AlgorandSerializer } from '../core/model-runtime';
+import type { BodyFormat } from '../core/model-runtime';
 {% if import_types and import_types|length > 0 %}
 {% set sorted = import_types | sort %}
 import type { {{ sorted | join(', ') }} } from '../models/index';
@@ -8,13 +9,13 @@ import { {% for t in sorted %}{{ t }}Meta{% if not loop.last %}, {% endif %}{% e
 
 {% macro field_type_meta(type_name) -%}
 {%- if type_name in import_types -%}
-{ kind: 'model', meta: () => {{ type_name }}Meta }
+({ kind: 'model', meta: () => {{ type_name }}Meta } as const)
 {%- elif type_name == 'SignedTransaction' -%}
-{ kind: 'codec', codecKey: 'SignedTransaction' }
+({ kind: 'codec', codecKey: 'SignedTransaction' } as const)
 {%- elif type_name == 'Uint8Array' -%}
-{ kind: 'scalar', isBytes: true }
+({ kind: 'scalar', isBytes: true } as const)
 {%- elif type_name == 'bigint' -%}
-{ kind: 'scalar', isBigint: true }
+({ kind: 'scalar', isBigint: true } as const)
 {%- else -%}
 null
 {%- endif -%}
@@ -33,10 +34,10 @@ null
 null
 {%- else -%}
   {%- set item = field_type_meta(base) -%}
-  {%- if item == 'null' -%}
+{%- if item == 'null' -%}
 null
   {%- else -%}
-({ name: '{{ base }}[]', kind: 'array', arrayItems: {{ item }} })
+({ name: '{{ base }}[]', kind: 'array', arrayItems: {{ item }} } as const)
   {%- endif -%}
 {%- endif -%}
 {%- endmacro %}
@@ -49,11 +50,11 @@ null
   {%- if t in import_types -%}
 {{ t }}Meta
   {%- elif t == 'SignedTransaction' -%}
-({ name: 'SignedTransaction', kind: 'passthrough', codecKey: 'SignedTransaction' })
+({ name: 'SignedTransaction', kind: 'passthrough', codecKey: 'SignedTransaction' } as const)
   {%- elif t == 'Uint8Array' -%}
-({ name: 'Uint8Array', kind: 'passthrough', passThrough: { kind: 'scalar', isBytes: true } })
+({ name: 'Uint8Array', kind: 'passthrough', passThrough: { kind: 'scalar', isBytes: true } as const } as const)
   {%- elif t == 'bigint' -%}
-({ name: 'bigint', kind: 'passthrough', passThrough: { kind: 'scalar', isBigint: true } })
+({ name: 'bigint', kind: 'passthrough', passThrough: { kind: 'scalar', isBigint: true } as const } as const)
   {%- else -%}
 null
   {%- endif -%}
@@ -71,6 +72,14 @@ undefined
 
 export class {{ service_class_name }} {
   constructor(public readonly httpRequest: BaseHttpRequest) {}
+
+  private static acceptFor(format: BodyFormat): string {
+    return format === 'json' ? 'application/json' : 'application/msgpack';
+  }
+
+  private static mediaFor(format: BodyFormat): string {
+    return format === 'json' ? 'application/json' : 'application/msgpack';
+  }
 
 {% for op in operations %}
   {% set is_raw_bytes_body = op.requestBody and op.requestBody.tsType == 'Uint8Array' %}
@@ -93,8 +102,8 @@ export class {{ service_class_name }} {
   ): Promise<{{ op.responseTsType }}> {
     const headers: Record<string, string> = {};
     {% set supports_msgpack = op.returnsMsgpack or (op.requestBody and op.requestBody.supportsMsgpack) %}
-    const responseFormat: 'json' | 'msgpack' = {% if supports_msgpack %}{% if op.hasFormatParam and op.formatVarName %}(params?.{{ op.formatVarName }} as 'json' | 'msgpack' | undefined) ?? 'msgpack'{% else %}'msgpack'{% endif %}{% else %}'json'{% endif %};
-    headers['Accept'] = responseFormat === 'json' ? 'application/json' : 'application/msgpack';
+    const responseFormat: BodyFormat = {% if supports_msgpack %}{% if op.hasFormatParam and op.formatVarName %}(params?.{{ op.formatVarName }} as BodyFormat | undefined) ?? 'msgpack'{% else %}'msgpack'{% endif %}{% else %}'json'{% endif %};
+    headers['Accept'] = {{ service_class_name }}.acceptFor(responseFormat);
 
     {% if op.requestBody and op.method.upper() not in ['GET', 'HEAD', 'DELETE'] %}
       {% if is_raw_bytes_body %}
@@ -103,7 +112,7 @@ export class {{ service_class_name }} {
     headers['Content-Type'] = mediaType;
       {% else %}
     const bodyMeta = {{ meta_expr(op.requestBody.tsType) }};
-    const mediaType = bodyMeta ? (responseFormat === 'json' ? 'application/json' : 'application/msgpack') : undefined;
+    const mediaType = bodyMeta ? {{ service_class_name }}.mediaFor(responseFormat) : undefined;
     if (mediaType) headers['Content-Type'] = mediaType;
     const serializedBody = bodyMeta && params?.body !== undefined
       ? AlgorandSerializer.encode(params.body, bodyMeta, responseFormat)
@@ -131,6 +140,9 @@ export class {{ service_class_name }} {
 {%- for p in query_params %}
         '{{ p.name }}': {% if p.stringifyBigInt %}(typeof params?.{{ p.varName }} === 'bigint' ? (params!.{{ p.varName }} as bigint).toString() : params?.{{ p.varName }}){% else %}params?.{{ p.varName }}{% endif %},
 {%- endfor %}
+{%- if op.forceMsgpackQuery %}
+        'format': 'msgpack',
+{%- endif %}
       },
       headers,
       {% if op.requestBody and op.method.upper() not in ['GET', 'HEAD', 'DELETE'] %}

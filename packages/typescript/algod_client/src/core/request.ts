@@ -58,23 +58,25 @@ export async function request<T>(
     headers['Authorization'] = `Basic ${btoa(`${config.username}:${config.password}`)}`
   }
 
-  let body: BodyValue | undefined = undefined
+  let bodyPayload: BodyInit | undefined = undefined
   if (options.body != null) {
-    if (options.body instanceof Uint8Array || typeof options.body === 'string') {
-      body = options.body
+    if (options.body instanceof Uint8Array) {
+      bodyPayload = options.body
+    } else if (typeof options.body === 'string') {
+      bodyPayload = options.body
     } else if (options.mediaType?.includes('msgpack')) {
-      body = encodeMsgPack(options.body)
+      bodyPayload = encodeMsgPack(options.body)
     } else if (options.mediaType?.includes('json')) {
-      body = JSON.stringify(options.body)
+      bodyPayload = JSON.stringify(options.body)
     } else {
-      body = options.body
+      bodyPayload = JSON.stringify(options.body)
     }
   }
 
   const response = await fetch(url.toString(), {
     method: options.method,
     headers,
-    body,
+    body: bodyPayload,
     credentials: config.credentials,
   })
 

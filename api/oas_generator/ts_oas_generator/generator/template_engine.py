@@ -367,6 +367,7 @@ class OperationProcessor:
 
         # Compute additional properties
         self._compute_format_param(context)
+        self._compute_force_msgpack_query(context, op_input.operation, op_input.spec)
         self._compute_import_types(context)
 
         return context
@@ -384,6 +385,14 @@ class OperationProcessor:
 
             # Extract parameter details
             raw_name = str(param.get("name"))
+            # Skip `format` query param when it's constrained to only msgpack
+            location_candidate = param.get(constants.OperationKey.IN, constants.ParamLocation.QUERY)
+            if location_candidate == constants.ParamLocation.QUERY and raw_name == constants.FORMAT_PARAM_NAME:
+                schema_obj = param.get("schema", {}) or {}
+                enum_vals = schema_obj.get(constants.SchemaKey.ENUM)
+                if isinstance(enum_vals, list) and len(enum_vals) == 1 and enum_vals[0] == "msgpack":
+                    # Endpoint only supports msgpack; do not expose/append `format`
+                    continue
             var_name = self._sanitize_variable_name(ts_camel_case(raw_name), used_names)
             used_names.add(var_name)
 
@@ -397,7 +406,7 @@ class OperationProcessor:
             else:
                 stringify_bigint = constants.TypeScriptType.BIGINT in ts_type_str
 
-            location = param.get(constants.OperationKey.IN, constants.ParamLocation.QUERY)
+            location = location_candidate
             required = param.get(constants.SchemaKey.REQUIRED, False) or location == constants.ParamLocation.PATH
 
             parameters.append(
@@ -500,6 +509,24 @@ class OperationProcessor:
                 context.has_format_param = True
                 context.format_var_name = param.var_name
                 break
+
+    def _compute_force_msgpack_query(self, context: OperationContext, raw_operation: Schema, spec: Schema) -> None:
+        """Detect if the raw spec constrains query format to only 'msgpack' and mark for implicit query injection."""
+        params = raw_operation.get(constants.OperationKey.PARAMETERS, []) or []
+        for param_def in params:
+            param = (
+                self._resolve_ref(param_def, spec) if isinstance(param_def, dict) and "$ref" in param_def else param_def
+            )
+            if not isinstance(param, dict):
+                continue
+            name = param.get("name")
+            location = param.get(constants.OperationKey.IN, constants.ParamLocation.QUERY)
+            if location == constants.ParamLocation.QUERY and name == constants.FORMAT_PARAM_NAME:
+                schema_obj = param.get("schema", {}) or {}
+                enum_vals = schema_obj.get(constants.SchemaKey.ENUM)
+                if isinstance(enum_vals, list) and len(enum_vals) == 1 and enum_vals[0] == "msgpack":
+                    context.force_msgpack_query = True
+                    return
 
     def _compute_import_types(self, context: OperationContext) -> None:
         """Collect model types that need importing."""
