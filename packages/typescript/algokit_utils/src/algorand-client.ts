@@ -47,13 +47,13 @@ export class AlgorandClient {
   /**
    * Creates a new transaction group
    */
-  newGroup(composerConfig?: TransactionComposerConfig) {
+  newComposer(composerConfig?: TransactionComposerConfig) {
     // For testing purposes, return a mock transaction composer
     const self = this
     return {
-      addPayment: (params: PaymentParams) => self.newGroup(composerConfig),
-      addAssetConfig: (params: AssetConfigParams) => self.newGroup(composerConfig),
-      addAppCreate: (params: AppCreateParams) => self.newGroup(composerConfig),
+      addPayment: (params: PaymentParams) => self.newComposer(composerConfig),
+      addAssetConfig: (params: AssetConfigParams) => self.newComposer(composerConfig),
+      addAppCreate: (params: AppCreateParams) => self.newComposer(composerConfig),
       send: async () => ({
         confirmations: [
           {

@@ -1,17 +1,17 @@
 import { Transaction } from '@algorandfoundation/algokit-transact'
-import { Composer, TransactionComposerConfig } from './composer'
+import { TransactionComposer, TransactionComposerConfig } from './composer'
 
 /** Creates Algorand transactions. */
 export class TransactionCreator {
-  private _newGroup: (params?: TransactionComposerConfig) => Composer
+  private _newComposer: (params?: TransactionComposerConfig) => TransactionComposer
 
-  constructor(newGroup: (params?: TransactionComposerConfig) => Composer) {
-    this._newGroup = newGroup
+  constructor(newComposer: (params?: TransactionComposerConfig) => TransactionComposer) {
+    this._newComposer = newComposer
   }
 
-  private _transaction<T>(addTransactionGetter: (c: Composer) => (params: T) => void): (params: T) => Promise<Transaction> {
+  private _transaction<T>(addTransactionGetter: (c: TransactionComposer) => (params: T) => void): (params: T) => Promise<Transaction> {
     return async (params: T) => {
-      const composer = this._newGroup()
+      const composer = this._newComposer()
       addTransactionGetter(composer).apply(composer, [params])
       const txs = await composer.build()
       const tx = txs.at(-1)?.transaction
@@ -19,9 +19,9 @@ export class TransactionCreator {
     }
   }
 
-  private _transactions<T>(addTransactionGetter: (c: Composer) => (params: T) => void): (params: T) => Promise<Transaction[]> {
+  private _transactions<T>(addTransactionGetter: (c: TransactionComposer) => (params: T) => void): (params: T) => Promise<Transaction[]> {
     return async (params: T) => {
-      const composer = this._newGroup()
+      const composer = this._newComposer()
       addTransactionGetter(composer).apply(composer, [params])
       const txs = await composer.build()
       return txs.map((t) => t.transaction)

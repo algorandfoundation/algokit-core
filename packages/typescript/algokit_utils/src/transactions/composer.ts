@@ -155,15 +155,25 @@ type GroupResourceToPopulate =
   | { type: GroupResourceType.AssetHolding; data: AssetHoldingReference }
   | { type: GroupResourceType.AppLocal; data: ApplicationLocalReference }
 
-export type SendTransactionComposerResults = {
-  group?: Uint8Array
-  transactionIds: string[]
-  transactions: Transaction[]
-  confirmations: PendingTransactionResponse[]
-  abiReturns: ABIReturn[]
+export type TransactionResult = {
+  /** The transaction that was sent */
+  transaction: Transaction
+  /** The transaction ID */
+  transactionId: string
+  /** The confirmation response from the network */
+  confirmation: PendingTransactionResponse
+  /** The ABI return value, if this was an ABI method call */
+  abiReturn?: ABIReturn
 }
 
-export type ComposerParams = {
+export type SendTransactionComposerResults = {
+  /** The group ID (32 bytes) if this was a transaction group */
+  group?: Uint8Array
+  /** Results for each transaction in the group */
+  results: TransactionResult[]
+}
+
+export type TransactionComposerParams = {
   algodClient: any
   signerGetter: SignerGetter
   composerConfig?: TransactionComposerConfig
@@ -174,7 +184,7 @@ export type TransactionComposerConfig = {
   populateAppCallResources: ResourcePopulation
 }
 
-export class Composer {
+export class TransactionComposer {
   private algodClient: any // TODO: Replace with client once implemented
   private signerGetter: SignerGetter
   private composerConfig: TransactionComposerConfig
@@ -183,7 +193,7 @@ export class Composer {
   private builtGroup?: TransactionWithSigner[]
   private signedGroup?: SignedTransaction[]
 
-  constructor(params: ComposerParams) {
+  constructor(params: TransactionComposerParams) {
     this.algodClient = params.algodClient
     this.signerGetter = params.signerGetter
     this.composerConfig = params.composerConfig ?? {
@@ -794,8 +804,8 @@ export class Composer {
 
     await this.algodClient.rawTransaction(encodedBytes)
 
-    const transactionIds = this.signedGroup.map((stxn) => getTransactionId(stxn.transaction))
     const transactions = this.signedGroup.map((stxn) => stxn.transaction)
+    const transactionIds = transactions.map((txn) => getTransactionId(txn))
 
     const confirmations = new Array<PendingTransactionResponse>()
     if (params?.maxRoundsToWaitForConfirmation) {
@@ -805,12 +815,21 @@ export class Composer {
       }
     }
 
+    const abiReturns = this.parseAbiReturnValues(confirmations)
+
+    const results = transactions.map(
+      (transaction, index) =>
+        ({
+          transaction,
+          transactionId: transactionIds[index],
+          confirmation: confirmations[index],
+          abiReturn: abiReturns[index],
+        }) satisfies TransactionResult,
+    )
+
     return {
       group,
-      transactionIds,
-      transactions,
-      confirmations,
-      abiReturns: this.parseAbiReturnValues(confirmations),
+      results,
     }
   }
 
@@ -849,8 +868,8 @@ export class Composer {
     throw new Error(`Transaction ${txId} unconfirmed after ${maxRoundsToWait} rounds`)
   }
 
-  private parseAbiReturnValues(confirmations: PendingTransactionResponse[]): ABIReturn[] {
-    const abiReturns = new Array<ABIReturn>()
+  private parseAbiReturnValues(confirmations: PendingTransactionResponse[]): (ABIReturn | undefined)[] {
+    const abiReturns = new Array<ABIReturn | undefined>()
 
     for (let i = 0; i < confirmations.length; i++) {
       const confirmation = confirmations[i]
@@ -861,7 +880,11 @@ export class Composer {
         if (method) {
           const abiReturn = extractAbiReturnFromLogs(confirmation, method)
           abiReturns.push(abiReturn)
+        } else {
+          abiReturns.push(undefined)
         }
+      } else {
+        abiReturns.push(undefined)
       }
     }
 

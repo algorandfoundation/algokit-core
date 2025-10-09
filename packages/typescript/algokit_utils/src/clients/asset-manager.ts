@@ -1,6 +1,6 @@
 import { type AccountAssetInformation, AlgodClient } from '@algorandfoundation/algod-client'
 import { AssetOptInParams, AssetOptOutParams } from '../transactions/asset-transfer'
-import { Composer } from '../transactions/composer'
+import { TransactionComposer } from '../transactions/composer'
 import { Buffer } from 'buffer'
 
 /** Individual result from performing a bulk opt-in or bulk opt-out for an account against a series of assets. */
@@ -136,11 +136,11 @@ export interface AssetInformation {
 /** Manages Algorand Standard Assets. */
 export class AssetManager {
   private algodClient: AlgodClient
-  private newGroup: () => Composer
+  private newComposer: () => TransactionComposer
 
-  constructor(algodClient: AlgodClient, newGroup: () => Composer) {
+  constructor(algodClient: AlgodClient, newComposer: () => TransactionComposer) {
     this.algodClient = algodClient
-    this.newGroup = newGroup
+    this.newComposer = newComposer
   }
 
   /** Get asset information by asset ID
@@ -183,7 +183,7 @@ export class AssetManager {
       return []
     }
 
-    const composer = this.newGroup()
+    const composer = this.newComposer()
 
     // Add asset opt-in transactions for each asset
     for (const assetId of assetIds) {
@@ -236,7 +236,7 @@ export class AssetManager {
       }
     }
 
-    const composer = this.newGroup()
+    const composer = this.newComposer()
 
     // Add asset opt-out transactions for each asset
     assetIds.forEach((assetId, index) => {
