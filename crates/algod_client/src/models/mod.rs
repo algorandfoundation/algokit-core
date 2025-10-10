@@ -178,3 +178,21 @@ pub mod teal_dryrun;
 pub use self::teal_dryrun::TealDryrun;
 pub mod get_block_time_stamp_offset;
 pub use self::get_block_time_stamp_offset::GetBlockTimeStampOffset;
+
+// Custom Algod typed block models (Block* to avoid shape collisions)
+pub mod block;
+pub use self::block::Block;
+pub mod signed_txn_in_block;
+pub use self::signed_txn_in_block::SignedTxnInBlock;
+pub mod block_eval_delta;
+pub use self::block_eval_delta::BlockEvalDelta;
+pub mod block_state_delta;
+pub use self::block_state_delta::BlockStateDelta;
+pub mod block_account_state_delta;
+pub use self::block_account_state_delta::BlockAccountStateDelta;
+pub mod block_app_eval_delta;
+pub use self::block_app_eval_delta::BlockAppEvalDelta;
+pub mod block_state_proof_tracking_data;
+pub use self::block_state_proof_tracking_data::BlockStateProofTrackingData;
+pub mod block_state_proof_tracking;
+pub use self::block_state_proof_tracking::BlockStateProofTracking;

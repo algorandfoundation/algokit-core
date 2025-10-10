@@ -35,6 +35,7 @@ dependencies = [
  "algokit_transact_ffi",
  "base64 0.22.1",
  "rmp-serde",
+ "rmpv",
  "serde",
  "serde_bytes",
  "serde_json",

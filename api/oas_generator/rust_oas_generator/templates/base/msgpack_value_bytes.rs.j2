@@ -1,0 +1,50 @@
+/// Custom serde module for handling msgpack-only fields as bytes.
+///
+/// This module provides serialization/deserialization for fields that:
+/// 1. Contain complex msgpack structures (maps with integer keys, nested data, etc.)
+/// 2. Need to be stored as Vec<u8> for uniffi compatibility
+/// 3. Should preserve the exact msgpack encoding
+///
+/// When deserializing, it accepts any msgpack value and re-encodes it to bytes.
+/// When serializing, it decodes the bytes back to a msgpack value.
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
+/// Deserialize a msgpack value and re-encode it as bytes
+pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<Vec<u8>>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    // Deserialize as an optional rmpv::Value (accepts any msgpack structure)
+    let value: Option<rmpv::Value> = Option::deserialize(deserializer)?;
+
+    // If present, re-encode the value to msgpack bytes
+    match value {
+        Some(v) => {
+            let mut bytes = Vec::new();
+            rmpv::encode::write_value(&mut bytes, &v).map_err(|e| {
+                serde::de::Error::custom(format!("Failed to encode msgpack value: {}", e))
+            })?;
+            Ok(Some(bytes))
+        }
+        None => Ok(None),
+    }
+}
+
+/// Serialize bytes back to a msgpack value
+pub fn serialize<S>(value: &Option<Vec<u8>>, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    match value {
+        Some(bytes) => {
+            // Decode the bytes back to a msgpack value
+            let value = rmpv::decode::read_value(&mut bytes.as_slice()).map_err(|e| {
+                serde::ser::Error::custom(format!("Failed to decode msgpack bytes: {}", e))
+            })?;
+            value.serialize(serializer)
+        }
+        None => serializer.serialize_none(),
+    }
+}
+
+

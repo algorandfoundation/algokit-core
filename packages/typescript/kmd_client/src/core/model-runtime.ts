@@ -38,10 +38,15 @@ export type FieldType = ScalarFieldType | CodecFieldType | ModelFieldType | Arra
 
 export interface FieldMetadata {
   readonly name: string
-  readonly wireKey: string
+  readonly wireKey?: string
   readonly optional: boolean
   readonly nullable: boolean
   readonly type: FieldType
+  /**
+   * If true and the field is a SignedTransaction codec, its encoded map entries
+   * are merged into the parent object (no own wire key).
+   */
+  readonly flattened?: boolean
 }
 
 export type ModelKind = 'object' | 'array' | 'passthrough'
@@ -54,6 +59,19 @@ export interface ModelMetadata {
   readonly codecKey?: string
   readonly additionalProperties?: FieldType
   readonly passThrough?: FieldType
+}
+
+// Registry for model metadata to avoid direct circular imports between model files
+const modelMetaRegistry = new Map<string, ModelMetadata>()
+
+export function registerModelMeta(name: string, meta: ModelMetadata): void {
+  modelMetaRegistry.set(name, meta)
+}
+
+export function getModelMeta(name: string): ModelMetadata {
+  const meta = modelMetaRegistry.get(name)
+  if (!meta) throw new Error(`Model metadata not registered: ${name}`)
+  return meta
 }
 
 export interface TypeCodec<TValue = unknown> {
@@ -114,6 +132,7 @@ export class AlgorandSerializer {
 
   private static transformObject(value: unknown, meta: ModelMetadata, ctx: TransformContext): unknown {
     const fields = meta.fields ?? []
+    const hasFlattenedSignedTxn = fields.some((f) => f.flattened && f.type.kind === 'codec' && f.type.codecKey === 'SignedTransaction')
     if (ctx.direction === 'encode') {
       const src = value as Record<string, unknown>
       const out: Record<string, unknown> = {}
@@ -122,7 +141,13 @@ export class AlgorandSerializer {
         if (fieldValue === undefined) continue
         const encoded = this.transformType(fieldValue, field.type, ctx)
         if (encoded === undefined && fieldValue === undefined) continue
-        out[field.wireKey] = encoded
+        if (field.flattened && field.type.kind === 'codec' && field.type.codecKey === 'SignedTransaction') {
+          // Merge signed transaction map into parent
+          const mapValue = encoded as Record<string, unknown>
+          for (const [k, v] of Object.entries(mapValue ?? {})) out[k] = v
+          continue
+        }
+        if (field.wireKey) out[field.wireKey] = encoded
       }
       if (meta.additionalProperties) {
         for (const [key, val] of Object.entries(src)) {
@@ -135,7 +160,7 @@ export class AlgorandSerializer {
 
     const src = value as Record<string, unknown>
     const out: Record<string, unknown> = {}
-    const fieldByWire = new Map(fields.map((field) => [field.wireKey, field]))
+    const fieldByWire = new Map(fields.filter((f) => !!f.wireKey).map((field) => [field.wireKey as string, field]))
 
     for (const [wireKey, wireValue] of Object.entries(src)) {
       const field = fieldByWire.get(wireKey)
@@ -148,7 +173,19 @@ export class AlgorandSerializer {
         out[wireKey] = this.transformType(wireValue, meta.additionalProperties, ctx)
         continue
       }
-      out[wireKey] = wireValue
+      // If we have a flattened SignedTransaction, skip unknown keys (e.g., 'sig', 'txn')
+      if (!hasFlattenedSignedTxn) {
+        out[wireKey] = wireValue
+      }
+    }
+
+    // If there are flattened fields, attempt to reconstruct them from remaining keys by decoding
+    for (const field of fields) {
+      if (out[field.name] !== undefined) continue
+      if (field.flattened && field.type.kind === 'codec' && field.type.codecKey === 'SignedTransaction') {
+        // Reconstruct from entire object map
+        out[field.name] = this.applyCodec(src, 'SignedTransaction', ctx)
+      }
     }
 
     return out

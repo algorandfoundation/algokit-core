@@ -684,10 +684,98 @@ class CodeGenerator:
 
         # Generate components
         files.update(self.schema_processor.generate_models(output_dir, all_schemas))
+
+        # Inject custom Algod models if this spec targets Algod
+        client_type = self._detect_client_type(spec)
+        if client_type == "Algod":
+            models_dir = output_dir / constants.DirectoryName.SRC / constants.DirectoryName.MODELS
+            # Custom typed block models
+            # Block-specific models (prefixed to avoid shape collisions)
+            files[models_dir / "block-eval-delta.ts"] = self.renderer.render(
+                "models/block/block-eval-delta.ts.j2",
+                {"spec": spec},
+            )
+            files[models_dir / "block-state-delta.ts"] = self.renderer.render(
+                "models/block/block-state-delta.ts.j2",
+                {"spec": spec},
+            )
+            files[models_dir / "block-account-state-delta.ts"] = self.renderer.render(
+                "models/block/block-account-state-delta.ts.j2",
+                {"spec": spec},
+            )
+            # BlockAppEvalDelta is implemented by repurposing application-eval-delta.ts.j2 to new name
+            files[models_dir / "block-app-eval-delta.ts"] = self.renderer.render(
+                "models/block/application-eval-delta.ts.j2",
+                {"spec": spec},
+            )
+            files[models_dir / "block_state_proof_tracking_data.ts"] = self.renderer.render(
+                "models/block/block-state-proof-tracking-data.ts.j2",
+                {"spec": spec},
+            )
+            files[models_dir / "block_state_proof_tracking.ts"] = self.renderer.render(
+                "models/block/block-state-proof-tracking.ts.j2",
+                {"spec": spec},
+            )
+            files[models_dir / "signed-txn-in-block.ts"] = self.renderer.render(
+                "models/block/signed-txn-in-block.ts.j2",
+                {"spec": spec},
+            )
+            files[models_dir / "block.ts"] = self.renderer.render(
+                "models/block/block.ts.j2",
+                {"spec": spec},
+            )
+            files[models_dir / "get-block.ts"] = self.renderer.render(
+                "models/block/get-block.ts.j2",
+                {"spec": spec},
+            )
+
+            # Ensure index exports include the custom models
+            index_path = models_dir / constants.INDEX_FILE
+            base_index = self.renderer.render(constants.MODELS_INDEX_TEMPLATE, {"schemas": all_schemas})
+            extras = (
+                "\n"
+                "export type { BlockEvalDelta } from './block-eval-delta';\n"
+                "export { BlockEvalDeltaMeta } from './block-eval-delta';\n"
+                "export type { BlockStateDelta } from './block-state-delta';\n"
+                "export { BlockStateDeltaMeta } from './block-state-delta';\n"
+                "export type { BlockAccountStateDelta } from './block-account-state-delta';\n"
+                "export { BlockAccountStateDeltaMeta } from './block-account-state-delta';\n"
+                "export type { BlockAppEvalDelta } from './block-app-eval-delta';\n"
+                "export { BlockAppEvalDeltaMeta } from './block-app-eval-delta';\n"
+                "export type { BlockStateProofTrackingData } from './block_state_proof_tracking_data';\n"
+                "export { BlockStateProofTrackingDataMeta } from './block_state_proof_tracking_data';\n"
+                "export type { BlockStateProofTracking } from './block_state_proof_tracking';\n"
+                "export { BlockStateProofTrackingMeta } from './block_state_proof_tracking';\n"
+                "export type { Block } from './block';\n"
+                "export { BlockMeta } from './block';\n"
+                "export type { SignedTxnInBlock } from './signed-txn-in-block';\n"
+                "export { SignedTxnInBlockMeta } from './signed-txn-in-block';\n"
+                "export type { GetBlock } from './get-block';\n"
+                "export { GetBlockMeta } from './get-block';\n"
+            )
+            files[index_path] = base_index + extras
         files.update(self.operation_processor.generate_service(output_dir, ops_by_tag, tags, service_class))
         files.update(self._generate_client_files(output_dir, client_class, service_class))
 
         return files
+
+    @staticmethod
+    def _detect_client_type(spec: Schema) -> str:
+        """Detect client type from the OpenAPI spec title."""
+        try:
+            title = (spec.get("info", {}) or {}).get("title", "")
+            if not isinstance(title, str):
+                return "Api"
+            tl = title.lower()
+            if "algod" in tl:
+                return "Algod"
+            if "indexer" in tl:
+                return "Indexer"
+            if "kmd" in tl:
+                return "Kmd"
+            return (title.split()[0] or "Api").title()
+        except Exception:
+            return "Api"
 
     def _generate_runtime(
         self,
