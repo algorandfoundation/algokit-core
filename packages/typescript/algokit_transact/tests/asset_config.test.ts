@@ -16,7 +16,7 @@ import { Transaction, TransactionType, validateTransaction } from '../src/transa
 
 const txnTestData = Object.entries({
   ['asset create']: testData.assetCreate,
-  ['asset reconfigure']: testData.assetReconfigure,
+  ['asset config']: testData.assetConfig,
   ['asset destroy']: testData.assetDestroy,
 })
 

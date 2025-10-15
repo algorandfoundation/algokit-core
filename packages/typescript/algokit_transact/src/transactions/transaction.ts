@@ -10,7 +10,15 @@ import {
 } from '@algorandfoundation/algokit-common'
 import { addressCodec, bigIntCodec, booleanCodec, bytesCodec, numberCodec, OmitEmptyObjectCodec, stringCodec } from '../encoding/codecs'
 import { decodeMsgpack, encodeMsgpack } from '../encoding/msgpack'
-import { AssetParamsDto, StateSchemaDto, TransactionDto } from '../encoding/transaction-dto'
+import {
+  AssetParamsDto,
+  HeartbeatParamsDto,
+  HeartbeatProofDto,
+  MerkleArrayProofDto,
+  RevealDto,
+  StateSchemaDto,
+  TransactionDto,
+} from '../encoding/transaction-dto'
 import { AppCallTransactionFields, OnApplicationComplete, StateSchema, validateAppCallTransaction } from './app-call'
 import { AssetConfigTransactionFields, validateAssetConfigTransaction } from './asset-config'
 import { AssetFreezeTransactionFields, validateAssetFreezeTransaction } from './asset-freeze'
@@ -18,6 +26,8 @@ import { AssetTransferTransactionFields, validateAssetTransferTransaction } from
 import { getValidationErrorMessage, TransactionValidationError } from './common'
 import { KeyRegistrationTransactionFields, validateKeyRegistrationTransaction } from './key-registration'
 import { PaymentTransactionFields } from './payment'
+import { HeartbeatTransactionFields } from './heartbeat'
+import { MerkleArrayProof, Reveal, StateProofTransactionFields } from './state-proof'
 
 /**
  * Represents a complete Algorand transaction.
@@ -133,6 +143,16 @@ export type Transaction = {
    * Asset freeze specific fields
    */
   assetFreeze?: AssetFreezeTransactionFields
+
+  /**
+   * Heartbeat specific fields
+   */
+  heartbeat?: HeartbeatTransactionFields
+
+  /**
+   * State proof specific fields
+   */
+  stateProof?: StateProofTransactionFields
 }
 
 /**
@@ -229,6 +249,8 @@ export function validateTransaction(transaction: Transaction): void {
     transaction.appCall,
     transaction.keyRegistration,
     transaction.assetFreeze,
+    transaction.heartbeat,
+    transaction.stateProof,
   ]
 
   const setFieldsCount = typeFields.filter((field) => field !== undefined).length
@@ -513,6 +535,8 @@ function fromOnApplicationCompleteDto(onComplete: TransactionDto['apan']): OnApp
 const stateSchemaCodec = new OmitEmptyObjectCodec<StateSchema>()
 const stateSchemaDtoCodec = new OmitEmptyObjectCodec<StateSchemaDto>()
 const assetParamsDtoCodec = new OmitEmptyObjectCodec<AssetParamsDto>()
+const heartbeatParamsDtoCodec = new OmitEmptyObjectCodec<HeartbeatParamsDto>()
+const heartbeatProofDtoCodec = new OmitEmptyObjectCodec<HeartbeatProofDto>()
 
 export function toTransactionDto(transaction: Transaction): TransactionDto {
   const txDto: TransactionDto = {
@@ -600,6 +624,74 @@ export function toTransactionDto(transaction: Transaction): TransactionDto {
     txDto.votekd = bigIntCodec.encode(transaction.keyRegistration.voteKeyDilution)
     txDto.sprfkey = bytesCodec.encode(transaction.keyRegistration.stateProofKey)
     txDto.nonpart = booleanCodec.encode(transaction.keyRegistration.nonParticipation)
+  }
+
+  if (transaction.heartbeat) {
+    txDto.hb = heartbeatParamsDtoCodec.encode({
+      a: addressCodec.encode(transaction.heartbeat.address),
+      prf: heartbeatProofDtoCodec.encode({
+        s: bytesCodec.encode(transaction.heartbeat.proof.sig),
+        p: bytesCodec.encode(transaction.heartbeat.proof.pk),
+        p2: bytesCodec.encode(transaction.heartbeat.proof.pk2),
+        p1s: bytesCodec.encode(transaction.heartbeat.proof.pk1Sig),
+        p2s: bytesCodec.encode(transaction.heartbeat.proof.pk2Sig),
+      }),
+      sd: bytesCodec.encode(transaction.heartbeat.seed),
+      vid: bytesCodec.encode(transaction.heartbeat.voteId),
+      kd: bigIntCodec.encode(transaction.heartbeat.keyDilution),
+    })
+  }
+
+  if (transaction.stateProof) {
+    txDto.sptype = numberCodec.encode(transaction.stateProof.stateProofType)
+
+    if (transaction.stateProof.stateProof) {
+      const sp = transaction.stateProof.stateProof
+
+      txDto.sp = {
+        c: bytesCodec.encode(sp.sigCommit),
+        w: bigIntCodec.encode(sp.signedWeight),
+        S: toMerkleArrayProofDto(sp.sigProofs),
+        P: toMerkleArrayProofDto(sp.partProofs),
+        v: numberCodec.encode(sp.merkleSignatureSaltVersion),
+        r: new Map(
+          sp.reveals.map((reveal) => [
+            reveal.position,
+            {
+              s: {
+                s: {
+                  sig: bytesCodec.encode(reveal.sigslot.sig.signature),
+                  idx: bigIntCodec.encode(reveal.sigslot.sig.vectorCommitmentIndex),
+                  prf: toMerkleArrayProofDto(reveal.sigslot.sig.proof),
+                  vkey: {
+                    k: bytesCodec.encode(reveal.sigslot.sig.verifyingKey.publicKey),
+                  },
+                },
+                l: bigIntCodec.encode(reveal.sigslot.lowerSigWeight),
+              },
+              p: {
+                p: {
+                  cmt: bytesCodec.encode(reveal.participant.verifier.commitment),
+                  lf: bigIntCodec.encode(reveal.participant.verifier.keyLifetime),
+                },
+                w: bigIntCodec.encode(reveal.participant.weight),
+              },
+            } satisfies RevealDto,
+          ]),
+        ),
+        pr: sp.positionsToReveal, // Map directly because positionsToReveal array can contain zeros,
+      }
+    }
+
+    if (transaction.stateProof.message) {
+      txDto.spmsg = {
+        b: bytesCodec.encode(transaction.stateProof.message.blockHeadersCommitment),
+        v: bytesCodec.encode(transaction.stateProof.message.votersCommitment),
+        P: bigIntCodec.encode(transaction.stateProof.message.lnProvenWeight),
+        f: bigIntCodec.encode(transaction.stateProof.message.firstAttestedRound),
+        l: bigIntCodec.encode(transaction.stateProof.message.lastAttestedRound),
+      }
+    }
   }
 
   return txDto
@@ -707,7 +799,102 @@ export function fromTransactionDto(transactionDto: TransactionDto): Transaction 
         nonParticipation: booleanCodec.decodeOptional(transactionDto.nonpart),
       }
       break
+    case TransactionType.Heartbeat:
+      if (transactionDto.hb) {
+        tx.heartbeat = {
+          address: addressCodec.decode(transactionDto.hb.a),
+          proof: {
+            sig: bytesCodec.decode(transactionDto.hb.prf?.s),
+            pk: bytesCodec.decode(transactionDto.hb.prf?.p),
+            pk2: bytesCodec.decode(transactionDto.hb.prf?.p2),
+            pk1Sig: bytesCodec.decode(transactionDto.hb.prf?.p1s),
+            pk2Sig: bytesCodec.decode(transactionDto.hb.prf?.p2s),
+          },
+          seed: bytesCodec.decode(transactionDto.hb.sd),
+          voteId: bytesCodec.decode(transactionDto.hb.vid),
+          keyDilution: bigIntCodec.decode(transactionDto.hb.kd),
+        }
+      }
+      break
+    case TransactionType.StateProof:
+      tx.stateProof = {
+        stateProofType: transactionDto.sptype ?? 0,
+        stateProof: transactionDto.sp
+          ? {
+              sigCommit: bytesCodec.decode(transactionDto.sp.c),
+              signedWeight: bigIntCodec.decode(transactionDto.sp.w),
+              sigProofs: fromMerkleArrayProofDto(transactionDto.sp.S),
+              partProofs: fromMerkleArrayProofDto(transactionDto.sp.P),
+              merkleSignatureSaltVersion: numberCodec.decode(transactionDto.sp.v),
+              reveals: Array.from(transactionDto.sp.r?.entries() ?? []).map(
+                ([key, reveal]) =>
+                  ({
+                    position: bigIntCodec.decode(key),
+                    sigslot: {
+                      sig: {
+                        signature: bytesCodec.decode(reveal.s?.s?.sig),
+                        vectorCommitmentIndex: bigIntCodec.decode(reveal.s?.s?.idx),
+                        proof: fromMerkleArrayProofDto(reveal.s?.s?.prf),
+                        verifyingKey: {
+                          publicKey: bytesCodec.decode(reveal.s?.s?.vkey?.k),
+                        },
+                      },
+                      lowerSigWeight: bigIntCodec.decode(reveal.s?.l),
+                    },
+                    participant: {
+                      verifier: {
+                        commitment: bytesCodec.decode(reveal.p?.p?.cmt),
+                        keyLifetime: bigIntCodec.decode(reveal.p?.p?.lf),
+                      },
+                      weight: bigIntCodec.decode(reveal.p?.w),
+                    },
+                  }) satisfies Reveal,
+              ),
+              positionsToReveal: transactionDto.sp.pr?.map((p) => bigIntCodec.decode(p)) ?? [],
+            }
+          : undefined,
+        message: transactionDto.spmsg
+          ? {
+              blockHeadersCommitment: bytesCodec.decode(transactionDto.spmsg.b),
+              votersCommitment: bytesCodec.decode(transactionDto.spmsg.v),
+              lnProvenWeight: bigIntCodec.decode(transactionDto.spmsg.P),
+              firstAttestedRound: bigIntCodec.decode(transactionDto.spmsg.f),
+              lastAttestedRound: bigIntCodec.decode(transactionDto.spmsg.l),
+            }
+          : undefined,
+      }
+      break
   }
 
   return tx
+}
+
+function toMerkleArrayProofDto(model: MerkleArrayProof): MerkleArrayProofDto {
+  return {
+    pth: model.path.map((p) => bytesCodec.encode(p)),
+    hsh: {
+      t: numberCodec.encode(model.hashFactory.hashType),
+    },
+    td: numberCodec.encode(model.treeDepth),
+  }
+}
+
+function fromMerkleArrayProofDto(dto?: MerkleArrayProofDto): MerkleArrayProof {
+  if (!dto) {
+    return {
+      path: [],
+      hashFactory: {
+        hashType: 0,
+      },
+      treeDepth: 0,
+    }
+  }
+
+  return {
+    path: dto.pth?.map((p) => bytesCodec.decode(p)),
+    hashFactory: {
+      hashType: numberCodec.decode(dto.hsh?.t),
+    },
+    treeDepth: numberCodec.decode(dto.td ?? 0),
+  }
 }
