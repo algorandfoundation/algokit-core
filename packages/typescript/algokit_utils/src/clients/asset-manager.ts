@@ -1,7 +1,8 @@
-import { type AccountAssetInformation, AlgodClient } from '@algorandfoundation/algod-client'
+import { AccountAssetInformation, AlgodClient, ApiError } from '@algorandfoundation/algod-client'
 import { AssetOptInParams, AssetOptOutParams } from '../transactions/asset-transfer'
 import { TransactionComposer } from '../transactions/composer'
-import { Buffer } from 'buffer'
+import { MAX_TX_GROUP_SIZE } from '@algorandfoundation/algokit-common'
+import { chunkArray, createError } from '../util'
 
 /** Individual result from performing a bulk opt-in or bulk opt-out for an account against a series of assets. */
 export interface BulkAssetOptInOutResult {
@@ -100,7 +101,7 @@ export interface AssetInformation {
    *
    * Max size is 8 bytes.
    */
-  unitNameB64?: Uint8Array
+  unitNameAsBytes?: Uint8Array
 
   /** The optional name of the asset.
    *
@@ -112,7 +113,7 @@ export interface AssetInformation {
    *
    * Max size is 32 bytes.
    */
-  assetNameB64?: Uint8Array
+  assetNameAsBytes?: Uint8Array
 
   /** Optional URL where more information about the asset can be retrieved (e.g. metadata).
    *
@@ -124,7 +125,7 @@ export interface AssetInformation {
    *
    * Max size is 96 bytes.
    */
-  urlB64?: Uint8Array
+  urlAsBytes?: Uint8Array
 
   /** 32-byte hash of some metadata that is relevant to the asset and/or asset holders.
    *
@@ -135,8 +136,8 @@ export interface AssetInformation {
 
 /** Manages Algorand Standard Assets. */
 export class AssetManager {
-  private algodClient: AlgodClient
-  private newComposer: () => TransactionComposer
+  private readonly algodClient: AlgodClient
+  private readonly newComposer: () => TransactionComposer
 
   constructor(algodClient: AlgodClient, newComposer: () => TransactionComposer) {
     this.algodClient = algodClient
@@ -147,26 +148,32 @@ export class AssetManager {
    * Returns a convenient, flattened view of the asset information.
    */
   async getById(assetId: bigint): Promise<AssetInformation> {
-    const asset = await this.algodClient.getAssetById(Number(assetId))
+    try {
+      const asset = await this.algodClient.getAssetById(assetId)
 
-    return {
-      assetId: asset.index,
-      creator: asset.params.creator,
-      total: asset.params.total,
-      decimals: Number(asset.params.decimals), // TODO: this should be number in algod client
-      defaultFrozen: asset.params.defaultFrozen,
-      manager: asset.params.manager,
-      reserve: asset.params.reserve,
-      freeze: asset.params.freeze,
-      clawback: asset.params.clawback,
-      unitName: asset.params.unitName,
-      // TODO: update algod client to make base64 string uint8array
-      unitNameB64: asset.params.unitNameB64 ? new Uint8Array(Buffer.from(asset.params.unitNameB64, 'base64')) : undefined,
-      assetName: asset.params.name,
-      assetNameB64: asset.params.nameB64 ? new Uint8Array(Buffer.from(asset.params.nameB64, 'base64')) : undefined,
-      url: asset.params.url,
-      urlB64: asset.params.urlB64 ? new Uint8Array(Buffer.from(asset.params.urlB64, 'base64')) : undefined,
-      metadataHash: asset.params.metadataHash ? new Uint8Array(Buffer.from(asset.params.metadataHash, 'base64')) : undefined,
+      return {
+        assetId: asset.index,
+        creator: asset.params.creator,
+        total: asset.params.total,
+        decimals: Number(asset.params.decimals),
+        defaultFrozen: asset.params.defaultFrozen,
+        manager: asset.params.manager,
+        reserve: asset.params.reserve,
+        freeze: asset.params.freeze,
+        clawback: asset.params.clawback,
+        unitName: asset.params.unitName,
+        unitNameAsBytes: asset.params.unitNameB64,
+        assetName: asset.params.name,
+        assetNameAsBytes: asset.params.nameB64,
+        url: asset.params.url,
+        urlAsBytes: asset.params.urlB64,
+        metadataHash: asset.params.metadataHash,
+      }
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 404) {
+        throw createError(`Asset not found: ${assetId}`, error)
+      }
+      throw createError(`Failed to fetch asset information for asset ${assetId}`, error)
     }
   }
 
@@ -175,7 +182,19 @@ export class AssetManager {
    * Access asset holding via `account_info.asset_holding` and asset params via `account_info.asset_params`.
    */
   async getAccountInformation(sender: string, assetId: bigint): Promise<AccountAssetInformation> {
-    return await this.algodClient.accountAssetInformation(sender, Number(assetId))
+    try {
+      return await this.algodClient.accountAssetInformation(sender, assetId, { format: 'json' })
+    } catch (error) {
+      if (error instanceof ApiError) {
+        if (error.status === 404) {
+          throw createError(`Account ${sender} is not opted into asset ${assetId}`, error)
+        }
+        if (error.status === 400) {
+          throw createError(`Account not found: ${sender}`, error)
+        }
+      }
+      throw createError(`Failed to fetch account asset information for account ${sender} and asset ${assetId}`, error)
+    }
   }
 
   async bulkOptIn(account: string, assetIds: bigint[]): Promise<BulkAssetOptInOutResult[]> {
@@ -183,26 +202,44 @@ export class AssetManager {
       return []
     }
 
-    const composer = this.newComposer()
+    // Ignore duplicate asset IDs while preserving input order
+    const uniqueIds = [...new Set(assetIds)]
 
-    // Add asset opt-in transactions for each asset
-    for (const assetId of assetIds) {
-      const optInParams: AssetOptInParams = {
-        sender: account,
-        assetId,
+    const results: BulkAssetOptInOutResult[] = []
+
+    for (const batch of chunkArray(uniqueIds, MAX_TX_GROUP_SIZE)) {
+      const composer = this.newComposer()
+
+      for (const assetId of batch) {
+        const params: AssetOptInParams = {
+          sender: account,
+          assetId,
+        }
+
+        try {
+          composer.addAssetOptIn(params)
+        } catch (error) {
+          throw createError(`Failed to add opt-in for asset ${assetId}`, error)
+        }
       }
 
-      composer.addAssetOptIn(optInParams)
+      try {
+        const result = await composer.send()
+
+        if (result.results.length !== batch.length) {
+          throw new Error(`Composer returned an unexpected number of results (expected ${batch.length}, actual ${result.results.length})`)
+        }
+
+        batch.forEach((assetId, index) => {
+          results.push({
+            assetId,
+            transactionId: result.results[index].transactionId,
+          })
+        })
+      } catch (error) {
+        throw createError('Failed to submit opt-in transactions', error)
+      }
     }
-
-    // Send the transaction group
-    const composerResults = await composer.send()
-
-    // Map transaction IDs back to assets
-    const results: BulkAssetOptInOutResult[] = assetIds.map((assetId, index) => ({
-      assetId,
-      transactionId: composerResults.transactionIds[index],
-    }))
 
     return results
   }
@@ -212,53 +249,67 @@ export class AssetManager {
       return []
     }
 
-    const shouldCheckBalance = ensureZeroBalance ?? false
+    // Ignore duplicate asset IDs while preserving input order
+    const uniqueIds = [...new Set(assetIds)]
 
-    // If we need to check balances, verify they are all zero
+    const shouldCheckBalance = ensureZeroBalance ?? false
+    const results: BulkAssetOptInOutResult[] = []
+
     if (shouldCheckBalance) {
-      for (const assetId of assetIds) {
+      for (const assetId of uniqueIds) {
         const accountInfo = await this.getAccountInformation(account, assetId)
-        const balance = accountInfo.assetHolding?.amount ?? 0
-        if (balance > 0) {
-          throw new Error(`Account ${account} has non-zero balance ${balance} for asset ${assetId}`)
+
+        const balance = accountInfo.assetHolding?.amount ?? 0n
+        if (balance > 0n) {
+          throw new Error(`Account ${account} has non-zero balance (${balance}) for asset ${assetId}`)
         }
       }
     }
 
-    // Fetch asset information to get creators
-    const assetCreators: string[] = []
-    for (const assetId of assetIds) {
-      try {
-        const assetInfo = await this.getById(assetId)
-        assetCreators.push(assetInfo.creator)
-      } catch {
-        throw new Error(`Asset not found: ${assetId}`)
-      }
+    // Precompute creator cache for all assetIds before batching
+    const creatorCache = new Map<bigint, string>()
+    for (const assetId of uniqueIds) {
+      const assetInfo = await this.getById(assetId)
+      creatorCache.set(assetId, assetInfo.creator)
     }
 
-    const composer = this.newComposer()
+    // Prepare stable pairs to preserve input order
+    const assetCreatorPairs = uniqueIds.map((assetId) => [assetId, creatorCache.get(assetId)!] as const)
 
-    // Add asset opt-out transactions for each asset
-    assetIds.forEach((assetId, index) => {
-      const creator = assetCreators[index]
+    for (const batch of chunkArray(assetCreatorPairs, MAX_TX_GROUP_SIZE)) {
+      const composer = this.newComposer()
 
-      const optOutParams: AssetOptOutParams = {
-        sender: account,
-        assetId,
-        closeRemainderTo: creator,
+      for (const [assetId, creator] of batch) {
+        const params: AssetOptOutParams = {
+          sender: account,
+          assetId,
+          closeRemainderTo: creator,
+        }
+
+        try {
+          composer.addAssetOptOut(params)
+        } catch (error) {
+          throw createError(`Failed to add opt-out for asset ${assetId}`, error)
+        }
       }
 
-      composer.addAssetOptOut(optOutParams)
-    })
+      try {
+        const result = await composer.send()
 
-    // Send the transaction group
-    const composerResults = await composer.send()
+        if (result.results.length !== batch.length) {
+          throw new Error(`Composer returned an unexpected number of results (expected ${batch.length}, actual ${result.results.length})`)
+        }
 
-    // Map transaction IDs back to assets
-    const results: BulkAssetOptInOutResult[] = assetIds.map((assetId, index) => ({
-      assetId,
-      transactionId: composerResults.transactionIds[index],
-    }))
+        batch.forEach(([assetId], index) => {
+          results.push({
+            assetId,
+            transactionId: result.results[index].transactionId,
+          })
+        })
+      } catch (error) {
+        throw createError('Failed to submit opt-out transactions', error)
+      }
+    }
 
     return results
   }

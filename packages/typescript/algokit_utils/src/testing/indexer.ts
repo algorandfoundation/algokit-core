@@ -1,3 +1,5 @@
+import { IndexerClient } from '@algorandfoundation/indexer-client'
+
 /**
  * Runs the given indexer call until a 404 error is no longer returned.
  * Tried every 200ms up to 100 times.
@@ -32,4 +34,16 @@ export async function runWhenIndexerCaughtUp<T>(run: () => Promise<T>): Promise<
   }
 
   return result as T
+}
+
+/**
+ * Waits for the given transaction to be indexed by the indexer.
+ * @param indexer The indexer client
+ * @param txId The transaction ID
+ * @returns The transaction
+ */
+export async function waitForIndexerTransaction(indexer: IndexerClient, txId: string): Promise<void> {
+  await runWhenIndexerCaughtUp(async () => {
+    await indexer.lookupTransaction(txId)
+  })
 }

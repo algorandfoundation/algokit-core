@@ -12,9 +12,7 @@ use algokit_http_client::{HttpClient, HttpMethod};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use super::parameter_enums::*;
 use super::{AlgodApiError, ContentType, Error};
-use algokit_transact::AlgorandMsgpack;
 
 // Import all custom types used by this endpoint
 use crate::models::{AccountAssetInformation, ErrorResponse};
@@ -39,11 +37,9 @@ pub async fn account_asset_information(
     http_client: &dyn HttpClient,
     address: &str,
     asset_id: u64,
-    format: Option<Format>,
 ) -> Result<AccountAssetInformation, Error> {
     let p_address = address;
     let p_asset_id = asset_id;
-    let p_format = format;
 
     let path = format!(
         "/v2/accounts/{address}/assets/{asset_id}",
@@ -51,19 +47,10 @@ pub async fn account_asset_information(
         asset_id = p_asset_id
     );
 
-    let mut query_params: HashMap<String, String> = HashMap::new();
-    if let Some(value) = p_format {
-        query_params.insert("format".to_string(), value.to_string());
-    }
-
-    let use_msgpack = p_format.map(|f| f != Format::Json).unwrap_or(true);
+    let query_params: HashMap<String, String> = HashMap::new();
 
     let mut headers: HashMap<String, String> = HashMap::new();
-    if use_msgpack {
-        headers.insert("Accept".to_string(), "application/msgpack".to_string());
-    } else {
-        headers.insert("Accept".to_string(), "application/json".to_string());
-    }
+    headers.insert("Accept".to_string(), "application/json".to_string());
 
     let body = None;
 
@@ -88,8 +75,8 @@ pub async fn account_asset_information(
         ContentType::Json => serde_json::from_slice(&response.body).map_err(|e| Error::Serde {
             message: e.to_string(),
         }),
-        ContentType::MsgPack => rmp_serde::from_slice(&response.body).map_err(|e| Error::Serde {
-            message: e.to_string(),
+        ContentType::MsgPack => Err(Error::Serde {
+            message: "MsgPack not supported".to_string(),
         }),
         ContentType::Text => {
             let text = String::from_utf8(response.body).map_err(|e| Error::Serde {

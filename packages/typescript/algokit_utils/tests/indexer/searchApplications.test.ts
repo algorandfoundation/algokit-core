@@ -1,10 +1,12 @@
 import { expect, it, describe } from 'vitest'
 import { IndexerClient } from '@algorandfoundation/indexer-client'
-import { createDummyApp, getIndexerEnv, waitForIndexerTransaction } from './helpers'
+import { createAlgorandTestContext, createTestApp, getIndexerEnv } from '../fixtures'
+import { waitForIndexerTransaction } from '../../src'
 
 describe('Indexer search applications', () => {
   it('should search for applications', async () => {
-    const { appId, txId } = await createDummyApp()
+    const context = await createAlgorandTestContext()
+    const { appId, txId } = await createTestApp(context)
 
     const env = getIndexerEnv()
     const client = new IndexerClient({ baseUrl: env.indexerBaseUrl, apiToken: env.indexerApiToken ?? undefined })

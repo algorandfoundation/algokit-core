@@ -14,7 +14,6 @@ use std::collections::HashMap;
 
 use super::parameter_enums::*;
 use super::{AlgodApiError, ContentType, Error};
-use algokit_transact::AlgorandMsgpack;
 
 // Import all custom types used by this endpoint
 use crate::models::{Account, ErrorResponse};
@@ -39,11 +38,9 @@ pub async fn account_information(
     http_client: &dyn HttpClient,
     address: &str,
     exclude: Option<Exclude>,
-    format: Option<Format>,
 ) -> Result<Account, Error> {
     let p_address = address;
     let p_exclude = exclude;
-    let p_format = format;
 
     let path = format!(
         "/v2/accounts/{address}",
@@ -54,18 +51,9 @@ pub async fn account_information(
     if let Some(value) = p_exclude {
         query_params.insert("exclude".to_string(), value.to_string());
     }
-    if let Some(value) = p_format {
-        query_params.insert("format".to_string(), value.to_string());
-    }
-
-    let use_msgpack = p_format.map(|f| f != Format::Json).unwrap_or(true);
 
     let mut headers: HashMap<String, String> = HashMap::new();
-    if use_msgpack {
-        headers.insert("Accept".to_string(), "application/msgpack".to_string());
-    } else {
-        headers.insert("Accept".to_string(), "application/json".to_string());
-    }
+    headers.insert("Accept".to_string(), "application/json".to_string());
 
     let body = None;
 
@@ -90,8 +78,8 @@ pub async fn account_information(
         ContentType::Json => serde_json::from_slice(&response.body).map_err(|e| Error::Serde {
             message: e.to_string(),
         }),
-        ContentType::MsgPack => rmp_serde::from_slice(&response.body).map_err(|e| Error::Serde {
-            message: e.to_string(),
+        ContentType::MsgPack => Err(Error::Serde {
+            message: "MsgPack not supported".to_string(),
         }),
         ContentType::Text => {
             let text = String::from_utf8(response.body).map_err(|e| Error::Serde {

@@ -148,7 +148,7 @@ async fn test_asset_freeze_unfreeze(
     // Step 6: Verify account holding shows asset is frozen via algod API
     let account_info = algorand_fixture
         .algod
-        .account_information(&target_addr.to_string(), None, None)
+        .account_information(&target_addr.to_string(), None)
         .await?;
 
     let assets = account_info.assets.expect("Account should have assets");
@@ -227,7 +227,7 @@ async fn test_asset_freeze_unfreeze(
     // Step 10: Verify account holding shows asset is no longer frozen via algod API
     let account_info_after = algorand_fixture
         .algod
-        .account_information(&target_addr.to_string(), None, None)
+        .account_information(&target_addr.to_string(), None)
         .await?;
 
     let assets_after = account_info_after

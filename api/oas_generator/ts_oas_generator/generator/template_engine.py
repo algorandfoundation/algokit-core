@@ -385,13 +385,13 @@ class OperationProcessor:
 
             # Extract parameter details
             raw_name = str(param.get("name"))
-            # Skip `format` query param when it's constrained to only msgpack
+            # Skip `format` query param when it's constrained to a single format (json or msgpack)
             location_candidate = param.get(constants.OperationKey.IN, constants.ParamLocation.QUERY)
             if location_candidate == constants.ParamLocation.QUERY and raw_name == constants.FORMAT_PARAM_NAME:
                 schema_obj = param.get("schema", {}) or {}
                 enum_vals = schema_obj.get(constants.SchemaKey.ENUM)
-                if isinstance(enum_vals, list) and len(enum_vals) == 1 and enum_vals[0] == "msgpack":
-                    # Endpoint only supports msgpack; do not expose/append `format`
+                if isinstance(enum_vals, list) and len(enum_vals) == 1 and enum_vals[0] in ("msgpack", "json"):
+                    # Endpoint only supports a single format; do not expose/append `format`
                     continue
             var_name = self._sanitize_variable_name(ts_camel_case(raw_name), used_names)
             used_names.add(var_name)

@@ -120,7 +120,7 @@ impl LocalNetDispenser {
             let mut highest_balance = 0u64;
 
             for address in &addresses {
-                match self.client.account_information(address, None, None).await {
+                match self.client.account_information(address, None).await {
                     Ok(info) => {
                         if info.amount > highest_balance {
                             highest_balance = info.amount;

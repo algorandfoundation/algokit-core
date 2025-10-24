@@ -1,3 +1,5 @@
+// disable eslint for this file TODO: Remove once algorand-client is fully implemented
+/* eslint-disable */
 import { AlgoConfig } from './clients/network-client'
 import { TransactionComposerConfig } from './transactions/composer'
 import type { AlgodClient } from '@algorandfoundation/algod-client'

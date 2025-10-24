@@ -57,7 +57,7 @@ async fn test_offline_key_registration_transaction(
     // Verify account participation status
     let account_info = algorand_fixture
         .algod
-        .account_information(&sender_addr.to_string(), None, None)
+        .account_information(&sender_addr.to_string(), None)
         .await?;
 
     // For offline registration, participation should be empty/none
@@ -131,7 +131,7 @@ async fn test_non_participation_key_registration_transaction(
     // Verify account is now online
     let account_info = algorand_fixture
         .algod
-        .account_information(&sender_addr.to_string(), None, None)
+        .account_information(&sender_addr.to_string(), None)
         .await?;
 
     assert!(
@@ -185,7 +185,7 @@ async fn test_non_participation_key_registration_transaction(
     // Verify account participation status
     let account_info = algorand_fixture
         .algod
-        .account_information(&sender_addr.to_string(), None, None)
+        .account_information(&sender_addr.to_string(), None)
         .await?;
 
     // For non-participation, participation should be empty/none
@@ -344,7 +344,7 @@ async fn test_online_key_registration_transaction(
     // Verify account participation status
     let account_info = algorand_fixture
         .algod
-        .account_information(&sender_addr.to_string(), None, None)
+        .account_information(&sender_addr.to_string(), None)
         .await?;
 
     // For online registration, participation should contain the keys

@@ -129,13 +129,10 @@ jobs:
         working-directory: packages/typescript
         run: npm run lint --workspace ${{ matrix.workspace }}
 
-      - name: Build all TypeScript packages
+      - name: Build workspace
         working-directory: packages/typescript
         run: |
-          npm run build --workspace @algorandfoundation/algokit-common
-          npm run build --workspace @algorandfoundation/algokit-abi
-          npm run build --workspace @algorandfoundation/algokit-transact
-          npm run build --workspace ${{ matrix.workspace }}
+          npm run build
 
       - name: Update package links after build
         working-directory: packages/typescript

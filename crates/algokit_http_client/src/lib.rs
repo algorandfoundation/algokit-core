@@ -10,6 +10,9 @@ uniffi::setup_scaffolding!();
 pub enum HttpError {
     #[snafu(display("HttpError: {message}"))]
     RequestError { message: String },
+    // Keep legacy style to preserve downstream string-matching tests
+    #[snafu(display("Request failed with status {status}: {message}"))]
+    StatusError { status: u16, message: String },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -151,12 +154,16 @@ impl HttpClient for DefaultHttpClient {
 
         if !response.status().is_success() {
             let status = response.status();
+            let status_code = status.as_u16();
             let text = response
                 .text()
                 .await
                 .unwrap_or_else(|_| "Failed to read error response text".to_string());
-            return Err(HttpError::RequestError {
-                message: format!("Request failed with status {}: {}", status, text),
+            // Include status display string (e.g., "400 Bad Request") in message to match legacy expectations
+            let message = format!("{}: {}", status, text);
+            return Err(HttpError::StatusError {
+                status: status_code,
+                message,
             });
         }
 

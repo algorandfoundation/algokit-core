@@ -1,7 +1,7 @@
 import { expect, it, describe } from 'vitest'
 import { AlgodClient, PendingTransactionResponse } from '@algorandfoundation/algod-client'
 import { encodeSignedTransaction, getTransactionId, TransactionType, type Transaction } from '@algorandfoundation/algokit-transact'
-import { getAlgodEnv, getSenderAccount, signTransaction } from './helpers'
+import { getAlgodEnv, getSenderAccount, signTransaction } from '../fixtures'
 
 describe('Algod pendingTransaction', () => {
   it('submits a payment tx and queries pending info', async () => {

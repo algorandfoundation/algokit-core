@@ -1,7 +1,7 @@
 import { Expand } from '@algorandfoundation/algokit-common'
 import { Transaction } from '@algorandfoundation/algokit-transact'
 import { AssetManager } from '../clients/asset-manager'
-import { PendingTransactionResponse } from '../temp'
+import type { PendingTransactionResponse } from '@algorandfoundation/algod-client'
 import type {
   AppCallMethodCallParams,
   AppCallParams,
@@ -137,13 +137,13 @@ export class TransactionSender {
       params,
       (composer, p) => composer.addAssetCreate(p),
       (baseResult) => {
-        const assetIndex = baseResult.confirmation.assetIndex
-        if (assetIndex === undefined || assetIndex <= 0) {
-          throw new Error('Asset creation confirmation missing assetIndex')
+        const assetId = baseResult.confirmation.assetId
+        if (assetId === undefined || assetId <= 0n) {
+          throw new Error('Asset creation confirmation missing assetId')
         }
         return {
           ...baseResult,
-          assetId: assetIndex,
+          assetId: assetId,
         }
       },
       sendParams,
@@ -308,13 +308,13 @@ export class TransactionSender {
       params,
       (composer, p) => composer.addAppCreate(p),
       (baseResult) => {
-        const applicationIndex = baseResult.confirmation.applicationIndex
-        if (applicationIndex === undefined || applicationIndex <= 0) {
-          throw new Error('App creation confirmation missing applicationIndex')
+        const appId = baseResult.confirmation.appId
+        if (appId === undefined || appId <= 0n) {
+          throw new Error('App creation confirmation missing appId')
         }
         return {
           ...baseResult,
-          appId: applicationIndex,
+          appId: appId,
         }
       },
       sendParams,
@@ -366,13 +366,13 @@ export class TransactionSender {
       params,
       (composer, p) => composer.addAppCreateMethodCall(p),
       (baseResult) => {
-        const applicationIndex = baseResult.result.confirmation.applicationIndex
-        if (applicationIndex === undefined || applicationIndex <= 0) {
-          throw new Error('App creation confirmation missing applicationIndex')
+        const appId = baseResult.result.confirmation.appId
+        if (appId === undefined || appId <= 0n) {
+          throw new Error('App creation confirmation missing appId')
         }
         return {
           ...baseResult,
-          appId: applicationIndex,
+          appId: appId,
         }
       },
       sendParams,

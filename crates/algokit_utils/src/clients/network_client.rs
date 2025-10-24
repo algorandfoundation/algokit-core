@@ -1,5 +1,8 @@
 use std::collections::HashMap;
 
+const TESTNET_GENESIS_IDS: [&str; 3] = ["testnet-v1.0", "testnet-v1", "testnet"];
+const MAINNET_GENESIS_IDS: [&str; 3] = ["mainnet-v1.0", "mainnet-v1", "mainnet"];
+
 #[derive(Debug, Clone)]
 pub enum TokenHeader {
     String(String),
@@ -122,8 +125,12 @@ pub struct NetworkDetails {
 impl NetworkDetails {
     pub fn new(genesis_id: String, genesis_hash: String) -> Self {
         let is_localnet = genesis_id_is_localnet(&genesis_id);
-        let is_testnet = genesis_id == "testnet-v1.0";
-        let is_mainnet = genesis_id == "mainnet-v1.0";
+        let is_testnet = TESTNET_GENESIS_IDS
+            .iter()
+            .any(|known| known.eq_ignore_ascii_case(&genesis_id));
+        let is_mainnet = MAINNET_GENESIS_IDS
+            .iter()
+            .any(|known| known.eq_ignore_ascii_case(&genesis_id));
 
         Self {
             is_testnet,

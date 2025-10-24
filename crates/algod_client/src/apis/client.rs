@@ -151,13 +151,11 @@ impl AlgodClient {
         &self,
         address: &str,
         exclude: Option<Exclude>,
-        format: Option<Format>,
     ) -> Result<Account, Error> {
         let result = super::account_information::account_information(
             self.http_client.as_ref(),
             address,
             exclude,
-            format,
         )
         .await;
 
@@ -169,13 +167,11 @@ impl AlgodClient {
         &self,
         address: &str,
         asset_id: u64,
-        format: Option<Format>,
     ) -> Result<AccountAssetInformation, Error> {
         let result = super::account_asset_information::account_asset_information(
             self.http_client.as_ref(),
             address,
             asset_id,
-            format,
         )
         .await;
 

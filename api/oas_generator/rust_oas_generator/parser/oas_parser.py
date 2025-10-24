@@ -787,12 +787,12 @@ class OASParser:
         if not name:
             return None
 
-        # Skip `format` query parameter when constrained to msgpack only
+        # Skip `format` query parameter when constrained to a single format (json or msgpack)
         in_location = param_data.get("in", "query")
         if name == "format" and in_location == "query":
             schema_obj = param_data.get("schema", {}) or {}
             enum_vals = schema_obj.get("enum")
-            if isinstance(enum_vals, list) and len(enum_vals) == 1 and enum_vals[0] == "msgpack":
+            if isinstance(enum_vals, list) and len(enum_vals) == 1 and enum_vals[0] in ("msgpack", "json"):
                 return None
 
         schema = param_data.get("schema", {})

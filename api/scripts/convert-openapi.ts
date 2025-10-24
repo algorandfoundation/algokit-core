@@ -41,7 +41,7 @@ interface FieldTransform {
   addItems?: Record<string, any>; // properties to add to the target property, e.g., {"x-custom": true}
 }
 
-interface MsgpackOnlyEndpoint {
+interface FilterEndpoint {
   path: string; // Exact path to match (e.g., "/v2/blocks/{round}")
   methods?: string[]; // HTTP methods to apply to (default: ["get"])
 }
@@ -54,7 +54,8 @@ interface ProcessingConfig {
   vendorExtensionTransforms?: VendorExtensionTransform[];
   requiredFieldTransforms?: RequiredFieldTransform[];
   fieldTransforms?: FieldTransform[];
-  msgpackOnlyEndpoints?: MsgpackOnlyEndpoint[];
+  msgpackOnlyEndpoints?: FilterEndpoint[];
+  jsonOnlyEndpoints?: FilterEndpoint[];
   // If true, strip APIVn prefixes from component schemas and update refs (KMD)
   stripKmdApiVersionPrefixes?: boolean;
 }
@@ -480,17 +481,17 @@ function transformRequiredFields(spec: OpenAPISpec, requiredFieldTransforms: Req
 }
 
 /**
- * Enforce msgpack-only format for specific endpoints by removing JSON support
- *
- * This function modifies endpoints to only support msgpack format, aligning with
- * Go and JavaScript SDK implementations that hardcode these endpoints to msgpack.
+ * Enforce a single endpoint format (json or msgpack) by stripping the opposite one
  */
-function enforceMsgpackOnlyEndpoints(spec: OpenAPISpec, endpoints: MsgpackOnlyEndpoint[]): number {
+function enforceEndpointFormat(spec: OpenAPISpec, endpoints: FilterEndpoint[], targetFormat: "json" | "msgpack"): number {
   let modifiedCount = 0;
 
   if (!spec.paths || !endpoints?.length) {
     return modifiedCount;
   }
+
+  const targetContentType = targetFormat === "json" ? "application/json" : "application/msgpack";
+  const otherContentType = targetFormat === "json" ? "application/msgpack" : "application/json";
 
   for (const endpoint of endpoints) {
     const pathObj = spec.paths[endpoint.path];
@@ -507,54 +508,58 @@ function enforceMsgpackOnlyEndpoints(spec: OpenAPISpec, endpoints: MsgpackOnlyEn
         continue;
       }
 
-      // Look for format parameter in query parameters
+      // Query parameter: format
       if (operation.parameters && Array.isArray(operation.parameters)) {
         for (const param of operation.parameters) {
-          // Handle both inline parameters and $ref parameters
           const paramObj = param.$ref ? resolveRef(spec, param.$ref) : param;
-
           if (paramObj && paramObj.name === "format" && paramObj.in === "query") {
-            // OpenAPI 3.0 has schema property containing the type information
             const schemaObj = paramObj.schema || paramObj;
-
-            // Check if it has an enum with both json and msgpack
             if (schemaObj.enum && Array.isArray(schemaObj.enum)) {
-              if (schemaObj.enum.includes("json") && schemaObj.enum.includes("msgpack")) {
-                // Remove json from enum, keep only msgpack
-                schemaObj.enum = ["msgpack"];
-                // Update default if it was json
-                if (schemaObj.default === "json") {
-                  schemaObj.default = "msgpack";
+              const values: string[] = schemaObj.enum;
+              if (values.includes("json") || values.includes("msgpack")) {
+                if (values.length !== 1 || values[0] !== targetFormat) {
+                  schemaObj.enum = [targetFormat];
+                  if (schemaObj.default !== targetFormat) schemaObj.default = targetFormat;
+                  modifiedCount++;
+                  console.log(`ℹ️  Enforced ${targetFormat}-only for ${endpoint.path} (${method}) parameter`);
                 }
-                // Don't modify the description - preserve original documentation
-                modifiedCount++;
-                console.log(`ℹ️  Enforced msgpack-only for ${endpoint.path} (${method}) parameter`);
               }
             } else if (schemaObj.type === "string" && !schemaObj.enum) {
-              // If no enum is specified, add one with only msgpack
-              schemaObj.enum = ["msgpack"];
-              schemaObj.default = "msgpack";
-              // Don't modify the description - preserve original documentation
+              schemaObj.enum = [targetFormat];
+              schemaObj.default = targetFormat;
               modifiedCount++;
-              console.log(`ℹ️  Enforced msgpack-only for ${endpoint.path} (${method}) parameter`);
+              console.log(`ℹ️  Enforced ${targetFormat}-only for ${endpoint.path} (${method}) parameter`);
             }
           }
         }
       }
 
-      // Also check for format in response content types
+      // Request body content types
+      if (operation.requestBody && typeof operation.requestBody === "object") {
+        const rbRaw: any = operation.requestBody;
+        const rb: any = rbRaw.$ref ? resolveRef(spec, rbRaw.$ref) || rbRaw : rbRaw;
+        if (rb && rb.content && rb.content[otherContentType] && rb.content[targetContentType]) {
+          delete rb.content[otherContentType];
+          modifiedCount++;
+          console.log(`ℹ️  Removed ${otherContentType} request content-type for ${endpoint.path} (${method})`);
+        }
+      }
+
+      // Response content types
       if (operation.responses) {
         for (const [statusCode, response] of Object.entries(operation.responses)) {
           if (response && typeof response === "object") {
             const responseObj = response as any;
-
-            // If response has content with both json and msgpack, remove json
-            if (responseObj.content) {
-              if (responseObj.content["application/json"] && responseObj.content["application/msgpack"]) {
-                delete responseObj.content["application/json"];
-                modifiedCount++;
-                console.log(`ℹ️  Removed JSON response content-type for ${endpoint.path} (${method}) - ${statusCode}`);
-              }
+            const responseTarget: any = responseObj.$ref ? resolveRef(spec, responseObj.$ref) || responseObj : responseObj;
+            if (
+              responseTarget &&
+              responseTarget.content &&
+              responseTarget.content[otherContentType] &&
+              responseTarget.content[targetContentType]
+            ) {
+              delete responseTarget.content[otherContentType];
+              modifiedCount++;
+              console.log(`ℹ️  Removed ${otherContentType} response content-type for ${endpoint.path} (${method}) - ${statusCode}`);
             }
           }
         }
@@ -832,8 +837,14 @@ class OpenAPIProcessor {
 
       // 9. Enforce msgpack-only endpoints if configured
       if (this.config.msgpackOnlyEndpoints && this.config.msgpackOnlyEndpoints.length > 0) {
-        const msgpackCount = enforceMsgpackOnlyEndpoints(spec, this.config.msgpackOnlyEndpoints);
+        const msgpackCount = enforceEndpointFormat(spec, this.config.msgpackOnlyEndpoints, "msgpack");
         console.log(`ℹ️  Enforced msgpack-only format for ${msgpackCount} endpoint parameters/responses`);
+      }
+
+      // 10. Enforce json-only endpoints if configured
+      if (this.config.jsonOnlyEndpoints && this.config.jsonOnlyEndpoints.length > 0) {
+        const jsonCount = enforceEndpointFormat(spec, this.config.jsonOnlyEndpoints, "json");
+        console.log(`ℹ️  Enforced json-only format for ${jsonCount} endpoint parameters/responses`);
       }
 
       // Save the processed spec
@@ -991,6 +1002,10 @@ async function processAlgodSpec() {
       { path: "/v2/deltas/{round}", methods: ["get"] },
       { path: "/v2/deltas/txn/group/{id}", methods: ["get"] },
       { path: "/v2/deltas/{round}/txn/group", methods: ["get"] },
+    ],
+    jsonOnlyEndpoints: [
+      { path: "/v2/accounts/{address}", methods: ["get"] },
+      { path: "/v2/accounts/{address}/assets/{asset-id}", methods: ["get"] },
     ],
   };
 

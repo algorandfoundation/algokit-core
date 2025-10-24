@@ -28,7 +28,8 @@
     "build": "run-s build:*",
     "build-watch": "rolldown --watch -c",
     "build:0-clean": "rimraf dist coverage",
-    "build:1-compile": "rolldown -c",
+    "build:1-lint": "npm run lint",
+    "build:2-compile": "rolldown -c",
     "build:3-copy-pkg-json": "npx --yes @makerx/ts-toolkit@4.0.0-beta.22 copy-package-json --custom-sections module main type types exports",
     "build:4-copy-readme": "cpy  README.md dist",
     "test": "vitest run --coverage --passWithNoTests",
@@ -42,5 +43,10 @@
   },
   "dependencies": {},
   "peerDependencies": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "@algorandfoundation/algod-client": "../algod_client/dist",
+    "@algorandfoundation/algokit-transact": "../algokit_transact/dist",
+    "@algorandfoundation/indexer-client": "../indexer_client/dist",
+    "@algorandfoundation/kmd-client": "../kmd_client/dist"
+  }
 }

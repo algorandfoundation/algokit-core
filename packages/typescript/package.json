@@ -16,6 +16,10 @@
     "build": "npm run build --workspaces --if-present",
     "build-watch": "npm run build-watch --workspace=algokit_common & npm run build-watch --workspace=algokit_abi & npm run build-watch --workspace=algokit_transact & npm run build-watch --workspace=algod_client & npm run build-watch --workspace=algokit_utils",
     "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "lint:fix": "npm run lint:fix --workspaces --if-present",
+    "format": "run-s lint:fix format:prettier",
+    "format:prettier": "npm run format --workspaces --if-present",
     "pre-commit": "npm run pre-commit --workspaces --if-present"
   },
   "engines": {
@@ -36,7 +40,6 @@
     "@types/node": "^20.19.17",
     "@typescript-eslint/eslint-plugin": "^8.44.0",
     "@vitest/coverage-v8": "^3.2.4",
-    "algosdk": "^3.5.0",
     "better-npm-audit": "^3.11.0",
     "cpy-cli": "^6.0.0",
     "eslint": "^9.35.0",

@@ -1,5 +1,4 @@
 // TODO: Once all the abstractions and http clients have been implement, then this should be removed.
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Transaction composer implementation based on the Rust AlgoKit Core composer.
  * This provides a clean interface for building and executing transaction groups.
@@ -24,16 +23,18 @@ import {
   getTransactionId,
   groupTransactions,
 } from '@algorandfoundation/algokit-transact'
-import { genesisIdIsLocalNet } from '../clients/network-client'
 import {
-  ApplicationLocalReference,
-  AssetHoldingReference,
-  BoxReference,
-  PendingTransactionResponse,
-  SimulateResponse,
-  SimulateUnnamedResourcesAccessed,
-  TransactionParams,
-} from '../temp'
+  AlgodClient,
+  type ApplicationLocalReference,
+  type AssetHoldingReference,
+  type BoxReference,
+  type PendingTransactionResponse,
+  type SimulateRequest,
+  type SimulateTransaction,
+  type SimulateUnnamedResourcesAccessed,
+  type TransactionParams,
+} from '@algorandfoundation/algod-client'
+import { genesisIdIsLocalNet } from '../clients/network-client'
 import {
   AppCallMethodCallParams,
   AppCallParams,
@@ -93,6 +94,7 @@ import {
   TransactionSigner,
   TransactionWithSigner,
   TransactionWithSignerComposerTransaction,
+  waitForConfirmation,
 } from './common'
 import { FeeDelta, FeePriority } from './fee-coverage'
 import {
@@ -174,7 +176,7 @@ export type SendTransactionComposerResults = {
 }
 
 export type TransactionComposerParams = {
-  algodClient: any
+  algodClient: AlgodClient
   signerGetter: SignerGetter
   composerConfig?: TransactionComposerConfig
 }
@@ -185,7 +187,7 @@ export type TransactionComposerConfig = {
 }
 
 export class TransactionComposer {
-  private algodClient: any // TODO: Replace with client once implemented
+  private algodClient: AlgodClient
   private signerGetter: SignerGetter
   private composerConfig: TransactionComposerConfig
 
@@ -348,7 +350,7 @@ export class TransactionComposer {
 
   private async getSuggestedParams(): Promise<TransactionParams> {
     // TODO: Add caching with expiration
-    return await this.algodClient.getTransactionParams()
+    return await this.algodClient.transactionParams()
   }
 
   private buildTransactionHeader(
@@ -465,9 +467,7 @@ export class TransactionComposer {
           transaction = buildNonParticipationKeyRegistration(ctxn.data, header)
           break
         default:
-          // This should never happen if all cases are covered
-
-          throw new Error(`Unsupported transaction type: ${(ctxn as any).type}`)
+          throw new Error(`Unsupported transaction type: ${(ctxn as { type: ComposerTransactionType }).type}`)
       }
 
       if (calculateFee) {
@@ -668,7 +668,7 @@ export class TransactionComposer {
         }) satisfies SignedTransaction,
     )
 
-    const simulateRequest = {
+    const simulateRequest: SimulateRequest = {
       txnGroups: [
         {
           txns: signedTransactions,
@@ -679,7 +679,7 @@ export class TransactionComposer {
       fixSigners: true,
     }
 
-    const response: SimulateResponse = await this.algodClient.simulateTransaction(simulateRequest)
+    const response: SimulateTransaction = await this.algodClient.simulateTransaction({ body: simulateRequest })
     const groupResponse = response.txnGroups[0]
 
     // Handle any simulation failures
@@ -802,7 +802,7 @@ export class TransactionComposer {
     const encodedTxns = encodeSignedTransactions(this.signedGroup)
     const encodedBytes = concatArrays(...encodedTxns)
 
-    await this.algodClient.rawTransaction(encodedBytes)
+    await this.algodClient.rawTransaction({ body: encodedBytes })
 
     const transactions = this.signedGroup.map((stxn) => stxn.transaction)
     const transactionIds = transactions.map((txn) => getTransactionId(txn))
@@ -810,7 +810,7 @@ export class TransactionComposer {
     const confirmations = new Array<PendingTransactionResponse>()
     if (params?.maxRoundsToWaitForConfirmation) {
       for (const id of transactionIds) {
-        const confirmation = await this.waitForConfirmation(id, waitRounds)
+        const confirmation = await waitForConfirmation(this.algodClient, id, waitRounds)
         confirmations.push(confirmation)
       }
     }
@@ -835,37 +835,6 @@ export class TransactionComposer {
 
   public count(): number {
     return this.transactions.length
-  }
-
-  private async waitForConfirmation(txId: string, maxRoundsToWait: number): Promise<PendingTransactionResponse> {
-    const status = await this.algodClient.status().do()
-    const startRound = status.lastRound + 1
-    let currentRound = startRound
-    while (currentRound < startRound + BigInt(maxRoundsToWait)) {
-      try {
-        const pendingInfo = await this.algodClient.pendingTransactionInformation(txId)
-        const confirmedRound = pendingInfo.confirmedRound
-        if (confirmedRound !== undefined && confirmedRound > 0n) {
-          return pendingInfo
-        } else {
-          const poolError = pendingInfo.poolError
-          if (poolError !== undefined && poolError.length > 0) {
-            // If there was a pool error, then the transaction has been rejected!
-            throw new Error(`Transaction ${txId} was rejected; pool error: ${poolError}`)
-          }
-        }
-      } catch (e: unknown) {
-        // TODO: Handle the 404 correctly once algod client is build
-        if (e instanceof Error && e.message.includes('404')) {
-          currentRound++
-          continue
-        }
-      }
-      await this.algodClient.statusAfterBlock(currentRound)
-      currentRound++
-    }
-
-    throw new Error(`Transaction ${txId} unconfirmed after ${maxRoundsToWait} rounds`)
   }
 
   private parseAbiReturnValues(confirmations: PendingTransactionResponse[]): (ABIReturn | undefined)[] {

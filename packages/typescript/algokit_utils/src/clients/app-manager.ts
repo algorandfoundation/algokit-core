@@ -2,6 +2,7 @@ import sha512 from 'js-sha512'
 import { getAppAddress } from '@algorandfoundation/algokit-common'
 import { AlgodClient, TealKeyValueStore } from '@algorandfoundation/algod-client'
 import { Buffer } from 'buffer'
+import { bytesToBase64, bytesToUtf8, ensureDecodedBytes, toBytes } from '../util'
 
 export enum TealTemplateValueType {
   Int = 'int',
@@ -139,9 +140,8 @@ export class AppManager {
     return {
       appId,
       appAddress: getAppAddress(appId),
-      // TODO: this conversion from base64 encoded string to uint8array may happen inside the algod client
-      approvalProgram: new Uint8Array(Buffer.from(app.params.approvalProgram, 'base64')),
-      clearStateProgram: new Uint8Array(Buffer.from(app.params.clearStateProgram, 'base64')),
+      approvalProgram: toBytes(app.params.approvalProgram),
+      clearStateProgram: toBytes(app.params.clearStateProgram),
       creator: app.params.creator,
       localInts: Number(app.params.localStateSchema?.numUint ?? 0),
       localByteSlices: Number(app.params.localStateSchema?.numByteSlice ?? 0),
@@ -170,10 +170,11 @@ export class AppManager {
   async getBoxNames(appId: bigint): Promise<BoxName[]> {
     const boxResult = await this.algodClient.getApplicationBoxes(appId)
     return boxResult.boxes.map((b) => {
+      const nameRaw = new Uint8Array(b.name)
       return {
-        nameRaw: new Uint8Array(Buffer.from(b.name)),
-        nameBase64: b.name,
-        name: Buffer.from(b.name).toString('utf-8'),
+        nameRaw,
+        nameBase64: bytesToBase64(nameRaw),
+        name: bytesToUtf8(nameRaw),
       }
     })
   }
@@ -182,12 +183,12 @@ export class AppManager {
     // Algod expects goal-arg style encoding for box name query param in 'encoding:value'.
     // However our HTTP client decodes base64 automatically into bytes for the Box model fields.
     // The API still requires 'b64:<base64>' for the query parameter value.
-    const processedBoxName = `b64:${Buffer.from(boxName).toString('base64')}`
+    const processedBoxName = `b64:${bytesToBase64(boxName)}`
 
     const boxResult = await this.algodClient.getApplicationBoxByName(appId, {
       name: processedBoxName,
     })
-    return new Uint8Array(Buffer.from(boxResult.value))
+    return new Uint8Array(boxResult.value)
   }
 
   async getBoxValues(appId: bigint, boxNames: Uint8Array[]): Promise<Uint8Array[]> {
@@ -198,42 +199,22 @@ export class AppManager {
     return values
   }
 
-  private static ensureDecodedBytes(bytes: Uint8Array): Uint8Array {
-    try {
-      const str = Buffer.from(bytes).toString('utf8')
-      if (
-        str.length > 0 &&
-        /^[A-Za-z0-9+/]*={0,2}$/.test(str) &&
-        (str.includes('=') || str.includes('+') || str.includes('/') || (str.length % 4 === 0 && str.length >= 8))
-      ) {
-        const decoded = Buffer.from(str, 'base64')
-        if (!decoded.equals(Buffer.from(bytes))) {
-          return new Uint8Array(decoded)
-        }
-      }
-    } catch {
-      // Not valid UTF-8 or base64, return as-is
-    }
-    return bytes
-  }
-
   static decodeAppState(state: TealKeyValueStore): Record<string, AppState> {
     const stateValues: Record<string, AppState> = {}
 
     for (const stateVal of state) {
-      const keyRaw = new Uint8Array(Buffer.from(stateVal.key, 'base64'))
+      const keyRaw = toBytes(stateVal.key)
       const keyBase64 = stateVal.key
-      const keyString = Buffer.from(keyRaw).toString('base64')
 
       // TODO: we will need to update the algod client to return int here
       if (stateVal.value.type === 1n) {
-        const valueRaw = AppManager.ensureDecodedBytes(new Uint8Array(Buffer.from(stateVal.value.bytes, 'base64')))
-        const valueBase64 = Buffer.from(valueRaw).toString('base64')
+        const valueRaw = ensureDecodedBytes(new Uint8Array(stateVal.value.bytes))
+        const valueBase64 = bytesToBase64(valueRaw)
         let valueStr: string
         try {
-          valueStr = Buffer.from(valueRaw).toString('utf8')
+          valueStr = new TextDecoder('utf-8', { fatal: true }).decode(valueRaw)
         } catch {
-          valueStr = Buffer.from(valueRaw).toString('hex')
+          valueStr = Buffer.from(valueRaw.buffer, valueRaw.byteOffset, valueRaw.byteLength).toString('hex')
         }
 
         const bytesState: BytesAppState = {
@@ -243,14 +224,14 @@ export class AppManager {
           valueBase64,
           value: valueStr,
         }
-        stateValues[keyString] = bytesState
+        stateValues[keyBase64] = bytesState
       } else if (stateVal.value.type === 2n) {
         const uintState: UintAppState = {
           keyRaw,
           keyBase64,
           value: BigInt(stateVal.value.uint),
         }
-        stateValues[keyString] = uintState
+        stateValues[keyBase64] = uintState
       } else {
         throw new Error(`Unknown state data type: ${stateVal.value.type}`)
       }

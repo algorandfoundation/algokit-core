@@ -280,9 +280,9 @@
             "schema": {
               "type": "string",
               "enum": [
-                "json",
-                "msgpack"
-              ]
+                "json"
+              ],
+              "default": "json"
             }
           }
         ],
@@ -291,11 +291,6 @@
             "description": "AccountResponse wraps the Account type in a response.",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Account"
-                }
-              },
-              "application/msgpack": {
                 "schema": {
                   "$ref": "#/components/schemas/Account"
                 }
@@ -309,11 +304,6 @@
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
-              },
-              "application/msgpack": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
               }
             }
           },
@@ -324,11 +314,6 @@
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
-              },
-              "application/msgpack": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
               }
             }
           },
@@ -336,11 +321,6 @@
             "description": "Internal Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              },
-              "application/msgpack": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
@@ -395,9 +375,9 @@
             "schema": {
               "type": "string",
               "enum": [
-                "json",
-                "msgpack"
-              ]
+                "json"
+              ],
+              "default": "json"
             }
           }
         ],
@@ -406,28 +386,6 @@
             "description": "AccountAssetResponse describes the account's asset holding and asset parameters (if either exist) for a specific asset ID. Asset parameters will only be returned if the provided address is the asset's creator.",
             "content": {
               "application/json": {
-                "schema": {
-                  "required": [
-                    "round"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "round": {
-                      "type": "integer",
-                      "description": "The round for which this information is relevant.",
-                      "x-go-type": "basics.Round",
-                      "x-algokit-bigint": true
-                    },
-                    "asset-holding": {
-                      "$ref": "#/components/schemas/AssetHolding"
-                    },
-                    "created-asset": {
-                      "$ref": "#/components/schemas/AssetParams"
-                    }
-                  }
-                }
-              },
-              "application/msgpack": {
                 "schema": {
                   "required": [
                     "round"
@@ -458,11 +416,6 @@
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
-              },
-              "application/msgpack": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
               }
             }
           },
@@ -473,11 +426,6 @@
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
-              },
-              "application/msgpack": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
               }
             }
           },
@@ -485,11 +433,6 @@
             "description": "Internal Error",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              },
-              "application/msgpack": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
@@ -802,7 +745,8 @@
               "type": "string",
               "enum": [
                 "msgpack"
-              ]
+              ],
+              "default": "msgpack"
             }
           }
         ],
@@ -921,7 +865,8 @@
               "type": "string",
               "enum": [
                 "msgpack"
-              ]
+              ],
+              "default": "msgpack"
             }
           }
         ],
@@ -2876,7 +2821,8 @@
               "type": "string",
               "enum": [
                 "msgpack"
-              ]
+              ],
+              "default": "msgpack"
             }
           }
         ],
@@ -2976,7 +2922,8 @@
               "type": "string",
               "enum": [
                 "msgpack"
-              ]
+              ],
+              "default": "msgpack"
             }
           }
         ],
@@ -3058,7 +3005,8 @@
               "type": "string",
               "enum": [
                 "msgpack"
-              ]
+              ],
+              "default": "msgpack"
             }
           }
         ],
@@ -3160,7 +3108,8 @@
               "type": "string",
               "enum": [
                 "msgpack"
-              ]
+              ],
+              "default": "msgpack"
             }
           }
         ],
@@ -3271,7 +3220,8 @@
               "type": "string",
               "enum": [
                 "msgpack"
-              ]
+              ],
+              "default": "msgpack"
             }
           }
         ],
