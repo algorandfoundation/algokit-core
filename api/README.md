@@ -79,33 +79,6 @@ The generated Rust clients will be available at:
 - `../crates/indexer_client/`
 - `../crates/kmd_client/`
 
-### Generate TypeScript API Clients
-
-Generate all TypeScript API clients using the TypeScript generator:
-
-```bash
-cargo api generate-ts-all
-```
-
-Generate individual clients:
-
-```bash
-# Generate algod client only
-cargo api generate-ts-algod
-
-# Generate indexer client only
-cargo api generate-ts-indexer
-
-# Generate kmd client only
-cargo api generate-ts-kmd
-```
-
-The generated TypeScript clients will be available at:
-
-- `../packages/typescript/algod_client/`
-- `../packages/typescript/indexer_client/`
-- `../packages/typescript/kmd_client/`
-
 ### Development Scripts
 
 ```bash

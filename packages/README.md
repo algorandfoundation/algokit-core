@@ -33,36 +33,3 @@ For a non binary wheel like [algod_api](https://github.com/algorandfoundation/al
 [tool.poetry.dependencies]
 algokit_algod_api = { url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgod_api%401.0.0-alpha.2/algokit_algod_api-1.0.0a2-py3-none-any.whl" }
 ```
-
-### TypeScript
-
-The TypeScript packages are published to the GitHub packages NPM repository.
-
-For example [algokit_transact](https://github.com/algorandfoundation/algokit-core/pkgs/npm/algokit-transact).
-
-GitHub packages (the product) has some constaints, namely:
-
-- It requires authentication to install a package
-- It enforce packages scopes, which must match the GitHub username (`algorandfoundation` in our case).
-
-Unfortunately for us, the package scope in GitHub packages matches the official NPM registry and NPM itself does not support configuring multiple registries for a single package scope, so we need to be a little crafty when installing/updating the alpha packages we're installing from GitHub packages.
-
-To install, follow the below:
-
-1. Create a new [personal access token](https://github.com/settings/tokens/new) with `read:packages` permission and your preference of expiration time.
-2. Add the following to `~/.npmrc`:
-
-   ```
-   @algorandfoundation:registry=https://npm.pkg.github.com
-   //npm.pkg.github.com/:_authToken={TOKEN}
-   ```
-
-3. Install the package hosted in GitHub packages, which will update your NPM package lock file.
-
-   ```
-   npm install @algorandfoundation/algokit-transact@1.0.0-alpha.4
-   ```
-
-4. Remove `@algorandfoundation:registry=https://npm.pkg.github.com` from `~/.npmrc`, so NPM hosted `@algorandfoundation` packages can be resolved.
-
-Note: You will need to perform steps 2-4 each time your either install a package for the first time or update a GitHub package hosted dependency. Installing from the lock file only requires the token.

@@ -7,7 +7,6 @@ Foreign Function Interface bindings for `algokit_transact`, enabling usage from 
 `algokit_transact_ffi` provides language bindings for the core `algokit_transact` functionality, supporting:
 
 - **UniFFI Bindings** - For Python, Swift, Kotlin, and other languages
-- **WebAssembly Bindings** - For JavaScript/TypeScript usage
 - **C-compatible ABI** - For integration with C/C++ and other systems languages
 
 ## Features
@@ -47,12 +46,6 @@ cargo build --package algokit_transact_ffi --features ffi_uniffi
 
 ```python
 # Example Python usage would go here
-```
-
-### JavaScript/TypeScript
-
-```javascript
-// Example JS/TS usage would go here
 ```
 
 ### Swift

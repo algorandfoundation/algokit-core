@@ -1,24 +1,8 @@
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
-
 use clap::{Parser, Subcommand};
 use color_eyre::eyre::{Result, eyre};
 use duct::cmd;
 use once_cell::sync::OnceCell;
-
-const DEFAULT_TS_PRESERVE: &[&str] = &[
-    "__tests__",
-    "tests",
-    "eslint.config.mjs",
-    "package.json",
-    "README.md",
-    "rolldown.config.ts",
-    "tsconfig.json",
-    "tsconfig.build.json",
-    "tsconfig.test.json",
-];
+use std::path::{Path, PathBuf};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about = "API development tools", long_about = None)]
@@ -60,18 +44,6 @@ enum Commands {
     /// Generate both algod and indexer API clients
     #[command(name = "generate-all")]
     GenerateAll,
-    /// Generate TypeScript algod client
-    #[command(name = "generate-ts-algod")]
-    GenerateTsAlgod,
-    /// Generate TypeScript indexer client
-    #[command(name = "generate-ts-indexer")]
-    GenerateTsIndexer,
-    /// Generate TypeScript KMD client
-    #[command(name = "generate-ts-kmd")]
-    GenerateTsKmd,
-    /// Generate both TypeScript clients (algod and indexer)
-    #[command(name = "generate-ts-all")]
-    GenerateTsAll,
     /// Convert OpenAPI specifications (both algod and indexer)
     #[command(name = "convert-openapi")]
     ConvertOpenapi,
@@ -122,33 +94,6 @@ fn run(command_str: &str, dir: Option<&Path>, env_vars: Option<&[(&str, &str)]>)
     Ok(())
 }
 
-fn clean_ts_package_with_preserve(rel_dir: &str, preserve: &[&str]) -> Result<()> {
-    let pkg_dir = repo_root().join(rel_dir);
-    if !pkg_dir.exists() {
-        return Ok(());
-    }
-
-    for entry in fs::read_dir(&pkg_dir)? {
-        let entry = entry?;
-        let name = entry.file_name();
-        let name_str = name.to_string_lossy();
-        if preserve.iter().any(|p| *p == name_str) {
-            continue;
-        }
-        let path = entry.path();
-        if path.is_dir() {
-            fs::remove_dir_all(&path)?;
-        } else {
-            fs::remove_file(&path)?;
-        }
-    }
-    Ok(())
-}
-
-fn clean_ts_package(rel_dir: &str) -> Result<()> {
-    clean_ts_package_with_preserve(rel_dir, DEFAULT_TS_PRESERVE)
-}
-
 #[derive(Clone, Copy)]
 struct RsClientConfig {
     spec: &'static str,
@@ -196,55 +141,6 @@ fn generate_rs_client(config: &RsClientConfig) -> Result<()> {
         None,
         None,
     )?;
-
-    Ok(())
-}
-
-#[derive(Clone, Copy)]
-struct TsClientConfig {
-    spec: &'static str,
-    output_rel: &'static str,
-    package_name: &'static str,
-    description: &'static str,
-}
-
-const ALGOD_TS_CLIENT: TsClientConfig = TsClientConfig {
-    spec: "algod",
-    output_rel: "packages/typescript/algod_client",
-    package_name: "algod_client",
-    description: "TypeScript client for algod interaction.",
-};
-
-const INDEXER_TS_CLIENT: TsClientConfig = TsClientConfig {
-    spec: "indexer",
-    output_rel: "packages/typescript/indexer_client",
-    package_name: "indexer_client",
-    description: "TypeScript client for indexer interaction.",
-};
-
-const KMD_TS_CLIENT: TsClientConfig = TsClientConfig {
-    spec: "kmd",
-    output_rel: "packages/typescript/kmd_client",
-    package_name: "kmd_client",
-    description: "TypeScript client for kmd interaction.",
-};
-
-fn generate_ts_client(config: &TsClientConfig) -> Result<()> {
-    clean_ts_package(config.output_rel)?;
-
-    let command = format!(
-        "uv run python -m ts_oas_generator.cli ../specs/{}.oas3.json --output ../../{}/ --package-name {} --description \"{}\" --verbose",
-        config.spec, config.output_rel, config.package_name, config.description
-    );
-    run(&command, Some(Path::new("api/oas_generator")), None)?;
-
-    run(
-        "npx --yes prettier --write src",
-        Some(Path::new(config.output_rel)),
-        None,
-    )?;
-    run("npm run build", Some(Path::new(config.output_rel)), None)?;
-    run("npm run test", Some(Path::new(config.output_rel)), None)?;
 
     Ok(())
 }
@@ -307,20 +203,6 @@ fn execute_command(command: &Commands) -> Result<()> {
             generate_rs_client(&ALGOD_RS_CLIENT)?;
             generate_rs_client(&INDEXER_RS_CLIENT)?;
             generate_rs_client(&KMD_RS_CLIENT)?;
-        }
-        Commands::GenerateTsAlgod => {
-            generate_ts_client(&ALGOD_TS_CLIENT)?;
-        }
-        Commands::GenerateTsIndexer => {
-            generate_ts_client(&INDEXER_TS_CLIENT)?;
-        }
-        Commands::GenerateTsKmd => {
-            generate_ts_client(&KMD_TS_CLIENT)?;
-        }
-        Commands::GenerateTsAll => {
-            generate_ts_client(&ALGOD_TS_CLIENT)?;
-            generate_ts_client(&INDEXER_TS_CLIENT)?;
-            generate_ts_client(&KMD_TS_CLIENT)?;
         }
         Commands::ConvertOpenapi => {
             run("npm run convert-openapi", Some(Path::new("api")), None)?;

@@ -1,6 +1,5 @@
 mod python;
 mod swift;
-mod typescript;
 
 use std::collections::HashMap;
 use std::env;
@@ -16,8 +15,6 @@ use duct::cmd;
 enum Language {
     #[value(alias = "py")]
     Python,
-    #[value(alias = "ts")]
-    Typescript,
     Swift,
 }
 
@@ -25,7 +22,6 @@ impl Display for Language {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Language::Python => f.write_str("python"),
-            Language::Typescript => f.write_str("typescript"),
             Language::Swift => f.write_str("swift"),
         }
     }
@@ -35,13 +31,12 @@ impl Language {
     fn build(&self, pkg: &Package) -> Result<()> {
         match self {
             Self::Python => python::build(pkg),
-            Self::Typescript => typescript::build(pkg),
             Self::Swift => swift::build(pkg),
         }
     }
 
     fn iter() -> impl Iterator<Item = Language> {
-        [Self::Python, Self::Typescript, Self::Swift].into_iter()
+        [Self::Python, Self::Swift].into_iter()
     }
 }
 
