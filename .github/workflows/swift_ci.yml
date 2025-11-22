@@ -1,23 +1,45 @@
 name: Swift CI
 
 on:
-  # Temporarily disable automatic CI for swift while we focus on Python and TS
-  # push:
-  #   branches:
-  #     - main
-  #   tags:
-  #     - "*"
-  # pull_request:
-  #   branches:
-  #     - main
+  workflow_call:
+    inputs:
+      crate:
+        description: "Crate name to build Swift package from"
+        required: true
+        type: string
+      package:
+        description: "Swift package (Xcode scheme) name"
+        required: true
+        type: string
+      release:
+        description: "Whether to commit generated package (push only)"
+        required: false
+        type: boolean
+        default: false
   workflow_dispatch:
+    inputs:
+      crate:
+        description: "Crate name"
+        required: true
+        type: string
+        default: algokit_transact
+      package:
+        description: "Swift package name"
+        required: true
+        type: string
+        default: AlgoKitTransact
+      release:
+        description: "Commit generated package"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
 
 env:
-  CRATE: algokit_transact
-  PACKAGE: AlgoKitTransact
+  CRATE: ${{ inputs.crate }}
+  PACKAGE: ${{ inputs.package }}
 
 jobs:
   build_and_test:
@@ -31,28 +53,14 @@ jobs:
         with:
           toolchain: 1.85.0
           targets: aarch64-apple-ios, x86_64-apple-ios, aarch64-apple-ios-sim, x86_64-apple-ios, aarch64-apple-ios-macabi, x86_64-apple-ios-macabi, aarch64-apple-darwin, x86_64-apple-darwin
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-      - name: Setup Xcode
-        uses: mxcl/xcodebuild@v3
-        with:
-          swift: ^6
-          action: none
-          platform: macOS
-      - name: Install iOS Simulator
-        run: xcodebuild -downloadPlatform iOS
       - name: Build
-        run: bun scripts/build ${{ env.CRATE }} swift
+        run: cargo pkg ${{ env.CRATE }} swift
+
       # Ideally we'd use a matrix for the platforms, but due to the limitations of Mac runners on GitHub it's probably better to just have a single job with multiple steps
-      - name: Test (macOS)
-        run: cd packages/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=macOS"
       - name: Test (iOS)
         run: cd packages/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=iOS Simulator,name=iPhone 16,OS=latest"
+      - name: Test (macOS)
+        run: cd packages/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=macOS"
       - name: Test (Catalyst)
         run: cd packages/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=macOS,variant=Mac Catalyst"
-      - name: Commit Package
-        uses: stefanzweifel/git-auto-commit-action@v5
-        if: github.event_name == 'push'
-        with:
-          commit_message: "Swift CI ${{ env.PACKAGE }} package"
+

@@ -1,9 +1,9 @@
 name: CI/CD
 
 on:
-  push: # A push indicates that a PR is merged and CD should be triggered
-    branches:
-      - main
+  # push: # A push indicates that a PR is merged and CD should be triggered
+  #   branches:
+  #     - main
   pull_request: # For PRs, we run CI, which is the same as CD without the release step(s)
     branches:
       - main
@@ -54,26 +54,33 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     outputs:
-      # The packages that use Uniffi bindings
-      ffi_packages: ${{ steps.set_ffi_packages.outputs.ffi_packages }}
+      # Swift/FFI jobs (array of objects: crate_name, swift_package)
+      ffi_packages: ${{ steps.set_matrices.outputs.ffi_packages }}
     steps:
-      - id: set_ffi_packages
-        run: echo 'ffi_packages=["algokit_transact"]' >> $GITHUB_OUTPUT
+      - id: set_matrices
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          # Crates that produce FFI bindings
+          crates = ["algokit_transact"]
+          items = []
+          for crate in crates:
+              pascal = ''.join(p.capitalize() for p in crate.split('_'))
+              # Brand fixups
+              pascal = pascal.replace('Algokit', 'AlgoKit')
+              items.append({"crate_name": crate, "swift_package": pascal})
+          print('ffi_packages=' + json.dumps(items))
+          PY
 
-  python_uniffi_ci_cd:
+  swift_ci:
     needs:
       - setup
-    uses: ./.github/workflows/python_uniffi_ci_cd.yml
+    uses: ./.github/workflows/swift_ci.yml
     strategy:
       matrix:
-        crate: ${{ fromJSON(needs.setup.outputs.ffi_packages) }}
+        include: ${{ fromJSON(needs.setup.outputs.ffi_packages) }}
     with:
-      crate: ${{ matrix.crate }}
+      crate: ${{ matrix.crate_name }}
+      package: ${{ matrix.swift_package }}
       release: ${{ github.event_name == 'push' }}
-    secrets:
-      BOT_ID: ${{ secrets.BOT_ID }}
-      BOT_SK: ${{ secrets.BOT_SK }}
-  deploy_docs:
-    # Only run on pushes to main (not on PRs)
-    if: github.event_name == 'push'
-    uses: ./.github/workflows/deploy_docs.yml
+
