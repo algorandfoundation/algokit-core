@@ -1,9 +1,0 @@
-pub mod app_call;
-pub mod asset_config;
-pub mod asset_freeze;
-pub mod asset_transfer;
-pub mod inner_fee_coverage;
-pub mod key_registration;
-pub mod payment;
-pub mod resource_population;
-pub mod transaction_group;

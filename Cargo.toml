@@ -4,7 +4,6 @@ members = [
   "crates/algokit_http_client",
   "crates/algokit_transact",
   "crates/algokit_transact_ffi",
-  "crates/algokit_utils",
   "crates/algokit_abi",
   "crates/algokit_test_artifacts",
   "crates/ffi_macros",
@@ -16,7 +15,6 @@ members = [
   "docs",
   "tools/cargo-bin",
   "tools/api_tools",
-  "crates/algokit_utils_ffi",
 ]
 
 [workspace.dependencies]

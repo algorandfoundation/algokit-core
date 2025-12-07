@@ -90,7 +90,7 @@ dependencies = [
  "algokit_transact",
  "base32",
  "base64 0.22.1",
- "convert_case 0.8.0",
+ "convert_case",
  "derive_builder",
  "ed25519-dalek",
  "pretty_assertions",
@@ -119,67 +119,6 @@ dependencies = [
  "serde_bytes",
  "serde_json",
  "snafu",
- "uniffi",
-]
-
-[[package]]
-name = "algokit_utils"
-version = "0.1.0"
-dependencies = [
- "algod_client",
- "algokit_abi",
- "algokit_http_client",
- "algokit_test_artifacts",
- "algokit_transact",
- "async-trait",
- "base64 0.22.1",
- "derive_more",
- "dotenvy",
- "ed25519-dalek",
- "env_logger",
- "futures",
- "hex",
- "indexer_client",
- "insta",
- "kmd_client",
- "lazy_static",
- "log",
- "num-bigint",
- "once_cell",
- "rand",
- "regex",
- "reqwest",
- "rstest",
- "serde",
- "serde_json",
- "sha2",
- "snafu",
- "tokio",
- "tokio-test",
-]
-
-[[package]]
-name = "algokit_utils_ffi"
-version = "0.1.0"
-dependencies = [
- "algod_client",
- "algokit_abi",
- "algokit_http_client",
- "algokit_transact",
- "algokit_transact_ffi",
- "algokit_utils",
- "async-trait",
- "base32",
- "base64 0.22.1",
- "derive_more",
- "ed25519-dalek",
- "lazy_static",
- "num-bigint",
- "rand",
- "regex",
- "sha2",
- "snafu",
- "tokio",
  "uniffi",
 ]
 
@@ -450,7 +389,7 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "color-eyre",
- "convert_case 0.8.0",
+ "convert_case",
  "duct",
  "shlex",
 ]
@@ -657,15 +596,6 @@ name = "const-oid"
 version = "0.9.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2459377285ad874054d797f3ccebf984978aa39129f6eafde5cdc8315b612f8"
-
-[[package]]
-name = "convert_case"
-version = "0.7.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb402b8d4c85569410425650ce3eddc7d698ed96d39a73f941b08fb63082f1e7"
-dependencies = [
- "unicode-segmentation",
-]
 
 [[package]]
 name = "convert_case"
@@ -899,28 +829,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "derive_more"
-version = "2.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "093242cf7570c207c83073cf82f79706fe7b8317e98620a47d5be7c3d8497678"
-dependencies = [
- "derive_more-impl",
-]
-
-[[package]]
-name = "derive_more-impl"
-version = "2.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bda628edc44c4bb645fbe0f758797143e4e07926f7ebf4e9bdfbd3d2ce621df3"
-dependencies = [
- "convert_case 0.7.1",
- "proc-macro2",
- "quote",
- "syn",
- "unicode-xid",
-]
-
-[[package]]
 name = "diff"
 version = "0.1.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -953,12 +861,6 @@ version = "0.1.0"
 dependencies = [
  "mdbook",
 ]
-
-[[package]]
-name = "dotenvy"
-version = "0.15.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1aaf95b3e5c8f23aa320147307562d361db0ae0d51242340f558153b4eb2439b"
 
 [[package]]
 name = "dtoa"
@@ -1005,7 +907,6 @@ checksum = "4a3daa8e81a3963a60642bcc1f90a670680bd4a77535faa384e9d1c79d620871"
 dependencies = [
  "curve25519-dalek",
  "ed25519",
- "rand_core",
  "serde",
  "sha2",
  "subtle",
@@ -1104,7 +1005,7 @@ checksum = "37909eebbb50d72f9059c3b6d82c0463f2ff062c9e95845c43a6c9c0355411be"
 name = "ffi_macros"
 version = "0.1.0"
 dependencies = [
- "convert_case 0.8.0",
+ "convert_case",
  "quote",
  "syn",
 ]
@@ -1186,21 +1087,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "futures"
-version = "0.3.31"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "65bc07b1a8bc7c85c5f2e110c476c7389b4554ba72af57d8445ea63a576b0876"
-dependencies = [
- "futures-channel",
- "futures-core",
- "futures-executor",
- "futures-io",
- "futures-sink",
- "futures-task",
- "futures-util",
-]
-
-[[package]]
 name = "futures-channel"
 version = "0.3.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1215,23 +1101,6 @@ name = "futures-core"
 version = "0.3.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "05f29059c0c2090612e8d742178b0580d2dc940c837851ad723096f87af6663e"
-
-[[package]]
-name = "futures-executor"
-version = "0.3.31"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e28d1d997f585e54aebc3f97d39e72338912123a67330d723fdbb564d646c9f"
-dependencies = [
- "futures-core",
- "futures-task",
- "futures-util",
-]
-
-[[package]]
-name = "futures-io"
-version = "0.3.31"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9e5c1b78ca4aae1ac06c48a526a655760685149f0d465d21f37abfe57ce075c6"
 
 [[package]]
 name = "futures-macro"
@@ -1268,13 +1137,10 @@ version = "0.3.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9fa08315bb612088cc391249efdc3bc77536f16c91f6cf495e6fbe85b20a4a81"
 dependencies = [
- "futures-channel",
  "futures-core",
- "futures-io",
  "futures-macro",
  "futures-sink",
  "futures-task",
- "memchr",
  "pin-project-lite",
  "pin-utils",
  "slab",
@@ -1896,8 +1762,6 @@ checksum = "154934ea70c58054b556dd430b99a98c2a7ff5309ac9891597e339b5c28f4371"
 dependencies = [
  "console",
  "once_cell",
- "pest",
- "pest_derive",
  "serde",
  "similar",
 ]
@@ -2746,9 +2610,7 @@ dependencies = [
  "base64 0.22.1",
  "bytes",
  "encoding_rs",
- "futures-channel",
  "futures-core",
- "futures-util",
  "h2 0.4.10",
  "http 1.3.1",
  "http-body 1.0.1",
@@ -3825,12 +3687,6 @@ name = "unicode-segmentation"
 version = "1.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f6ccf251212114b54433ec949fd6a7841275f9ada20dddd2f29e9ceea4501493"
-
-[[package]]
-name = "unicode-xid"
-version = "0.2.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ebc1c04c71510c7f702b52b7c350734c9ff1295c464a03335b00bb84fc54f853"
 
 [[package]]
 name = "uniffi"
