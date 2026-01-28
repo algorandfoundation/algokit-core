@@ -31,7 +31,7 @@ impl TryFrom<Transaction> for algokit_transact::AssetTransferTransactionFields {
     fn try_from(tx: Transaction) -> Result<Self, Self::Error> {
         if tx.transaction_type != TransactionType::AssetTransfer || tx.asset_transfer.is_none() {
             return Err(Self::Error::DecodingError {
-                message: "Asset Transfer data missing".to_string(),
+                error_msg: "Asset Transfer data missing".to_string(),
             });
         }
 
@@ -53,7 +53,7 @@ impl TryFrom<Transaction> for algokit_transact::AssetTransferTransactionFields {
         transaction_fields
             .validate()
             .map_err(|errors| AlgoKitTransactError::DecodingError {
-                message: format!("Asset transfer validation failed: {}", errors.join(", ")),
+                error_msg: format!("Asset transfer validation failed: {}", errors.join(", ")),
             })?;
 
         Ok(transaction_fields)

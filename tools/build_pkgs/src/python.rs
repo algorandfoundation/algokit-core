@@ -20,7 +20,7 @@ pub fn build(package: &Package) -> Result<()> {
     run(
         &format!(
             r#"cargo --color always run -p uniffi-bindgen generate --no-format --library "{}" --language python --out-dir "{}""#,
-            package.dylib().display(),
+            package.dylib(None).display(),
             module_dir.display()
         ),
         None,
@@ -28,8 +28,8 @@ pub fn build(package: &Package) -> Result<()> {
     )?;
 
     std::fs::copy(
-        package.dylib(),
-        module_dir.join(package.dylib().file_name().unwrap()),
+        package.dylib(None),
+        module_dir.join(package.dylib(None).file_name().unwrap()),
     )?;
 
     run("poetry install --only build", Some(&package_dir), None)?;

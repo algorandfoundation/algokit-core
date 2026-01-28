@@ -1,4 +1,7 @@
 /target
+*.dylib
+*.a
+*.so
 .zed/
 .venv/
 crates/**/dist/
@@ -7,8 +10,17 @@ node_modules/
 .dmypy.json
 .build
 .bin/
+.vscode/
 .DS_Store
+*.idea
 wheelhouse/
+
+# Android/Kotlin
+.gradle/
+build/
+*.iml
+local.properties
+gradle-wrapper.jar
 
 # Insta snapshot testing
 *.snap.new
@@ -22,6 +34,7 @@ AGENTS.md
 .opencode/
 .references/
 .kiro/
+.kotlin/
 
 packages/python/**/*algokit_*.py
 packages/python**/*.dll

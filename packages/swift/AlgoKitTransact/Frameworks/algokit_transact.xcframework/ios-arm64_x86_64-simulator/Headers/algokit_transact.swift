@@ -3597,13 +3597,13 @@ public enum AlgoKitTransactError: Swift.Error {
 
     
     
-    case EncodingError(message: String
+    case EncodingError(errorMsg: String
     )
-    case DecodingError(message: String
+    case DecodingError(errorMsg: String
     )
-    case InputError(message: String
+    case InputError(errorMsg: String
     )
-    case MsgPackError(message: String
+    case MsgPackError(errorMsg: String
     )
 }
 
@@ -3622,16 +3622,16 @@ public struct FfiConverterTypeAlgoKitTransactError: FfiConverterRustBuffer {
 
         
         case 1: return .EncodingError(
-            message: try FfiConverterString.read(from: &buf)
+            errorMsg: try FfiConverterString.read(from: &buf)
             )
         case 2: return .DecodingError(
-            message: try FfiConverterString.read(from: &buf)
+            errorMsg: try FfiConverterString.read(from: &buf)
             )
         case 3: return .InputError(
-            message: try FfiConverterString.read(from: &buf)
+            errorMsg: try FfiConverterString.read(from: &buf)
             )
         case 4: return .MsgPackError(
-            message: try FfiConverterString.read(from: &buf)
+            errorMsg: try FfiConverterString.read(from: &buf)
             )
 
          default: throw UniffiInternalError.unexpectedEnumCase
@@ -3645,24 +3645,24 @@ public struct FfiConverterTypeAlgoKitTransactError: FfiConverterRustBuffer {
 
         
         
-        case let .EncodingError(message):
+        case let .EncodingError(errorMsg):
             writeInt(&buf, Int32(1))
-            FfiConverterString.write(message, into: &buf)
+            FfiConverterString.write(errorMsg, into: &buf)
             
         
-        case let .DecodingError(message):
+        case let .DecodingError(errorMsg):
             writeInt(&buf, Int32(2))
-            FfiConverterString.write(message, into: &buf)
+            FfiConverterString.write(errorMsg, into: &buf)
             
         
-        case let .InputError(message):
+        case let .InputError(errorMsg):
             writeInt(&buf, Int32(3))
-            FfiConverterString.write(message, into: &buf)
+            FfiConverterString.write(errorMsg, into: &buf)
             
         
-        case let .MsgPackError(message):
+        case let .MsgPackError(errorMsg):
             writeInt(&buf, Int32(4))
-            FfiConverterString.write(message, into: &buf)
+            FfiConverterString.write(errorMsg, into: &buf)
             
         }
     }

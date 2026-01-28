@@ -99,7 +99,7 @@ impl TryFrom<Transaction> for algokit_transact::AppCallTransactionFields {
     fn try_from(tx: Transaction) -> Result<Self, Self::Error> {
         if tx.transaction_type != TransactionType::AppCall || tx.app_call.is_none() {
             return Err(Self::Error::DecodingError {
-                message: "AppCall call data missing".to_string(),
+                error_msg: "AppCall call data missing".to_string(),
             });
         }
 
@@ -135,7 +135,7 @@ impl TryFrom<Transaction> for algokit_transact::AppCallTransactionFields {
         transaction_fields
             .validate()
             .map_err(|errors| AlgoKitTransactError::DecodingError {
-                message: format!("App call validation failed: {}", errors.join("\n")),
+                error_msg: format!("App call validation failed: {}", errors.join("\n")),
             })?;
 
         Ok(transaction_fields)

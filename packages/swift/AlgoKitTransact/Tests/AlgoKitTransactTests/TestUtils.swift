@@ -3,10 +3,6 @@ import Foundation
 @testable import AlgoKitTransact
 
 struct TransactionTestData: Codable {
-  struct AddressData: Codable {
-    let address: String
-    let pubKey: [UInt8]
-  }
 
   struct TransactionData: Codable {
     let sender: String
@@ -57,7 +53,8 @@ func makeTransaction(from testData: TransactionTestData) -> Transaction {
     genesisHash: Data(testData.transaction.genesisHash),
     genesisId: testData.transaction.genesisId,
     note: testData.transaction.note != nil ? Data(testData.transaction.note!) : nil,
-    rekeyTo: testData.transaction.rekeyTo,
+    rekeyTo: testData.transaction.rekeyTo != nil
+      ? testData.transaction.rekeyTo! : nil,
     lease: testData.transaction.lease != nil ? Data(testData.transaction.lease!) : nil,
     group: testData.transaction.group != nil ? Data(testData.transaction.group!) : nil,
     payment: PaymentTransactionFields(

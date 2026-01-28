@@ -326,7 +326,7 @@ impl TryFrom<Transaction> for algokit_transact::StateProofTransactionFields {
     fn try_from(tx: Transaction) -> Result<Self, Self::Error> {
         if tx.transaction_type != TransactionType::StateProof || tx.state_proof.is_none() {
             return Err(Self::Error::DecodingError {
-                message: "State proof transaction data missing".to_string(),
+                error_msg: "State proof transaction data missing".to_string(),
             });
         }
 

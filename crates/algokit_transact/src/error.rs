@@ -24,17 +24,17 @@ pub enum AlgoKitTransactError {
     #[snafu(display("Error ocurred during msgpack decoding: {source}"))]
     MsgpackDecodingError { source: rmpv::decode::Error },
 
-    #[snafu(display("Unknown transaction type: {message}"))]
-    UnknownTransactionType { message: String },
+    #[snafu(display("Unknown transaction type: {err_msg}"))]
+    UnknownTransactionType { err_msg: String },
 
-    #[snafu(display("{message}"))]
-    InputError { message: String },
+    #[snafu(display("{err_msg}"))]
+    InputError { err_msg: String },
 
-    #[snafu(display("{message}"))]
-    InvalidAddress { message: String },
+    #[snafu(display("{err_msg}"))]
+    InvalidAddress { err_msg: String },
 
-    #[snafu(display("Invalid multisig signature: {message}"))]
-    InvalidMultisigSignature { message: String },
+    #[snafu(display("Invalid multisig signature: {err_msg}"))]
+    InvalidMultisigSignature { err_msg: String },
 }
 
 impl From<rmp_serde::encode::Error> for AlgoKitTransactError {
