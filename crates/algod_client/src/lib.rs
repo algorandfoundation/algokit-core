@@ -7,6 +7,7 @@ uniffi::setup_scaffolding!();
 pub mod apis;
 pub mod models;
 pub mod msgpack_string_bytes;
+pub mod msgpack_string_bytes_vec;
 pub mod msgpack_value_bytes;
 
 // Re-export the main client for convenience

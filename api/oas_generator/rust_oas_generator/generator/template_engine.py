@@ -495,6 +495,11 @@ class RustCodeGenerator:
                 "base/msgpack_string_bytes.rs.j2", context
             )
 
+            files[src_dir / "msgpack_string_bytes_vec.rs"] = self.template_engine.render_template(
+                "base/msgpack_string_bytes_vec.rs.j2", context
+            )
+
+
         return files
 
     def _generate_model_files(
