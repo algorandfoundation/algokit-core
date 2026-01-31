@@ -45,7 +45,7 @@ pub struct BlockAppEvalDelta {
     #[serde(
         rename = "lg",
         skip_serializing_if = "Option::is_none",
-        with = "crate::msgpack_string_bytes"
+        with = "crate::msgpack_string_bytes_vec"
     )]
     pub logs: Option<Vec<Vec<u8>>>,
 }
