@@ -67,7 +67,7 @@ pub struct UnauthenticatedCredential {
 pub struct ProposalValue {
     #[serde(rename = "oper", default)]
     pub original_period: u64,
-    #[serde(rename = "oprop", default)]
+    #[serde(rename = "oprop")]
     pub original_proposer: Address,
     /// BlockDigest = proposal.Block.Digest()
     #[serde(rename = "dig")]
@@ -112,9 +112,9 @@ pub struct UnauthenticatedBundle {
     pub step: u64,
     #[serde(rename = "prop")]
     pub proposal: ProposalValue,
-    #[serde(rename = "vote")]
+    #[serde(rename = "vote", default, skip_serializing_if = "Vec::is_empty")]
     pub votes: Vec<VoteAuthenticator>,
-    #[serde(rename = "eqv")]
+    #[serde(rename = "eqv", default, skip_serializing_if = "Vec::is_empty")]
     pub equivocation_votes: Vec<EquivocationVoteAuthenticator>,
 }
 
