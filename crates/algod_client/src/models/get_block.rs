@@ -68,8 +68,8 @@ pub struct UnauthenticatedCredential {
 /// its proposer, and the period in which it was proposed.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ProposalValue {
-    #[serde(rename = "oper")]
-    pub original_period: Period,
+    #[serde(rename = "oper", default, skip_serializing_if = "Option::is_none")]
+    pub original_period: Option<Period>,
     #[serde(rename = "oprop")]
     pub original_proposer: Address,
     /// BlockDigest = proposal.Block.Digest()

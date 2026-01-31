@@ -29,13 +29,6 @@ pub struct SignedTxnInBlock {
     /// SignedTransaction fields (flattened from algokit_transact)
     #[serde(flatten)]
     pub signed_transaction: AlgokitSignedTransaction,
-    /// [lsig] Logic signature (program signature).
-    #[serde(
-        default,
-        rename = "lsig",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub logic_signature: Option<NonAsciiString>,
     /// [ca] Rewards applied to close-remainder-to account.
     #[serde(rename = "ca", skip_serializing_if = "Option::is_none")]
     pub closing_amount: Option<u64>,
