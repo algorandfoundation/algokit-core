@@ -490,6 +490,10 @@ class RustCodeGenerator:
             files[src_dir / "msgpack_value_bytes.rs"] = self.template_engine.render_template(
                 "base/msgpack_value_bytes.rs.j2", context
             )
+            # Provide msgpack helper to deserialize msgpack strings as raw bytes
+            files[src_dir / "msgpack_string_bytes.rs"] = self.template_engine.render_template(
+                "base/msgpack_string_bytes.rs.j2", context
+            )
 
         return files
 

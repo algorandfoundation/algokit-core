@@ -8,6 +8,7 @@ uniffi::setup_scaffolding!();
 pub mod apis;
 pub mod models;
 {% if client_type == "Algod" %}
+pub mod msgpack_string_bytes;
 pub mod msgpack_value_bytes;
 {% endif %}
 

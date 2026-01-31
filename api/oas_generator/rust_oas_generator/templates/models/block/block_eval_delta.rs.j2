@@ -21,8 +21,13 @@ pub struct BlockEvalDelta {
     #[serde(rename = "at")]
     pub action: u32,
     /// [bs] bytes value.
-    #[serde(rename = "bs", skip_serializing_if = "Option::is_none")]
-    pub bytes: Option<String>,
+    #[serde(
+        with = "crate::msgpack_string_bytes",
+        default,
+        rename = "bs",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub bytes: Option<Vec<u8>>,
     /// [ui] uint value.
     #[serde(rename = "ui", skip_serializing_if = "Option::is_none")]
     pub uint: Option<u64>,

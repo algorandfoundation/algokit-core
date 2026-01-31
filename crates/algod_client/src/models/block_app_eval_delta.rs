@@ -41,9 +41,13 @@ pub struct BlockAppEvalDelta {
     #[serde_as(as = "Option<Vec<Bytes>>")]
     #[serde(rename = "sa", skip_serializing_if = "Option::is_none")]
     pub shared_accounts: Option<Vec<Vec<u8>>>,
-    /// [lg] Application log outputs as strings (msgpack strings).
-    #[serde(rename = "lg", skip_serializing_if = "Option::is_none")]
-    pub logs: Option<Vec<String>>,
+    /// [lg] Application log outputs.
+    #[serde(
+        rename = "lg",
+        skip_serializing_if = "Option::is_none",
+        with = "crate::msgpack_string_bytes"
+    )]
+    pub logs: Option<Vec<Vec<u8>>>,
 }
 
 impl AlgorandMsgpack for BlockAppEvalDelta {
