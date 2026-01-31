@@ -21,9 +21,6 @@ use algokit_transact::AlgorandMsgpack;
 use crate::models::Block;
 
 // Type aliases for clarity
-pub type Round = u64;
-pub type Period = u64;
-pub type Step = u64;
 pub type Digest = Vec<u8>; // DigestSize = sha512.Size256 = 32 bytes
 pub type Address = Digest;
 pub type VrfProof = Vec<u8>; // VrfProofSize = 80 bytes
@@ -68,9 +65,9 @@ pub struct UnauthenticatedCredential {
 /// its proposer, and the period in which it was proposed.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ProposalValue {
-    #[serde(rename = "oper", default, skip_serializing_if = "Option::is_none")]
-    pub original_period: Option<Period>,
-    #[serde(rename = "oprop")]
+    #[serde(rename = "oper", default)]
+    pub original_period: u64,
+    #[serde(rename = "oprop", default)]
     pub original_proposer: Address,
     /// BlockDigest = proposal.Block.Digest()
     #[serde(rename = "dig")]
@@ -107,12 +104,12 @@ pub struct EquivocationVoteAuthenticator {
 /// unauthenticatedBundle is a bundle which has not yet been verified.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct UnauthenticatedBundle {
-    #[serde(rename = "rnd")]
-    pub round: Round,
-    #[serde(rename = "per")]
-    pub period: Period,
-    #[serde(rename = "step")]
-    pub step: Step,
+    #[serde(rename = "rnd", default)]
+    pub round: u64,
+    #[serde(rename = "per", default)]
+    pub period: u64,
+    #[serde(rename = "step", default)]
+    pub step: u64,
     #[serde(rename = "prop")]
     pub proposal: ProposalValue,
     #[serde(rename = "vote")]
