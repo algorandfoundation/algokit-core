@@ -20,7 +20,106 @@ use algokit_transact::AlgorandMsgpack;
 
 use crate::models::Block;
 
-use crate::models::NonAsciiString;
+// Type aliases for clarity
+pub type Round = u64;
+pub type Period = u64;
+pub type Step = u64;
+pub type Digest = Vec<u8>; // DigestSize = sha512.Size256 = 32 bytes
+pub type Address = Digest;
+pub type VrfProof = Vec<u8>; // VrfProofSize = 80 bytes
+
+pub type Ed25519Signature = Vec<u8>; // Ed25519SignatureSize = 64 bytes
+pub type Ed25519PublicKey = Vec<u8>; // Ed25519PublicKeySize = 32 bytes
+
+/// OneTimeSignature is a cryptographic signature that is produced a limited
+/// number of times and provides forward integrity.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct OneTimeSignature {
+    /// Sig is a signature of msg under the key PK.
+    #[serde(rename = "s")]
+    pub sig: Ed25519Signature,
+    #[serde(rename = "p")]
+    pub pk: Ed25519PublicKey,
+    /// Old-style signature that does not use proper domain separation.
+    /// PKSigOld is unused; however, unfortunately we forgot to mark it
+    /// `codec:omitempty` and so it appears (with zero value) in certs.
+    #[serde(rename = "ps")]
+    pub pk_sig_old: Ed25519Signature,
+    /// Used to verify a new-style two-level ephemeral signature.
+    /// PK1Sig is a signature of OneTimeSignatureSubkeyOffsetID(PK, Batch, Offset) under the key PK2.
+    /// PK2Sig is a signature of OneTimeSignatureSubkeyBatchID(PK2, Batch) under the master key (OneTimeSignatureVerifier).
+    #[serde(rename = "p2")]
+    pub pk2: Ed25519PublicKey,
+    #[serde(rename = "p1s")]
+    pub pk1_sig: Ed25519Signature,
+    #[serde(rename = "p2s")]
+    pub pk2_sig: Ed25519Signature,
+}
+
+/// An UnauthenticatedCredential is a Credential which has not yet been
+/// authenticated.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct UnauthenticatedCredential {
+    #[serde(rename = "pf")]
+    pub proof: VrfProof,
+}
+
+/// A proposalValue is a triplet of a block hashes (the contents themselves and the encoding of the block),
+/// its proposer, and the period in which it was proposed.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ProposalValue {
+    #[serde(rename = "oper")]
+    pub original_period: Period,
+    #[serde(rename = "oprop")]
+    pub original_proposer: Address,
+    /// BlockDigest = proposal.Block.Digest()
+    #[serde(rename = "dig")]
+    pub block_digest: Digest,
+    /// EncodingDigest = crypto.HashObj(proposal)
+    #[serde(rename = "encdig")]
+    pub encoding_digest: Digest,
+}
+
+/// voteAuthenticator omits the Round, Period, Step, and Proposal for compression
+/// and to simplify checking logic.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct VoteAuthenticator {
+    #[serde(rename = "snd")]
+    pub sender: Address,
+    #[serde(rename = "cred")]
+    pub cred: UnauthenticatedCredential,
+    #[serde(rename = "sig")]
+    pub sig: OneTimeSignature,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct EquivocationVoteAuthenticator {
+    #[serde(rename = "snd")]
+    pub sender: Address,
+    #[serde(rename = "cred")]
+    pub cred: UnauthenticatedCredential,
+    #[serde(rename = "sig")]
+    pub sigs: [OneTimeSignature; 2],
+    #[serde(rename = "props")]
+    pub proposals: [ProposalValue; 2],
+}
+
+/// unauthenticatedBundle is a bundle which has not yet been verified.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct UnauthenticatedBundle {
+    #[serde(rename = "rnd")]
+    pub round: Round,
+    #[serde(rename = "per")]
+    pub period: Period,
+    #[serde(rename = "step")]
+    pub step: Step,
+    #[serde(rename = "prop")]
+    pub proposal: ProposalValue,
+    #[serde(rename = "vote")]
+    pub votes: Vec<VoteAuthenticator>,
+    #[serde(rename = "eqv")]
+    pub equivocation_votes: Vec<EquivocationVoteAuthenticator>,
+}
 
 /// Encoded block object.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
@@ -31,7 +130,7 @@ pub struct GetBlock {
     pub block: Block,
     /// Block certificate (msgpack only).
     #[serde(default, rename = "cert", skip_serializing_if = "Option::is_none")]
-    pub cert: Option<NonAsciiString>,
+    pub cert: Option<UnauthenticatedBundle>,
 }
 
 impl AlgorandMsgpack for GetBlock {
