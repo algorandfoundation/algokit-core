@@ -150,7 +150,7 @@ mod tests {
         let msg = format!("{}", err);
         assert!(
             msg == "Transaction fee 2470 µALGO is greater than max fee 1000 µALGO",
-            "Unexpected error message: {}",
+            "Unexpected error err_msg:{}",
             msg
         );
     }

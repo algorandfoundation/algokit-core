@@ -70,7 +70,7 @@ impl TryFrom<MultisigSubsignature> for algokit_transact::MultisigSubsignature {
                 .map(|sig| vec_to_array(&sig, "signature"))
                 .transpose()
                 .map_err(|e| AlgoKitTransactError::DecodingError {
-                    message: format!("Error while decoding a subsignature: {}", e),
+                    error_msg: format!("Error while decoding a subsignature: {}", e),
                 })?,
         })
     }
@@ -143,7 +143,7 @@ pub fn apply_multisig_subsignature(
         subsignature
             .try_into()
             .map_err(|_| AlgoKitTransactError::EncodingError {
-                message: format!(
+                error_msg: format!(
                     "signature should be {} bytes",
                     ALGORAND_SIGNATURE_BYTE_LENGTH
                 ),

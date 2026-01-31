@@ -65,7 +65,7 @@ pub trait AlgorandMsgpack: Serialize + for<'de> Deserialize<'de> {
     fn decode(bytes: &[u8]) -> Result<Self, AlgoKitTransactError> {
         if bytes.is_empty() {
             return Err(AlgoKitTransactError::InputError {
-                message: "attempted to decode 0 bytes".to_string(),
+                err_msg: "attempted to decode 0 bytes".to_string(),
             });
         }
 

@@ -35,7 +35,7 @@ impl TryFrom<Transaction> for algokit_transact::AssetFreezeTransactionFields {
     fn try_from(tx: Transaction) -> Result<Self, Self::Error> {
         if tx.transaction_type != TransactionType::AssetFreeze || tx.asset_freeze.is_none() {
             return Err(Self::Error::DecodingError {
-                message: "Asset Freeze data missing".to_string(),
+                error_msg: "Asset Freeze data missing".to_string(),
             });
         }
 
@@ -52,7 +52,7 @@ impl TryFrom<Transaction> for algokit_transact::AssetFreezeTransactionFields {
         transaction_fields
             .validate()
             .map_err(|errors| AlgoKitTransactError::DecodingError {
-                message: format!("Asset freeze validation failed: {}", errors.join(", ")),
+                error_msg: format!("Asset freeze validation failed: {}", errors.join(", ")),
             })?;
 
         Ok(transaction_fields)

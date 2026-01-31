@@ -36,9 +36,9 @@ func paymentExample() throws {
     signature: Data(sig)
   )
 
-  let encodedSignedTxn = try encodeSignedTransaction(signedTransaction: signedTxn)
+  let encodedStxn = try encodeSignedTransaction(signedTransaction: signedTxn)
 
-  #expect(!encodedSignedTxn.isEmpty)
+  #expect(encodedStxn.count > 0)
 }
 
 @Test("Payment: get encoded transaction type")
@@ -75,14 +75,14 @@ func paymentEncodeWithSignature() throws {
   let signature = Ed25519.sign(
     message: simplePayment.unsignedBytes, secretKey: simplePayment.signingPrivateKey)
 
-  let signedTx = try encodeSignedTransaction(
-    signedTransaction: SignedTransaction(
-      transaction: makeTransaction(from: simplePayment),
-      signature: Data(signature)
-    )
+  let signedTx = SignedTransaction(
+    transaction: makeTransaction(from: simplePayment),
+    signature: Data(signature)
   )
 
-  #expect([UInt8](signedTx) == simplePayment.signedBytes)
+  let encodedStxn = try encodeSignedTransaction(signedTransaction: signedTx)
+
+  #expect([UInt8](encodedStxn) == simplePayment.signedBytes)
 }
 
 @Test("Payment: encode")

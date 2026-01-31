@@ -15,9 +15,6 @@ func genericTransactionMalformedBytes() throws {
   do {
     _ = try decodeTransaction(encodedTx: badBytes)
     #expect(Bool(false), "Expected DecodingError to be thrown")
-  } catch AlgoKitTransactError.InputError {
-    // Success - expected error was thrown
-    #expect(Bool(true))
   } catch AlgoKitTransactError.DecodingError {
     // Success - expected error was thrown
     #expect(Bool(true))

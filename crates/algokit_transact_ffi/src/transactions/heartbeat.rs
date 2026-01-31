@@ -70,7 +70,7 @@ impl TryFrom<Transaction> for algokit_transact::HeartbeatTransactionFields {
     fn try_from(tx: Transaction) -> Result<Self, Self::Error> {
         if tx.transaction_type != TransactionType::Heartbeat || tx.heartbeat.is_none() {
             return Err(Self::Error::DecodingError {
-                message: "Heartbeat transaction data missing".to_string(),
+                error_msg: "Heartbeat transaction data missing".to_string(),
             });
         }
 

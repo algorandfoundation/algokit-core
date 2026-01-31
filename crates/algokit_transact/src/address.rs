@@ -65,12 +65,12 @@ impl FromStr for Address {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.len() != ALGORAND_ADDRESS_LENGTH {
             return Err(AlgoKitTransactError::InvalidAddress {
-                message: "Algorand address must be exactly 58 characters".into(),
+                err_msg: "Algorand address must be exactly 58 characters".into(),
             });
         }
         let decoded_address = base32::decode(base32::Alphabet::Rfc4648 { padding: false }, s)
             .ok_or_else(|| AlgoKitTransactError::InvalidAddress {
-                message: "Invalid base32 encoding for Algorand address".into(),
+                err_msg: "Invalid base32 encoding for Algorand address".into(),
             })?;
 
         // Although this is called public key (and it actually is when the account is a `KeyPairAccount`),
@@ -80,18 +80,18 @@ impl FromStr for Address {
             [..ALGORAND_PUBLIC_KEY_BYTE_LENGTH]
             .try_into()
             .map_err(|_| AlgoKitTransactError::InvalidAddress {
-                message: "Could not decode address into 32-byte public key".to_string(),
+                err_msg: "Could not decode address into 32-byte public key".to_string(),
             })?;
         let checksum: [u8; ALGORAND_CHECKSUM_BYTE_LENGTH] = decoded_address
             [ALGORAND_PUBLIC_KEY_BYTE_LENGTH..]
             .try_into()
             .map_err(|_| AlgoKitTransactError::InvalidAddress {
-                message: "Could not get 4-byte checksum from decoded address".to_string(),
+                err_msg: "Could not get 4-byte checksum from decoded address".to_string(),
             })?;
 
         if pub_key_to_checksum(&pub_key) != checksum {
             return Err(AlgoKitTransactError::InvalidAddress {
-                message: "Checksum is invalid".to_string(),
+                err_msg: "Checksum is invalid".to_string(),
             });
         }
         Ok(Address(pub_key))

@@ -32,7 +32,7 @@ pub fn sort_msgpack_value(value: rmpv::Value) -> Result<rmpv::Value, AlgoKitTran
                     rmpv::Value::Binary(bytes) => binary_entries.push((bytes, sorted_v)),
                     _ => {
                         return Err(AlgoKitTransactError::InputError {
-                            message: "Unsupported MessagePack map key type; only integer, string, and binary keys are supported".to_string(),
+                            err_msg: "Unsupported MessagePack map key type; only integer, string, and binary keys are supported".to_string(),
                         })
                     }
                 }
@@ -286,13 +286,13 @@ pub fn hash(bytes: &Vec<u8>) -> Byte32 {
 pub fn compute_group(txs: &[Transaction]) -> Result<Byte32, AlgoKitTransactError> {
     if txs.is_empty() {
         return Err(AlgoKitTransactError::InputError {
-            message: String::from("Transaction group size cannot be 0"),
+            err_msg: String::from("Transaction group size cannot be 0"),
         });
     }
 
     if txs.len() > MAX_TX_GROUP_SIZE {
         return Err(AlgoKitTransactError::InputError {
-            message: format!(
+            err_msg: format!(
                 "Transaction group size exceeds the max limit of {}",
                 MAX_TX_GROUP_SIZE
             ),
@@ -304,7 +304,7 @@ pub fn compute_group(txs: &[Transaction]) -> Result<Byte32, AlgoKitTransactError
         .map(|tx| {
             if tx.header().group.is_some() {
                 return Err(AlgoKitTransactError::InputError {
-                    message: "Transactions must not already be grouped".to_string(),
+                    err_msg: "Transactions must not already be grouped".to_string(),
                 });
             }
             tx.id_raw()

@@ -78,16 +78,16 @@ impl MultisigSignature {
     ) -> Result<Self, AlgoKitTransactError> {
         if version == 0 {
             return Err(AlgoKitTransactError::InvalidMultisigSignature {
-                message: "Version cannot be zero".to_string(),
+                err_msg: "Version cannot be zero".to_string(),
             });
         }
         if subsignatures.is_empty() {
             return Err(AlgoKitTransactError::InvalidMultisigSignature {
-                message: "Subsignatures cannot be empty".to_string(),
+                err_msg: "Subsignatures cannot be empty".to_string(),
             });
         }
         if threshold == 0 || threshold as usize > subsignatures.len() {
-            return Err(AlgoKitTransactError::InvalidMultisigSignature { message: "Threshold must be greater than zero and less than or equal to the number of sub-signers".to_string() });
+            return Err(AlgoKitTransactError::InvalidMultisigSignature { err_msg:"Threshold must be greater than zero and less than or equal to the number of sub-signers".to_string() });
         }
         Ok(Self {
             version,
@@ -138,7 +138,7 @@ impl MultisigSignature {
         }
         if !found {
             return Err(AlgoKitTransactError::InvalidMultisigSignature {
-                message: "Address not found in multisig signature".to_string(),
+                err_msg: "Address not found in multisig signature".to_string(),
             });
         }
 
@@ -161,17 +161,17 @@ impl MultisigSignature {
     pub fn merge(&self, other: &Self) -> Result<Self, AlgoKitTransactError> {
         if self.version != other.version {
             return Err(AlgoKitTransactError::InvalidMultisigSignature {
-                message: "Cannot merge multisig signatures with different versions".to_string(),
+                err_msg: "Cannot merge multisig signatures with different versions".to_string(),
             });
         }
         if self.threshold != other.threshold {
             return Err(AlgoKitTransactError::InvalidMultisigSignature {
-                message: "Cannot merge multisig signatures with different thresholds".to_string(),
+                err_msg: "Cannot merge multisig signatures with different thresholds".to_string(),
             });
         }
         if self.participants() != other.participants() {
             return Err(AlgoKitTransactError::InvalidMultisigSignature {
-                message: "Cannot merge multisig signatures with different participants".to_string(),
+                err_msg: "Cannot merge multisig signatures with different participants".to_string(),
             });
         }
 

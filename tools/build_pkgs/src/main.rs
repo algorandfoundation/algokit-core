@@ -1,3 +1,4 @@
+mod android;
 mod python;
 mod swift;
 
@@ -16,6 +17,8 @@ enum Language {
     #[value(alias = "py")]
     Python,
     Swift,
+    #[value(alias = "aar")]
+    Android,
 }
 
 impl Display for Language {
@@ -23,6 +26,7 @@ impl Display for Language {
         match self {
             Language::Python => f.write_str("python"),
             Language::Swift => f.write_str("swift"),
+            Language::Android => f.write_str("android"),
         }
     }
 }
@@ -32,6 +36,7 @@ impl Language {
         match self {
             Self::Python => python::build(pkg),
             Self::Swift => swift::build(pkg),
+            Self::Android => android::build(pkg),
         }
     }
 
@@ -70,23 +75,29 @@ impl Package {
         self.crate_dir().join("Cargo.toml")
     }
 
-    fn dylib(&self) -> PathBuf {
+    fn dylib(&self, target: Option<&str>) -> PathBuf {
         let mut prefix = "lib";
-        let ext = if cfg!(target_os = "windows") {
+        let ext = if target.map_or(cfg!(target_os = "windows"), |t| t.contains("windows")) {
             prefix = "";
             "dll"
-        } else if cfg!(target_os = "macos") {
+        } else if target.map_or(cfg!(target_os = "macos"), |t| t.contains("darwin")) {
             "dylib"
         } else {
             "so"
         };
 
-        get_repo_root().join("target").join("release").join(format!(
-            "{}{}.{}",
-            prefix,
-            self.crate_name(),
-            ext
-        ))
+        let mut lib_path = get_repo_root().join("target");
+
+        if let Some(target) = target {
+            lib_path = lib_path.join(target);
+        }
+
+        lib_path =
+            lib_path
+                .join("release")
+                .join(format!("{}{}.{}", prefix, self.crate_name(), ext));
+
+        lib_path
     }
 }
 

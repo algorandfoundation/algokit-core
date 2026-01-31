@@ -50,7 +50,7 @@ impl TryFrom<crate::Transaction> for algokit_transact::KeyRegistrationTransactio
             || tx.key_registration.is_none()
         {
             return Err(Self::Error::DecodingError {
-                message: "Key Registration data missing".to_string(),
+                error_msg: "Key Registration data missing".to_string(),
             });
         }
 
@@ -80,7 +80,7 @@ impl TryFrom<crate::Transaction> for algokit_transact::KeyRegistrationTransactio
         transaction_fields
             .validate()
             .map_err(|errors| AlgoKitTransactError::DecodingError {
-                message: format!("Key registration validation failed: {}", errors.join("\n")),
+                error_msg: format!("Key registration validation failed: {}", errors.join("\n")),
             })?;
 
         Ok(transaction_fields)

@@ -30,6 +30,12 @@ The exported interfaces should be purely functional without any state owned by R
 
 ## Contributing
 
+## Build Scripts
+
+`cargo pkg` will run the build script. For example: `cargo pkg transact kt` builds `algokit_transact` for `kotlin`.
+
+The scripts are defined in [tools/build_pkgs] for each language.
+
 ### Learning Resources
 
 If you are new to Rust or UniFFI, check out the [learning resources document](./docs/contributing/learning_resources.md)
