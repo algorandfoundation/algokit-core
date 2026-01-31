@@ -87,8 +87,9 @@ impl Serialize for BlockStateDelta {
     {
         let mut map = serializer.serialize_map(Some(self.entries.len()))?;
         for (k, v) in &self.entries {
+            let str = unsafe { std::str::from_utf8_unchecked(k) };
             // Serialize keys as bytes
-            map.serialize_entry(&serde_bytes::Bytes::new(k), v)?;
+            map.serialize_entry(&str, v)?;
         }
         map.end()
     }
