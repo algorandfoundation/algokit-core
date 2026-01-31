@@ -485,11 +485,6 @@ class RustCodeGenerator:
         # Detect client type
         client_type_fn = self.template_engine.env.globals.get("get_client_type")
         client_type = client_type_fn(context["spec"]) if callable(client_type_fn) else "Api"
-        if client_type == "Algod":
-            # Provide msgpack helper to encode/decode arbitrary msgpack values as bytes
-            files[src_dir / "msgpack_value_bytes.rs"] = self.template_engine.render_template(
-                "base/msgpack_value_bytes.rs.j2", context
-            )
 
         return files
 
