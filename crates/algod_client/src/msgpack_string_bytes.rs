@@ -32,7 +32,7 @@ where
     S: Serializer,
 {
     match value {
-        Some(bytes) => serializer.serialize_bytes(bytes),
+        Some(bytes) => serializer.serialize_str(unsafe { std::str::from_utf8_unchecked(bytes) }),
         None => serializer.serialize_none(),
     }
 }
