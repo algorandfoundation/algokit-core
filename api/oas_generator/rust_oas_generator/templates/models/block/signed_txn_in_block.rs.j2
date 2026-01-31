@@ -90,7 +90,6 @@ impl Default for SignedTxnInBlock {
                 auth_address: None,
                 multisignature: None,
             },
-            logic_signature: None,
             closing_amount: None,
             asset_closing_amount: None,
             sender_rewards: None,
