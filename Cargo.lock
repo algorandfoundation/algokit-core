@@ -39,6 +39,7 @@ dependencies = [
  "serde",
  "serde_bytes",
  "serde_json",
+ "serde_path_to_error",
  "serde_repr",
  "serde_with",
  "snafu",
@@ -63,6 +64,7 @@ dependencies = [
  "rstest",
  "serde",
  "serde_json",
+ "serde_path_to_error",
  "sha2",
  "snafu",
 ]
@@ -100,6 +102,7 @@ dependencies = [
  "serde",
  "serde_bytes",
  "serde_json",
+ "serde_path_to_error",
  "serde_repr",
  "serde_with",
  "sha2",
@@ -1702,6 +1705,7 @@ dependencies = [
  "serde",
  "serde_bytes",
  "serde_json",
+ "serde_path_to_error",
  "serde_repr",
  "serde_with",
  "snafu",
@@ -1825,6 +1829,7 @@ dependencies = [
  "serde",
  "serde_bytes",
  "serde_json",
+ "serde_path_to_error",
  "serde_repr",
  "serde_with",
  "snafu",
@@ -2930,6 +2935,16 @@ dependencies = [
  "itoa",
  "memchr",
  "ryu",
+ "serde",
+]
+
+[[package]]
+name = "serde_path_to_error"
+version = "0.1.17"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "59fab13f937fa393d08645bf3a84bdfe86e296747b506ada67bb15f10f218b2a"
+dependencies = [
+ "itoa",
  "serde",
 ]
 

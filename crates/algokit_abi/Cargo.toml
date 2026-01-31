@@ -11,6 +11,7 @@ base32 = { workspace = true }
 sha2 = { workspace = true }
 serde = { version = "1.0.216", features = ["derive"] }
 serde_json = "1.0.133"
+serde_path_to_error = "0.1"
 base64 = "0.21"
 algokit_test_artifacts = { path = "../algokit_test_artifacts" }
 

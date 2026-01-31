@@ -73,10 +73,16 @@ pub async fn add_participation_key(
         .unwrap_or("application/json");
 
     match ContentType::from(content_type) {
-        ContentType::Json => serde_json::from_slice(&response.body).map_err(|e| Error::Serde {
+        ContentType::Json => serde_path_to_error::deserialize(
+            &mut serde_json::Deserializer::from_slice(&response.body),
+        )
+        .map_err(|e| Error::Serde {
             message: e.to_string(),
         }),
-        ContentType::MsgPack => rmp_serde::from_slice(&response.body).map_err(|e| Error::Serde {
+        ContentType::MsgPack => serde_path_to_error::deserialize(
+            &mut rmp_serde::Deserializer::new(std::io::Cursor::new(&response.body)),
+        )
+        .map_err(|e| Error::Serde {
             message: e.to_string(),
         }),
         ContentType::Text => {

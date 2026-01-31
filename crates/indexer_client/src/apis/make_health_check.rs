@@ -57,7 +57,10 @@ pub async fn make_health_check(http_client: &dyn HttpClient) -> Result<HealthChe
         .unwrap_or("application/json");
 
     match ContentType::from(content_type) {
-        ContentType::Json => serde_json::from_slice(&response.body).map_err(|e| Error::Serde {
+        ContentType::Json => serde_path_to_error::deserialize(
+            &mut serde_json::Deserializer::from_slice(&response.body),
+        )
+        .map_err(|e| Error::Serde {
             message: e.to_string(),
         }),
         ContentType::MsgPack => Err(Error::Serde {
