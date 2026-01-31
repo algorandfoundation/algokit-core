@@ -82,8 +82,13 @@ impl Serialize for NonAsciiString {
     where
         S: Serializer,
     {
-        // Serialize as a msgpack string (not binary)
-        let s = unsafe { std::str::from_utf8_unchecked(&self.0) };
-        serializer.serialize_str(s)
+        // Try to serialize as UTF-8 string if valid, otherwise as binary
+        // This matches how the Algorand protocol handles state keys
+        // TODO: this works for state keys but may not be appropriate for all uses
+        if let Ok(s) = std::str::from_utf8(&self.0) {
+            serializer.serialize_str(s)
+        } else {
+            serializer.serialize_bytes(&self.0)
+        }
     }
 }
