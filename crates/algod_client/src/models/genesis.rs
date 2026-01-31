@@ -32,8 +32,8 @@ pub struct Genesis {
     pub proto: String,
     #[serde(rename = "rwd")]
     pub rwd: String,
-    #[serde(rename = "timestamp")]
-    pub timestamp: u64,
+    #[serde(rename = "timestamp", skip_serializing_if = "Option::is_none")]
+    pub timestamp: Option<u64>,
 }
 
 impl Genesis {
@@ -45,7 +45,6 @@ impl Genesis {
         network: String,
         proto: String,
         rwd: String,
-        timestamp: u64,
     ) -> Genesis {
         Genesis {
             alloc,
@@ -54,9 +53,9 @@ impl Genesis {
             network,
             proto,
             rwd,
-            timestamp,
             comment: None,
             devmode: None,
+            timestamp: None,
         }
     }
 }
