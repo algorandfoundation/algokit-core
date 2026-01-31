@@ -11,6 +11,11 @@
  */
 
 use super::Error;
+#[cfg(feature = "default_client")]
+use algokit_http_client::DefaultHttpClient;
+
+use algokit_http_client::HttpClient;
+
 use crate::models::{
     CreateWalletRequest, DeleteKeyRequest, DeleteKeyResponse, DeleteMultisigRequest,
     DeleteMultisigResponse, ExportKeyRequest, ExportMasterKeyRequest, ExportMultisigRequest,
@@ -26,7 +31,6 @@ use crate::models::{
     SignProgramMultisigRequest, SignProgramRequest, SignTransactionRequest, VersionsRequest,
     VersionsResponse, WalletInfoRequest,
 };
-use algokit_http_client::{DefaultHttpClient, HttpClient};
 use std::sync::Arc;
 
 /// The main Kmd API client.
