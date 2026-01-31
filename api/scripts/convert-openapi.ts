@@ -932,6 +932,7 @@ async function processAlgodSpec() {
 
   const config: ProcessingConfig = {
     sourceUrl: `https://raw.githubusercontent.com/algorand/go-algorand/${stableTag}/daemon/algod/api/algod.oas2.json`,
+    requiredFieldTransforms: [{ schemaName: "Genesis", fieldName: "timestamp", makeRequired: false }],
     outputPath: join(process.cwd(), "specs", "algod.oas3.json"),
     fieldTransforms: [
       {
