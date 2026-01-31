@@ -20,6 +20,8 @@ use algokit_transact::AlgorandMsgpack;
 
 use crate::models::Block;
 
+use crate::models::NonAsciiString;
+
 /// Encoded block object.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
@@ -28,13 +30,8 @@ pub struct GetBlock {
     #[serde(rename = "block")]
     pub block: Block,
     /// Block certificate (msgpack only).
-    #[serde(
-        with = "crate::msgpack_value_bytes",
-        default,
-        rename = "cert",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub cert: Option<Vec<u8>>,
+    #[serde(default, rename = "cert", skip_serializing_if = "Option::is_none")]
+    pub cert: Option<NonAsciiString>,
 }
 
 impl AlgorandMsgpack for GetBlock {

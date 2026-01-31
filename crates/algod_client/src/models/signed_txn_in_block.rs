@@ -20,6 +20,8 @@ use algokit_transact::AlgorandMsgpack;
 
 use crate::models::BlockAppEvalDelta;
 
+use crate::models::NonAsciiString;
+
 /// SignedTxnInBlock is a SignedTransaction with additional ApplyData and block-specific metadata.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
@@ -28,13 +30,8 @@ pub struct SignedTxnInBlock {
     #[serde(flatten)]
     pub signed_transaction: AlgokitSignedTransaction,
     /// [lsig] Logic signature (program signature).
-    #[serde(
-        with = "crate::msgpack_value_bytes",
-        default,
-        rename = "lsig",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub logic_signature: Option<Vec<u8>>,
+    #[serde(default, rename = "lsig", skip_serializing_if = "Option::is_none")]
+    pub logic_signature: Option<NonAsciiString>,
     /// [ca] Rewards applied to close-remainder-to account.
     #[serde(rename = "ca", skip_serializing_if = "Option::is_none")]
     pub closing_amount: Option<u64>,

@@ -9,6 +9,7 @@
  */
 
 use crate::models;
+use crate::models::NonAsciiString;
 #[cfg(not(feature = "ffi_uniffi"))]
 use algokit_transact::SignedTransaction as AlgokitSignedTransaction;
 use serde::{Deserialize, Serialize};
@@ -42,13 +43,8 @@ pub struct BlockAppEvalDelta {
     #[serde(rename = "sa", skip_serializing_if = "Option::is_none")]
     pub shared_accounts: Option<Vec<Vec<u8>>>,
     /// [lg] Application log outputs.
-    #[serde(
-      rename = "lg",
-      skip_serializing_if = "Option::is_none",
-      default,
-      with = "crate::msgpack_string_bytes_vec"
-    )]
-    pub logs: Option<Vec<Vec<u8>>>,
+    #[serde(rename = "lg", skip_serializing_if = "Option::is_none", default)]
+    pub logs: Option<Vec<NonAsciiString>>,
 }
 
 impl AlgorandMsgpack for BlockAppEvalDelta {
