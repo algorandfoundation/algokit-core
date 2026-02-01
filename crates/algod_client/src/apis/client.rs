@@ -713,7 +713,7 @@ impl AlgodClient {
 mod tests {
     use std::{collections::HashMap, io::Cursor};
 
-    use crate::models::{Block, NonAsciiString};
+    use crate::models::{Block, NonAsciiString, block};
 
     use super::*;
     use algokit_http_client::HttpMethod;
@@ -812,6 +812,29 @@ mod tests {
 
         println!("raw gd bs: {:#?}", raw_gd_bs);
 
-        let block = client.get_block(round, None).await.unwrap().block;
+        let block = client.get_block(round, None).await.unwrap();
+        eprintln!(
+            "DEBUGPRINT[163]: {}:{} (after let block = client.get_block(round, None…)",
+            file!(),
+            line!()
+        );
+
+        let msgpack_block = block.to_msgpack().unwrap();
+        eprintln!(
+            "DEBUGPRINT[164]: {}:{} (after let msgpack_block = block.to_msgpack().u…)",
+            file!(),
+            line!()
+        );
+
+        let mut serde_block_buf = Vec::new();
+        block
+            .serialize(
+                &mut rmp_serde::Serializer::new(&mut serde_block_buf)
+                    .with_struct_map()
+                    .with_bytes(rmp_serde::config::BytesMode::ForceAll),
+            )
+            .unwrap();
+
+        assert_eq!(serde_block_buf.len(), raw_body.len());
     }
 }

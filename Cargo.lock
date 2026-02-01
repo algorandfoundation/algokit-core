@@ -2660,7 +2660,7 @@ dependencies = [
 [[package]]
 name = "rmp"
 version = "0.8.15"
-source = "git+https://github.com/joe-p/msgpack-rust?branch=feat%2Fraw_str_struct#e93e9725b641b95fb304462204af0d1618cbdc22"
+source = "git+https://github.com/joe-p/msgpack-rust?branch=feat%2Fraw_str_struct#7d9a14b879f85c1158919cce7ddc3953c6c7e6e8"
 dependencies = [
  "num-traits",
 ]
@@ -2668,7 +2668,7 @@ dependencies = [
 [[package]]
 name = "rmp-serde"
 version = "1.3.1"
-source = "git+https://github.com/joe-p/msgpack-rust?branch=feat%2Fraw_str_struct#e93e9725b641b95fb304462204af0d1618cbdc22"
+source = "git+https://github.com/joe-p/msgpack-rust?branch=feat%2Fraw_str_struct#7d9a14b879f85c1158919cce7ddc3953c6c7e6e8"
 dependencies = [
  "rmp",
  "serde",
@@ -2677,7 +2677,7 @@ dependencies = [
 [[package]]
 name = "rmpv"
 version = "1.3.1"
-source = "git+https://github.com/joe-p/msgpack-rust?branch=feat%2Fraw_str_struct#e93e9725b641b95fb304462204af0d1618cbdc22"
+source = "git+https://github.com/joe-p/msgpack-rust?branch=feat%2Fraw_str_struct#7d9a14b879f85c1158919cce7ddc3953c6c7e6e8"
 dependencies = [
  "rmp",
  "serde",
