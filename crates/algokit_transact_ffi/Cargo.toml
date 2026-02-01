@@ -19,7 +19,7 @@ rmp-serde = { workspace = true }
 serde = { workspace = true }
 serde_bytes = { workspace = true }
 serde_json = { workspace = true }
-base64 = "0.22.1"
+base64 = { workspace = true }
 
 uniffi = { workspace = true, features = [
   "scaffolding-ffi-buffer-fns",
@@ -40,4 +40,4 @@ snafu = "0.8"
 serde = { workspace = true }
 serde_bytes = { workspace = true }
 serde_json = { workspace = true }
-base64 = "0.22.1"
+base64 = { workspace = true }

@@ -21,7 +21,7 @@ serde_bytes = { workspace = true }
 
 # HTTP client
 algokit_http_client = { path = "../algokit_http_client", features = ["ffi_uniffi"] }
-url = "^2.5"
+url = { workspace = true }
 
 # Uniffi for FFI bindings
 uniffi = { workspace = true, optional = true }
@@ -37,8 +37,8 @@ rmpv = { workspace = true }
 snafu = { workspace = true }
 
 # Utilities
-base64 = "^0.22"
-uuid = { version = "^1.0", features = ["v4"] }
+base64 = { workspace = true }
+uuid = { workspace = true }
 
 [dev-dependencies]
 tokio = { version = "1.0", features = ["full"] }
