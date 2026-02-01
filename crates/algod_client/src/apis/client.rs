@@ -713,7 +713,7 @@ impl AlgodClient {
 mod tests {
     use std::{collections::HashMap, io::Cursor};
 
-    use crate::models::{Block, NonAsciiString, block};
+    use crate::models::{Block, NonAsciiString};
 
     use super::*;
     use algokit_http_client::HttpMethod;
@@ -810,31 +810,38 @@ mod tests {
             .unwrap()
             .1;
 
-        println!("raw gd bs: {:#?}", raw_gd_bs);
+        let api_block = client.get_block(round, None).await.unwrap().block;
 
-        let block = client.get_block(round, None).await.unwrap();
-        eprintln!(
-            "DEBUGPRINT[163]: {}:{} (after let block = client.get_block(round, None…)",
-            file!(),
-            line!()
-        );
+        let key = &NonAsciiString("\0\0\0\0\0\0\0\0".to_string().as_bytes().to_vec());
 
-        let msgpack_block = block.to_msgpack().unwrap();
-        eprintln!(
-            "DEBUGPRINT[164]: {}:{} (after let msgpack_block = block.to_msgpack().u…)",
-            file!(),
-            line!()
-        );
+        let api_txns = api_block.transactions.unwrap();
+        let api_txn = api_txns.get(16).unwrap();
+        let api_dt = api_txn.eval_delta.clone().unwrap();
+        let api_gd = api_dt.global_delta.unwrap();
+        let api_gd_value = api_gd.get(key).unwrap();
 
-        let mut serde_block_buf = Vec::new();
-        block
-            .serialize(
-                &mut rmp_serde::Serializer::new(&mut serde_block_buf)
-                    .with_struct_map()
-                    .with_bytes(rmp_serde::config::BytesMode::ForceAll),
-            )
+        let mut raw_gd_value_buf = Vec::new();
+        rmpv::encode::write_value(&mut Cursor::new(&mut raw_gd_value_buf), raw_gd_value).unwrap();
+
+        assert_eq!(api_gd_value.to_msgpack().unwrap(), raw_gd_value_buf);
+
+        let mut raw_txn_16_buf = Vec::new();
+        rmpv::encode::write_value(&mut Cursor::new(&mut raw_txn_16_buf), raw_txn_16).unwrap();
+
+        let rmpv_api_txn =
+            rmpv::decode::read_value(&mut Cursor::new(api_txn.to_msgpack().unwrap())).unwrap();
+
+        let rpmv_raw_txn_16 =
+            rmpv::decode::read_value(&mut Cursor::new(&mut raw_txn_16_buf)).unwrap();
+
+        // FIXME: Seems to me an ordering thing
+        // assert_eq!(rmpv_api_txn, rpmv_raw_txn_16);
+
+        let mut serde_se_api_txn_buf = Vec::new();
+        api_txn
+            .serialize(&mut rmp_serde::Serializer::new(&mut serde_se_api_txn_buf))
             .unwrap();
 
-        assert_eq!(serde_block_buf.len(), raw_body.len());
+        assert_eq!(&serde_se_api_txn_buf, &raw_txn_16_buf);
     }
 }

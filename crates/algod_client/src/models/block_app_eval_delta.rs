@@ -12,6 +12,7 @@ use crate::models;
 use crate::models::NonAsciiString;
 #[cfg(not(feature = "ffi_uniffi"))]
 use algokit_transact::SignedTransaction as AlgokitSignedTransaction;
+use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use serde_with::{Bytes, serde_as};
 use std::collections::HashMap;
@@ -34,7 +35,7 @@ pub struct BlockAppEvalDelta {
     pub global_delta: Option<BlockStateDelta>,
     /// [ld] Local state deltas keyed by integer account index.
     #[serde(rename = "ld", skip_serializing_if = "Option::is_none")]
-    pub local_deltas: Option<HashMap<u64, BlockStateDelta>>,
+    pub local_deltas: Option<IndexMap<u64, BlockStateDelta>>,
     /// [itx] Inner transactions produced by this application execution.
     #[serde(rename = "itx", skip_serializing_if = "Option::is_none")]
     pub inner_txns: Option<Vec<SignedTxnInBlock>>,

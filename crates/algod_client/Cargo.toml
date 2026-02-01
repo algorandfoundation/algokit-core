@@ -38,6 +38,7 @@ snafu = { workspace = true }
 # Utilities
 base64 = { workspace = true }
 uuid = { workspace = true }
+indexmap = { version = "2.13.0", features = ["serde"] }
 
 [dev-dependencies]
 pretty_assertions = "1.4.1"

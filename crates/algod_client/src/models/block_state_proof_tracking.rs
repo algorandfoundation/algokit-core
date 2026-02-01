@@ -9,10 +9,11 @@
  */
 
 use crate::models;
+use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 use crate::models::BlockStateProofTrackingData;
 
 /// Tracks state proof metadata by state proof type.
-pub type BlockStateProofTracking = HashMap<u64, BlockStateProofTrackingData>;
+pub type BlockStateProofTracking = IndexMap<u64, BlockStateProofTrackingData>;
