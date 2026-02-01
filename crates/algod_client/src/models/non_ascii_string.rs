@@ -55,25 +55,50 @@ impl DerefMut for NonAsciiString {
         &mut self.0
     }
 }
-
 impl<'de> Deserialize<'de> for NonAsciiString {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
-        // Use rmpv::Value to capture the raw msgpack value
-        let value = rmpv::Value::deserialize(deserializer)?;
+        struct NonAsciiStringVisitor;
 
-        match value {
-            rmpv::Value::String(s) => {
-                // rmpv::Utf8String gives us access to raw bytes even if not valid UTF-8
-                Ok(NonAsciiString(s.into_bytes()))
+        impl serde::de::Visitor<'_> for NonAsciiStringVisitor {
+            type Value = NonAsciiString;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+                formatter.write_str("a string (possibly non-UTF8)")
             }
-            rmpv::Value::Binary(b) => Ok(NonAsciiString(b)),
-            _ => Err(serde::de::Error::custom(
-                "expected string or binary, got other type",
-            )),
+
+            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                Ok(NonAsciiString(v.as_bytes().to_vec()))
+            }
+
+            fn visit_string<E>(self, v: String) -> Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                Ok(NonAsciiString(v.into_bytes()))
+            }
+
+            fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                Ok(NonAsciiString(v.to_vec()))
+            }
+
+            fn visit_byte_buf<E>(self, v: Vec<u8>) -> Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                Ok(NonAsciiString(v))
+            }
         }
+
+        deserializer.deserialize_any(NonAsciiStringVisitor)
     }
 }
 
@@ -82,10 +107,11 @@ impl Serialize for NonAsciiString {
     where
         S: Serializer,
     {
-        // NOTE: We are using this deprecated function because algod incorrectly encodes non-utf8
-        // data as string
-        #[allow(deprecated)]
-        let raw = rmp_serde::Raw::from_utf8(self.0.clone());
-        raw.serialize(serializer)
+        // Use the new MSGPACK_RAW_STR_STRUCT_NAME mechanism to serialize
+        // raw bytes as MessagePack string without UTF-8 validation
+        serializer.serialize_newtype_struct(
+            rmp_serde::MSGPACK_RAW_STR_STRUCT_NAME,
+            serde_bytes::Bytes::new(&self.0),
+        )
     }
 }

@@ -28,6 +28,7 @@ use crate::models::{
     SimulateTransaction, StartCatchup, StateProof, TealCompile, TealDisassemble, TealDryrun,
     TransactionParams, TransactionProof, UnknownJsonValue, Version, WaitForBlock,
 };
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 /// The main Algod API client.
@@ -705,5 +706,112 @@ impl AlgodClient {
         .await;
 
         result
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::{collections::HashMap, io::Cursor};
+
+    use crate::models::{Block, NonAsciiString};
+
+    use super::*;
+    use algokit_http_client::HttpMethod;
+    use pretty_assertions::assert_eq;
+
+    #[tokio::test]
+    async fn test_block() {
+        let client = AlgodClient::mainnet();
+
+        let round = 57965056;
+        println!("Fetching block for round {}", round);
+
+        // Do a raw HTTP request to get the block bytes
+        let p_round = round;
+
+        let path = format!("/v2/blocks/{round}", round = p_round);
+
+        let mut query_params: HashMap<String, String> = HashMap::new();
+        query_params.insert("format".to_string(), "msgpack".to_string());
+
+        let mut headers: HashMap<String, String> = HashMap::new();
+        headers.insert("Accept".to_string(), "application/msgpack".to_string());
+
+        let body = None;
+
+        let response = client
+            .http_client
+            .request(
+                HttpMethod::Get,
+                path,
+                Some(query_params),
+                body,
+                Some(headers),
+            )
+            .await
+            .unwrap();
+
+        let raw_body = response.body;
+
+        let mut raw_resp_data = Cursor::new(raw_body.clone());
+
+        let raw_response_decoded = rmpv::decode::read_value(&mut raw_resp_data).unwrap();
+
+        let raw_block = &raw_response_decoded
+            .as_map()
+            .unwrap()
+            .iter()
+            .find(|(k, _)| k.as_str().map(|s| s == "block").unwrap_or(false))
+            .unwrap()
+            .1;
+
+        let raw_txns = raw_block
+            .as_map()
+            .unwrap()
+            .iter()
+            .find(|(k, _)| k.as_str().map(|s| s == "txns").unwrap_or(false))
+            .unwrap()
+            .1
+            .as_array()
+            .unwrap();
+
+        let raw_txn_16 = &raw_txns[16];
+        let raw_dt = &raw_txn_16
+            .as_map()
+            .unwrap()
+            .iter()
+            .find(|(k, _)| k.as_str().map(|s| s == "dt").unwrap_or(false))
+            .unwrap()
+            .1;
+
+        let raw_gd = &raw_dt
+            .as_map()
+            .unwrap()
+            .iter()
+            .find(|(k, _)| k.as_str().map(|s| s == "gd").unwrap_or(false))
+            .unwrap()
+            .1;
+
+        // key \0\0\0\0\0\0\0\0 in gd
+        let raw_gd_value = &raw_gd
+            .as_map()
+            .unwrap()
+            .iter()
+            .find(|(k, _)| k.as_str().map(|s| s == "\0\0\0\0\0\0\0\0").unwrap_or(false))
+            .unwrap()
+            .1;
+
+        // "bs" in gd value
+        let raw_gd_bs = &raw_gd_value
+            .as_map()
+            .unwrap()
+            .iter()
+            .find(|(k, _)| k.as_str().map(|s| s == "bs").unwrap_or(false))
+            .unwrap()
+            .1;
+
+        println!("raw gd bs: {:#?}", raw_gd_bs);
+
+        let block = client.get_block(round, None).await.unwrap().block;
     }
 }
