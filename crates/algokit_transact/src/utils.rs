@@ -18,7 +18,7 @@ pub fn sort_msgpack_value(value: rmpv::Value) -> Result<rmpv::Value, AlgoKitTran
 
             // Categorize keys into integers, strings, and binary. Any other key types are unsupported.
             let mut int_entries: Vec<(rmpv::Integer, rmpv::Value)> = Vec::new();
-            let mut string_entries: Vec<(String, rmpv::Value)> = Vec::new();
+            let mut string_entries: Vec<(rmpv::Utf8String, rmpv::Value)> = Vec::new();
             let mut binary_entries: Vec<(Vec<u8>, rmpv::Value)> = Vec::new();
 
             for (k, v) in m {
@@ -26,8 +26,7 @@ pub fn sort_msgpack_value(value: rmpv::Value) -> Result<rmpv::Value, AlgoKitTran
                 match k {
                     rmpv::Value::Integer(int_key) => int_entries.push((int_key, sorted_v)),
                     rmpv::Value::String(key) => {
-                        let s = key.as_str().unwrap_or("").to_string();
-                        string_entries.push((s, sorted_v));
+                        string_entries.push((key, sorted_v));
                     }
                     rmpv::Value::Binary(bytes) => binary_entries.push((bytes, sorted_v)),
                     _ => {
@@ -57,7 +56,7 @@ pub fn sort_msgpack_value(value: rmpv::Value) -> Result<rmpv::Value, AlgoKitTran
                 a_val.cmp(&b_val)
             });
 
-            string_entries.sort_by(|(a, _), (b, _)| a.cmp(b));
+            string_entries.sort_by(|(a, _), (b, _)| a.as_bytes().cmp(b.as_bytes()));
 
             binary_entries.sort_by(|(a, _), (b, _)| a.cmp(b));
 
@@ -73,7 +72,7 @@ pub fn sort_msgpack_value(value: rmpv::Value) -> Result<rmpv::Value, AlgoKitTran
             result.extend(
                 string_entries
                     .into_iter()
-                    .map(|(k, v)| (rmpv::Value::String(k.into()), v)),
+                    .map(|(k, v)| (rmpv::Value::String(k), v)),
             );
             result.extend(
                 binary_entries

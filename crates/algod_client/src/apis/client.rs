@@ -777,118 +777,26 @@ mod tests {
             .as_array()
             .unwrap();
 
-        let raw_txn_16 = &raw_txns[16];
-        let raw_dt = &raw_txn_16
-            .as_map()
-            .unwrap()
-            .iter()
-            .find(|(k, _)| k.as_str().map(|s| s == "dt").unwrap_or(false))
-            .unwrap()
-            .1;
-
-        let raw_gd = &raw_dt
-            .as_map()
-            .unwrap()
-            .iter()
-            .find(|(k, _)| k.as_str().map(|s| s == "gd").unwrap_or(false))
-            .unwrap()
-            .1;
-
-        // key \0\0\0\0\0\0\0\0 in gd
-        let raw_gd_value = &raw_gd
-            .as_map()
-            .unwrap()
-            .iter()
-            .find(|(k, _)| k.as_str().map(|s| s == "\0\0\0\0\0\0\0\0").unwrap_or(false))
-            .unwrap()
-            .1;
-
-        // "bs" in gd value
-        let _raw_gd_bs = &raw_gd_value
-            .as_map()
-            .unwrap()
-            .iter()
-            .find(|(k, _)| k.as_str().map(|s| s == "bs").unwrap_or(false))
-            .unwrap()
-            .1;
-
         let api_block = client.get_block(round, None).await.unwrap().block;
 
-        let key = &NonAsciiString("\0\0\0\0\0\0\0\0".to_string().as_bytes().to_vec());
-
         let api_txns = api_block.transactions.clone().unwrap();
-        let api_txn = api_txns.get(16).unwrap();
-        let api_dt = api_txn.eval_delta.clone().unwrap();
-        let api_gd = api_dt.clone().global_delta.unwrap();
-        let api_gd_value = api_gd.get(key).unwrap();
-
-        let mut raw_gd_value_buf = Vec::new();
-        rmpv::encode::write_value(&mut Cursor::new(&mut raw_gd_value_buf), raw_gd_value).unwrap();
-
-        assert_eq!(api_gd_value.to_msgpack().unwrap(), raw_gd_value_buf);
-
-        let mut raw_dt_buf = Vec::new();
-        rmpv::encode::write_value(&mut Cursor::new(&mut raw_dt_buf), raw_dt).unwrap();
-
-        // FIXME: data loss in encode_raw
-        // assert_eq!(api_dt.encode_raw().unwrap().len(), raw_dt_buf.len());
-
-        let mut serde_dt_buf = Vec::new();
-        let mut serde_dt_serializer = rmp_serde::Serializer::new(Cursor::new(&mut serde_dt_buf))
-            .with_struct_map()
-            .with_bytes(rmp_serde::config::BytesMode::ForceAll);
-        api_dt.serialize(&mut serde_dt_serializer).unwrap();
-
-        assert_eq!(serde_dt_buf.len(), raw_dt_buf.len());
-
-        let mut serde_txn_buf = Vec::new();
-        let mut serde_txn_serializer = rmp_serde::Serializer::new(Cursor::new(&mut serde_txn_buf))
-            .with_struct_map()
-            .with_bytes(rmp_serde::config::BytesMode::ForceAll);
-        api_txn.serialize(&mut serde_txn_serializer).unwrap();
-
-        let mut raw_txn_buf = Vec::new();
-        rmpv::encode::write_value(&mut Cursor::new(&mut raw_txn_buf), raw_txn_16).unwrap();
-
-        assert_eq!(serde_txn_buf.len(), raw_txn_buf.len());
-
-        assert_eq!(raw_txns.len(), api_txns.len(), "Transaction count mismatch");
-
         for (idx, (raw_txn, api_txn)) in raw_txns.iter().zip(api_txns.iter()).enumerate() {
-            // Serialize the API transaction using rmp_serde
-            let mut serde_txn_buf = Vec::new();
-            let mut serde_txn_serializer =
-                rmp_serde::Serializer::new(Cursor::new(&mut serde_txn_buf))
-                    .with_struct_map()
-                    .with_bytes(rmp_serde::config::BytesMode::ForceAll);
-            api_txn.serialize(&mut serde_txn_serializer).unwrap();
-
             // Encode the raw transaction back to msgpack bytes
             let mut raw_txn_buf = Vec::new();
             rmpv::encode::write_value(&mut Cursor::new(&mut raw_txn_buf), raw_txn).unwrap();
 
             // Compare the serialized lengths
             assert_eq!(
-                serde_txn_buf.len(),
+                api_txn.encode().unwrap().len(),
                 raw_txn_buf.len(),
                 "Transaction {} msgpack length mismatch",
                 idx
             );
 
-            // assert_eq!(
-            //     serde_txn_buf, raw_txn_buf,
-            //     "Transaction {} msgpack bytes mismatch",
-            //     idx
-            // );
-
-            // convert to rmpv::Value and compare
-            let mut rmpv_txn_data = Cursor::new(&serde_txn_buf);
-            let serde_txn_value = rmpv::decode::read_value(&mut rmpv_txn_data).unwrap();
-
             assert_eq!(
-                serde_txn_value,
-                raw_txn.clone(),
-                "Transaction {} rmpv::Value mismatch",
+                api_txn.encode_raw().unwrap(),
+                raw_txn_buf,
+                "Transaction {} msgpack content mismatch",
                 idx
             );
         }
@@ -896,24 +804,10 @@ mod tests {
         println!("Successfully validated all {} transactions", api_txns.len());
 
         // Now test the full block for equality
-        let mut serde_block_buf = Vec::new();
-        let mut serde_block_serializer =
-            rmp_serde::Serializer::new(Cursor::new(&mut serde_block_buf))
-                .with_struct_map()
-                .with_bytes(rmp_serde::config::BytesMode::ForceAll);
-
         let mut raw_block_buf = Vec::new();
         let mut raw_block_data = Cursor::new(&mut raw_block_buf);
         rmpv::encode::write_value(&mut raw_block_data, raw_block).unwrap();
 
-        api_block.serialize(&mut serde_block_serializer).unwrap();
-        // assert_eq!(serde_block_buf.len(), raw_block_buf.len());
-        // assert_eq!(serde_block_buf, raw_block_buf);
-
-        // convert both bufs to rmpv Values
-        let mut serde_block_data = Cursor::new(&serde_block_buf);
-        let serde_block_value = rmpv::decode::read_value(&mut serde_block_data).unwrap();
-
-        assert_eq!(serde_block_value, raw_block.clone());
+        assert_eq!(api_block.encode_raw().unwrap(), raw_block_buf);
     }
 }
