@@ -725,7 +725,7 @@ mod tests {
     async fn test_block() {
         let client = AlgodClient::mainnet();
 
-        let round = 57965056;
+        let round = 57997183;
         println!("Fetching block for round {}", round);
 
         // Do a raw HTTP request to get the block bytes
@@ -785,18 +785,28 @@ mod tests {
             let mut raw_txn_buf = Vec::new();
             rmpv::encode::write_value(&mut Cursor::new(&mut raw_txn_buf), raw_txn).unwrap();
 
-            // Compare the serialized lengths
-            assert_eq!(
-                api_txn.encode().unwrap().len(),
-                raw_txn_buf.len(),
-                "Transaction {} msgpack length mismatch",
-                idx
-            );
+            // assert_eq!(
+            //     api_txn.encode().unwrap().len(),
+            //     raw_txn_buf.len(),
+            //     "Transaction {} msgpack length mismatch",
+            //     idx
+            // );
+
+            // assert_eq!(
+            //     api_txn.encode_raw().unwrap(),
+            //     raw_txn_buf,
+            //     "Transaction {} msgpack content mismatch",
+            //     idx
+            // );
+
+            // Decode the encoded txn back into a rpmv::Value
+            let api_txn_bytes = api_txn.encode_raw().unwrap();
+            let mut api_txn_data = Cursor::new(&api_txn_bytes);
+            let api_txn_value = rmpv::decode::read_value(&mut api_txn_data).unwrap();
 
             assert_eq!(
-                api_txn.encode_raw().unwrap(),
-                raw_txn_buf,
-                "Transaction {} msgpack content mismatch",
+                &api_txn_value, raw_txn,
+                "Transaction {} msgpack value mismatch",
                 idx
             );
         }

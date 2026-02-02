@@ -263,22 +263,21 @@ where
             let box_references = box_references
                 .iter()
                 .map(|box_ref| {
-                    let app_id_index = if box_ref.app_id == 0 || box_ref.app_id == fields.app_id {
-                        // A 0 value denotes the current app_id,
-                        // return 0 when the app_id is for the current app.
+                    // First, check if the app_id is in app_references
+                    let app_id_index = if let Some(pos) =
+                        app_references.iter().position(|&id| id == box_ref.app_id)
+                    {
+                        // Found in app_references, use 1-based index
+                        (pos + 1) as u64
+                    } else if box_ref.app_id == 0 || box_ref.app_id == fields.app_id {
+                        // Not in app_references, and it's the current app (or explicitly 0)
                         0
                     } else {
-                        // Find position in app_references and add 1 (1-based indexing)
-                        app_references
-                            .iter()
-                            .position(|&id| id == box_ref.app_id)
-                            .map(|pos| (pos + 1) as u64) // App references start from index 1; index 0 is the current app ID.
-                            .ok_or_else(|| {
-                                format!(
-                                    "Box reference with app id {} not found in app references.",
-                                    box_ref.app_id
-                                )
-                            })?
+                        // Not in app_references and not the current app - this is an error
+                        return Err(format!(
+                            "Box reference with app id {} not found in app references.",
+                            box_ref.app_id
+                        ));
                     };
 
                     Ok(BoxReference {
