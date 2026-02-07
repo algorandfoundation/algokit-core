@@ -1,6 +1,7 @@
 use cryptoxide::ed25519;
 use signature::Keypair;
 use signature::Signer;
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 /// Trait that combines Signer and Keypair for Ed25519 (64-byte signature, 32-byte public key).
 /// This allows using both traits in a trait object since Rust only allows one non-auto trait per trait object.
@@ -8,37 +9,20 @@ pub trait Ed25519KeyAndSigner: Signer<[u8; 64]> + Keypair<VerifyingKey = [u8; 32
 
 impl<T> Ed25519KeyAndSigner for T where T: Signer<[u8; 64]> + Keypair<VerifyingKey = [u8; 32]> {}
 
-pub trait Ed25519Generator {
-    type Error: std::error::Error;
-
-    fn try_generate(seed: Option<[u8; 32]>) -> Result<impl Ed25519KeyAndSigner, Self::Error>;
-}
-
-pub struct CryptoixdeEd25519Keypair {
+/// An Ed25519 keypair implementation using the cryptoxide library.
+/// The private key is automatically zeroed from memory when the struct is dropped.
+#[derive(Zeroize, ZeroizeOnDrop)]
+pub struct CryptoxideEd25519Keypair {
+    /// The 64-byte keypair (32 bytes private key + 32 bytes public key).
+    /// Marked with `zeroize` to ensure secure memory clearing.
+    #[zeroize]
     keypair: [u8; 64],
 }
 
-impl Signer<[u8; 64]> for CryptoixdeEd25519Keypair {
-    fn try_sign(&self, msg: &[u8]) -> Result<[u8; 64], signature::Error> {
-        let signature = ed25519::signature(msg, &self.keypair);
-        Ok(signature)
-    }
-}
-
-impl Keypair for CryptoixdeEd25519Keypair {
-    type VerifyingKey = [u8; 32];
-
-    fn verifying_key(&self) -> Self::VerifyingKey {
-        let mut pk = [0u8; 32];
-        pk.copy_from_slice(&self.keypair[32..]);
-        pk
-    }
-}
-
-impl Ed25519Generator for CryptoixdeEd25519Keypair {
-    type Error = getrandom::Error;
-
-    fn try_generate(seed: Option<[u8; 32]>) -> Result<impl Ed25519KeyAndSigner, Self::Error> {
+impl CryptoxideEd25519Keypair {
+    /// Generate a new keypair from an optional seed.
+    /// If no seed is provided, a random seed is generated using the system's CSPRNG.
+    pub fn try_generate(seed: Option<[u8; 32]>) -> Result<Self, getrandom::Error> {
         let seed = match seed {
             Some(s) => s,
             None => {
@@ -48,7 +32,24 @@ impl Ed25519Generator for CryptoixdeEd25519Keypair {
             }
         };
         let (keypair, _) = ed25519::keypair(&seed);
-        Ok(CryptoixdeEd25519Keypair { keypair })
+        Ok(Self { keypair })
+    }
+}
+
+impl Signer<[u8; 64]> for CryptoxideEd25519Keypair {
+    fn try_sign(&self, msg: &[u8]) -> Result<[u8; 64], signature::Error> {
+        let signature = ed25519::signature(msg, &self.keypair);
+        Ok(signature)
+    }
+}
+
+impl Keypair for CryptoxideEd25519Keypair {
+    type VerifyingKey = [u8; 32];
+
+    fn verifying_key(&self) -> Self::VerifyingKey {
+        let mut pk = [0u8; 32];
+        pk.copy_from_slice(&self.keypair[32..]);
+        pk
     }
 }
 
@@ -60,7 +61,7 @@ mod tests {
     fn test_ed25519_keypair_generation_and_signing() {
         let seed = [1u8; 32];
         let keypair =
-            CryptoixdeEd25519Keypair::try_generate(Some(seed)).expect("Failed to generate keypair");
+            CryptoxideEd25519Keypair::try_generate(Some(seed)).expect("Failed to generate keypair");
         let message = b"Hello, Algorand!";
         let signature = keypair.try_sign(message).expect("Failed to sign message");
 
@@ -68,5 +69,20 @@ mod tests {
         let verifying_key = keypair.verifying_key();
         let is_valid = ed25519::verify(message, &verifying_key, &signature);
         assert!(is_valid, "Signature verification failed");
+    }
+
+    #[test]
+    fn test_ed25519_random_generation() {
+        let keypair =
+            CryptoxideEd25519Keypair::try_generate(None).expect("Failed to generate keypair");
+        let message = b"Test message";
+        let signature = keypair.try_sign(message).expect("Failed to sign message");
+
+        let verifying_key = keypair.verifying_key();
+        let is_valid = ed25519::verify(message, &verifying_key, &signature);
+        assert!(
+            is_valid,
+            "Signature verification failed for randomly generated key"
+        );
     }
 }

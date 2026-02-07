@@ -572,17 +572,16 @@ pub fn estimate_transaction_size(transaction: Transaction) -> Result<u64, AlgoKi
 
 #[ffi_func]
 pub fn address_from_public_key(public_key: &[u8]) -> Result<String, AlgoKitTransactError> {
-    Ok(
-        algokit_transact::Address(public_key.try_into().map_err(|_| {
-            AlgoKitTransactError::EncodingError {
+    let bytes: [u8; ALGORAND_PUBLIC_KEY_BYTE_LENGTH] =
+        public_key
+            .try_into()
+            .map_err(|_| AlgoKitTransactError::EncodingError {
                 error_msg: format!(
                     "public key should be {} bytes",
                     ALGORAND_PUBLIC_KEY_BYTE_LENGTH
                 ),
-            }
-        })?)
-        .to_string(),
-    )
+            })?;
+    Ok(algokit_transact::Address::new(bytes).to_string())
 }
 
 #[ffi_func]

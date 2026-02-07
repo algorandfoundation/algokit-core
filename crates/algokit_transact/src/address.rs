@@ -23,9 +23,13 @@ use std::str::FromStr;
 #[serde_as]
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq, Eq, Hash)]
 #[serde(transparent)]
-pub struct Address(#[serde_as(as = "Bytes")] pub Byte32);
+pub struct Address(#[serde_as(as = "Bytes")] pub(crate) Byte32);
 
 impl Address {
+    /// Creates a new Address from a 32-byte public key or hash digest.
+    pub const fn new(bytes: Byte32) -> Self {
+        Self(bytes)
+    }
     /// Returns the 32 bytes of the address as a byte array reference.
     pub fn as_bytes(&self) -> &Byte32 {
         &self.0
@@ -101,16 +105,6 @@ impl Display for Address {
     /// Formats the address as a base32-encoded string.
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "{}", self.as_str())
-    }
-}
-
-pub trait Addressable {
-    fn address(&self) -> Address;
-}
-
-impl Addressable for Address {
-    fn address(&self) -> Address {
-        self.clone()
     }
 }
 

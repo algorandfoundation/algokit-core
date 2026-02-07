@@ -1,6 +1,5 @@
 use crate::{
-    Address, AlgoKitTransactError, SignedTransaction, Transaction, address::Addressable,
-    traits::AlgorandMsgpack,
+    Address, AlgoKitTransactError, SignedTransaction, Transaction, traits::AlgorandMsgpack,
 };
 use algokit_crypto::ed25519::Ed25519KeyAndSigner;
 use async_trait::async_trait;
@@ -15,6 +14,23 @@ pub trait TransactionSigner {
     ) -> Result<Vec<SignedTransaction>, AlgoKitTransactError>;
 }
 
+fn check_indexes_in_bounds(
+    indexes_to_sign: &[usize],
+    transactions_len: usize,
+) -> Result<(), AlgoKitTransactError> {
+    for index in indexes_to_sign {
+        if *index >= transactions_len {
+            return Err(AlgoKitTransactError::SigningError {
+                err_msg: format!(
+                    "Index {} is out of bounds for transactions of length {}",
+                    index, transactions_len
+                ),
+            });
+        }
+    }
+    Ok(())
+}
+
 pub struct EmptyTransactionSigner;
 
 #[async_trait]
@@ -24,34 +40,26 @@ impl TransactionSigner for EmptyTransactionSigner {
         transactions: &[Transaction],
         indexes_to_sign: &[usize],
     ) -> Result<Vec<SignedTransaction>, AlgoKitTransactError> {
-        for index in indexes_to_sign {
-            if *index >= transactions.len() {
-                return Err(AlgoKitTransactError::SigningError {
-                    err_msg: format!(
-                        "Index {} is out of bounds for transactions of length {}",
-                        index,
-                        transactions.len()
-                    ),
-                });
-            }
-        }
+        check_indexes_in_bounds(indexes_to_sign, transactions.len())?;
 
         Ok(transactions
             .iter()
             .enumerate()
             .map(|(index, txn)| {
                 if indexes_to_sign.contains(&index) {
-                    SignedTransaction {
-                        transaction: txn.clone(),
-                        auth_address: None,
-                        signature: None,
-                        multisignature: None,
-                    }
-                } else {
+                    // Return empty placeholder for transactions we were asked to sign
                     SignedTransaction {
                         transaction: txn.clone(),
                         auth_address: None,
                         signature: Some([0u8; 64]),
+                        multisignature: None,
+                    }
+                } else {
+                    // Return completely unsigned for transactions we weren't asked to sign
+                    SignedTransaction {
+                        transaction: txn.clone(),
+                        auth_address: None,
+                        signature: None,
                         multisignature: None,
                     }
                 }
@@ -65,8 +73,8 @@ pub struct AddressWithSigners {
     pub signer: Arc<dyn TransactionSigner + Send + Sync>,
 }
 
-impl Addressable for AddressWithSigners {
-    fn address(&self) -> Address {
+impl AddressWithSigners {
+    pub fn address(&self) -> Address {
         self.addr.clone()
     }
 }
@@ -88,7 +96,9 @@ impl TransactionSigner for AddressWithSigners {
 
 struct AlgorandSigner {
     auth_addr: Option<Address>,
-    key_and_signer: Arc<dyn Ed25519KeyAndSigner + Send + Sync>,
+    // Box instead of Arc since AlgorandSigner is always behind an Arc in AddressWithSigners.
+    // This eliminates double indirection while still allowing dynamic dispatch.
+    key_and_signer: Box<dyn Ed25519KeyAndSigner + Send + Sync>,
 }
 
 impl AlgorandSigner {
@@ -98,7 +108,7 @@ impl AlgorandSigner {
     ) -> Self {
         Self {
             auth_addr,
-            key_and_signer: Arc::new(key_and_signer),
+            key_and_signer: Box::new(key_and_signer),
         }
     }
 }
@@ -110,17 +120,7 @@ impl TransactionSigner for AlgorandSigner {
         transactions: &[Transaction],
         indexes_to_sign: &[usize],
     ) -> Result<Vec<SignedTransaction>, AlgoKitTransactError> {
-        for index in indexes_to_sign {
-            if *index >= transactions.len() {
-                return Err(AlgoKitTransactError::SigningError {
-                    err_msg: format!(
-                        "Index {} is out of bounds for transactions of length {}",
-                        index,
-                        transactions.len()
-                    ),
-                });
-            }
-        }
+        check_indexes_in_bounds(indexes_to_sign, transactions.len())?;
 
         let mut signed_transactions = Vec::with_capacity(transactions.len());
 
@@ -160,7 +160,7 @@ impl TransactionSigner for AlgorandSigner {
 pub fn generate_address_with_signers(
     key_and_signer: impl Ed25519KeyAndSigner + Send + Sync + 'static,
 ) -> AddressWithSigners {
-    let address = Address(key_and_signer.verifying_key());
+    let address = Address::new(key_and_signer.verifying_key());
     let algorand_signer = AlgorandSigner::new(key_and_signer, None);
     let signer = Arc::new(algorand_signer);
     AddressWithSigners {
@@ -174,14 +174,15 @@ mod tests {
     use super::*;
     use crate::test_utils::TransactionMother;
     use algokit_crypto::Keypair;
-    use algokit_crypto::ed25519::{CryptoixdeEd25519Keypair, Ed25519Generator};
+    use algokit_crypto::ed25519::CryptoxideEd25519Keypair;
+    use cryptoxide::ed25519;
 
     #[tokio::test]
     async fn test_generate_address_with_signers() {
         // Generate a keypair with a known seed
         let seed = [1u8; 32];
         let keypair =
-            CryptoixdeEd25519Keypair::try_generate(Some(seed)).expect("Failed to generate keypair");
+            CryptoxideEd25519Keypair::try_generate(Some(seed)).expect("Failed to generate keypair");
 
         // Get the verifying key (public key) for later verification
         let verifying_key = keypair.verifying_key();
@@ -190,7 +191,7 @@ mod tests {
         let address_with_signers = generate_address_with_signers(keypair);
 
         // Verify the address matches the verifying key
-        assert_eq!(address_with_signers.addr.0, verifying_key);
+        assert_eq!(address_with_signers.addr.as_bytes(), &verifying_key);
 
         // Create a test transaction
         let transaction = TransactionMother::simple_payment().build().unwrap();
@@ -211,5 +212,47 @@ mod tests {
         // Verify signature is 64 bytes (Ed25519 signature length)
         let signature = signed_transactions[0].signature.unwrap();
         assert_eq!(signature.len(), 64);
+
+        // Verify the signature is actually valid
+        let txn_bytes = transaction.encode().unwrap();
+        let is_valid = ed25519::verify(&txn_bytes, &verifying_key, &signature);
+        assert!(is_valid, "Signature should be valid for the transaction");
+    }
+
+    #[tokio::test]
+    async fn test_empty_transaction_signer() {
+        let signer = EmptyTransactionSigner;
+        let transaction = TransactionMother::simple_payment().build().unwrap();
+        let transactions = vec![transaction.clone()];
+
+        // Sign with index 0
+        let signed = signer
+            .sign_transactions(&transactions, &[0])
+            .await
+            .expect("Should succeed");
+
+        assert_eq!(signed.len(), 1);
+        assert!(signed[0].signature.is_some()); // Empty placeholder signature
+        assert_eq!(signed[0].signature.unwrap(), [0u8; 64]);
+
+        // Don't sign with any index
+        let unsigned = signer
+            .sign_transactions(&transactions, &[])
+            .await
+            .expect("Should succeed");
+
+        assert_eq!(unsigned.len(), 1);
+        assert!(unsigned[0].signature.is_none()); // Completely unsigned
+    }
+
+    #[tokio::test]
+    async fn test_out_of_bounds_index() {
+        let signer = EmptyTransactionSigner;
+        let transaction = TransactionMother::simple_payment().build().unwrap();
+        let transactions = vec![transaction];
+
+        let result = signer.sign_transactions(&transactions, &[5]).await;
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("out of bounds"));
     }
 }
