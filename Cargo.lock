@@ -88,6 +88,7 @@ version = "0.1.0"
 dependencies = [
  "algokit_test_artifacts",
  "algokit_transact",
+ "async-trait",
  "base32",
  "base64 0.22.1",
  "convert_case",

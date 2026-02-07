@@ -35,6 +35,9 @@ pub enum AlgoKitTransactError {
 
     #[snafu(display("Invalid multisig signature: {err_msg}"))]
     InvalidMultisigSignature { err_msg: String },
+
+    #[snafu(display("Error signing transaction: {err_msg}"))]
+    SigningError { err_msg: String },
 }
 
 impl From<rmp_serde::encode::Error> for AlgoKitTransactError {

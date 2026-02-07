@@ -3,6 +3,7 @@ pub mod constants;
 mod error;
 mod keypair_account;
 pub mod multisig;
+mod signer;
 mod traits;
 mod transactions;
 mod utils;
