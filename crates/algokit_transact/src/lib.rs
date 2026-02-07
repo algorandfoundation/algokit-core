@@ -2,7 +2,7 @@ mod address;
 pub mod constants;
 mod error;
 pub mod multisig;
-mod signer;
+pub mod signer;
 mod traits;
 mod transactions;
 mod utils;

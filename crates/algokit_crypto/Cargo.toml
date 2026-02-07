@@ -1,0 +1,10 @@
+[package]
+name = "algokit_crypto"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+cryptoxide = "0.4"
+elliptic-curve = "0.13.8"
+getrandom = "0.4.1"
+signature = "2.2.0"
