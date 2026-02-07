@@ -73,9 +73,8 @@ impl FromStr for Address {
                 err_msg: "Invalid base32 encoding for Algorand address".into(),
             })?;
 
-        // Although this is called public key (and it actually is when the account is a `KeyPairAccount`),
-        // it could be the digest of a hash when the address corresponds to a multisignature account or
-        // logic signature account.
+        // Although this is called public key it could be the digest of a hash when the address
+        // corresponds to a multisignature account or logic signature account.
         let pub_key: [u8; ALGORAND_PUBLIC_KEY_BYTE_LENGTH] = decoded_address
             [..ALGORAND_PUBLIC_KEY_BYTE_LENGTH]
             .try_into()

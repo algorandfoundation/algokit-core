@@ -92,7 +92,7 @@ mod tests {
         let asset_freeze = AssetFreezeTransactionFields {
             header: TransactionHeaderMother::example().build().unwrap(),
             asset_id: 0, // Invalid asset ID
-            freeze_target: AccountMother::neil().address(),
+            freeze_target: AccountMother::neil(),
             frozen: true,
         };
 
@@ -108,7 +108,7 @@ mod tests {
         let asset_freeze = AssetFreezeTransactionFields {
             header: TransactionHeaderMother::example().build().unwrap(),
             asset_id: 123, // Valid asset ID
-            freeze_target: AccountMother::neil().address(),
+            freeze_target: AccountMother::neil(),
             frozen: true,
         };
 
@@ -121,7 +121,7 @@ mod tests {
         let result = AssetFreezeTransactionBuilder::default()
             .header(TransactionHeaderMother::example().build().unwrap())
             .asset_id(0) // Invalid asset ID
-            .freeze_target(AccountMother::neil().address())
+            .freeze_target(AccountMother::neil())
             .frozen(true)
             .build();
 
@@ -136,7 +136,7 @@ mod tests {
         let result = AssetFreezeTransactionBuilder::default()
             .header(TransactionHeaderMother::example().build().unwrap())
             .asset_id(123) // Valid asset ID
-            .freeze_target(AccountMother::neil().address())
+            .freeze_target(AccountMother::neil())
             .frozen(true)
             .build();
 

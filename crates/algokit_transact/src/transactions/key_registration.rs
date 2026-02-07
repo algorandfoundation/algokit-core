@@ -512,7 +512,7 @@ mod tests {
     #[test]
     fn test_key_registration_in_transaction_group() {
         let header_builder = TransactionHeaderMother::testnet()
-            .sender(AccountMother::neil().address())
+            .sender(AccountMother::neil())
             .first_valid(51532821)
             .last_valid(51533021)
             .to_owned();
