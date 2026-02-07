@@ -104,6 +104,16 @@ impl Display for Address {
     }
 }
 
+pub trait Addressable {
+    fn address(&self) -> Address;
+}
+
+impl Addressable for Address {
+    fn address(&self) -> Address {
+        self.clone()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
