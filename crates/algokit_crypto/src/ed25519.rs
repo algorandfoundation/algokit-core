@@ -1,13 +1,18 @@
+use async_trait::async_trait;
 use cryptoxide::ed25519;
 use signature::Keypair;
-use signature::Signer;
 use zeroize::{Zeroize, ZeroizeOnDrop};
+
+#[async_trait]
+pub trait Ed25519Signer {
+    async fn try_sign(&self, msg: &[u8]) -> Result<[u8; 64], String>;
+}
 
 /// Trait that combines Signer and Keypair for Ed25519 (64-byte signature, 32-byte public key).
 /// This allows using both traits in a trait object since Rust only allows one non-auto trait per trait object.
-pub trait Ed25519KeyAndSigner: Signer<[u8; 64]> + Keypair<VerifyingKey = [u8; 32]> {}
+pub trait Ed25519KeyAndSigner: Ed25519Signer + Keypair<VerifyingKey = [u8; 32]> {}
 
-impl<T> Ed25519KeyAndSigner for T where T: Signer<[u8; 64]> + Keypair<VerifyingKey = [u8; 32]> {}
+impl<T> Ed25519KeyAndSigner for T where T: Ed25519Signer + Keypair<VerifyingKey = [u8; 32]> {}
 
 /// An Ed25519 keypair implementation using the cryptoxide library.
 /// The private key is automatically zeroed from memory when the struct is dropped.
@@ -36,8 +41,9 @@ impl CryptoxideEd25519Keypair {
     }
 }
 
-impl Signer<[u8; 64]> for CryptoxideEd25519Keypair {
-    fn try_sign(&self, msg: &[u8]) -> Result<[u8; 64], signature::Error> {
+#[async_trait]
+impl Ed25519Signer for CryptoxideEd25519Keypair {
+    async fn try_sign(&self, msg: &[u8]) -> Result<[u8; 64], String> {
         let signature = ed25519::signature(msg, &self.keypair);
         Ok(signature)
     }
@@ -57,13 +63,16 @@ impl Keypair for CryptoxideEd25519Keypair {
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_ed25519_keypair_generation_and_signing() {
+    #[tokio::test]
+    async fn test_ed25519_keypair_generation_and_signing() {
         let seed = [1u8; 32];
         let keypair =
             CryptoxideEd25519Keypair::try_generate(Some(seed)).expect("Failed to generate keypair");
         let message = b"Hello, Algorand!";
-        let signature = keypair.try_sign(message).expect("Failed to sign message");
+        let signature = keypair
+            .try_sign(message)
+            .await
+            .expect("Failed to sign message");
 
         // Verify the signature using the verifying key
         let verifying_key = keypair.verifying_key();
@@ -71,12 +80,15 @@ mod tests {
         assert!(is_valid, "Signature verification failed");
     }
 
-    #[test]
-    fn test_ed25519_random_generation() {
+    #[tokio::test]
+    async fn test_ed25519_random_generation() {
         let keypair =
             CryptoxideEd25519Keypair::try_generate(None).expect("Failed to generate keypair");
         let message = b"Test message";
-        let signature = keypair.try_sign(message).expect("Failed to sign message");
+        let signature = keypair
+            .try_sign(message)
+            .await
+            .expect("Failed to sign message");
 
         let verifying_key = keypair.verifying_key();
         let is_valid = ed25519::verify(message, &verifying_key, &signature);

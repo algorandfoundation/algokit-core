@@ -15,3 +15,7 @@ zeroize = { version = "1.8", features = ["derive"] }
 
 # Used random seed generation for ed25519
 getrandom = "0.4.1"
+async-trait = "0.1.89"
+
+[dev-dependencies]
+tokio = { version = "1.49.0", features = ["macros"] }

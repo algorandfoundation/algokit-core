@@ -130,11 +130,13 @@ impl TransactionSigner for AlgorandSigner {
                 let txn_bytes = txn.encode()?;
 
                 // Sign the transaction bytes
-                let signature = self.key_and_signer.try_sign(&txn_bytes).map_err(|e| {
-                    AlgoKitTransactError::SigningError {
+                let signature = self
+                    .key_and_signer
+                    .try_sign(&txn_bytes)
+                    .await
+                    .map_err(|e| AlgoKitTransactError::SigningError {
                         err_msg: format!("Failed to sign transaction {}: {}", index, e),
-                    }
-                })?;
+                    })?;
 
                 signed_transactions.push(SignedTransaction {
                     transaction: txn.clone(),
