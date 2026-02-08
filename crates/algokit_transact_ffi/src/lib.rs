@@ -1,4 +1,5 @@
 mod multisig;
+mod signer;
 pub mod transactions;
 
 use algokit_transact::constants::*;
@@ -9,6 +10,10 @@ use ffi_macros::{ffi_enum, ffi_func, ffi_record};
 use serde::{Deserialize, Serialize};
 
 pub use multisig::{MultisigSignature, MultisigSubsignature};
+pub use signer::{
+    EmptyTransactionSigner, FfiTransactionSignerFromRust, RustTransactionSignerFromFfi,
+    TransactionSigner,
+};
 pub use transactions::AppCallTransactionFields;
 pub use transactions::AssetConfigTransactionFields;
 pub use transactions::AssetFreezeTransactionFields;

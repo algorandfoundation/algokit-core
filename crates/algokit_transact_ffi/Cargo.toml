@@ -25,15 +25,18 @@ uniffi = { workspace = true, features = [
   "scaffolding-ffi-buffer-fns",
 ], optional = true }
 pretty_assertions = "1.4.1"
+async-trait = "0.1.89"
 
 
 [dev-dependencies]
 uniffi = { workspace = true, features = ["bindgen-tests"] }
+tokio = { version = "1.49.0", features = ["macros", "rt"] }
 
 [build-dependencies]
 uniffi = { workspace = true, features = [
   "scaffolding-ffi-buffer-fns", # Add the "scaffolding-ffi-buffer-fns" feature to make sure things can build correctly
 ] }
+async-trait = "0.1.89"
 algokit_transact = { path = "../algokit_transact", features = ['test_utils'] }
 ffi_macros = { path = "../ffi_macros" }
 snafu = "0.8"
