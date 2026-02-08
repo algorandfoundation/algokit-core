@@ -2,6 +2,10 @@
 
 This document provides some guidelines on how Rust types should be implemented for the FFI layer of utils.
 
+### General Guidelines
+
+- In the FFI crate, all names should be the same as in the Rust implementation crate. The rust implementation should have a `Rust` prefix. For example, `Transaction` and `RustTransaction`.
+
 ### Tagged Enums
 
 Not all languages support tagged enums, so we must turn them into structs.
