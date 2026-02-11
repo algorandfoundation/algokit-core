@@ -106,8 +106,8 @@ impl TransactionSigner for FfiTransactionSignerFromRust {
             .rust_signer
             .sign_transactions(&rust_transactions, &rust_indexes);
 
-        let rust_signed_transactions = block_on(rust_signed_transactions)
-            .map_err(|e| AlgoKitTransactError::SigningError {
+        let rust_signed_transactions =
+            block_on(rust_signed_transactions).map_err(|e| AlgoKitTransactError::SigningError {
                 error_msg: e.to_string(),
             })?;
 
@@ -141,6 +141,7 @@ impl Default for EmptyTransactionSigner {
     }
 }
 
+#[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
 impl TransactionSigner for EmptyTransactionSigner {
     fn sign_transactions(
         &self,
