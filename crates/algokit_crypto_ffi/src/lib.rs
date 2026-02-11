@@ -17,20 +17,20 @@ uniffi::setup_scaffolding!();
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum AlgoKitCryptoError {
-    Error { message: String },
+    Error { err_msg: String },
 }
 
 impl std::fmt::Display for AlgoKitCryptoError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AlgoKitCryptoError::Error { message } => write!(f, "{}", message),
+            AlgoKitCryptoError::Error { err_msg: message } => write!(f, "{}", message),
         }
     }
 }
 
 impl From<String> for AlgoKitCryptoError {
     fn from(message: String) -> Self {
-        AlgoKitCryptoError::Error { message }
+        AlgoKitCryptoError::Error { err_msg: message }
     }
 }
 
@@ -79,7 +79,7 @@ impl RustEd25519Signer for RustEd25519SignerFromFfi {
             .ffi_signer
             .try_sign(msg.to_vec())
             .map_err(|e| match e {
-                AlgoKitCryptoError::Error { message } => message,
+                AlgoKitCryptoError::Error { err_msg } => err_msg,
             })?;
 
         signature
@@ -100,7 +100,7 @@ impl RustEd25519Signer for RustEd25519KeyAndSignerFromFfi {
             .ffi_key_and_signer
             .try_sign(msg.to_vec())
             .map_err(|e| match e {
-                AlgoKitCryptoError::Error { message } => message,
+                AlgoKitCryptoError::Error { err_msg } => err_msg,
             })?;
 
         signature
@@ -129,7 +129,7 @@ struct FfiEd25519SignerFromRust {
 impl Ed25519Signer for FfiEd25519SignerFromRust {
     fn try_sign(&self, msg: Vec<u8>) -> Result<Vec<u8>, AlgoKitCryptoError> {
         let signature = block_on(self.rust_signer.try_sign(&msg))
-            .map_err(|e| AlgoKitCryptoError::Error { message: e })?;
+            .map_err(|e| AlgoKitCryptoError::Error { err_msg: e })?;
         Ok(signature.to_vec())
     }
 }
@@ -142,7 +142,7 @@ struct FfiEd25519KeyAndSignerFromRust {
 impl Ed25519KeyAndSigner for FfiEd25519KeyAndSignerFromRust {
     fn try_sign(&self, msg: Vec<u8>) -> Result<Vec<u8>, AlgoKitCryptoError> {
         let signature = block_on(self.rust_key_and_signer.try_sign(&msg))
-            .map_err(|e| AlgoKitCryptoError::Error { message: e })?;
+            .map_err(|e| AlgoKitCryptoError::Error { err_msg: e })?;
         Ok(signature.to_vec())
     }
 
@@ -171,11 +171,11 @@ impl CryptoxideEd25519Keypair {
                     .map_err(|_| "Seed must be 32 bytes".to_string())
             })
             .transpose()
-            .map_err(|e: String| AlgoKitCryptoError::Error { message: e })?;
+            .map_err(|e: String| AlgoKitCryptoError::Error { err_msg: e })?;
 
         let inner = RustCryptoxideEd25519Keypair::try_generate(seed_array).map_err(|e| {
             AlgoKitCryptoError::Error {
-                message: e.to_string(),
+                err_msg: e.to_string(),
             }
         })?;
 
@@ -190,7 +190,7 @@ impl CryptoxideEd25519Keypair {
     /// Sign a message asynchronously
     pub fn try_sign(&self, msg: Vec<u8>) -> Result<Vec<u8>, AlgoKitCryptoError> {
         let signature = block_on(self.inner.try_sign(&msg))
-            .map_err(|e| AlgoKitCryptoError::Error { message: e })?;
+            .map_err(|e| AlgoKitCryptoError::Error { err_msg: e })?;
         Ok(signature.to_vec())
     }
 }
