@@ -395,13 +395,7 @@ fileprivate final class UniffiHandleMap<T>: @unchecked Sendable {
 
 
 // Public interface members begin here.
-// Magic number for the Rust proxy to call using the same mechanism as every other method,
-// to free the callback once it's dropped by Rust.
-private let IDX_CALLBACK_FREE: Int32 = 0
-// Callback return codes
-private let UNIFFI_CALLBACK_SUCCESS: Int32 = 0
-private let UNIFFI_CALLBACK_ERROR: Int32 = 1
-private let UNIFFI_CALLBACK_UNEXPECTED_ERROR: Int32 = 2
+
 
 #if swift(>=5.8)
 @_documentation(visibility: private)
@@ -533,364 +527,6 @@ fileprivate struct FfiConverterData: FfiConverterRustBuffer {
         writeBytes(&buf, value)
     }
 }
-
-
-
-
-/**
- * A transaction signer that returns placeholder signatures.
- *
- * This is useful for testing and fee estimation where actual signatures
- * are not needed.
- */
-public protocol EmptyTransactionSignerProtocol: AnyObject, Sendable {
-    
-    func signTransactions(transactions: [Transaction], indexesToSign: Data) throws  -> [SignedTransaction]
-    
-}
-/**
- * A transaction signer that returns placeholder signatures.
- *
- * This is useful for testing and fee estimation where actual signatures
- * are not needed.
- */
-open class EmptyTransactionSigner: EmptyTransactionSignerProtocol, @unchecked Sendable {
-    fileprivate let pointer: UnsafeMutableRawPointer!
-
-    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
-#if swift(>=5.8)
-    @_documentation(visibility: private)
-#endif
-    public struct NoPointer {
-        public init() {}
-    }
-
-    // TODO: We'd like this to be `private` but for Swifty reasons,
-    // we can't implement `FfiConverter` without making this `required` and we can't
-    // make it `required` without making it `public`.
-#if swift(>=5.8)
-    @_documentation(visibility: private)
-#endif
-    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
-        self.pointer = pointer
-    }
-
-    // This constructor can be used to instantiate a fake object.
-    // - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
-    //
-    // - Warning:
-    //     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
-#if swift(>=5.8)
-    @_documentation(visibility: private)
-#endif
-    public init(noPointer: NoPointer) {
-        self.pointer = nil
-    }
-
-#if swift(>=5.8)
-    @_documentation(visibility: private)
-#endif
-    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
-        return try! rustCall { uniffi_algokit_transact_ffi_fn_clone_emptytransactionsigner(self.pointer, $0) }
-    }
-    /**
-     * Create a new EmptyTransactionSigner
-     */
-public convenience init() {
-    let pointer =
-        try! rustCall() {
-    uniffi_algokit_transact_ffi_fn_constructor_emptytransactionsigner_new($0
-    )
-}
-    self.init(unsafeFromRawPointer: pointer)
-}
-
-    deinit {
-        guard let pointer = pointer else {
-            return
-        }
-
-        try! rustCall { uniffi_algokit_transact_ffi_fn_free_emptytransactionsigner(pointer, $0) }
-    }
-
-    
-
-    
-open func signTransactions(transactions: [Transaction], indexesToSign: Data)throws  -> [SignedTransaction]  {
-    return try  FfiConverterSequenceTypeSignedTransaction.lift(try rustCallWithError(FfiConverterTypeAlgoKitTransactError_lift) {
-    uniffi_algokit_transact_ffi_fn_method_emptytransactionsigner_sign_transactions(self.uniffiClonePointer(),
-        FfiConverterSequenceTypeTransaction.lower(transactions),
-        FfiConverterData.lower(indexesToSign),$0
-    )
-})
-}
-    
-
-}
-extension EmptyTransactionSigner: TransactionSigner {}
-
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public struct FfiConverterTypeEmptyTransactionSigner: FfiConverter {
-
-    typealias FfiType = UnsafeMutableRawPointer
-    typealias SwiftType = EmptyTransactionSigner
-
-    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> EmptyTransactionSigner {
-        return EmptyTransactionSigner(unsafeFromRawPointer: pointer)
-    }
-
-    public static func lower(_ value: EmptyTransactionSigner) -> UnsafeMutableRawPointer {
-        return value.uniffiClonePointer()
-    }
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> EmptyTransactionSigner {
-        let v: UInt64 = try readInt(&buf)
-        // The Rust code won't compile if a pointer won't fit in a UInt64.
-        // We have to go via `UInt` because that's the thing that's the size of a pointer.
-        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
-        if (ptr == nil) {
-            throw UniffiInternalError.unexpectedNullPointer
-        }
-        return try lift(ptr!)
-    }
-
-    public static func write(_ value: EmptyTransactionSigner, into buf: inout [UInt8]) {
-        // This fiddling is because `Int` is the thing that's the same size as a pointer.
-        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
-        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
-    }
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeEmptyTransactionSigner_lift(_ pointer: UnsafeMutableRawPointer) throws -> EmptyTransactionSigner {
-    return try FfiConverterTypeEmptyTransactionSigner.lift(pointer)
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeEmptyTransactionSigner_lower(_ value: EmptyTransactionSigner) -> UnsafeMutableRawPointer {
-    return FfiConverterTypeEmptyTransactionSigner.lower(value)
-}
-
-
-
-
-
-
-/**
- * FFI-compatible trait for transaction signing operations
- *
- * This trait is exported with `with_foreign` to allow foreign languages (Python, Swift, Kotlin, etc.)
- * to implement it and provide custom signing logic.
- */
-public protocol TransactionSigner: AnyObject, Sendable {
-    
-    /**
-     * Sign a collection of transactions at the specified indices.
-     *
-     * # Parameters
-     * * `transactions` - The transactions to sign
-     * * `indexes_to_sign` - The indices of the transactions to sign (as u8 for FFI compatibility)
-     *
-     * # Returns
-     * A vector of signed transactions or an error if signing fails.
-     */
-    func signTransactions(transactions: [Transaction], indexesToSign: Data) throws  -> [SignedTransaction]
-    
-}
-/**
- * FFI-compatible trait for transaction signing operations
- *
- * This trait is exported with `with_foreign` to allow foreign languages (Python, Swift, Kotlin, etc.)
- * to implement it and provide custom signing logic.
- */
-open class TransactionSignerImpl: TransactionSigner, @unchecked Sendable {
-    fileprivate let pointer: UnsafeMutableRawPointer!
-
-    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
-#if swift(>=5.8)
-    @_documentation(visibility: private)
-#endif
-    public struct NoPointer {
-        public init() {}
-    }
-
-    // TODO: We'd like this to be `private` but for Swifty reasons,
-    // we can't implement `FfiConverter` without making this `required` and we can't
-    // make it `required` without making it `public`.
-#if swift(>=5.8)
-    @_documentation(visibility: private)
-#endif
-    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
-        self.pointer = pointer
-    }
-
-    // This constructor can be used to instantiate a fake object.
-    // - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
-    //
-    // - Warning:
-    //     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
-#if swift(>=5.8)
-    @_documentation(visibility: private)
-#endif
-    public init(noPointer: NoPointer) {
-        self.pointer = nil
-    }
-
-#if swift(>=5.8)
-    @_documentation(visibility: private)
-#endif
-    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
-        return try! rustCall { uniffi_algokit_transact_ffi_fn_clone_transactionsigner(self.pointer, $0) }
-    }
-    // No primary constructor declared for this class.
-
-    deinit {
-        guard let pointer = pointer else {
-            return
-        }
-
-        try! rustCall { uniffi_algokit_transact_ffi_fn_free_transactionsigner(pointer, $0) }
-    }
-
-    
-
-    
-    /**
-     * Sign a collection of transactions at the specified indices.
-     *
-     * # Parameters
-     * * `transactions` - The transactions to sign
-     * * `indexes_to_sign` - The indices of the transactions to sign (as u8 for FFI compatibility)
-     *
-     * # Returns
-     * A vector of signed transactions or an error if signing fails.
-     */
-open func signTransactions(transactions: [Transaction], indexesToSign: Data)throws  -> [SignedTransaction]  {
-    return try  FfiConverterSequenceTypeSignedTransaction.lift(try rustCallWithError(FfiConverterTypeAlgoKitTransactError_lift) {
-    uniffi_algokit_transact_ffi_fn_method_transactionsigner_sign_transactions(self.uniffiClonePointer(),
-        FfiConverterSequenceTypeTransaction.lower(transactions),
-        FfiConverterData.lower(indexesToSign),$0
-    )
-})
-}
-    
-
-}
-
-
-// Put the implementation in a struct so we don't pollute the top-level namespace
-fileprivate struct UniffiCallbackInterfaceTransactionSigner {
-
-    // Create the VTable using a series of closures.
-    // Swift automatically converts these into C callback functions.
-    //
-    // This creates 1-element array, since this seems to be the only way to construct a const
-    // pointer that we can pass to the Rust code.
-    static let vtable: [UniffiVTableCallbackInterfaceTransactionSigner] = [UniffiVTableCallbackInterfaceTransactionSigner(
-        signTransactions: { (
-            uniffiHandle: UInt64,
-            transactions: RustBuffer,
-            indexesToSign: RustBuffer,
-            uniffiOutReturn: UnsafeMutablePointer<RustBuffer>,
-            uniffiCallStatus: UnsafeMutablePointer<RustCallStatus>
-        ) in
-            let makeCall = {
-                () throws -> [SignedTransaction] in
-                guard let uniffiObj = try? FfiConverterTypeTransactionSigner.handleMap.get(handle: uniffiHandle) else {
-                    throw UniffiInternalError.unexpectedStaleHandle
-                }
-                return try uniffiObj.signTransactions(
-                     transactions: try FfiConverterSequenceTypeTransaction.lift(transactions),
-                     indexesToSign: try FfiConverterData.lift(indexesToSign)
-                )
-            }
-
-            
-            let writeReturn = { uniffiOutReturn.pointee = FfiConverterSequenceTypeSignedTransaction.lower($0) }
-            uniffiTraitInterfaceCallWithError(
-                callStatus: uniffiCallStatus,
-                makeCall: makeCall,
-                writeReturn: writeReturn,
-                lowerError: FfiConverterTypeAlgoKitTransactError_lower
-            )
-        },
-        uniffiFree: { (uniffiHandle: UInt64) -> () in
-            let result = try? FfiConverterTypeTransactionSigner.handleMap.remove(handle: uniffiHandle)
-            if result == nil {
-                print("Uniffi callback interface TransactionSigner: handle missing in uniffiFree")
-            }
-        }
-    )]
-}
-
-private func uniffiCallbackInitTransactionSigner() {
-    uniffi_algokit_transact_ffi_fn_init_callback_vtable_transactionsigner(UniffiCallbackInterfaceTransactionSigner.vtable)
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public struct FfiConverterTypeTransactionSigner: FfiConverter {
-    fileprivate static let handleMap = UniffiHandleMap<TransactionSigner>()
-
-    typealias FfiType = UnsafeMutableRawPointer
-    typealias SwiftType = TransactionSigner
-
-    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> TransactionSigner {
-        return TransactionSignerImpl(unsafeFromRawPointer: pointer)
-    }
-
-    public static func lower(_ value: TransactionSigner) -> UnsafeMutableRawPointer {
-        guard let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: handleMap.insert(obj: value))) else {
-            fatalError("Cast to UnsafeMutableRawPointer failed")
-        }
-        return ptr
-    }
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> TransactionSigner {
-        let v: UInt64 = try readInt(&buf)
-        // The Rust code won't compile if a pointer won't fit in a UInt64.
-        // We have to go via `UInt` because that's the thing that's the size of a pointer.
-        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
-        if (ptr == nil) {
-            throw UniffiInternalError.unexpectedNullPointer
-        }
-        return try lift(ptr!)
-    }
-
-    public static func write(_ value: TransactionSigner, into buf: inout [UInt8]) {
-        // This fiddling is because `Int` is the thing that's the same size as a pointer.
-        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
-        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
-    }
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeTransactionSigner_lift(_ pointer: UnsafeMutableRawPointer) throws -> TransactionSigner {
-    return try FfiConverterTypeTransactionSigner.lift(pointer)
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeTransactionSigner_lower(_ value: TransactionSigner) -> UnsafeMutableRawPointer {
-    return FfiConverterTypeTransactionSigner.lower(value)
-}
-
-
 
 
 /**
@@ -5210,6 +4846,17 @@ public func decodeTransactions(encodedTxs: [Data])throws  -> [Transaction]  {
 })
 }
 /**
+ * Signs a transaction using Ed25519 with the provided secret key.
+ */
+public func ed25519SignTranasction(secretKey: Data, txn: Transaction)throws  -> SignedTransaction  {
+    return try  FfiConverterTypeSignedTransaction_lift(try rustCallWithError(FfiConverterTypeAlgoKitTransactError_lift) {
+    uniffi_algokit_transact_ffi_fn_func_ed25519_sign_tranasction(
+        FfiConverterData.lower(secretKey),
+        FfiConverterTypeTransaction_lower(txn),$0
+    )
+})
+}
+/**
  * Encode a signed transaction to MsgPack for sending on the network.
  *
  * This method performs canonical encoding. No domain separation prefix is applicable.
@@ -5435,6 +5082,9 @@ private let initializationResult: InitializationResult = {
     if (uniffi_algokit_transact_ffi_checksum_func_decode_transactions() != 26956) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_algokit_transact_ffi_checksum_func_ed25519_sign_tranasction() != 48643) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_algokit_transact_ffi_checksum_func_encode_signed_transaction() != 47064) {
         return InitializationResult.apiChecksumMismatch
     }
@@ -5480,17 +5130,7 @@ private let initializationResult: InitializationResult = {
     if (uniffi_algokit_transact_ffi_checksum_func_public_key_from_address() != 58152) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_algokit_transact_ffi_checksum_method_emptytransactionsigner_sign_transactions() != 23897) {
-        return InitializationResult.apiChecksumMismatch
-    }
-    if (uniffi_algokit_transact_ffi_checksum_method_transactionsigner_sign_transactions() != 22914) {
-        return InitializationResult.apiChecksumMismatch
-    }
-    if (uniffi_algokit_transact_ffi_checksum_constructor_emptytransactionsigner_new() != 44143) {
-        return InitializationResult.apiChecksumMismatch
-    }
 
-    uniffiCallbackInitTransactionSigner()
     return InitializationResult.ok
 }()
 

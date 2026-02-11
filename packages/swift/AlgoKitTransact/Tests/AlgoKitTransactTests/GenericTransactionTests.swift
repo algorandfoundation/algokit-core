@@ -31,29 +31,14 @@ func genericTransactionEncode0Bytes() throws {
   }
 }
 
-@Test("Generic Transaction: empty transaction signer")
-func testEmptyTransactionSigner() throws {
-  let signer = EmptyTransactionSigner()
+@Test("Generic Transaction: ed25519SignTransaction")
+func testEd25519SignTransaction() throws {
   let testData = try loadTestData()
   let transaction = makeTransaction(from: testData.simplePayment)
-  let transactions = [transaction]
 
-  // Sign with index 0
-  let signed = try signer.signTransactions(
-    transactions: transactions,
-    indexesToSign: Data([0])
-  )
+  let signed = try ed25519SignTranasction(
+    secretKey: Data(repeating: 1, count: 32), txn: transaction)
 
-  #expect(signed.count == 1)
-  #expect(signed[0].signature != nil)
-  #expect(signed[0].signature == Data(repeating: 0, count: 64))
-
-  // Don't sign with any index
-  let unsigned = try signer.signTransactions(
-    transactions: transactions,
-    indexesToSign: Data()
-  )
-
-  #expect(unsigned.count == 1)
-  #expect(unsigned[0].signature == nil)
+  #expect(signed.transaction == transaction)
+  #expect(signed.signature?.bytes.byteCount == 64)
 }

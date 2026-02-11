@@ -10,10 +10,7 @@ use ffi_macros::{ffi_enum, ffi_func, ffi_record};
 use serde::{Deserialize, Serialize};
 
 pub use multisig::{MultisigSignature, MultisigSubsignature};
-pub use signer::{
-    EmptyTransactionSigner, FfiTransactionSignerFromRust, RustTransactionSignerFromFfi,
-    TransactionSigner,
-};
+pub use signer::ed25519_sign_tranasction;
 pub use transactions::AppCallTransactionFields;
 pub use transactions::AssetConfigTransactionFields;
 pub use transactions::AssetFreezeTransactionFields;
