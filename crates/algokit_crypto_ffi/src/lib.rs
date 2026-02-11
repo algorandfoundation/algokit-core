@@ -231,8 +231,8 @@ pub fn wrap_ffi_key_and_signer(
 mod tests {
     use super::*;
 
-    #[tokio::test]
-    async fn test_cryptoxide_keypair_generation_and_signing() {
+    #[test]
+    fn test_cryptoxide_keypair_generation_and_signing() {
         let seed = vec![1u8; 32];
         let keypair =
             CryptoxideEd25519Keypair::try_generate(Some(seed)).expect("Failed to generate keypair");
@@ -248,8 +248,8 @@ mod tests {
         assert_eq!(verifying_key.len(), 32);
     }
 
-    #[tokio::test]
-    async fn test_cryptoxide_random_generation() {
+    #[test]
+    fn test_cryptoxide_random_generation() {
         let keypair =
             CryptoxideEd25519Keypair::try_generate(None).expect("Failed to generate keypair");
 
