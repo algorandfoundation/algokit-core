@@ -56,8 +56,7 @@ pub fn ed25519_sign_tranasction(
         auth_address: None,
         signature: Some(
             signature
-                .try_into()
-                .expect("Signature must be 64 bytes for Ed25519"),
+                .into(),
         ),
         multisignature: None,
     })
