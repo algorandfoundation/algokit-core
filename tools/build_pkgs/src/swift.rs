@@ -122,13 +122,15 @@ pub fn build(package: &Package) -> Result<()> {
     )
     .context("Failed to rename Swift file")?;
 
-    std::fs::copy(
-        format!("crates/{}/test_data.json", crate_name),
-        format!(
-            "packages/swift/{swift_package}/Tests/AlgoKitTransactTests/Resources/test_data.json"
-        ),
-    )
-    .context("Failed to copy test data file")?;
+    if crate_name == "algokit_transact" {
+        std::fs::copy(
+            format!("crates/{}/test_data.json", crate_name),
+            format!(
+                "packages/swift/{swift_package}/Tests/AlgoKitTransactTests/Resources/test_data.json"
+            ),
+        )
+        .context("Failed to copy test data file")?;
+    }
 
     Ok(())
 }

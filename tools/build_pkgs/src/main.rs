@@ -49,12 +49,15 @@ impl Language {
 enum Package {
     #[value(alias = "algokit_transact")]
     Transact,
+    #[value(alias = "algokit_crypto")]
+    Crypto,
 }
 
 impl Display for Package {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Package::Transact => f.write_str("algokit_transact"),
+            Package::Crypto => f.write_str("algokit_crypto"),
         }
     }
 }
@@ -63,6 +66,7 @@ impl Package {
     fn crate_name(&self) -> String {
         match self {
             Self::Transact => "algokit_transact_ffi",
+            Self::Crypto => "algokit_crypto_ffi",
         }
         .to_string()
     }
