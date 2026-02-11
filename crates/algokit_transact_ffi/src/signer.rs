@@ -54,10 +54,7 @@ pub fn ed25519_sign_tranasction(
     Ok(SignedTransaction {
         transaction: txn,
         auth_address: None,
-        signature: Some(
-            signature
-                .into(),
-        ),
+        signature: Some(signature.into()),
         multisignature: None,
     })
 }
