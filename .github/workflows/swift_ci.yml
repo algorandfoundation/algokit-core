@@ -58,7 +58,7 @@ jobs:
 
       # Ideally we'd use a matrix for the platforms, but due to the limitations of Mac runners on GitHub it's probably better to just have a single job with multiple steps
       - name: Test (iOS)
-        run: cd packages/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=iOS Simulator,name=iPhone 16,OS=latest"
+        run: cd packages/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=iOS Simulator,name=iPhone 17,OS=latest"
       - name: Test (macOS)
         run: cd packages/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=macOS"
       - name: Test (Catalyst)
