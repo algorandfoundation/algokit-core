@@ -137,6 +137,7 @@ dependencies = [
 name = "algokit_transact_ffi"
 version = "0.1.0"
 dependencies = [
+ "algokit_crypto",
  "algokit_transact",
  "async-trait",
  "base64 0.22.1",
