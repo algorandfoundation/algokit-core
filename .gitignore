@@ -20,7 +20,6 @@ wheelhouse/
 build/
 *.iml
 local.properties
-gradle-wrapper.jar
 
 # Insta snapshot testing
 *.snap.new
