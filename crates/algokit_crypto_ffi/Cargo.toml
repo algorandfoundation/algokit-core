@@ -17,6 +17,7 @@ uniffi = { workspace = true, features = [
 ], optional = true }
 async-trait = "0.1.89"
 signature = "2.2.0"
+tokio = { version = "1.49.0", features = ["rt", "time", "net", "io-util", "sync"] }
 
 [dev-dependencies]
 tokio = { version = "1.49.0", features = ["macros", "rt"] }

@@ -1,5 +1,6 @@
 use crate::{AlgoKitTransactError, SignedTransaction, Transaction};
 use async_trait::async_trait;
+use std::future::Future;
 use std::sync::Arc;
 
 #[cfg(feature = "ffi_uniffi")]
@@ -10,7 +11,6 @@ use uniffi::{self};
 /// This trait is exported with `with_foreign` to allow foreign languages (Python, Swift, Kotlin, etc.)
 /// to implement it and provide custom signing logic.
 #[cfg_attr(feature = "ffi_uniffi", uniffi::export(with_foreign))]
-#[async_trait]
 pub trait TransactionSigner: Send + Sync {
     /// Sign a collection of transactions at the specified indices.
     ///
@@ -20,7 +20,7 @@ pub trait TransactionSigner: Send + Sync {
     ///
     /// # Returns
     /// A vector of signed transactions or an error if signing fails.
-    async fn sign_transactions(
+    fn sign_transactions(
         &self,
         transactions: Vec<Transaction>,
         indexes_to_sign: Vec<u8>,
@@ -30,6 +30,18 @@ pub trait TransactionSigner: Send + Sync {
 /// Wrapper struct to convert from FFI TransactionSigner to Rust TransactionSigner
 pub struct RustTransactionSignerFromFfi {
     pub ffi_signer: Arc<dyn TransactionSigner>,
+}
+
+fn block_on<F: Future>(future: F) -> F::Output {
+    if let Ok(handle) = tokio::runtime::Handle::try_current() {
+        handle.block_on(future)
+    } else {
+        tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .expect("Failed to build Tokio runtime")
+            .block_on(future)
+    }
 }
 
 #[async_trait]
@@ -51,7 +63,6 @@ impl algokit_transact::signer::TransactionSigner for RustTransactionSignerFromFf
         let ffi_signed_transactions = self
             .ffi_signer
             .sign_transactions(ffi_transactions, ffi_indexes)
-            .await
             .map_err(|e| algokit_transact::AlgoKitTransactError::SigningError {
                 err_msg: e.to_string(),
             })?;
@@ -73,9 +84,8 @@ pub struct FfiTransactionSignerFromRust {
     pub rust_signer: Arc<dyn algokit_transact::signer::TransactionSigner + Send + Sync>,
 }
 
-#[async_trait]
 impl TransactionSigner for FfiTransactionSignerFromRust {
-    async fn sign_transactions(
+    fn sign_transactions(
         &self,
         transactions: Vec<Transaction>,
         indexes_to_sign: Vec<u8>,
@@ -94,8 +104,9 @@ impl TransactionSigner for FfiTransactionSignerFromRust {
         // Call the Rust signer
         let rust_signed_transactions = self
             .rust_signer
-            .sign_transactions(&rust_transactions, &rust_indexes)
-            .await
+            .sign_transactions(&rust_transactions, &rust_indexes);
+
+        let rust_signed_transactions = block_on(rust_signed_transactions)
             .map_err(|e| AlgoKitTransactError::SigningError {
                 error_msg: e.to_string(),
             })?;
@@ -130,9 +141,8 @@ impl Default for EmptyTransactionSigner {
     }
 }
 
-#[async_trait]
 impl TransactionSigner for EmptyTransactionSigner {
-    async fn sign_transactions(
+    fn sign_transactions(
         &self,
         transactions: Vec<Transaction>,
         indexes_to_sign: Vec<u8>,
@@ -207,8 +217,8 @@ mod tests {
         }
     }
 
-    #[tokio::test]
-    async fn test_empty_transaction_signer() {
+    #[test]
+    fn test_empty_transaction_signer() {
         let signer = EmptyTransactionSigner::new();
         let transaction = create_test_transaction();
         let transactions = vec![transaction.clone()];
@@ -216,7 +226,6 @@ mod tests {
         // Sign with index 0
         let signed = signer
             .sign_transactions(transactions.clone(), vec![0])
-            .await
             .expect("Should succeed");
 
         assert_eq!(signed.len(), 1);
@@ -226,32 +235,31 @@ mod tests {
         // Don't sign with any index
         let unsigned = signer
             .sign_transactions(transactions.clone(), vec![])
-            .await
             .expect("Should succeed");
 
         assert_eq!(unsigned.len(), 1);
         assert!(unsigned[0].signature.is_none()); // Completely unsigned
     }
 
-    #[tokio::test]
-    async fn test_out_of_bounds_index() {
+    #[test]
+    fn test_out_of_bounds_index() {
         let signer = EmptyTransactionSigner::new();
         let transaction = create_test_transaction();
         let transactions = vec![transaction];
 
-        let result = signer.sign_transactions(transactions, vec![5]).await;
+        let result = signer.sign_transactions(transactions, vec![5]);
         assert!(result.is_err());
         assert!(result.unwrap_err().to_string().contains("out of bounds"));
     }
 
-    #[tokio::test]
-    async fn test_default_empty_transaction_signer() {
+    #[test]
+    fn test_default_empty_transaction_signer() {
         let signer: EmptyTransactionSigner = Default::default();
         let transaction = create_test_transaction();
         let transactions = vec![transaction];
 
         // Just verify it was created successfully with default
-        let result = signer.sign_transactions(transactions, vec![]).await;
+        let result = signer.sign_transactions(transactions, vec![]);
         assert!(result.is_ok());
     }
 }

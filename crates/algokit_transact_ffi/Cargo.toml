@@ -26,6 +26,7 @@ uniffi = { workspace = true, features = [
 ], optional = true }
 pretty_assertions = "1.4.1"
 async-trait = "0.1.89"
+tokio = { version = "1.49.0", features = ["rt", "time", "net", "io-util", "sync"] }
 
 
 [dev-dependencies]
@@ -44,3 +45,4 @@ serde = { version = "1.0.216", features = ["derive"] }
 serde_bytes = "0.11.15"
 serde_json = "1.0.133"
 base64 = "0.22.1"
+tokio = { version = "1.49.0", features = ["rt", "time", "net", "io-util", "sync"] }

@@ -4,6 +4,7 @@ use algokit_crypto::ed25519::{
 };
 use async_trait::async_trait;
 use signature::Keypair;
+use std::future::Future;
 use std::sync::Arc;
 
 #[cfg(feature = "ffi_uniffi")]
@@ -38,9 +39,8 @@ impl From<String> for AlgoKitCryptoError {
 /// This trait is exported with `with_foreign` to allow foreign languages (Python, Swift, Kotlin, etc.)
 /// to implement it and provide custom signing logic.
 #[cfg_attr(feature = "ffi_uniffi", uniffi::export(with_foreign))]
-#[async_trait]
 pub trait Ed25519Signer: Send + Sync {
-    async fn try_sign(&self, msg: Vec<u8>) -> Result<Vec<u8>, AlgoKitCryptoError>;
+    fn try_sign(&self, msg: Vec<u8>) -> Result<Vec<u8>, AlgoKitCryptoError>;
 }
 
 /// FFI-compatible trait that combines signing and keypair operations for Ed25519
@@ -50,9 +50,8 @@ pub trait Ed25519Signer: Send + Sync {
 /// with_foreign doesn't support trait inheritance properly. Instead, we duplicate the
 /// try_sign method.
 #[cfg_attr(feature = "ffi_uniffi", uniffi::export(with_foreign))]
-#[async_trait]
 pub trait Ed25519KeyAndSigner: Send + Sync {
-    async fn try_sign(&self, msg: Vec<u8>) -> Result<Vec<u8>, AlgoKitCryptoError>;
+    fn try_sign(&self, msg: Vec<u8>) -> Result<Vec<u8>, AlgoKitCryptoError>;
     fn verifying_key(&self) -> Vec<u8>;
 }
 
@@ -61,13 +60,24 @@ struct RustEd25519SignerFromFfi {
     ffi_signer: Arc<dyn Ed25519Signer>,
 }
 
+fn block_on<F: Future>(future: F) -> F::Output {
+    if let Ok(handle) = tokio::runtime::Handle::try_current() {
+        handle.block_on(future)
+    } else {
+        tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .expect("Failed to build Tokio runtime")
+            .block_on(future)
+    }
+}
+
 #[async_trait]
 impl RustEd25519Signer for RustEd25519SignerFromFfi {
     async fn try_sign(&self, msg: &[u8]) -> Result<[u8; 64], String> {
         let signature = self
             .ffi_signer
             .try_sign(msg.to_vec())
-            .await
             .map_err(|e| match e {
                 AlgoKitCryptoError::Error { message } => message,
             })?;
@@ -89,7 +99,6 @@ impl RustEd25519Signer for RustEd25519KeyAndSignerFromFfi {
         let signature = self
             .ffi_key_and_signer
             .try_sign(msg.to_vec())
-            .await
             .map_err(|e| match e {
                 AlgoKitCryptoError::Error { message } => message,
             })?;
@@ -117,13 +126,9 @@ struct FfiEd25519SignerFromRust {
     rust_signer: Arc<dyn RustEd25519Signer + Send + Sync>,
 }
 
-#[async_trait]
 impl Ed25519Signer for FfiEd25519SignerFromRust {
-    async fn try_sign(&self, msg: Vec<u8>) -> Result<Vec<u8>, AlgoKitCryptoError> {
-        let signature = self
-            .rust_signer
-            .try_sign(&msg)
-            .await
+    fn try_sign(&self, msg: Vec<u8>) -> Result<Vec<u8>, AlgoKitCryptoError> {
+        let signature = block_on(self.rust_signer.try_sign(&msg))
             .map_err(|e| AlgoKitCryptoError::Error { message: e })?;
         Ok(signature.to_vec())
     }
@@ -134,13 +139,9 @@ struct FfiEd25519KeyAndSignerFromRust {
     rust_key_and_signer: Arc<dyn RustEd25519KeyAndSigner + Send + Sync>,
 }
 
-#[async_trait]
 impl Ed25519KeyAndSigner for FfiEd25519KeyAndSignerFromRust {
-    async fn try_sign(&self, msg: Vec<u8>) -> Result<Vec<u8>, AlgoKitCryptoError> {
-        let signature = self
-            .rust_key_and_signer
-            .try_sign(&msg)
-            .await
+    fn try_sign(&self, msg: Vec<u8>) -> Result<Vec<u8>, AlgoKitCryptoError> {
+        let signature = block_on(self.rust_key_and_signer.try_sign(&msg))
             .map_err(|e| AlgoKitCryptoError::Error { message: e })?;
         Ok(signature.to_vec())
     }
