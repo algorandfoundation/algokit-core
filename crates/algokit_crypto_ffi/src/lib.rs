@@ -188,11 +188,8 @@ impl CryptoxideEd25519Keypair {
     }
 
     /// Sign a message asynchronously
-    pub async fn try_sign(&self, msg: Vec<u8>) -> Result<Vec<u8>, AlgoKitCryptoError> {
-        let signature = self
-            .inner
-            .try_sign(&msg)
-            .await
+    pub fn try_sign(&self, msg: Vec<u8>) -> Result<Vec<u8>, AlgoKitCryptoError> {
+        let signature = block_on(self.inner.try_sign(&msg))
             .map_err(|e| AlgoKitCryptoError::Error { message: e })?;
         Ok(signature.to_vec())
     }
@@ -243,7 +240,6 @@ mod tests {
         let message = b"Hello, Algorand!";
         let signature = keypair
             .try_sign(message.to_vec())
-            .await
             .expect("Failed to sign message");
 
         assert_eq!(signature.len(), 64);
@@ -260,7 +256,6 @@ mod tests {
         let message = b"Test message";
         let signature = keypair
             .try_sign(message.to_vec())
-            .await
             .expect("Failed to sign message");
 
         assert_eq!(signature.len(), 64);

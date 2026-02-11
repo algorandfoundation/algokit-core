@@ -475,7 +475,7 @@ public protocol CryptoxideEd25519KeypairProtocol: AnyObject, Sendable {
     /**
      * Sign a message asynchronously
      */
-    func trySign(msg: Data) async throws  -> Data
+    func trySign(msg: Data) throws  -> Data
     
     /**
      * Get the verifying key (public key) as a byte vector
@@ -555,21 +555,12 @@ public static func tryGenerate(seed: Data?)throws  -> CryptoxideEd25519Keypair  
     /**
      * Sign a message asynchronously
      */
-open func trySign(msg: Data)async throws  -> Data  {
-    return
-        try  await uniffiRustCallAsync(
-            rustFutureFunc: {
-                uniffi_algokit_crypto_ffi_fn_method_cryptoxideed25519keypair_try_sign(
-                    self.uniffiClonePointer(),
-                    FfiConverterData.lower(msg)
-                )
-            },
-            pollFunc: ffi_algokit_crypto_ffi_rust_future_poll_rust_buffer,
-            completeFunc: ffi_algokit_crypto_ffi_rust_future_complete_rust_buffer,
-            freeFunc: ffi_algokit_crypto_ffi_rust_future_free_rust_buffer,
-            liftFunc: FfiConverterData.lift,
-            errorHandler: FfiConverterTypeAlgoKitCryptoError_lift
-        )
+open func trySign(msg: Data)throws  -> Data  {
+    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeAlgoKitCryptoError_lift) {
+    uniffi_algokit_crypto_ffi_fn_method_cryptoxideed25519keypair_try_sign(self.uniffiClonePointer(),
+        FfiConverterData.lower(msg),$0
+    )
+})
 }
     
     /**
@@ -1148,52 +1139,6 @@ fileprivate struct FfiConverterOptionData: FfiConverterRustBuffer {
         }
     }
 }
-private let UNIFFI_RUST_FUTURE_POLL_READY: Int8 = 0
-private let UNIFFI_RUST_FUTURE_POLL_MAYBE_READY: Int8 = 1
-
-fileprivate let uniffiContinuationHandleMap = UniffiHandleMap<UnsafeContinuation<Int8, Never>>()
-
-fileprivate func uniffiRustCallAsync<F, T>(
-    rustFutureFunc: () -> UInt64,
-    pollFunc: (UInt64, @escaping UniffiRustFutureContinuationCallback, UInt64) -> (),
-    completeFunc: (UInt64, UnsafeMutablePointer<RustCallStatus>) -> F,
-    freeFunc: (UInt64) -> (),
-    liftFunc: (F) throws -> T,
-    errorHandler: ((RustBuffer) throws -> Swift.Error)?
-) async throws -> T {
-    // Make sure to call the ensure init function since future creation doesn't have a
-    // RustCallStatus param, so doesn't use makeRustCall()
-    uniffiEnsureAlgokitCryptoFfiInitialized()
-    let rustFuture = rustFutureFunc()
-    defer {
-        freeFunc(rustFuture)
-    }
-    var pollResult: Int8;
-    repeat {
-        pollResult = await withUnsafeContinuation {
-            pollFunc(
-                rustFuture,
-                uniffiFutureContinuationCallback,
-                uniffiContinuationHandleMap.insert(obj: $0)
-            )
-        }
-    } while pollResult != UNIFFI_RUST_FUTURE_POLL_READY
-
-    return try liftFunc(makeRustCall(
-        { completeFunc(rustFuture, $0) },
-        errorHandler: errorHandler
-    ))
-}
-
-// Callback handlers for an async calls.  These are invoked by Rust when the future is ready.  They
-// lift the return value or error and resume the suspended function.
-fileprivate func uniffiFutureContinuationCallback(handle: UInt64, pollResult: Int8) {
-    if let continuation = try? uniffiContinuationHandleMap.remove(handle: handle) {
-        continuation.resume(returning: pollResult)
-    } else {
-        print("uniffiFutureContinuationCallback invalid handle")
-    }
-}
 
 private enum InitializationResult {
     case ok
@@ -1210,7 +1155,7 @@ private let initializationResult: InitializationResult = {
     if bindings_contract_version != scaffolding_contract_version {
         return InitializationResult.contractVersionMismatch
     }
-    if (uniffi_algokit_crypto_ffi_checksum_method_cryptoxideed25519keypair_try_sign() != 32954) {
+    if (uniffi_algokit_crypto_ffi_checksum_method_cryptoxideed25519keypair_try_sign() != 46579) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_algokit_crypto_ffi_checksum_method_cryptoxideed25519keypair_verifying_key() != 2056) {
