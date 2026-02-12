@@ -4848,9 +4848,9 @@ public func decodeTransactions(encodedTxs: [Data])throws  -> [Transaction]  {
 /**
  * Signs a transaction using Ed25519 with the provided secret key.
  */
-public func ed25519SignTranasction(secretKey: Data, txn: Transaction)throws  -> SignedTransaction  {
+public func ed25519SignTransaction(secretKey: Data, txn: Transaction)throws  -> SignedTransaction  {
     return try  FfiConverterTypeSignedTransaction_lift(try rustCallWithError(FfiConverterTypeAlgoKitTransactError_lift) {
-    uniffi_algokit_transact_ffi_fn_func_ed25519_sign_tranasction(
+    uniffi_algokit_transact_ffi_fn_func_ed25519_sign_transaction(
         FfiConverterData.lower(secretKey),
         FfiConverterTypeTransaction_lower(txn),$0
     )
@@ -5082,7 +5082,7 @@ private let initializationResult: InitializationResult = {
     if (uniffi_algokit_transact_ffi_checksum_func_decode_transactions() != 26956) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_algokit_transact_ffi_checksum_func_ed25519_sign_tranasction() != 48643) {
+    if (uniffi_algokit_transact_ffi_checksum_func_ed25519_sign_transaction() != 640) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_algokit_transact_ffi_checksum_func_encode_signed_transaction() != 47064) {

@@ -7,7 +7,7 @@ use uniffi::{self};
 
 /// Signs a transaction using Ed25519 with the provided secret key.
 #[uniffi::export]
-pub fn ed25519_sign_tranasction(
+pub fn ed25519_sign_transaction(
     secret_key: Vec<u8>,
     txn: Transaction,
 ) -> Result<SignedTransaction, AlgoKitTransactError> {

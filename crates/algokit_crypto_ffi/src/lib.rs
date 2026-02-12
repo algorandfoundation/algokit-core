@@ -30,7 +30,7 @@ impl From<String> for AlgoKitCryptoError {
 }
 
 #[uniffi::export]
-pub fn ed25519_raw_sign(secret_key: Vec<u8>, txn: Vec<u8>) -> Result<Vec<u8>, AlgoKitCryptoError> {
+pub fn ed25519_raw_sign(secret_key: Vec<u8>, data: Vec<u8>) -> Result<Vec<u8>, AlgoKitCryptoError> {
     // Spin up a Tokio runtime to perform the async signing operation
     // eventually we want to have the exported function be async, but for now
     // we need to be sync to maintain swift 6 compatibility
@@ -48,7 +48,7 @@ pub fn ed25519_raw_sign(secret_key: Vec<u8>, txn: Vec<u8>) -> Result<Vec<u8>, Al
         })?;
 
     let signature = rt
-        .block_on(keypair.try_sign(&txn))
+        .block_on(keypair.try_sign(&data))
         .map_err(|e| AlgoKitCryptoError::from(format!("Failed to sign transaction: {}", e)))?;
 
     Ok(signature.to_vec())

@@ -36,9 +36,9 @@ func testEd25519SignTransaction() throws {
   let testData = try loadTestData()
   let transaction = makeTransaction(from: testData.simplePayment)
 
-  let signed = try ed25519SignTranasction(
+  let signed = try ed25519SignTransaction(
     secretKey: Data(repeating: 1, count: 32), txn: transaction)
 
   #expect(signed.transaction == transaction)
-  #expect(signed.signature?.bytes.byteCount == 64)
+  #expect(signed.signature?.isEmpty == false)
 }

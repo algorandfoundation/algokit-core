@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-# Provides ed225519 implementation
+# Provides ed25519 implementation
 cryptoxide = "0.4"
 
 # Provides cryptographic traits

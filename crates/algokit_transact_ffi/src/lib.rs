@@ -10,7 +10,7 @@ use ffi_macros::{ffi_enum, ffi_func, ffi_record};
 use serde::{Deserialize, Serialize};
 
 pub use multisig::{MultisigSignature, MultisigSubsignature};
-pub use signer::ed25519_sign_tranasction;
+pub use signer::ed25519_sign_transaction;
 pub use transactions::AppCallTransactionFields;
 pub use transactions::AssetConfigTransactionFields;
 pub use transactions::AssetFreezeTransactionFields;

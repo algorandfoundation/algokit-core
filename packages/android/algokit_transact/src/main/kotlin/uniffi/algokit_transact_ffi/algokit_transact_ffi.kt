@@ -759,6 +759,8 @@ internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
 
 
 
+
+
 // For large crates we prevent `MethodTooLargeException` (see #2340)
 // N.B. the name of the extension is very misleading, since it is 
 // rather `InterfaceTooLargeException`, caused by too many methods 
@@ -791,6 +793,8 @@ fun uniffi_algokit_transact_ffi_checksum_func_decode_signed_transactions(
 fun uniffi_algokit_transact_ffi_checksum_func_decode_transaction(
 ): Short
 fun uniffi_algokit_transact_ffi_checksum_func_decode_transactions(
+): Short
+fun uniffi_algokit_transact_ffi_checksum_func_ed25519_sign_transaction(
 ): Short
 fun uniffi_algokit_transact_ffi_checksum_func_encode_signed_transaction(
 ): Short
@@ -884,6 +888,8 @@ fun uniffi_algokit_transact_ffi_fn_func_decode_signed_transactions(`encodedSigne
 fun uniffi_algokit_transact_ffi_fn_func_decode_transaction(`encodedTx`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
 fun uniffi_algokit_transact_ffi_fn_func_decode_transactions(`encodedTxs`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+fun uniffi_algokit_transact_ffi_fn_func_ed25519_sign_transaction(`secretKey`: RustBuffer.ByValue,`txn`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
 fun uniffi_algokit_transact_ffi_fn_func_encode_signed_transaction(`signedTransaction`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
@@ -1066,6 +1072,9 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_algokit_transact_ffi_checksum_func_decode_transactions() != 26956.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_algokit_transact_ffi_checksum_func_ed25519_sign_transaction() != 640.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_algokit_transact_ffi_checksum_func_encode_signed_transaction() != 47064.toShort()) {
@@ -2101,34 +2110,6 @@ public object FfiConverterTypeHeartbeatTransactionFields: FfiConverterRustBuffer
 
 
 
-data class KeyPairAccount (
-    var `pubKey`: kotlin.ByteArray
-) {
-    
-    companion object
-}
-
-/**
- * @suppress
- */
-public object FfiConverterTypeKeyPairAccount: FfiConverterRustBuffer<KeyPairAccount> {
-    override fun read(buf: ByteBuffer): KeyPairAccount {
-        return KeyPairAccount(
-            FfiConverterByteArray.read(buf),
-        )
-    }
-
-    override fun allocationSize(value: KeyPairAccount) = (
-            FfiConverterByteArray.allocationSize(value.`pubKey`)
-    )
-
-    override fun write(value: KeyPairAccount, buf: ByteBuffer) {
-            FfiConverterByteArray.write(value.`pubKey`, buf)
-    }
-}
-
-
-
 data class KeyRegistrationTransactionFields (
     /**
      * Root participation public key (32 bytes)
@@ -2885,6 +2866,14 @@ sealed class AlgoKitTransactException: kotlin.Exception() {
             get() = "errorMsg=${ `errorMsg` }"
     }
     
+    class SigningException(
+        
+        val `errorMsg`: kotlin.String
+        ) : AlgoKitTransactException() {
+        override val message
+            get() = "errorMsg=${ `errorMsg` }"
+    }
+    
 
     companion object ErrorHandler : UniffiRustCallStatusErrorHandler<AlgoKitTransactException> {
         override fun lift(error_buf: RustBuffer.ByValue): AlgoKitTransactException = FfiConverterTypeAlgoKitTransactError.lift(error_buf)
@@ -2913,6 +2902,9 @@ public object FfiConverterTypeAlgoKitTransactError : FfiConverterRustBuffer<Algo
             4 -> AlgoKitTransactException.MsgPackException(
                 FfiConverterString.read(buf),
                 )
+            5 -> AlgoKitTransactException.SigningException(
+                FfiConverterString.read(buf),
+                )
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
     }
@@ -2939,6 +2931,11 @@ public object FfiConverterTypeAlgoKitTransactError : FfiConverterRustBuffer<Algo
                 4UL
                 + FfiConverterString.allocationSize(value.`errorMsg`)
             )
+            is AlgoKitTransactException.SigningException -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+                + FfiConverterString.allocationSize(value.`errorMsg`)
+            )
         }
     }
 
@@ -2961,6 +2958,11 @@ public object FfiConverterTypeAlgoKitTransactError : FfiConverterRustBuffer<Algo
             }
             is AlgoKitTransactException.MsgPackException -> {
                 buf.putInt(4)
+                FfiConverterString.write(value.`errorMsg`, buf)
+                Unit
+            }
+            is AlgoKitTransactException.SigningException -> {
+                buf.putInt(5)
                 FfiConverterString.write(value.`errorMsg`, buf)
                 Unit
             }
@@ -4162,6 +4164,19 @@ public object FfiConverterSequenceTypeTransaction: FfiConverterRustBuffer<List<T
     uniffiRustCallWithError(AlgoKitTransactException) { _status ->
     UniffiLib.INSTANCE.uniffi_algokit_transact_ffi_fn_func_decode_transactions(
         FfiConverterSequenceByteArray.lower(`encodedTxs`),_status)
+}
+    )
+    }
+    
+
+        /**
+         * Signs a transaction using Ed25519 with the provided secret key.
+         */
+    @Throws(AlgoKitTransactException::class) fun `ed25519SignTransaction`(`secretKey`: kotlin.ByteArray, `txn`: Transaction): SignedTransaction {
+            return FfiConverterTypeSignedTransaction.lift(
+    uniffiRustCallWithError(AlgoKitTransactException) { _status ->
+    UniffiLib.INSTANCE.uniffi_algokit_transact_ffi_fn_func_ed25519_sign_transaction(
+        FfiConverterByteArray.lower(`secretKey`),FfiConverterTypeTransaction.lower(`txn`),_status)
 }
     )
     }
