@@ -18,4 +18,4 @@ getrandom = "0.4.1"
 async-trait = "0.1.89"
 
 [dev-dependencies]
-tokio = { version = "1.49.0", features = ["macros"] }
+tokio = { version = "1.49.0", features = ["macros", "rt"] }
