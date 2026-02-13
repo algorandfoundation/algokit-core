@@ -7,8 +7,8 @@ mod state_proof;
 
 use crate::{
     ALGORAND_PUBLIC_KEY_BYTE_LENGTH, Address, AlgorandMsgpack, Byte32, EMPTY_SIGNATURE,
-    HASH_BYTES_LENGTH, KeyPairAccount, MultisigSignature, MultisigSubsignature, SignedTransaction,
-    Transaction, TransactionHeaderBuilder, TransactionId,
+    HASH_BYTES_LENGTH, MultisigSignature, MultisigSubsignature, SignedTransaction, Transaction,
+    TransactionHeaderBuilder, TransactionId,
     test_utils::state_proof::StateProofTransactionMother,
     transactions::{AssetTransferTransactionBuilder, PaymentTransactionBuilder},
 };
@@ -58,7 +58,7 @@ impl TransactionHeaderMother {
 
     pub fn simple_testnet() -> TransactionHeaderBuilder {
         Self::testnet()
-            .sender(AccountMother::account().address())
+            .sender(AccountMother::account())
             .first_valid(50659540)
             .last_valid(50660540)
             .to_owned()
@@ -77,7 +77,7 @@ impl TransactionHeaderMother {
             .first_valid(1)
             .last_valid(999)
             .fee(1000)
-            .sender(AccountMother::example().address())
+            .sender(AccountMother::example())
             .to_owned()
     }
 }
@@ -147,7 +147,7 @@ impl TransactionMother {
         AssetTransferTransactionBuilder::default()
             .header(
                 TransactionHeaderMother::simple_testnet()
-                    .sender(AccountMother::neil().address())
+                    .sender(AccountMother::neil())
                     .first_valid(51183672)
                     .last_valid(51183872)
                     .build()
@@ -155,14 +155,14 @@ impl TransactionMother {
             )
             .asset_id(107686045)
             .amount(1000)
-            .receiver(AccountMother::account().address())
+            .receiver(AccountMother::account())
             .to_owned()
     }
 
     pub fn opt_in_asset_transfer() -> AssetTransferTransactionBuilder {
         Self::simple_asset_transfer()
             .amount(0)
-            .receiver(AccountMother::neil().address())
+            .receiver(AccountMother::neil())
             .to_owned()
     }
 
@@ -194,41 +194,36 @@ impl TransactionMother {
 
 pub struct AccountMother {}
 impl AccountMother {
-    pub fn zero_address_account() -> KeyPairAccount {
-        KeyPairAccount::from_pubkey(&[0; ALGORAND_PUBLIC_KEY_BYTE_LENGTH])
+    pub fn zero_address_account() -> Address {
+        Address([0u8; ALGORAND_PUBLIC_KEY_BYTE_LENGTH])
     }
 
-    pub fn account() -> KeyPairAccount {
+    pub fn account() -> Address {
         "RIMARGKZU46OZ77OLPDHHPUJ7YBSHRTCYMQUC64KZCCMESQAFQMYU6SL2Q"
             .parse()
             .unwrap()
     }
 
-    pub fn neil() -> KeyPairAccount {
+    pub fn neil() -> Address {
         "JB3K6HTAXODO4THESLNYTSG6GQUFNEVIQG7A6ZYVDACR6WA3ZF52TKU5NA"
             .parse()
             .unwrap()
     }
 
-    pub fn nfd_testnet() -> KeyPairAccount {
+    pub fn nfd_testnet() -> Address {
         "3Y62HTJ4WYSIEKC74XE3F2JFCS7774EN3CYNUHQCEFIN7QBYFAWLKE5MFY"
             .parse()
             .unwrap()
     }
 
-    pub fn example() -> KeyPairAccount {
+    pub fn example() -> Address {
         "ALGOC4J2BCZ33TCKSSAMV5GAXQBMV3HDCHDBSPRBZRNSR7BM2FFDZRFGXA"
             .parse()
             .unwrap()
     }
 
     pub fn msig() -> MultisigSignature {
-        MultisigSignature::from_participants(
-            1,
-            2,
-            vec![Self::account().into(), Self::example().into()],
-        )
-        .unwrap()
+        MultisigSignature::from_participants(1, 2, vec![Self::account(), Self::example()]).unwrap()
     }
 }
 
@@ -242,7 +237,7 @@ impl TransactionGroupMother {
     pub fn testnet_payment_group() -> Vec<Transaction> {
         // This is a real TestNet transaction group with two payment transactions.
         let header_builder = TransactionHeaderMother::testnet()
-            .sender(AccountMother::neil().address())
+            .sender(AccountMother::neil())
             .first_valid(51532821)
             .last_valid(51533021)
             .to_owned();
@@ -255,7 +250,7 @@ impl TransactionGroupMother {
                     .build()
                     .unwrap(),
             )
-            .receiver(AccountMother::neil().address())
+            .receiver(AccountMother::neil())
             .amount(1000000)
             .build()
             .unwrap();
@@ -268,7 +263,7 @@ impl TransactionGroupMother {
                     .build()
                     .unwrap(),
             )
-            .receiver(AccountMother::neil().address())
+            .receiver(AccountMother::neil())
             .amount(200000)
             .build()
             .unwrap();
@@ -278,7 +273,7 @@ impl TransactionGroupMother {
 
     pub fn group_of(number_of_transactions: usize) -> Vec<Transaction> {
         let header_builder = TransactionHeaderMother::testnet()
-            .sender(AccountMother::neil().address())
+            .sender(AccountMother::neil())
             .first_valid(51532821)
             .last_valid(51533021)
             .to_owned();
@@ -293,7 +288,7 @@ impl TransactionGroupMother {
                         .build()
                         .unwrap(),
                 )
-                .receiver(AccountMother::neil().address())
+                .receiver(AccountMother::neil())
                 .amount(200000)
                 .build()
                 .unwrap();
@@ -594,12 +589,12 @@ pub fn check_transaction_encoding(tx: &Transaction, expected_encoded_len: usize)
 pub fn check_signed_transaction_encoding(
     tx: &Transaction,
     expected_encoded_len: usize,
-    auth_account: Option<KeyPairAccount>,
+    auth_account: Option<Address>,
 ) {
     let signed_tx = SignedTransaction {
         transaction: tx.clone(),
         signature: Some(EMPTY_SIGNATURE),
-        auth_address: auth_account.map(|acc| acc.address()),
+        auth_address: auth_account,
         multisignature: None,
     };
     let encoded_stx = signed_tx.encode().unwrap();
@@ -612,17 +607,14 @@ pub fn check_multisigned_transaction_encoding(tx: &Transaction, expected_encoded
     let unsigned_multisignature = MultisigSignature::from_participants(
         1,
         2,
-        vec![
-            AccountMother::account().address(),
-            AccountMother::neil().address(),
-        ],
+        vec![AccountMother::account(), AccountMother::neil()],
     )
     .unwrap();
     let multisignature_0 = unsigned_multisignature
-        .apply_subsignature(AccountMother::account().address(), EMPTY_SIGNATURE)
+        .apply_subsignature(AccountMother::account(), EMPTY_SIGNATURE)
         .unwrap();
     let multisignature_1 = unsigned_multisignature
-        .apply_subsignature(AccountMother::neil().address(), EMPTY_SIGNATURE)
+        .apply_subsignature(AccountMother::neil(), EMPTY_SIGNATURE)
         .unwrap();
     let multisignature = Some(multisignature_0.merge(&multisignature_1).unwrap());
     let signed_tx = SignedTransaction {

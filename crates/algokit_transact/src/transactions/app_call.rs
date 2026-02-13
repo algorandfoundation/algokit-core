@@ -1242,8 +1242,7 @@ mod tests {
     #[test]
     fn test_validate_references() {
         // Create vectors that exceed the maximum limits for all reference types
-        let excessive_account_refs =
-            vec![AccountMother::account().address(); MAX_ACCOUNT_REFERENCES + 1];
+        let excessive_account_refs = vec![AccountMother::account(); MAX_ACCOUNT_REFERENCES + 1];
         let excessive_app_refs = vec![1; MAX_APP_REFERENCES + 1];
         let excessive_asset_refs = vec![2; MAX_ASSET_REFERENCES + 1];
         let excessive_box_refs = vec![

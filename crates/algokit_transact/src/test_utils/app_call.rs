@@ -11,7 +11,7 @@ impl AppCallTransactionMother {
         // https://lora.algokit.io/testnet/transaction/L6B56N2BAXE43PUI7IDBXCJN5DEB6NLCH4AAN3ON64CXPSCTJNTA
         AppCallTransactionBuilder::default()
         .header(TransactionHeaderMother::testnet()
-            .sender(AccountMother::nfd_testnet().address())
+            .sender(AccountMother::nfd_testnet())
             .first_valid(21038057)
             .last_valid(21039057)
             .note(
@@ -45,7 +45,7 @@ impl AppCallTransactionMother {
         // https://lora.algokit.io/testnet/transaction/NQVNJ5VWEDX42DMJQIQET4QPNUOW27EYIPKZ4SDWKOOEFJQB7PZA
         AppCallTransactionBuilder::default()
         .header(TransactionHeaderMother::testnet()
-            .sender(AccountMother::nfd_testnet().address())
+            .sender(AccountMother::nfd_testnet())
             .first_valid(43679851)
             .last_valid(43679951)
             .note(

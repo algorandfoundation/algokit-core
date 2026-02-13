@@ -121,7 +121,7 @@ mod tests {
             header: TransactionHeaderMother::example().build().unwrap(),
             asset_id: 0, // Invalid asset ID
             amount: 1000,
-            receiver: AccountMother::neil().address(),
+            receiver: AccountMother::neil(),
             asset_sender: None,
             close_remainder_to: None,
         };
@@ -139,7 +139,7 @@ mod tests {
             header: TransactionHeaderMother::example().build().unwrap(),
             asset_id: 123, // Valid asset ID
             amount: 1000,
-            receiver: AccountMother::neil().address(),
+            receiver: AccountMother::neil(),
             asset_sender: None,
             close_remainder_to: None,
         };
@@ -154,7 +154,7 @@ mod tests {
             .header(TransactionHeaderMother::example().build().unwrap())
             .asset_id(0) // Invalid asset ID
             .amount(1000)
-            .receiver(AccountMother::neil().address())
+            .receiver(AccountMother::neil())
             .build();
 
         assert!(result.is_err());
@@ -169,7 +169,7 @@ mod tests {
             .header(TransactionHeaderMother::example().build().unwrap())
             .asset_id(123) // Valid asset ID
             .amount(1000)
-            .receiver(AccountMother::neil().address())
+            .receiver(AccountMother::neil())
             .build();
 
         assert!(result.is_ok());

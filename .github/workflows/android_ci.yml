@@ -1,13 +1,16 @@
 name: Android CI
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  workflow_call:
+    inputs:
+      crate:
+        description: "Crate name to build Android package from"
+        required: true
+        type: string
+
+env:
+  CRATE: ${{ inputs.crate }}
+  ANDROID_PACKAGE_DIR: packages/android/${{ inputs.crate }}
 
 jobs:
   android:
@@ -36,10 +39,10 @@ jobs:
           ndk-version: r27d
 
       - name: Build AAR
-        run: cargo pkg transact aar
+        run: cargo pkg ${{ env.CRATE }} aar
 
       - name: Host Test
-        working-directory: packages/android/algokit_transact
+        working-directory: ${{ env.ANDROID_PACKAGE_DIR }}
         run: ./gradlew test
 
       - name: Enable KVM
@@ -66,11 +69,10 @@ jobs:
           api-level: 34
           arch: x86_64
           script: ./gradlew connectedAndroidTest
-          working-directory: packages/android/algokit_transact
+          working-directory: ${{ env.ANDROID_PACKAGE_DIR }}
 
       - name: Archive Build Output
         uses: actions/upload-artifact@v4
-        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         with:
-          name: algokit_transact.aar
-          path: packages/android/algokit_transact/build/outputs/aar/algokit_transact-release.aar
+          name: ${{ env.CRATE }}.aar
+          path: ${{ env.ANDROID_PACKAGE_DIR }}/build/outputs/aar/${{ env.CRATE }}-release.aar

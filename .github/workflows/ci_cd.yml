@@ -65,7 +65,7 @@ jobs:
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
           import json
           # Crates that produce FFI bindings
-          crates = ["algokit_transact"]
+          crates = ["algokit_transact", "algokit_crypto"]
           items = []
           for crate in crates:
               pascal = ''.join(p.capitalize() for p in crate.split('_'))
@@ -87,3 +87,12 @@ jobs:
       package: ${{ matrix.swift_package }}
       release: ${{ github.event_name == 'push' }}
 
+  android_ci:
+    needs:
+      - setup
+    uses: ./.github/workflows/android_ci.yml
+    strategy:
+      matrix:
+        include: ${{ fromJSON(needs.setup.outputs.ffi_packages) }}
+    with:
+      crate: ${{ matrix.crate_name }}

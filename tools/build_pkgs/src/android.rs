@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::{Package, get_repo_root, run};
 use color_eyre::eyre::Result;
 
@@ -11,13 +13,16 @@ pub fn build(package: &Package) -> Result<()> {
     let kotlin_out_dir = gradle_root_dir.join("src").join("main").join("kotlin");
 
     // Build for Android targets
+    let rustflags =
+        "-C link-arg=-Wl,-z,max-page-size=16384 -C link-arg=-Wl,-z,common-page-size=16384";
     let cargo_build_cmd = format!(
         "cargo ndk -o {} --manifest-path {} -t armeabi-v7a -t arm64-v8a -t x86_64 build --release",
         so_file_output_dir.display(),
         package.crate_manifest().display()
     );
 
-    run(&cargo_build_cmd, None, None)?;
+    let env = HashMap::from([("RUSTFLAGS".to_string(), rustflags.to_string())]);
+    run(&cargo_build_cmd, None, Some(env))?;
 
     // Build for host platform (for running unit tests)
     println!("Building for host platform to enable unit tests...");

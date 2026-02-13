@@ -1,0 +1,21 @@
+[package]
+name = "algokit_crypto"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# Provides ed25519 implementation
+cryptoxide = "0.4"
+
+# Provides cryptographic traits
+signature = "2.2.0"
+
+# Enables zeroing of sk in the concrete implementation when it is dropped
+zeroize = { version = "1.8", features = ["derive"] }
+
+# Used random seed generation for ed25519
+getrandom = "0.4.1"
+async-trait = "0.1.89"
+
+[dev-dependencies]
+tokio = { version = "1.49.0", features = ["macros", "rt"] }

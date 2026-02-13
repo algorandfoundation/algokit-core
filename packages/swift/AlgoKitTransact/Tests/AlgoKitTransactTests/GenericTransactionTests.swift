@@ -30,3 +30,15 @@ func genericTransactionEncode0Bytes() throws {
     #expect(message == "attempted to decode 0 bytes")
   }
 }
+
+@Test("Generic Transaction: ed25519SignTransaction")
+func testEd25519SignTransaction() throws {
+  let testData = try loadTestData()
+  let transaction = makeTransaction(from: testData.simplePayment)
+
+  let signed = try ed25519SignTransaction(
+    secretKey: Data(repeating: 1, count: 32), txn: transaction)
+
+  #expect(signed.transaction == transaction)
+  #expect(signed.signature?.isEmpty == false)
+}

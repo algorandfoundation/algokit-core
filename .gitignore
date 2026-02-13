@@ -20,7 +20,6 @@ wheelhouse/
 build/
 *.iml
 local.properties
-gradle-wrapper.jar
 
 # Insta snapshot testing
 *.snap.new
@@ -42,3 +41,4 @@ packages/python**/*.so
 packages/python**/*.dylib
 packages/python**/*.whl
 
+packages/swift/**/Frameworks

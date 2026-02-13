@@ -2028,68 +2028,6 @@ public func FfiConverterTypeHeartbeatTransactionFields_lower(_ value: HeartbeatT
 }
 
 
-public struct KeyPairAccount {
-    public var pubKey: Data
-
-    // Default memberwise initializers are never public by default, so we
-    // declare one manually.
-    public init(pubKey: Data) {
-        self.pubKey = pubKey
-    }
-}
-
-#if compiler(>=6)
-extension KeyPairAccount: Sendable {}
-#endif
-
-
-extension KeyPairAccount: Equatable, Hashable {
-    public static func ==(lhs: KeyPairAccount, rhs: KeyPairAccount) -> Bool {
-        if lhs.pubKey != rhs.pubKey {
-            return false
-        }
-        return true
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(pubKey)
-    }
-}
-
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public struct FfiConverterTypeKeyPairAccount: FfiConverterRustBuffer {
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> KeyPairAccount {
-        return
-            try KeyPairAccount(
-                pubKey: FfiConverterData.read(from: &buf)
-        )
-    }
-
-    public static func write(_ value: KeyPairAccount, into buf: inout [UInt8]) {
-        FfiConverterData.write(value.pubKey, into: &buf)
-    }
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeKeyPairAccount_lift(_ buf: RustBuffer) throws -> KeyPairAccount {
-    return try FfiConverterTypeKeyPairAccount.lift(buf)
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeKeyPairAccount_lower(_ value: KeyPairAccount) -> RustBuffer {
-    return FfiConverterTypeKeyPairAccount.lower(value)
-}
-
-
 public struct KeyRegistrationTransactionFields {
     /**
      * Root participation public key (32 bytes)
@@ -3605,6 +3543,8 @@ public enum AlgoKitTransactError: Swift.Error {
     )
     case MsgPackError(errorMsg: String
     )
+    case SigningError(errorMsg: String
+    )
 }
 
 
@@ -3631,6 +3571,9 @@ public struct FfiConverterTypeAlgoKitTransactError: FfiConverterRustBuffer {
             errorMsg: try FfiConverterString.read(from: &buf)
             )
         case 4: return .MsgPackError(
+            errorMsg: try FfiConverterString.read(from: &buf)
+            )
+        case 5: return .SigningError(
             errorMsg: try FfiConverterString.read(from: &buf)
             )
 
@@ -3662,6 +3605,11 @@ public struct FfiConverterTypeAlgoKitTransactError: FfiConverterRustBuffer {
         
         case let .MsgPackError(errorMsg):
             writeInt(&buf, Int32(4))
+            FfiConverterString.write(errorMsg, into: &buf)
+            
+        
+        case let .SigningError(errorMsg):
+            writeInt(&buf, Int32(5))
             FfiConverterString.write(errorMsg, into: &buf)
             
         }
@@ -4898,6 +4846,17 @@ public func decodeTransactions(encodedTxs: [Data])throws  -> [Transaction]  {
 })
 }
 /**
+ * Signs a transaction using Ed25519 with the provided secret key.
+ */
+public func ed25519SignTransaction(secretKey: Data, txn: Transaction)throws  -> SignedTransaction  {
+    return try  FfiConverterTypeSignedTransaction_lift(try rustCallWithError(FfiConverterTypeAlgoKitTransactError_lift) {
+    uniffi_algokit_transact_ffi_fn_func_ed25519_sign_transaction(
+        FfiConverterData.lower(secretKey),
+        FfiConverterTypeTransaction_lower(txn),$0
+    )
+})
+}
+/**
  * Encode a signed transaction to MsgPack for sending on the network.
  *
  * This method performs canonical encoding. No domain separation prefix is applicable.
@@ -5121,6 +5080,9 @@ private let initializationResult: InitializationResult = {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_algokit_transact_ffi_checksum_func_decode_transactions() != 26956) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_algokit_transact_ffi_checksum_func_ed25519_sign_transaction() != 640) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_algokit_transact_ffi_checksum_func_encode_signed_transaction() != 47064) {

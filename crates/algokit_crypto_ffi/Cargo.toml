@@ -1,0 +1,29 @@
+[package]
+name = "algokit_crypto_ffi"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[features]
+default = ["ffi_uniffi"]
+ffi_uniffi = ["dep:uniffi"]
+
+[dependencies]
+algokit_crypto = { path = "../algokit_crypto" }
+uniffi = { workspace = true, features = [
+  "scaffolding-ffi-buffer-fns",
+], optional = true }
+async-trait = "0.1.89"
+signature = "2.2.0"
+tokio = { version = "1.49.0", features = ["rt", "time", "net", "io-util", "sync"] }
+
+[dev-dependencies]
+tokio = { version = "1.49.0", features = ["macros", "rt"] }
+
+[build-dependencies]
+uniffi = { workspace = true, features = [
+  "build",
+  "scaffolding-ffi-buffer-fns",
+] }
