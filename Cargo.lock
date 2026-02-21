@@ -75,6 +75,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "algokit_algo25_ffi"
+version = "0.1.0"
+dependencies = [
+ "algokit_algo25",
+ "uniffi",
+]
+
+[[package]]
 name = "algokit_crypto"
 version = "0.1.0"
 dependencies = [

@@ -16,7 +16,9 @@ members = [
   "tools/cargo-bin",
   "tools/api_tools",
   "crates/algokit_crypto",
-  "crates/algokit_crypto_ffi", "crates/algokit_algo25",
+  "crates/algokit_crypto_ffi",
+  "crates/algokit_algo25",
+  "crates/algokit_algo25_ffi",
 ]
 
 [workspace.dependencies]
