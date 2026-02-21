@@ -202,8 +202,13 @@ mod tests {
 
     #[test]
     fn rejects_non_wordlist_words() {
-        let mnemonic = "this is not in the english list and should fail quickly";
-        let err = seed_from_mnemonic(mnemonic).expect_err("should fail");
+        let seed = [3u8; SEED_BYTES_LENGTH];
+        let mnemonic = mnemonic_from_seed(&seed).expect("mnemonic should encode");
+        let mut words: Vec<&str> = mnemonic.split(' ').collect();
+        words[0] = "notaword";
+        let broken = words.join(" ");
+
+        let err = seed_from_mnemonic(&broken).expect_err("should fail");
         assert_eq!(err, MnemonicError::NotInWordsList);
         assert_eq!(err.to_string(), NOT_IN_WORDS_LIST_ERROR_MSG);
     }
