@@ -15,12 +15,12 @@ let package = Package(
     // Targets are the basic building blocks of a package, defining a module or a test suite.
     // Targets can depend on other targets in this package and products from dependencies.
     .binaryTarget(
-      name: "algokit_cryptoFFI",
-      path: "Frameworks/algokit_crypto.xcframework"
+      name: "algokit_algo25FFI",
+      path: "Frameworks/algokit_algo25.xcframework"
     ),
     .target(
       name: "AlgoKitAlgo25",
-      dependencies: ["algokit_cryptoFFI"],
+      dependencies: ["algokit_algo25FFI"],
       path: "Sources/AlgoKitAlgo25"
     ),
     .testTarget(
