@@ -67,3 +67,12 @@ pub fn ed25519_public_key_from_seed(seed: Vec<u8>) -> Result<Vec<u8>, AlgoKitCry
 
     Ok(keypair.verifying_key().to_vec())
 }
+
+/// Generate random bytes from the operating system's random number generator
+#[uniffi::export]
+pub fn random_bytes(len: u32) -> Result<Vec<u8>, AlgoKitCryptoError> {
+    let mut bytes = vec![0u8; len as usize];
+    getrandom::fill(&mut bytes)
+        .map_err(|e| AlgoKitCryptoError::from(format!("Failed to generate random bytes: {}", e)))?;
+    Ok(bytes)
+}
