@@ -395,13 +395,7 @@ fileprivate final class UniffiHandleMap<T>: @unchecked Sendable {
 
 
 // Public interface members begin here.
-// Magic number for the Rust proxy to call using the same mechanism as every other method,
-// to free the callback once it's dropped by Rust.
-private let IDX_CALLBACK_FREE: Int32 = 0
-// Callback return codes
-private let UNIFFI_CALLBACK_SUCCESS: Int32 = 0
-private let UNIFFI_CALLBACK_ERROR: Int32 = 1
-private let UNIFFI_CALLBACK_UNEXPECTED_ERROR: Int32 = 2
+
 
 #if swift(>=5.8)
 @_documentation(visibility: private)
@@ -463,581 +457,6 @@ fileprivate struct FfiConverterData: FfiConverterRustBuffer {
 }
 
 
-
-
-/**
- * FFI-compatible wrapper for CryptoxideEd25519Keypair
- *
- * This struct wraps the Rust implementation and exposes it via FFI.
- */
-public protocol CryptoxideEd25519KeypairProtocol: AnyObject, Sendable {
-    
-    /**
-     * Sign a message asynchronously
-     */
-    func trySign(msg: Data) throws  -> Data
-    
-    /**
-     * Get the verifying key (public key) as a byte vector
-     */
-    func verifyingKey()  -> Data
-    
-}
-/**
- * FFI-compatible wrapper for CryptoxideEd25519Keypair
- *
- * This struct wraps the Rust implementation and exposes it via FFI.
- */
-open class CryptoxideEd25519Keypair: CryptoxideEd25519KeypairProtocol, @unchecked Sendable {
-    fileprivate let pointer: UnsafeMutableRawPointer!
-
-    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
-#if swift(>=5.8)
-    @_documentation(visibility: private)
-#endif
-    public struct NoPointer {
-        public init() {}
-    }
-
-    // TODO: We'd like this to be `private` but for Swifty reasons,
-    // we can't implement `FfiConverter` without making this `required` and we can't
-    // make it `required` without making it `public`.
-#if swift(>=5.8)
-    @_documentation(visibility: private)
-#endif
-    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
-        self.pointer = pointer
-    }
-
-    // This constructor can be used to instantiate a fake object.
-    // - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
-    //
-    // - Warning:
-    //     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
-#if swift(>=5.8)
-    @_documentation(visibility: private)
-#endif
-    public init(noPointer: NoPointer) {
-        self.pointer = nil
-    }
-
-#if swift(>=5.8)
-    @_documentation(visibility: private)
-#endif
-    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
-        return try! rustCall { uniffi_algokit_crypto_ffi_fn_clone_cryptoxideed25519keypair(self.pointer, $0) }
-    }
-    // No primary constructor declared for this class.
-
-    deinit {
-        guard let pointer = pointer else {
-            return
-        }
-
-        try! rustCall { uniffi_algokit_crypto_ffi_fn_free_cryptoxideed25519keypair(pointer, $0) }
-    }
-
-    
-    /**
-     * Generate a new keypair from an optional seed.
-     * If no seed is provided, a random seed is generated using the system's CSPRNG.
-     */
-public static func tryGenerate(seed: Data?)throws  -> CryptoxideEd25519Keypair  {
-    return try  FfiConverterTypeCryptoxideEd25519Keypair_lift(try rustCallWithError(FfiConverterTypeAlgoKitCryptoError_lift) {
-    uniffi_algokit_crypto_ffi_fn_constructor_cryptoxideed25519keypair_try_generate(
-        FfiConverterOptionData.lower(seed),$0
-    )
-})
-}
-    
-
-    
-    /**
-     * Sign a message asynchronously
-     */
-open func trySign(msg: Data)throws  -> Data  {
-    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeAlgoKitCryptoError_lift) {
-    uniffi_algokit_crypto_ffi_fn_method_cryptoxideed25519keypair_try_sign(self.uniffiClonePointer(),
-        FfiConverterData.lower(msg),$0
-    )
-})
-}
-    
-    /**
-     * Get the verifying key (public key) as a byte vector
-     */
-open func verifyingKey() -> Data  {
-    return try!  FfiConverterData.lift(try! rustCall() {
-    uniffi_algokit_crypto_ffi_fn_method_cryptoxideed25519keypair_verifying_key(self.uniffiClonePointer(),$0
-    )
-})
-}
-    
-
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public struct FfiConverterTypeCryptoxideEd25519Keypair: FfiConverter {
-
-    typealias FfiType = UnsafeMutableRawPointer
-    typealias SwiftType = CryptoxideEd25519Keypair
-
-    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> CryptoxideEd25519Keypair {
-        return CryptoxideEd25519Keypair(unsafeFromRawPointer: pointer)
-    }
-
-    public static func lower(_ value: CryptoxideEd25519Keypair) -> UnsafeMutableRawPointer {
-        return value.uniffiClonePointer()
-    }
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> CryptoxideEd25519Keypair {
-        let v: UInt64 = try readInt(&buf)
-        // The Rust code won't compile if a pointer won't fit in a UInt64.
-        // We have to go via `UInt` because that's the thing that's the size of a pointer.
-        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
-        if (ptr == nil) {
-            throw UniffiInternalError.unexpectedNullPointer
-        }
-        return try lift(ptr!)
-    }
-
-    public static func write(_ value: CryptoxideEd25519Keypair, into buf: inout [UInt8]) {
-        // This fiddling is because `Int` is the thing that's the same size as a pointer.
-        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
-        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
-    }
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeCryptoxideEd25519Keypair_lift(_ pointer: UnsafeMutableRawPointer) throws -> CryptoxideEd25519Keypair {
-    return try FfiConverterTypeCryptoxideEd25519Keypair.lift(pointer)
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeCryptoxideEd25519Keypair_lower(_ value: CryptoxideEd25519Keypair) -> UnsafeMutableRawPointer {
-    return FfiConverterTypeCryptoxideEd25519Keypair.lower(value)
-}
-
-
-
-
-
-
-/**
- * FFI-compatible trait that combines signing and keypair operations for Ed25519
- *
- * This trait is exported with `with_foreign` to allow foreign languages to implement it.
- * Note: We don't use supertrait relationship with Ed25519SignerFfi because UniFFI's
- * with_foreign doesn't support trait inheritance properly. Instead, we duplicate the
- * try_sign method.
- */
-public protocol Ed25519KeyAndSigner: AnyObject, Sendable {
-    
-    func trySign(msg: Data) throws  -> Data
-    
-    func verifyingKey()  -> Data
-    
-}
-/**
- * FFI-compatible trait that combines signing and keypair operations for Ed25519
- *
- * This trait is exported with `with_foreign` to allow foreign languages to implement it.
- * Note: We don't use supertrait relationship with Ed25519SignerFfi because UniFFI's
- * with_foreign doesn't support trait inheritance properly. Instead, we duplicate the
- * try_sign method.
- */
-open class Ed25519KeyAndSignerImpl: Ed25519KeyAndSigner, @unchecked Sendable {
-    fileprivate let pointer: UnsafeMutableRawPointer!
-
-    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
-#if swift(>=5.8)
-    @_documentation(visibility: private)
-#endif
-    public struct NoPointer {
-        public init() {}
-    }
-
-    // TODO: We'd like this to be `private` but for Swifty reasons,
-    // we can't implement `FfiConverter` without making this `required` and we can't
-    // make it `required` without making it `public`.
-#if swift(>=5.8)
-    @_documentation(visibility: private)
-#endif
-    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
-        self.pointer = pointer
-    }
-
-    // This constructor can be used to instantiate a fake object.
-    // - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
-    //
-    // - Warning:
-    //     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
-#if swift(>=5.8)
-    @_documentation(visibility: private)
-#endif
-    public init(noPointer: NoPointer) {
-        self.pointer = nil
-    }
-
-#if swift(>=5.8)
-    @_documentation(visibility: private)
-#endif
-    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
-        return try! rustCall { uniffi_algokit_crypto_ffi_fn_clone_ed25519keyandsigner(self.pointer, $0) }
-    }
-    // No primary constructor declared for this class.
-
-    deinit {
-        guard let pointer = pointer else {
-            return
-        }
-
-        try! rustCall { uniffi_algokit_crypto_ffi_fn_free_ed25519keyandsigner(pointer, $0) }
-    }
-
-    
-
-    
-open func trySign(msg: Data)throws  -> Data  {
-    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeAlgoKitCryptoError_lift) {
-    uniffi_algokit_crypto_ffi_fn_method_ed25519keyandsigner_try_sign(self.uniffiClonePointer(),
-        FfiConverterData.lower(msg),$0
-    )
-})
-}
-    
-open func verifyingKey() -> Data  {
-    return try!  FfiConverterData.lift(try! rustCall() {
-    uniffi_algokit_crypto_ffi_fn_method_ed25519keyandsigner_verifying_key(self.uniffiClonePointer(),$0
-    )
-})
-}
-    
-
-}
-
-
-// Put the implementation in a struct so we don't pollute the top-level namespace
-fileprivate struct UniffiCallbackInterfaceEd25519KeyAndSigner {
-
-    // Create the VTable using a series of closures.
-    // Swift automatically converts these into C callback functions.
-    //
-    // This creates 1-element array, since this seems to be the only way to construct a const
-    // pointer that we can pass to the Rust code.
-    static let vtable: [UniffiVTableCallbackInterfaceEd25519KeyAndSigner] = [UniffiVTableCallbackInterfaceEd25519KeyAndSigner(
-        trySign: { (
-            uniffiHandle: UInt64,
-            msg: RustBuffer,
-            uniffiOutReturn: UnsafeMutablePointer<RustBuffer>,
-            uniffiCallStatus: UnsafeMutablePointer<RustCallStatus>
-        ) in
-            let makeCall = {
-                () throws -> Data in
-                guard let uniffiObj = try? FfiConverterTypeEd25519KeyAndSigner.handleMap.get(handle: uniffiHandle) else {
-                    throw UniffiInternalError.unexpectedStaleHandle
-                }
-                return try uniffiObj.trySign(
-                     msg: try FfiConverterData.lift(msg)
-                )
-            }
-
-            
-            let writeReturn = { uniffiOutReturn.pointee = FfiConverterData.lower($0) }
-            uniffiTraitInterfaceCallWithError(
-                callStatus: uniffiCallStatus,
-                makeCall: makeCall,
-                writeReturn: writeReturn,
-                lowerError: FfiConverterTypeAlgoKitCryptoError_lower
-            )
-        },
-        verifyingKey: { (
-            uniffiHandle: UInt64,
-            uniffiOutReturn: UnsafeMutablePointer<RustBuffer>,
-            uniffiCallStatus: UnsafeMutablePointer<RustCallStatus>
-        ) in
-            let makeCall = {
-                () throws -> Data in
-                guard let uniffiObj = try? FfiConverterTypeEd25519KeyAndSigner.handleMap.get(handle: uniffiHandle) else {
-                    throw UniffiInternalError.unexpectedStaleHandle
-                }
-                return uniffiObj.verifyingKey(
-                )
-            }
-
-            
-            let writeReturn = { uniffiOutReturn.pointee = FfiConverterData.lower($0) }
-            uniffiTraitInterfaceCall(
-                callStatus: uniffiCallStatus,
-                makeCall: makeCall,
-                writeReturn: writeReturn
-            )
-        },
-        uniffiFree: { (uniffiHandle: UInt64) -> () in
-            let result = try? FfiConverterTypeEd25519KeyAndSigner.handleMap.remove(handle: uniffiHandle)
-            if result == nil {
-                print("Uniffi callback interface Ed25519KeyAndSigner: handle missing in uniffiFree")
-            }
-        }
-    )]
-}
-
-private func uniffiCallbackInitEd25519KeyAndSigner() {
-    uniffi_algokit_crypto_ffi_fn_init_callback_vtable_ed25519keyandsigner(UniffiCallbackInterfaceEd25519KeyAndSigner.vtable)
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public struct FfiConverterTypeEd25519KeyAndSigner: FfiConverter {
-    fileprivate static let handleMap = UniffiHandleMap<Ed25519KeyAndSigner>()
-
-    typealias FfiType = UnsafeMutableRawPointer
-    typealias SwiftType = Ed25519KeyAndSigner
-
-    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> Ed25519KeyAndSigner {
-        return Ed25519KeyAndSignerImpl(unsafeFromRawPointer: pointer)
-    }
-
-    public static func lower(_ value: Ed25519KeyAndSigner) -> UnsafeMutableRawPointer {
-        guard let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: handleMap.insert(obj: value))) else {
-            fatalError("Cast to UnsafeMutableRawPointer failed")
-        }
-        return ptr
-    }
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Ed25519KeyAndSigner {
-        let v: UInt64 = try readInt(&buf)
-        // The Rust code won't compile if a pointer won't fit in a UInt64.
-        // We have to go via `UInt` because that's the thing that's the size of a pointer.
-        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
-        if (ptr == nil) {
-            throw UniffiInternalError.unexpectedNullPointer
-        }
-        return try lift(ptr!)
-    }
-
-    public static func write(_ value: Ed25519KeyAndSigner, into buf: inout [UInt8]) {
-        // This fiddling is because `Int` is the thing that's the same size as a pointer.
-        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
-        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
-    }
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeEd25519KeyAndSigner_lift(_ pointer: UnsafeMutableRawPointer) throws -> Ed25519KeyAndSigner {
-    return try FfiConverterTypeEd25519KeyAndSigner.lift(pointer)
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeEd25519KeyAndSigner_lower(_ value: Ed25519KeyAndSigner) -> UnsafeMutableRawPointer {
-    return FfiConverterTypeEd25519KeyAndSigner.lower(value)
-}
-
-
-
-
-
-
-/**
- * FFI-compatible trait for Ed25519 signing operations
- *
- * This trait is exported with `with_foreign` to allow foreign languages (Python, Swift, Kotlin, etc.)
- * to implement it and provide custom signing logic.
- */
-public protocol Ed25519Signer: AnyObject, Sendable {
-    
-    func trySign(msg: Data) throws  -> Data
-    
-}
-/**
- * FFI-compatible trait for Ed25519 signing operations
- *
- * This trait is exported with `with_foreign` to allow foreign languages (Python, Swift, Kotlin, etc.)
- * to implement it and provide custom signing logic.
- */
-open class Ed25519SignerImpl: Ed25519Signer, @unchecked Sendable {
-    fileprivate let pointer: UnsafeMutableRawPointer!
-
-    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
-#if swift(>=5.8)
-    @_documentation(visibility: private)
-#endif
-    public struct NoPointer {
-        public init() {}
-    }
-
-    // TODO: We'd like this to be `private` but for Swifty reasons,
-    // we can't implement `FfiConverter` without making this `required` and we can't
-    // make it `required` without making it `public`.
-#if swift(>=5.8)
-    @_documentation(visibility: private)
-#endif
-    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
-        self.pointer = pointer
-    }
-
-    // This constructor can be used to instantiate a fake object.
-    // - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
-    //
-    // - Warning:
-    //     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
-#if swift(>=5.8)
-    @_documentation(visibility: private)
-#endif
-    public init(noPointer: NoPointer) {
-        self.pointer = nil
-    }
-
-#if swift(>=5.8)
-    @_documentation(visibility: private)
-#endif
-    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
-        return try! rustCall { uniffi_algokit_crypto_ffi_fn_clone_ed25519signer(self.pointer, $0) }
-    }
-    // No primary constructor declared for this class.
-
-    deinit {
-        guard let pointer = pointer else {
-            return
-        }
-
-        try! rustCall { uniffi_algokit_crypto_ffi_fn_free_ed25519signer(pointer, $0) }
-    }
-
-    
-
-    
-open func trySign(msg: Data)throws  -> Data  {
-    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeAlgoKitCryptoError_lift) {
-    uniffi_algokit_crypto_ffi_fn_method_ed25519signer_try_sign(self.uniffiClonePointer(),
-        FfiConverterData.lower(msg),$0
-    )
-})
-}
-    
-
-}
-
-
-// Put the implementation in a struct so we don't pollute the top-level namespace
-fileprivate struct UniffiCallbackInterfaceEd25519Signer {
-
-    // Create the VTable using a series of closures.
-    // Swift automatically converts these into C callback functions.
-    //
-    // This creates 1-element array, since this seems to be the only way to construct a const
-    // pointer that we can pass to the Rust code.
-    static let vtable: [UniffiVTableCallbackInterfaceEd25519Signer] = [UniffiVTableCallbackInterfaceEd25519Signer(
-        trySign: { (
-            uniffiHandle: UInt64,
-            msg: RustBuffer,
-            uniffiOutReturn: UnsafeMutablePointer<RustBuffer>,
-            uniffiCallStatus: UnsafeMutablePointer<RustCallStatus>
-        ) in
-            let makeCall = {
-                () throws -> Data in
-                guard let uniffiObj = try? FfiConverterTypeEd25519Signer.handleMap.get(handle: uniffiHandle) else {
-                    throw UniffiInternalError.unexpectedStaleHandle
-                }
-                return try uniffiObj.trySign(
-                     msg: try FfiConverterData.lift(msg)
-                )
-            }
-
-            
-            let writeReturn = { uniffiOutReturn.pointee = FfiConverterData.lower($0) }
-            uniffiTraitInterfaceCallWithError(
-                callStatus: uniffiCallStatus,
-                makeCall: makeCall,
-                writeReturn: writeReturn,
-                lowerError: FfiConverterTypeAlgoKitCryptoError_lower
-            )
-        },
-        uniffiFree: { (uniffiHandle: UInt64) -> () in
-            let result = try? FfiConverterTypeEd25519Signer.handleMap.remove(handle: uniffiHandle)
-            if result == nil {
-                print("Uniffi callback interface Ed25519Signer: handle missing in uniffiFree")
-            }
-        }
-    )]
-}
-
-private func uniffiCallbackInitEd25519Signer() {
-    uniffi_algokit_crypto_ffi_fn_init_callback_vtable_ed25519signer(UniffiCallbackInterfaceEd25519Signer.vtable)
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public struct FfiConverterTypeEd25519Signer: FfiConverter {
-    fileprivate static let handleMap = UniffiHandleMap<Ed25519Signer>()
-
-    typealias FfiType = UnsafeMutableRawPointer
-    typealias SwiftType = Ed25519Signer
-
-    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> Ed25519Signer {
-        return Ed25519SignerImpl(unsafeFromRawPointer: pointer)
-    }
-
-    public static func lower(_ value: Ed25519Signer) -> UnsafeMutableRawPointer {
-        guard let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: handleMap.insert(obj: value))) else {
-            fatalError("Cast to UnsafeMutableRawPointer failed")
-        }
-        return ptr
-    }
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Ed25519Signer {
-        let v: UInt64 = try readInt(&buf)
-        // The Rust code won't compile if a pointer won't fit in a UInt64.
-        // We have to go via `UInt` because that's the thing that's the size of a pointer.
-        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
-        if (ptr == nil) {
-            throw UniffiInternalError.unexpectedNullPointer
-        }
-        return try lift(ptr!)
-    }
-
-    public static func write(_ value: Ed25519Signer, into buf: inout [UInt8]) {
-        // This fiddling is because `Int` is the thing that's the same size as a pointer.
-        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
-        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
-    }
-}
-
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeEd25519Signer_lift(_ pointer: UnsafeMutableRawPointer) throws -> Ed25519Signer {
-    return try FfiConverterTypeEd25519Signer.lift(pointer)
-}
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-public func FfiConverterTypeEd25519Signer_lower(_ value: Ed25519Signer) -> UnsafeMutableRawPointer {
-    return FfiConverterTypeEd25519Signer.lower(value)
-}
-
-
-
-
 /**
  * FFI-compatible error type for crypto operations
  */
@@ -1045,7 +464,7 @@ public enum AlgoKitCryptoError: Swift.Error {
 
     
     
-    case Error(message: String
+    case Error(errMsg: String
     )
 }
 
@@ -1064,7 +483,7 @@ public struct FfiConverterTypeAlgoKitCryptoError: FfiConverterRustBuffer {
 
         
         case 1: return .Error(
-            message: try FfiConverterString.read(from: &buf)
+            errMsg: try FfiConverterString.read(from: &buf)
             )
 
          default: throw UniffiInternalError.unexpectedEnumCase
@@ -1078,9 +497,9 @@ public struct FfiConverterTypeAlgoKitCryptoError: FfiConverterRustBuffer {
 
         
         
-        case let .Error(message):
+        case let .Error(errMsg):
             writeInt(&buf, Int32(1))
-            FfiConverterString.write(message, into: &buf)
+            FfiConverterString.write(errMsg, into: &buf)
             
         }
     }
@@ -1115,29 +534,20 @@ extension AlgoKitCryptoError: Foundation.LocalizedError {
 
 
 
-
-#if swift(>=5.8)
-@_documentation(visibility: private)
-#endif
-fileprivate struct FfiConverterOptionData: FfiConverterRustBuffer {
-    typealias SwiftType = Data?
-
-    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
-        guard let value = value else {
-            writeInt(&buf, Int8(0))
-            return
-        }
-        writeInt(&buf, Int8(1))
-        FfiConverterData.write(value, into: &buf)
-    }
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
-        switch try readInt(&buf) as Int8 {
-        case 0: return nil
-        case 1: return try FfiConverterData.read(from: &buf)
-        default: throw UniffiInternalError.unexpectedOptionalTag
-        }
-    }
+public func ed25519PublicKeyFromSeed(seed: Data)throws  -> Data  {
+    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeAlgoKitCryptoError_lift) {
+    uniffi_algokit_crypto_ffi_fn_func_ed25519_public_key_from_seed(
+        FfiConverterData.lower(seed),$0
+    )
+})
+}
+public func ed25519RawSign(secretKey: Data, data: Data)throws  -> Data  {
+    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeAlgoKitCryptoError_lift) {
+    uniffi_algokit_crypto_ffi_fn_func_ed25519_raw_sign(
+        FfiConverterData.lower(secretKey),
+        FfiConverterData.lower(data),$0
+    )
+})
 }
 
 private enum InitializationResult {
@@ -1155,27 +565,13 @@ private let initializationResult: InitializationResult = {
     if bindings_contract_version != scaffolding_contract_version {
         return InitializationResult.contractVersionMismatch
     }
-    if (uniffi_algokit_crypto_ffi_checksum_method_cryptoxideed25519keypair_try_sign() != 46579) {
+    if (uniffi_algokit_crypto_ffi_checksum_func_ed25519_public_key_from_seed() != 13794) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_algokit_crypto_ffi_checksum_method_cryptoxideed25519keypair_verifying_key() != 2056) {
-        return InitializationResult.apiChecksumMismatch
-    }
-    if (uniffi_algokit_crypto_ffi_checksum_method_ed25519keyandsigner_try_sign() != 14488) {
-        return InitializationResult.apiChecksumMismatch
-    }
-    if (uniffi_algokit_crypto_ffi_checksum_method_ed25519keyandsigner_verifying_key() != 42410) {
-        return InitializationResult.apiChecksumMismatch
-    }
-    if (uniffi_algokit_crypto_ffi_checksum_method_ed25519signer_try_sign() != 33107) {
-        return InitializationResult.apiChecksumMismatch
-    }
-    if (uniffi_algokit_crypto_ffi_checksum_constructor_cryptoxideed25519keypair_try_generate() != 49154) {
+    if (uniffi_algokit_crypto_ffi_checksum_func_ed25519_raw_sign() != 65210) {
         return InitializationResult.apiChecksumMismatch
     }
 
-    uniffiCallbackInitEd25519KeyAndSigner()
-    uniffiCallbackInitEd25519Signer()
     return InitializationResult.ok
 }()
 
