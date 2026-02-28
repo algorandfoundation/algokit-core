@@ -44,9 +44,6 @@ snafu = { workspace = true }
 base64 = "^0.22"
 uuid = { version = "^1.0", features = ["v4"] }
 
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-getrandom = { version = "0.2.15", features = ["js"] }
-
 [dev-dependencies]
 tokio = { version = "1.0", features = ["full"] }
 tokio-test = "^0.4"

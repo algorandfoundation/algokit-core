@@ -56,6 +56,9 @@ pub struct ApplicationParams {
     /// \[v\] the number of updates to the application programs
     #[serde(rename = "version", skip_serializing_if = "Option::is_none")]
     pub version: Option<u64>,
+    /// \[ss\] the account responsible for extra pages and global state MBR
+    #[serde(rename = "size-sponsor", skip_serializing_if = "Option::is_none")]
+    pub size_sponsor: Option<String>,
 }
 
 impl AlgorandMsgpack for ApplicationParams {
@@ -78,6 +81,7 @@ impl ApplicationParams {
             global_state_schema: None,
             global_state: None,
             version: None,
+            size_sponsor: None,
         }
     }
 

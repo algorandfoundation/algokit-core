@@ -5509,6 +5509,11 @@
             "type": "integer",
             "description": "\\[v\\] the number of updates to the application programs",
             "x-algokit-bigint": true
+          },
+          "size-sponsor": {
+            "type": "string",
+            "description": "\\[ss\\] the account responsible for extra pages and global state MBR",
+            "x-algorand-format": "Address"
           }
         },
         "description": "Stores the global information associated with an application."
