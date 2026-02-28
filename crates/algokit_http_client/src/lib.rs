@@ -139,7 +139,8 @@ impl HttpClient for DefaultHttpClient {
         body: Option<Vec<u8>>,
         headers: Option<HashMap<String, String>>,
     ) -> Result<HttpResponse, HttpError> {
-        self.perform_request(method, path, query, body, headers).await
+        self.perform_request(method, path, query, body, headers)
+            .await
     }
 }
 
@@ -155,7 +156,8 @@ impl HttpClient for DefaultHttpClient {
         body: Option<Vec<u8>>,
         headers: Option<HashMap<String, String>>,
     ) -> Result<HttpResponse, HttpError> {
-        self.perform_request(method, path, query, body, headers).await
+        self.perform_request(method, path, query, body, headers)
+            .await
     }
 }
 
