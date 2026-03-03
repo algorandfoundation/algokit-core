@@ -68,27 +68,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "algokit_algo25"
-version = "0.1.0"
-dependencies = [
- "sha2",
-]
-
-[[package]]
-name = "algokit_algo25_ffi"
-version = "0.1.0"
-dependencies = [
- "algokit_algo25",
- "uniffi",
-]
-
-[[package]]
 name = "algokit_crypto"
 version = "0.1.0"
 dependencies = [
  "async-trait",
  "cryptoxide",
  "getrandom 0.4.1",
+ "sha2",
  "signature",
  "tokio",
  "zeroize",

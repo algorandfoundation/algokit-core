@@ -1,4 +1,4 @@
-use algokit_algo25::{
+use algokit_crypto::algo25::{
     MnemonicError as RustMnemonicError,
     master_derivation_key_to_mnemonic as rust_master_derivation_key_to_mnemonic,
     mnemonic_from_seed as rust_mnemonic_from_seed,
@@ -6,9 +6,6 @@ use algokit_algo25::{
     secret_key_to_mnemonic as rust_secret_key_to_mnemonic,
     seed_from_mnemonic as rust_seed_from_mnemonic,
 };
-
-#[cfg(feature = "ffi_uniffi")]
-uniffi::setup_scaffolding!();
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Enum))]
