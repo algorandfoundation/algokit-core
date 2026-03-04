@@ -3,7 +3,7 @@
 
 @file:Suppress("NAME_SHADOWING")
 
-package uniffi.algokit_crypto_ffi
+package uniffi.algokit_algo25_ffi
 
 // Common helper code.
 //
@@ -58,7 +58,7 @@ open class RustBuffer : Structure() {
     companion object {
         internal fun alloc(size: ULong = 0UL) = uniffiRustCall() { status ->
             // Note: need to convert the size to a `Long` value to make this work with JVM.
-            UniffiLib.INSTANCE.ffi_algokit_crypto_ffi_rustbuffer_alloc(size.toLong(), status)
+            UniffiLib.INSTANCE.ffi_algokit_algo25_ffi_rustbuffer_alloc(size.toLong(), status)
         }.also {
             if(it.data == null) {
                throw RuntimeException("RustBuffer.alloc() returned null data pointer (size=${size})")
@@ -74,7 +74,7 @@ open class RustBuffer : Structure() {
         }
 
         internal fun free(buf: RustBuffer.ByValue) = uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.ffi_algokit_crypto_ffi_rustbuffer_free(buf, status)
+            UniffiLib.INSTANCE.ffi_algokit_algo25_ffi_rustbuffer_free(buf, status)
         }
     }
 
@@ -374,7 +374,7 @@ private fun findLibraryName(componentName: String): String {
     if (libOverride != null) {
         return libOverride
     }
-    return "algokit_crypto_ffi"
+    return "algokit_algo25_ffi"
 }
 
 private inline fun <reified Lib : Library> loadIndirect(
@@ -715,6 +715,12 @@ internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
 
 
 
+
+
+
+
+
+
 // For large crates we prevent `MethodTooLargeException` (see #2340)
 // N.B. the name of the extension is very misleading, since it is 
 // rather `InterfaceTooLargeException`, caused by too many methods 
@@ -730,11 +736,17 @@ internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
 // when the library is loaded.
 internal interface IntegrityCheckingUniffiLib : Library {
     // Integrity check functions only
-    fun uniffi_algokit_crypto_ffi_checksum_func_ed25519_public_key_from_seed(
+    fun uniffi_algokit_algo25_ffi_checksum_func_master_derivation_key_to_mnemonic(
 ): Short
-fun uniffi_algokit_crypto_ffi_checksum_func_ed25519_raw_sign(
+fun uniffi_algokit_algo25_ffi_checksum_func_mnemonic_from_seed(
 ): Short
-fun ffi_algokit_crypto_ffi_uniffi_contract_version(
+fun uniffi_algokit_algo25_ffi_checksum_func_mnemonic_to_master_derivation_key(
+): Short
+fun uniffi_algokit_algo25_ffi_checksum_func_secret_key_to_mnemonic(
+): Short
+fun uniffi_algokit_algo25_ffi_checksum_func_seed_from_mnemonic(
+): Short
+fun ffi_algokit_algo25_ffi_uniffi_contract_version(
 ): Int
 
 }
@@ -744,7 +756,7 @@ fun ffi_algokit_crypto_ffi_uniffi_contract_version(
 internal interface UniffiLib : Library {
     companion object {
         internal val INSTANCE: UniffiLib by lazy {
-            val componentName = "algokit_crypto_ffi"
+            val componentName = "algokit_algo25_ffi"
             // For large crates we prevent `MethodTooLargeException` (see #2340)
             // N.B. the name of the extension is very misleading, since it is 
             // rather `InterfaceTooLargeException`, caused by too many methods 
@@ -779,121 +791,127 @@ internal interface UniffiLib : Library {
     }
 
     // FFI functions
-    fun uniffi_algokit_crypto_ffi_fn_func_ed25519_public_key_from_seed(`seed`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_algokit_algo25_ffi_fn_func_master_derivation_key_to_mnemonic(`mdk`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
-fun uniffi_algokit_crypto_ffi_fn_func_ed25519_raw_sign(`secretKey`: RustBuffer.ByValue,`data`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+fun uniffi_algokit_algo25_ffi_fn_func_mnemonic_from_seed(`seed`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
-fun ffi_algokit_crypto_ffi_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
+fun uniffi_algokit_algo25_ffi_fn_func_mnemonic_to_master_derivation_key(`mnemonic`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
-fun ffi_algokit_crypto_ffi_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+fun uniffi_algokit_algo25_ffi_fn_func_secret_key_to_mnemonic(`secretKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
-fun ffi_algokit_crypto_ffi_rustbuffer_free(`buf`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+fun uniffi_algokit_algo25_ffi_fn_func_seed_from_mnemonic(`mnemonic`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+fun ffi_algokit_algo25_ffi_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+fun ffi_algokit_algo25_ffi_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+): RustBuffer.ByValue
+fun ffi_algokit_algo25_ffi_rustbuffer_free(`buf`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
 ): Unit
-fun ffi_algokit_crypto_ffi_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Long,uniffi_out_err: UniffiRustCallStatus, 
+fun ffi_algokit_algo25_ffi_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
-fun ffi_algokit_crypto_ffi_rust_future_poll_u8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_poll_u8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_cancel_u8(`handle`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_cancel_u8(`handle`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_free_u8(`handle`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_free_u8(`handle`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_complete_u8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+fun ffi_algokit_algo25_ffi_rust_future_complete_u8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Byte
-fun ffi_algokit_crypto_ffi_rust_future_poll_i8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_poll_i8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_cancel_i8(`handle`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_cancel_i8(`handle`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_free_i8(`handle`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_free_i8(`handle`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_complete_i8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+fun ffi_algokit_algo25_ffi_rust_future_complete_i8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Byte
-fun ffi_algokit_crypto_ffi_rust_future_poll_u16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_poll_u16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_cancel_u16(`handle`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_cancel_u16(`handle`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_free_u16(`handle`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_free_u16(`handle`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_complete_u16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+fun ffi_algokit_algo25_ffi_rust_future_complete_u16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Short
-fun ffi_algokit_crypto_ffi_rust_future_poll_i16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_poll_i16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_cancel_i16(`handle`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_cancel_i16(`handle`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_free_i16(`handle`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_free_i16(`handle`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_complete_i16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+fun ffi_algokit_algo25_ffi_rust_future_complete_i16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Short
-fun ffi_algokit_crypto_ffi_rust_future_poll_u32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_poll_u32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_cancel_u32(`handle`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_cancel_u32(`handle`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_free_u32(`handle`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_free_u32(`handle`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_complete_u32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+fun ffi_algokit_algo25_ffi_rust_future_complete_u32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Int
-fun ffi_algokit_crypto_ffi_rust_future_poll_i32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_poll_i32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_cancel_i32(`handle`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_cancel_i32(`handle`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_free_i32(`handle`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_free_i32(`handle`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_complete_i32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+fun ffi_algokit_algo25_ffi_rust_future_complete_i32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Int
-fun ffi_algokit_crypto_ffi_rust_future_poll_u64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_poll_u64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_cancel_u64(`handle`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_cancel_u64(`handle`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_free_u64(`handle`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_free_u64(`handle`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_complete_u64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+fun ffi_algokit_algo25_ffi_rust_future_complete_u64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
-fun ffi_algokit_crypto_ffi_rust_future_poll_i64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_poll_i64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_cancel_i64(`handle`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_cancel_i64(`handle`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_free_i64(`handle`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_free_i64(`handle`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_complete_i64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+fun ffi_algokit_algo25_ffi_rust_future_complete_i64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Long
-fun ffi_algokit_crypto_ffi_rust_future_poll_f32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_poll_f32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_cancel_f32(`handle`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_cancel_f32(`handle`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_free_f32(`handle`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_free_f32(`handle`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_complete_f32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+fun ffi_algokit_algo25_ffi_rust_future_complete_f32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Float
-fun ffi_algokit_crypto_ffi_rust_future_poll_f64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_poll_f64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_cancel_f64(`handle`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_cancel_f64(`handle`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_free_f64(`handle`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_free_f64(`handle`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_complete_f64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+fun ffi_algokit_algo25_ffi_rust_future_complete_f64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Double
-fun ffi_algokit_crypto_ffi_rust_future_poll_pointer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_poll_pointer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_cancel_pointer(`handle`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_cancel_pointer(`handle`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_free_pointer(`handle`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_free_pointer(`handle`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_complete_pointer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+fun ffi_algokit_algo25_ffi_rust_future_complete_pointer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Pointer
-fun ffi_algokit_crypto_ffi_rust_future_poll_rust_buffer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_poll_rust_buffer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_cancel_rust_buffer(`handle`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_cancel_rust_buffer(`handle`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_free_rust_buffer(`handle`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_free_rust_buffer(`handle`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_complete_rust_buffer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+fun ffi_algokit_algo25_ffi_rust_future_complete_rust_buffer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): RustBuffer.ByValue
-fun ffi_algokit_crypto_ffi_rust_future_poll_void(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_poll_void(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_cancel_void(`handle`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_cancel_void(`handle`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_free_void(`handle`: Long,
+fun ffi_algokit_algo25_ffi_rust_future_free_void(`handle`: Long,
 ): Unit
-fun ffi_algokit_crypto_ffi_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+fun ffi_algokit_algo25_ffi_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
 ): Unit
 
 }
@@ -902,17 +920,26 @@ private fun uniffiCheckContractApiVersion(lib: IntegrityCheckingUniffiLib) {
     // Get the bindings contract version from our ComponentInterface
     val bindings_contract_version = 29
     // Get the scaffolding contract version by calling the into the dylib
-    val scaffolding_contract_version = lib.ffi_algokit_crypto_ffi_uniffi_contract_version()
+    val scaffolding_contract_version = lib.ffi_algokit_algo25_ffi_uniffi_contract_version()
     if (bindings_contract_version != scaffolding_contract_version) {
         throw RuntimeException("UniFFI contract version mismatch: try cleaning and rebuilding your project")
     }
 }
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
-    if (lib.uniffi_algokit_crypto_ffi_checksum_func_ed25519_public_key_from_seed() != 13794.toShort()) {
+    if (lib.uniffi_algokit_algo25_ffi_checksum_func_master_derivation_key_to_mnemonic() != 32168.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_algokit_crypto_ffi_checksum_func_ed25519_raw_sign() != 65210.toShort()) {
+    if (lib.uniffi_algokit_algo25_ffi_checksum_func_mnemonic_from_seed() != 8214.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_algokit_algo25_ffi_checksum_func_mnemonic_to_master_derivation_key() != 50816.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_algokit_algo25_ffi_checksum_func_secret_key_to_mnemonic() != 57306.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_algokit_algo25_ffi_checksum_func_seed_from_mnemonic() != 29635.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -997,6 +1024,29 @@ object NoPointer
 /**
  * @suppress
  */
+public object FfiConverterULong: FfiConverter<ULong, Long> {
+    override fun lift(value: Long): ULong {
+        return value.toULong()
+    }
+
+    override fun read(buf: ByteBuffer): ULong {
+        return lift(buf.getLong())
+    }
+
+    override fun lower(value: ULong): Long {
+        return value.toLong()
+    }
+
+    override fun allocationSize(value: ULong) = 8UL
+
+    override fun write(value: ULong, buf: ByteBuffer) {
+        buf.putLong(value.toLong())
+    }
+}
+
+/**
+ * @suppress
+ */
 public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
     // Note: we don't inherit from FfiConverterRustBuffer, because we use a
     // special encoding when lowering/lifting.  We can use `RustBuffer.len` to
@@ -1072,24 +1122,57 @@ public object FfiConverterByteArray: FfiConverterRustBuffer<ByteArray> {
 
 
 
-
+data class MnemonicError (
+    var `kind`: MnemonicErrorKind, 
+    var `expected`: kotlin.ULong?, 
+    var `found`: kotlin.ULong?
+) {
+    
+    companion object
+}
 
 /**
- * FFI-compatible error type for crypto operations
+ * @suppress
  */
-sealed class AlgoKitCryptoException: kotlin.Exception() {
+public object FfiConverterTypeMnemonicError: FfiConverterRustBuffer<MnemonicError> {
+    override fun read(buf: ByteBuffer): MnemonicError {
+        return MnemonicError(
+            FfiConverterTypeMnemonicErrorKind.read(buf),
+            FfiConverterOptionalULong.read(buf),
+            FfiConverterOptionalULong.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: MnemonicError) = (
+            FfiConverterTypeMnemonicErrorKind.allocationSize(value.`kind`) +
+            FfiConverterOptionalULong.allocationSize(value.`expected`) +
+            FfiConverterOptionalULong.allocationSize(value.`found`)
+    )
+
+    override fun write(value: MnemonicError, buf: ByteBuffer) {
+            FfiConverterTypeMnemonicErrorKind.write(value.`kind`, buf)
+            FfiConverterOptionalULong.write(value.`expected`, buf)
+            FfiConverterOptionalULong.write(value.`found`, buf)
+    }
+}
+
+
+
+
+
+sealed class AlgoKitAlgo25Exception: kotlin.Exception() {
     
     class Exception(
         
         val `errMsg`: kotlin.String
-        ) : AlgoKitCryptoException() {
+        ) : AlgoKitAlgo25Exception() {
         override val message
             get() = "errMsg=${ `errMsg` }"
     }
     
 
-    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<AlgoKitCryptoException> {
-        override fun lift(error_buf: RustBuffer.ByValue): AlgoKitCryptoException = FfiConverterTypeAlgoKitCryptoError.lift(error_buf)
+    companion object ErrorHandler : UniffiRustCallStatusErrorHandler<AlgoKitAlgo25Exception> {
+        override fun lift(error_buf: RustBuffer.ByValue): AlgoKitAlgo25Exception = FfiConverterTypeAlgoKitAlgo25Error.lift(error_buf)
     }
 
     
@@ -1098,21 +1181,21 @@ sealed class AlgoKitCryptoException: kotlin.Exception() {
 /**
  * @suppress
  */
-public object FfiConverterTypeAlgoKitCryptoError : FfiConverterRustBuffer<AlgoKitCryptoException> {
-    override fun read(buf: ByteBuffer): AlgoKitCryptoException {
+public object FfiConverterTypeAlgoKitAlgo25Error : FfiConverterRustBuffer<AlgoKitAlgo25Exception> {
+    override fun read(buf: ByteBuffer): AlgoKitAlgo25Exception {
         
 
         return when(buf.getInt()) {
-            1 -> AlgoKitCryptoException.Exception(
+            1 -> AlgoKitAlgo25Exception.Exception(
                 FfiConverterString.read(buf),
                 )
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
     }
 
-    override fun allocationSize(value: AlgoKitCryptoException): ULong {
+    override fun allocationSize(value: AlgoKitAlgo25Exception): ULong {
         return when(value) {
-            is AlgoKitCryptoException.Exception -> (
+            is AlgoKitAlgo25Exception.Exception -> (
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
                 4UL
                 + FfiConverterString.allocationSize(value.`errMsg`)
@@ -1120,9 +1203,9 @@ public object FfiConverterTypeAlgoKitCryptoError : FfiConverterRustBuffer<AlgoKi
         }
     }
 
-    override fun write(value: AlgoKitCryptoException, buf: ByteBuffer) {
+    override fun write(value: AlgoKitAlgo25Exception, buf: ByteBuffer) {
         when(value) {
-            is AlgoKitCryptoException.Exception -> {
+            is AlgoKitAlgo25Exception.Exception -> {
                 buf.putInt(1)
                 FfiConverterString.write(value.`errMsg`, buf)
                 Unit
@@ -1131,21 +1214,114 @@ public object FfiConverterTypeAlgoKitCryptoError : FfiConverterRustBuffer<AlgoKi
     }
 
 }
-    @Throws(AlgoKitCryptoException::class) fun `ed25519PublicKeyFromSeed`(`seed`: kotlin.ByteArray): kotlin.ByteArray {
-            return FfiConverterByteArray.lift(
-    uniffiRustCallWithError(AlgoKitCryptoException) { _status ->
-    UniffiLib.INSTANCE.uniffi_algokit_crypto_ffi_fn_func_ed25519_public_key_from_seed(
+
+
+
+
+enum class MnemonicErrorKind {
+    
+    INVALID_SEED_LENGTH,
+    NOT_IN_WORDS_LIST,
+    FAILED_TO_DECODE_MNEMONIC;
+    companion object
+}
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeMnemonicErrorKind: FfiConverterRustBuffer<MnemonicErrorKind> {
+    override fun read(buf: ByteBuffer) = try {
+        MnemonicErrorKind.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: MnemonicErrorKind) = 4UL
+
+    override fun write(value: MnemonicErrorKind, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterOptionalULong: FfiConverterRustBuffer<kotlin.ULong?> {
+    override fun read(buf: ByteBuffer): kotlin.ULong? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterULong.read(buf)
+    }
+
+    override fun allocationSize(value: kotlin.ULong?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterULong.allocationSize(value)
+        }
+    }
+
+    override fun write(value: kotlin.ULong?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterULong.write(value, buf)
+        }
+    }
+}
+    @Throws(AlgoKitAlgo25Exception::class) fun `masterDerivationKeyToMnemonic`(`mdk`: kotlin.ByteArray): kotlin.String {
+            return FfiConverterString.lift(
+    uniffiRustCallWithError(AlgoKitAlgo25Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_algokit_algo25_ffi_fn_func_master_derivation_key_to_mnemonic(
+        FfiConverterByteArray.lower(`mdk`),_status)
+}
+    )
+    }
+    
+
+    @Throws(AlgoKitAlgo25Exception::class) fun `mnemonicFromSeed`(`seed`: kotlin.ByteArray): kotlin.String {
+            return FfiConverterString.lift(
+    uniffiRustCallWithError(AlgoKitAlgo25Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_algokit_algo25_ffi_fn_func_mnemonic_from_seed(
         FfiConverterByteArray.lower(`seed`),_status)
 }
     )
     }
     
 
-    @Throws(AlgoKitCryptoException::class) fun `ed25519RawSign`(`secretKey`: kotlin.ByteArray, `data`: kotlin.ByteArray): kotlin.ByteArray {
+    @Throws(AlgoKitAlgo25Exception::class) fun `mnemonicToMasterDerivationKey`(`mnemonic`: kotlin.String): kotlin.ByteArray {
             return FfiConverterByteArray.lift(
-    uniffiRustCallWithError(AlgoKitCryptoException) { _status ->
-    UniffiLib.INSTANCE.uniffi_algokit_crypto_ffi_fn_func_ed25519_raw_sign(
-        FfiConverterByteArray.lower(`secretKey`),FfiConverterByteArray.lower(`data`),_status)
+    uniffiRustCallWithError(AlgoKitAlgo25Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_algokit_algo25_ffi_fn_func_mnemonic_to_master_derivation_key(
+        FfiConverterString.lower(`mnemonic`),_status)
+}
+    )
+    }
+    
+
+    @Throws(AlgoKitAlgo25Exception::class) fun `secretKeyToMnemonic`(`secretKey`: kotlin.ByteArray): kotlin.String {
+            return FfiConverterString.lift(
+    uniffiRustCallWithError(AlgoKitAlgo25Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_algokit_algo25_ffi_fn_func_secret_key_to_mnemonic(
+        FfiConverterByteArray.lower(`secretKey`),_status)
+}
+    )
+    }
+    
+
+    @Throws(AlgoKitAlgo25Exception::class) fun `seedFromMnemonic`(`mnemonic`: kotlin.String): kotlin.ByteArray {
+            return FfiConverterByteArray.lift(
+    uniffiRustCallWithError(AlgoKitAlgo25Exception) { _status ->
+    UniffiLib.INSTANCE.uniffi_algokit_algo25_ffi_fn_func_seed_from_mnemonic(
+        FfiConverterString.lower(`mnemonic`),_status)
 }
     )
     }

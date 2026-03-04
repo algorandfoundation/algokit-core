@@ -57,8 +57,43 @@ jobs:
         run: cargo pkg ${{ env.CRATE }} swift
 
       # Ideally we'd use a matrix for the platforms, but due to the limitations of Mac runners on GitHub it's probably better to just have a single job with multiple steps
+      - name: Detect iOS simulator
+        id: ios_sim
+        run: |
+          DEST_ID="$(python3 - <<'PY'
+          import json, subprocess, re
+
+          data = json.loads(subprocess.check_output(
+              ["xcrun", "simctl", "list", "devices", "available", "-j"],
+              text=True
+          ))
+
+          def runtime_version(key: str):
+              # Example key: com.apple.CoreSimulator.SimRuntime.iOS-18-2
+              m = re.search(r"iOS-(\d+)-(\d+)", key)
+              return (int(m.group(1)), int(m.group(2))) if m else (-1, -1)
+
+          ios_runtimes = [k for k in data["devices"].keys() if "SimRuntime.iOS-" in k]
+          ios_runtimes.sort(key=runtime_version, reverse=True)
+
+          udid = None
+          for runtime in ios_runtimes:
+              devices = data["devices"][runtime]
+              iphones = [d for d in devices if d.get("isAvailable") and d.get("name", "").startswith("iPhone")]
+              if iphones:
+                  udid = iphones[0]["udid"]
+                  break
+
+          if not udid:
+              raise SystemExit("No available iPhone simulator found")
+
+          print(udid)
+          PY
+          )"
+          echo "destination=id=${DEST_ID}" >> "$GITHUB_OUTPUT"
+
       - name: Test (iOS)
-        run: cd packages/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=iOS Simulator,name=iPhone 17,OS=latest"
+        run: cd packages/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "${{ steps.ios_sim.outputs.destination }}"
       - name: Test (macOS)
         run: cd packages/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=macOS"
       - name: Test (Catalyst)
@@ -74,4 +109,3 @@ jobs:
         with:
           name: ${{ env.PACKAGE }}
           path: packages/swift/${{ env.PACKAGE }}.zip
-

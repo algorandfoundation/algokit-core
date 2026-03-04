@@ -1,7 +1,10 @@
+pub mod algo25;
+
 use algokit_crypto::ed25519::{
     CryptoxideEd25519Keypair as RustCryptoxideEd25519Keypair, Ed25519Signer as RustEd25519Signer,
 };
 
+use signature::Keypair;
 #[cfg(feature = "ffi_uniffi")]
 use uniffi::{self};
 
@@ -52,4 +55,26 @@ pub fn ed25519_raw_sign(secret_key: Vec<u8>, data: Vec<u8>) -> Result<Vec<u8>, A
         .map_err(|e| AlgoKitCryptoError::from(format!("Failed to sign transaction: {}", e)))?;
 
     Ok(signature.to_vec())
+}
+
+#[uniffi::export]
+pub fn ed25519_public_key_from_seed(seed: Vec<u8>) -> Result<Vec<u8>, AlgoKitCryptoError> {
+    let keypair =
+        RustCryptoxideEd25519Keypair::try_generate(Some(seed.try_into().map_err(|_| {
+            AlgoKitCryptoError::from("Secret key must be 32 bytes for Ed25519".to_string())
+        })?))
+        .map_err(|e| {
+            AlgoKitCryptoError::from(format!("Failed to generate keypair from secret key: {}", e))
+        })?;
+
+    Ok(keypair.verifying_key().to_vec())
+}
+
+/// Generate random bytes from the operating system's random number generator
+#[uniffi::export]
+pub fn random_bytes(len: u32) -> Result<Vec<u8>, AlgoKitCryptoError> {
+    let mut bytes = vec![0u8; len as usize];
+    getrandom::fill(&mut bytes)
+        .map_err(|e| AlgoKitCryptoError::from(format!("Failed to generate random bytes: {}", e)))?;
+    Ok(bytes)
 }
