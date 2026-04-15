@@ -74,7 +74,7 @@ mavenPublishing {
 
     developers {
       developer {
-        id.set("algorandfoundation")
+        id.set("algorandecosystem")
         name.set("Joe Polny")
         email.set("joe@algorand.foundation")
         organization.set("Algorand Foundation")
@@ -83,9 +83,9 @@ mavenPublishing {
     }
 
     scm {
-      connection.set("scm:git:git://github.com/algorandfoundation/algokit-core.git")
-      developerConnection.set("scm:git:ssh://github.com:algorandfoundation/algokit-core.git")
-      url.set("https://github.com/algorandfoundation/algokit-core")
+      connection.set("scm:git:git://github.com/algorandecosystem/algokit-core.git")
+      developerConnection.set("scm:git:ssh://github.com:algorandecosystem/algokit-core.git")
+      url.set("https://github.com/algorandecosystem/algokit-core")
     }
   }
 }
