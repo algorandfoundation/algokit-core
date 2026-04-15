@@ -4,6 +4,8 @@ on:
   push: # A push indicates that a PR is merged and CD should be triggered
     branches:
       - main
+    tags:
+      - 'v*'
   pull_request: # For PRs, we run CI, which is the same as CD without the release step(s)
     branches:
       - main
@@ -23,7 +25,7 @@ jobs:
       # Ensure output is not buffered for immediate feedback
       RUST_BACKTRACE: 1
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ github.ref }}
       - uses: dtolnay/rust-toolchain@master
@@ -91,8 +93,10 @@ jobs:
     needs:
       - setup
     uses: ./.github/workflows/android_ci.yml
+    secrets: inherit
     strategy:
       matrix:
         include: ${{ fromJSON(needs.setup.outputs.ffi_packages) }}
     with:
       crate: ${{ matrix.crate_name }}
+      release: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}

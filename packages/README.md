@@ -14,22 +14,22 @@ See below for the installation instructions for each supported language:
 
 The Python packages are published as wheels on the GitHub release. These can be installed directly.
 
-For a binary wheel with multiple target platforms like [algokit_transact](https://github.com/algorandfoundation/algokit-core/releases/tag/python%2Falgokit_transact%401.0.0-alpha.1), you can use the below config.
+For a binary wheel with multiple target platforms like [algokit_transact](https://github.com/algorandecosystem/algokit-core/releases/tag/python%2Falgokit_transact%401.0.0-alpha.1), you can use the below config.
 
 ```toml
 [tool.poetry.dependencies]
 algokit_transact = [
-    { url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.1/algokit_transact-1.0.0a1-py3-none-macosx_10_12_x86_64.whl", markers = "sys_platform == 'darwin' and platform_machine == 'x86_64'" },
-    { url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.1/algokit_transact-1.0.0a1-py3-none-macosx_11_0_arm64.whl", markers = "sys_platform == 'darwin' and platform_machine == 'arm64'" },
-    { url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.1/algokit_transact-1.0.0a1-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", markers = "sys_platform == 'linux' and platform_machine == 'x86_64'" },
-    { url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.1/algokit_transact-1.0.0a1-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", markers = "sys_platform == 'linux' and platform_machine == 'aarch64'" },
-    { url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.1/algokit_transact-1.0.0a1-py3-none-win_amd64.whl", markers = "sys_platform == 'win32' and platform_machine == 'AMD64'" }
+    { url = "https://github.com/algorandecosystem/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.1/algokit_transact-1.0.0a1-py3-none-macosx_10_12_x86_64.whl", markers = "sys_platform == 'darwin' and platform_machine == 'x86_64'" },
+    { url = "https://github.com/algorandecosystem/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.1/algokit_transact-1.0.0a1-py3-none-macosx_11_0_arm64.whl", markers = "sys_platform == 'darwin' and platform_machine == 'arm64'" },
+    { url = "https://github.com/algorandecosystem/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.1/algokit_transact-1.0.0a1-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", markers = "sys_platform == 'linux' and platform_machine == 'x86_64'" },
+    { url = "https://github.com/algorandecosystem/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.1/algokit_transact-1.0.0a1-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", markers = "sys_platform == 'linux' and platform_machine == 'aarch64'" },
+    { url = "https://github.com/algorandecosystem/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.1/algokit_transact-1.0.0a1-py3-none-win_amd64.whl", markers = "sys_platform == 'win32' and platform_machine == 'AMD64'" }
 ]
 ```
 
-For a non binary wheel like [algod_api](https://github.com/algorandfoundation/algokit-core/releases/tag/python%2Falgod_api%401.0.0-alpha.2), you can use the below config.
+For a non binary wheel like [algod_api](https://github.com/algorandecosystem/algokit-core/releases/tag/python%2Falgod_api%401.0.0-alpha.2), you can use the below config.
 
 ```toml
 [tool.poetry.dependencies]
-algokit_algod_api = { url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgod_api%401.0.0-alpha.2/algokit_algod_api-1.0.0a2-py3-none-any.whl" }
+algokit_algod_api = { url = "https://github.com/algorandecosystem/algokit-core/releases/download/python%2Falgod_api%401.0.0-alpha.2/algokit_algod_api-1.0.0a2-py3-none-any.whl" }
 ```

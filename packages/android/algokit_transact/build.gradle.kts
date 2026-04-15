@@ -5,56 +5,87 @@
  * Learn more about Gradle by exploring our Samples at https://docs.gradle.org/8.14.2/samples
  */
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
+  alias(libs.plugins.android.library)
+  alias(libs.plugins.kotlin.android)
+  alias(libs.plugins.maven.publish)
 }
 
 android {
-    namespace = "com.example.algokit_transact"
-    compileSdk = 36
+  namespace = "io.github.algorandecosystem.algokit_transact"
+  compileSdk = 36
 
-    defaultConfig {
-        minSdk = 28
+  defaultConfig {
+    minSdk = 28
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
-    }
+    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    consumerProguardFiles("consumer-rules.pro")
+  }
 
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
+  buildTypes {
+    release {
+      isMinifyEnabled = false
+      proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+  }
+  compileOptions {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+  }
+  kotlinOptions { jvmTarget = "21" }
+  testOptions {
+    unitTests {
+      isIncludeAndroidResources = true
+      all { it.systemProperty("jna.library.path", "src/test/resources") }
     }
-    kotlinOptions {
-        jvmTarget = "21"
-    }
-    testOptions {
-        unitTests {
-            isIncludeAndroidResources = true
-            all {
-                it.systemProperty("jna.library.path", "src/test/resources")
-            }
-        }
-    }
+  }
 }
 
 dependencies {
-    implementation("net.java.dev.jna:jna:5.14.0@aar")
-    // Use full JNA JAR for unit tests (includes native dispatch libraries)
-    testImplementation("net.java.dev.jna:jna:5.14.0")
+  implementation("net.java.dev.jna:jna:5.14.0@aar")
+  // Use full JNA JAR for unit tests (includes native dispatch libraries)
+  testImplementation("net.java.dev.jna:jna:5.14.0")
 
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.material)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+  implementation(libs.androidx.core.ktx)
+  implementation(libs.androidx.appcompat)
+  implementation(libs.material)
+  testImplementation(libs.junit)
+  androidTestImplementation(libs.androidx.junit)
+  androidTestImplementation(libs.androidx.espresso.core)
+}
+
+mavenPublishing {
+  coordinates(
+    "io.github.algorandecosystem",
+    "algokit-transact",
+    System.getenv("VERSION_TAG") ?: "0.0.1-SNAPSHOT"
+  )
+
+  pom {
+    name.set("AlgoKit Transact")
+    description.set("Algorand transaction operations for Android")
+    url.set("https://github.com/algorandecosystem/algokit-core")
+
+    licenses {
+      license {
+        name.set("MIT License")
+        url.set("https://opensource.org/licenses/MIT")
+      }
+    }
+
+    developers {
+      developer {
+        id.set("algorandecosystem")
+        name.set("Joe Polny")
+        email.set("joe@algorand.foundation")
+        organization.set("Algorand Foundation")
+        organizationUrl.set("https://algorand.foundation")
+      }
+    }
+
+    scm {
+      connection.set("scm:git:git://github.com/algorandecosystem/algokit-core.git")
+      developerConnection.set("scm:git:ssh://github.com:algorandecosystem/algokit-core.git")
+      url.set("https://github.com/algorandecosystem/algokit-core")
+    }
+  }
 }

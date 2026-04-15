@@ -910,7 +910,7 @@ public struct AssetConfigTransactionFields {
      *
      * This address has no specific authority in the protocol itself and is informational only.
      *
-     * Some standards like [ARC-19](https://github.com/algorandfoundation/ARCs/blob/main/ARCs/arc-0019.md)
+     * Some standards like [ARC-19](https://github.com/algorandecosystem/ARCs/blob/main/ARCs/arc-0019.md)
      * rely on this field to hold meaningful data.
      *
      * It can be used in the case where you want to signal to holders of your asset that the uncirculated units
@@ -1019,7 +1019,7 @@ public struct AssetConfigTransactionFields {
          *
          * This address has no specific authority in the protocol itself and is informational only.
          *
-         * Some standards like [ARC-19](https://github.com/algorandfoundation/ARCs/blob/main/ARCs/arc-0019.md)
+         * Some standards like [ARC-19](https://github.com/algorandecosystem/ARCs/blob/main/ARCs/arc-0019.md)
          * rely on this field to hold meaningful data.
          *
          * It can be used in the case where you want to signal to holders of your asset that the uncirculated units
