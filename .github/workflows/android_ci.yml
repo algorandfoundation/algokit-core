@@ -76,12 +76,14 @@ jobs:
           working-directory: ${{ env.ANDROID_PACKAGE_DIR }}
 
       - name: Archive Build Output
+        if: ${{ inputs.release }}
         uses: actions/upload-artifact@v5
         with:
           name: ${{ env.CRATE }}.aar
           path: ${{ env.ANDROID_PACKAGE_DIR }}/build/outputs/aar/${{ env.CRATE }}-release.aar
 
       - name: Build and Publish to Maven Central
+        if: ${{ inputs.release }}
         working-directory: ${{ env.ANDROID_PACKAGE_DIR }}
         env:
           GITHUB_TAG: ${{ github.ref_name }}
