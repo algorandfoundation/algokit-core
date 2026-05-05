@@ -73,9 +73,11 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "cryptoxide",
+ "ed25519-bip32",
  "getrandom 0.4.1",
  "sha2",
  "signature",
+ "snafu",
  "tokio",
  "zeroize",
 ]
@@ -935,6 +937,14 @@ checksum = "115531babc129696a58c64a4fef0a8bf9e9698629fb97e9e40767d235cfbcd53"
 dependencies = [
  "pkcs8",
  "signature",
+]
+
+[[package]]
+name = "ed25519-bip32"
+version = "0.4.1"
+source = "git+https://github.com/algorandfoundation/xHD-Wallet-API-rs.git?rev=3cafd074e840971a2de791593918bb1c0707cd04#3cafd074e840971a2de791593918bb1c0707cd04"
+dependencies = [
+ "cryptoxide",
 ]
 
 [[package]]
