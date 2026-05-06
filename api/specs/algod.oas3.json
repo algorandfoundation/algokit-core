@@ -4720,8 +4720,7 @@
           "id",
           "network",
           "proto",
-          "rwd",
-          "timestamp"
+          "rwd"
         ],
         "type": "object",
         "properties": {
