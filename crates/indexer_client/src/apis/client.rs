@@ -10,6 +10,11 @@
  */
 
 use super::Error;
+#[cfg(feature = "default_client")]
+use algokit_http_client::DefaultHttpClient;
+
+use algokit_http_client::HttpClient;
+
 use super::parameter_enums::*;
 use crate::models::{
     Block, Box, HealthCheck, LookupAccountAppLocalStates, LookupAccountAssets, LookupAccountById,
@@ -19,7 +24,6 @@ use crate::models::{
     SearchForApplications, SearchForAssets, SearchForBlockHeaders, SearchForTransactions,
     UnknownJsonValue,
 };
-use algokit_http_client::{DefaultHttpClient, HttpClient};
 use std::sync::Arc;
 
 /// The main Indexer API client.

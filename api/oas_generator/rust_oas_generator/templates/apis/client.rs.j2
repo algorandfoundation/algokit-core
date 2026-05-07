@@ -12,7 +12,11 @@
  */
 
 use super::Error;
-use algokit_http_client::{DefaultHttpClient, HttpClient};
+#[cfg(feature = "default_client")]
+use algokit_http_client::DefaultHttpClient;
+
+use algokit_http_client::HttpClient;
+
 use std::sync::Arc;
 {% if collect_parameter_enums(operations) %}
 use super::parameter_enums::*;
