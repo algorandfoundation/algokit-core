@@ -47,7 +47,7 @@ jobs:
         with:
           app-id: ${{ secrets.BOT_ID }}
           private-key: ${{ secrets.BOT_SK }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.ref }}
           token: ${{ steps.app_token.outputs.token }}
@@ -112,7 +112,7 @@ jobs:
           - name: aarch64-apple-darwin
             runner: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.ref }}
       - uses: dtolnay/rust-toolchain@master
@@ -180,7 +180,7 @@ jobs:
       TARGET: ${{ matrix.arch == 'ppc64le' && 'powerpc64le' || matrix.arch }}-unknown-linux-${{ matrix.libc }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.ref }}
 
@@ -262,7 +262,7 @@ jobs:
           app-id: ${{ secrets.BOT_ID }}
           private-key: ${{ secrets.BOT_SK }}
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.ref }}
 
@@ -299,7 +299,7 @@ jobs:
         with:
           app-id: ${{ secrets.BOT_ID }}
           private-key: ${{ secrets.BOT_SK }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.ref }}
           fetch-depth: 0

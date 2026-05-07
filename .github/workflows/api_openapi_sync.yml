@@ -18,7 +18,7 @@ jobs:
       matrix:
         spec: [algod, indexer, kmd]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-api-tools
 
       - uses: actions/setup-node@v5

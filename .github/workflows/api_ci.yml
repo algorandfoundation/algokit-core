@@ -31,7 +31,7 @@ jobs:
   oas_lint_and_test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-api-tools
 
       - name: Run OAS generator linting
@@ -52,7 +52,7 @@ jobs:
           - client: indexer
             output_dir: crates/indexer_client
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-api-tools
 
       - name: Generate ${{ matrix.client }} API client
