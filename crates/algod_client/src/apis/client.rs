@@ -11,6 +11,11 @@
  */
 
 use super::Error;
+#[cfg(feature = "default_client")]
+use algokit_http_client::DefaultHttpClient;
+
+use algokit_http_client::HttpClient;
+
 use super::parameter_enums::*;
 use crate::models::{
     AbortCatchup, Account, AccountApplicationInformation, AccountAssetInformation,
@@ -23,7 +28,6 @@ use crate::models::{
     SimulateTransaction, StartCatchup, StateProof, TealCompile, TealDisassemble, TealDryrun,
     TransactionParams, TransactionProof, UnknownJsonValue, Version, WaitForBlock,
 };
-use algokit_http_client::{DefaultHttpClient, HttpClient};
 use std::sync::Arc;
 
 /// The main Algod API client.
