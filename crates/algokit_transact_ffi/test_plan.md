@@ -49,6 +49,12 @@
 | --- | --- |
 | [Transaction Tests](#transaction-tests) | Tests that apply to all transaction types |
 
+### Wallet Sdk Helpers
+
+| Name | Description |
+| --- | --- |
+| [Wallet SDK Helper Tests](#wallet-sdk-helper-tests) | Tests for wallet SDK helper functions |
+
 ## Test Groups
 
 ### Generic Transaction Tests
@@ -80,6 +86,15 @@
 | [group transactions](#group-transactions) | A collection of transactions can be grouped |
 | [encode transactions](#encode-transactions) | A collection of transactions can be encoded |
 | [encode signed transactions](#encode-signed-transactions) | A collection of signed transactions can be encoded |
+
+### Wallet Sdk Helper Tests
+
+| Name | Description |
+| --- | --- |
+| [valid algorand address](#valid-algorand-address) | A well-formed Algorand address is reported as valid |
+| [invalid algorand address](#invalid-algorand-address) | Malformed or wrong-length strings are reported as invalid addresses |
+| [receiver min balance fee shortfall](#receiver-min-balance-fee-shortfall) | The top-up equals the shortfall when the receiver is below its minimum balance |
+| [receiver min balance fee covered](#receiver-min-balance-fee-covered) | No top-up is required when the receiver already meets or exceeds its minimum balance |
 
 ## Test Cases
 
@@ -142,3 +157,19 @@ A collection of transactions can be encoded
 ### encode signed transactions
 
 A collection of signed transactions can be encoded
+
+### valid algorand address
+
+A well-formed Algorand address is reported as valid
+
+### invalid algorand address
+
+Malformed or wrong-length strings are reported as invalid addresses
+
+### receiver min balance fee shortfall
+
+The top-up equals the shortfall when the receiver is below its minimum balance
+
+### receiver min balance fee covered
+
+No top-up is required when the receiver already meets or exceeds its minimum balance

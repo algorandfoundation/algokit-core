@@ -35,6 +35,10 @@ groups = ["Transaction Tests"]
 desc = "Tests for state proof transactions"
 groups = ["Transaction Tests"]
 
+[suite."Wallet SDK Helpers"]
+desc = "Tests for helpers consumed by the AlgoKit wallet SDK"
+groups = ["Wallet SDK Helper Tests"]
+
 # Test Group: Generic Transaction Tests
 
 [group."Generic Transaction Tests"]
@@ -100,6 +104,23 @@ desc = "A collection of transactions can be encoded"
 
 [group."Transaction Group Tests".test."encode signed transactions"]
 desc = "A collection of signed transactions can be encoded"
+
+# Test Group: Wallet SDK Helper Tests
+
+[group."Wallet SDK Helper Tests"]
+desc = "Tests for wallet SDK helper functions"
+
+[group."Wallet SDK Helper Tests".test."valid algorand address"]
+desc = "A well-formed Algorand address is reported as valid"
+
+[group."Wallet SDK Helper Tests".test."invalid algorand address"]
+desc = "Malformed or wrong-length strings are reported as invalid addresses"
+
+[group."Wallet SDK Helper Tests".test."receiver min balance fee shortfall"]
+desc = "The top-up equals the shortfall when the receiver is below its minimum balance"
+
+[group."Wallet SDK Helper Tests".test."receiver min balance fee covered"]
+desc = "No top-up is required when the receiver already meets or exceeds its minimum balance"
 
 
 # Test Targets

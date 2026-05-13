@@ -118,6 +118,27 @@ pub struct FeeParams {
 }
 
 #[ffi_record]
+pub struct SuggestedParams {
+    /// Fee in microALGO. Used as-is when `flat_fee` is true, else a per-byte rate.
+    pub fee: u64,
+
+    /// When true, `fee` is applied as-is; when false, it is a per-byte rate.
+    pub flat_fee: bool,
+
+    /// First round for which the transaction is valid.
+    pub first_round_valid: u64,
+
+    /// Last round for which the transaction is valid.
+    pub last_round_valid: u64,
+
+    /// 32-byte genesis hash that pins the transaction to a specific chain.
+    pub genesis_hash: Vec<u8>,
+
+    /// Genesis ID (e.g. `"mainnet-v1.0"`).
+    pub genesis_id: String,
+}
+
+#[ffi_record]
 pub struct Transaction {
     /// The type of transaction
     transaction_type: TransactionType,
@@ -593,6 +614,12 @@ pub fn public_key_from_address(address: &str) -> Result<Vec<u8>, AlgoKitTransact
         .map(|a| a.as_bytes().to_vec())?)
 }
 
+/// Returns whether the given string parses as a valid Algorand address.
+#[ffi_func]
+pub fn is_valid_algorand_address(address: &str) -> bool {
+    address.parse::<algokit_transact::Address>().is_ok()
+}
+
 /// Get the raw 32-byte transaction ID for a transaction.
 #[ffi_func]
 pub fn get_transaction_id_raw(transaction: Transaction) -> Result<Vec<u8>, AlgoKitTransactError> {
@@ -714,6 +741,15 @@ pub fn assign_fee(
     Ok(updated_txn.into())
 }
 
+/// Returns the additional microALGO the sender must include so the receiver clears its minimum balance, or 0 if it already does.
+#[ffi_func]
+pub fn get_receiver_min_balance_fee(
+    receiver_algo_amount: u64,
+    receiver_min_balance_amount: u64,
+) -> u64 {
+    receiver_min_balance_amount.saturating_sub(receiver_algo_amount)
+}
+
 /// Decodes a signed transaction.
 ///
 /// # Parameters
@@ -806,5 +842,27 @@ mod tests {
         for grouped_tx in grouped_txs.into_iter() {
             assert_eq!(grouped_tx.group.unwrap(), &expected_group);
         }
+    }
+
+    #[test]
+    fn test_is_valid_algorand_address_ffi() {
+        let valid = algokit_transact::Address::new([0u8; 32]).to_string();
+        assert!(is_valid_algorand_address(&valid));
+
+        assert!(!is_valid_algorand_address(""));
+        assert!(!is_valid_algorand_address("not-an-address"));
+        // Right length, but invalid base32 / checksum
+        assert!(!is_valid_algorand_address(&"A".repeat(58)));
+    }
+
+    #[test]
+    fn test_get_receiver_min_balance_fee_ffi() {
+        // Receiver below minimum -> top-up equals the shortfall
+        assert_eq!(get_receiver_min_balance_fee(0, 100_000), 100_000);
+        assert_eq!(get_receiver_min_balance_fee(40_000, 100_000), 60_000);
+
+        // Receiver at or above minimum -> no top-up needed
+        assert_eq!(get_receiver_min_balance_fee(100_000, 100_000), 0);
+        assert_eq!(get_receiver_min_balance_fee(250_000, 100_000), 0);
     }
 }
