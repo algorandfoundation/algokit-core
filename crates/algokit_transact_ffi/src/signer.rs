@@ -58,3 +58,32 @@ pub fn ed25519_sign_transaction(
         multisignature: None,
     })
 }
+
+/// Signs an encoded Algo25 transaction with the given 32-byte Ed25519 secret key and returns the MsgPack-encoded SignedTransaction.
+#[uniffi::export]
+pub fn sign_algo25_transaction(
+    secret_key: Vec<u8>,
+    transaction_bytes: Vec<u8>,
+) -> Result<Vec<u8>, AlgoKitTransactError> {
+    let txn = crate::decode_transaction(&transaction_bytes)?;
+    let signed = ed25519_sign_transaction(secret_key, txn)?;
+    crate::encode_signed_transaction(signed)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use algokit_transact::test_utils::TestDataMother;
+    use pretty_assertions::assert_eq;
+
+    #[test]
+    fn test_sign_algo25_transaction_matches_fixture() {
+        let data = TestDataMother::simple_payment();
+
+        let signed =
+            sign_algo25_transaction(data.signing_private_key.to_vec(), data.unsigned_bytes)
+                .unwrap();
+
+        assert_eq!(signed, data.signed_bytes);
+    }
+}

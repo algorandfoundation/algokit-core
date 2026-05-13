@@ -49,6 +49,12 @@
 | --- | --- |
 | [Transaction Tests](#transaction-tests) | Tests that apply to all transaction types |
 
+### Wallet Sdk Helpers
+
+| Name | Description |
+| --- | --- |
+| [Wallet SDK Helper Tests](#wallet-sdk-helper-tests) | Tests for wallet SDK helper functions |
+
 ## Test Groups
 
 ### Generic Transaction Tests
@@ -80,6 +86,12 @@
 | [group transactions](#group-transactions) | A collection of transactions can be grouped |
 | [encode transactions](#encode-transactions) | A collection of transactions can be encoded |
 | [encode signed transactions](#encode-signed-transactions) | A collection of signed transactions can be encoded |
+
+### Wallet Sdk Helper Tests
+
+| Name | Description |
+| --- | --- |
+| [sign algo25 transaction](#sign-algo-25-transaction) | An encoded transaction signed via sign_algo25_transaction matches the canonical signed-transaction encoding |
 
 ## Test Cases
 
@@ -142,3 +154,7 @@ A collection of transactions can be encoded
 ### encode signed transactions
 
 A collection of signed transactions can be encoded
+
+### sign algo25 transaction
+
+An encoded transaction signed via sign_algo25_transaction matches the canonical signed-transaction encoding

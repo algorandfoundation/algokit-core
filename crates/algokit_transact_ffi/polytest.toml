@@ -35,6 +35,10 @@ groups = ["Transaction Tests"]
 desc = "Tests for state proof transactions"
 groups = ["Transaction Tests"]
 
+[suite."Wallet SDK Helpers"]
+desc = "Tests for helpers consumed by the AlgoKit wallet SDK"
+groups = ["Wallet SDK Helper Tests"]
+
 # Test Group: Generic Transaction Tests
 
 [group."Generic Transaction Tests"]
@@ -100,6 +104,14 @@ desc = "A collection of transactions can be encoded"
 
 [group."Transaction Group Tests".test."encode signed transactions"]
 desc = "A collection of signed transactions can be encoded"
+
+# Test Group: Wallet SDK Helper Tests
+
+[group."Wallet SDK Helper Tests"]
+desc = "Tests for wallet SDK helper functions"
+
+[group."Wallet SDK Helper Tests".test."sign algo25 transaction"]
+desc = "An encoded transaction signed via sign_algo25_transaction matches the canonical signed-transaction encoding"
 
 
 # Test Targets
