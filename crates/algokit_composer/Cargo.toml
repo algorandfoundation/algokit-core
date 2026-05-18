@@ -1,0 +1,14 @@
+[package]
+name = "algokit_composer"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+algokit_transact = { path = "../algokit_transact" }
+algokit_crypto = { path = "../algokit_crypto" }
+snafu.workspace = true
+
+[dev-dependencies]
+algokit_transact = { path = "../algokit_transact", features = ["test_utils"] }
+rstest.workspace = true
+pretty_assertions = "1.4.1"
