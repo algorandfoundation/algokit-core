@@ -11,11 +11,13 @@
 //! storage, zeroization, and BIP44 path bookkeeping are the responsibility of
 //! the caller.
 
+use bip39::Mnemonic;
 use ed25519_bip32::{
     DerivationScheme, Signature, XPrv,
     api::{KeyContext as UpstreamKeyContext, key_gen as upstream_key_gen},
 };
 use snafu::Snafu;
+use zeroize::{Zeroize, ZeroizeOnDrop, Zeroizing};
 
 pub const HD_SEED_SIZE: usize = 64;
 pub const XPRV_SIZE: usize = 96;
@@ -33,6 +35,9 @@ pub enum XhdError {
 
     #[snafu(display("Extended private key bytes failed verification"))]
     InvalidXprv,
+
+    #[snafu(display("Invalid BIP39 mnemonic: {reason}"))]
+    InvalidMnemonic { reason: String },
 }
 
 /// Selects the BIP44 `coin_type` slot used when deriving a key.
@@ -59,7 +64,9 @@ impl From<KeyContext> for UpstreamKeyContext {
 ///
 /// Contains the 96-byte extended private key (32-byte scalar, 32-byte prefix,
 /// and 32-byte chain code) and the corresponding 32-byte ed25519 public key.
-#[derive(Debug, Clone)]
+/// The struct is `ZeroizeOnDrop`: the extended private key bytes are
+/// overwritten with zeros when the value is dropped.
+#[derive(Debug, Clone, Zeroize, ZeroizeOnDrop)]
 pub struct DerivedAccount {
     /// Extended private key: 32-byte scalar, 32-byte prefix, 32-byte chain code.
     pub xprv: [u8; XPRV_SIZE],
@@ -82,14 +89,45 @@ pub fn root_key_from_seed(seed: &[u8]) -> Result<[u8; XPRV_SIZE], XhdError> {
         });
     }
 
-    let seed_array: [u8; HD_SEED_SIZE] =
-        seed.try_into().map_err(|_| XhdError::InvalidSeedLength {
+    let seed_array: Zeroizing<[u8; HD_SEED_SIZE]> =
+        Zeroizing::new(seed.try_into().map_err(|_| XhdError::InvalidSeedLength {
             expected: HD_SEED_SIZE,
             found: seed.len(),
-        })?;
+        })?);
 
     let xprv = XPrv::from_seed(&seed_array);
     Ok(xprv.into())
+}
+
+/// Derives a 64-byte BIP39 seed from a 12/15/18/21/24-word mnemonic.
+///
+/// The BIP39 passphrase is hardcoded to the empty string; this module does
+/// not expose passphrase-based derivation. See the BIP39 specification at
+/// <https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki>.
+///
+/// # Errors
+///
+/// Returns [`XhdError::InvalidMnemonic`] if `mnemonic` is not a valid BIP39
+/// phrase (unknown word, wrong length, bad checksum).
+pub fn seed_from_mnemonic(mnemonic: &str) -> Result<[u8; HD_SEED_SIZE], XhdError> {
+    let parsed = Mnemonic::parse(mnemonic).map_err(|e| XhdError::InvalidMnemonic {
+        reason: e.to_string(),
+    })?;
+    Ok(parsed.to_seed(""))
+}
+
+/// Derives a 96-byte root extended private key directly from a BIP39 mnemonic.
+///
+/// Convenience wrapper that composes [`seed_from_mnemonic`] and
+/// [`root_key_from_seed`]. The intermediate 64-byte seed is held in a
+/// `Zeroizing` buffer and cleared when this function returns.
+///
+/// # Errors
+///
+/// Propagates errors from [`seed_from_mnemonic`].
+pub fn root_key_from_mnemonic(mnemonic: &str) -> Result<[u8; XPRV_SIZE], XhdError> {
+    let seed = Zeroizing::new(seed_from_mnemonic(mnemonic)?);
+    root_key_from_seed(seed.as_slice())
 }
 
 /// Derives an extended private key at the BIP44 path
@@ -121,6 +159,7 @@ pub fn derive(
     .map_err(|_| XhdError::InvalidXprv)?;
 
     let public_key = derived.public().public_key();
+    // `derived: XPrv` zeroes its internal buffer on drop upstream; no Zeroizing<> wrap needed here.
     let xprv: [u8; XPRV_SIZE] = derived.into();
 
     Ok(DerivedAccount { xprv, public_key })
@@ -138,6 +177,7 @@ pub fn derive(
 /// [`XPRV_SIZE`] bytes, or [`XhdError::InvalidXprv`] if the bytes do not form
 /// a valid extended private key.
 pub fn raw_sign(extended_key: &[u8], msg: &[u8]) -> Result<[u8; SIGNATURE_SIZE], XhdError> {
+    // The parsed `XPrv` zeroes its internal buffer on drop upstream; no Zeroizing<> wrap needed here.
     let xprv = parse_xprv(extended_key)?;
     let signature: Signature<Vec<u8>> = xprv.sign(msg);
 
@@ -315,5 +355,56 @@ mod tests {
                 found: 64
             }
         );
+    }
+
+    // BIP39 reference mnemonics + expected seeds (empty passphrase).
+    const MNEMONIC_24_ZERO: &str = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon art";
+    const SEED_24_ZERO_HEX: &str = "408b285c123836004f4b8842c89324c1f01382450c0d439af345ba7fc49acf705489c6fc77dbd4e3dc1dd8cc6bc9f043db8ada1e243c4a0eafb290d399480840";
+
+    const MNEMONIC_12_ZERO: &str = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
+    const SEED_12_ZERO_HEX: &str = "5eb00bbddcf069084889a8ab9155568165f5c453ccb85e70811aaed6f6da5fc19a5ac40b389cd370d086206dec8aa6c43daea6690f20ad3d8d48b2d2ce9e38e4";
+
+    #[test]
+    fn seed_from_mnemonic_24_words() {
+        let seed = seed_from_mnemonic(MNEMONIC_24_ZERO).expect("valid 24-word mnemonic");
+        let expected = hex_to_bytes(SEED_24_ZERO_HEX);
+        assert_eq!(seed.as_slice(), expected.as_slice());
+    }
+
+    #[test]
+    fn seed_from_mnemonic_12_words() {
+        let seed = seed_from_mnemonic(MNEMONIC_12_ZERO).expect("valid 12-word mnemonic");
+        let expected = hex_to_bytes(SEED_12_ZERO_HEX);
+        assert_eq!(seed.as_slice(), expected.as_slice());
+    }
+
+    #[test]
+    fn root_key_from_mnemonic_matches_seed_path() {
+        let via_mnemonic = root_key_from_mnemonic(MNEMONIC_24_ZERO).expect("valid mnemonic");
+        let seed = seed_from_mnemonic(MNEMONIC_24_ZERO).expect("valid mnemonic");
+        let via_seed = root_key_from_seed(&seed).expect("valid seed");
+        assert_eq!(via_mnemonic, via_seed);
+    }
+
+    #[test]
+    fn rejects_unknown_word() {
+        let err = seed_from_mnemonic(
+            "notaword notaword notaword notaword notaword notaword \
+             notaword notaword notaword notaword notaword notaword",
+        )
+        .expect_err("should reject unknown word");
+        assert!(matches!(err, XhdError::InvalidMnemonic { .. }));
+    }
+
+    #[test]
+    fn rejects_bad_checksum() {
+        // 12 valid words but the last word breaks the checksum
+        // (zero-entropy 12-word mnemonic ends in "about", not "abandon").
+        let err = seed_from_mnemonic(
+            "abandon abandon abandon abandon abandon abandon \
+             abandon abandon abandon abandon abandon abandon",
+        )
+        .expect_err("should reject bad checksum");
+        assert!(matches!(err, XhdError::InvalidMnemonic { .. }));
     }
 }
