@@ -23,6 +23,10 @@ sha2.workspace = true
 # kept as `ed25519-bip32` from the upstream typed-io crate it forks.
 ed25519-bip32 = { git = "https://github.com/algorandfoundation/xHD-Wallet-API-rs.git", rev = "3cafd074e840971a2de791593918bb1c0707cd04" }
 
+# BIP39 mnemonic ↔ 64-byte seed conversion. `zeroize` feature wires the
+# crate's internal `Mnemonic`/`Seed` buffers to `ZeroizeOnDrop`.
+bip39 = { version = "2.2", default-features = false, features = ["std", "zeroize"] }
+
 snafu = { workspace = true }
 
 [dev-dependencies]

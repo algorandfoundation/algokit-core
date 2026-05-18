@@ -81,6 +81,36 @@ pub fn xhd_root_key_from_seed(seed: Vec<u8>) -> Result<Vec<u8>, AlgoKitXhdError>
         .map_err(Into::into)
 }
 
+/// Derives a 64-byte BIP39 seed from a 12/15/18/21/24-word mnemonic.
+///
+/// The BIP39 passphrase is hardcoded to the empty string; this binding does
+/// not expose passphrase-based derivation.
+///
+/// # Errors
+///
+/// Returns an error if `mnemonic` is not a valid BIP39 phrase.
+#[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
+pub fn xhd_seed_from_mnemonic(mnemonic: String) -> Result<Vec<u8>, AlgoKitXhdError> {
+    xhd::seed_from_mnemonic(&mnemonic)
+        .map(|seed| seed.to_vec())
+        .map_err(Into::into)
+}
+
+/// Derives a 96-byte root extended private key directly from a BIP39 mnemonic.
+///
+/// Convenience wrapper around [`xhd_seed_from_mnemonic`] +
+/// [`xhd_root_key_from_seed`].
+///
+/// # Errors
+///
+/// Returns an error if `mnemonic` is not a valid BIP39 phrase.
+#[cfg_attr(feature = "ffi_uniffi", uniffi::export)]
+pub fn xhd_root_key_from_mnemonic(mnemonic: String) -> Result<Vec<u8>, AlgoKitXhdError> {
+    xhd::root_key_from_mnemonic(&mnemonic)
+        .map(|xprv| xprv.to_vec())
+        .map_err(Into::into)
+}
+
 /// Derives an extended private key at the BIP44 path
 /// `m/44'/<coin>'/<account>'/0/<key_index>` using the Peikert derivation scheme.
 ///
