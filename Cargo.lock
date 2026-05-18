@@ -68,6 +68,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "algokit_composer"
+version = "0.1.0"
+dependencies = [
+ "algokit_crypto",
+ "algokit_transact",
+ "pretty_assertions",
+ "rstest",
+ "snafu",
+]
+
+[[package]]
+name = "algokit_composer_ffi"
+version = "0.1.0"
+dependencies = [
+ "algokit_composer",
+ "ffi_macros",
+ "snafu",
+ "uniffi",
+]
+
+[[package]]
 name = "algokit_crypto"
 version = "0.1.0"
 dependencies = [

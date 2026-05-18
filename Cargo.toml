@@ -17,6 +17,8 @@ members = [
   "tools/api_tools",
   "crates/algokit_crypto",
   "crates/algokit_crypto_ffi",
+  "crates/algokit_composer",
+  "crates/algokit_composer_ffi",
 ]
 
 [workspace.dependencies]
