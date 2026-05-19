@@ -1,6 +1,6 @@
 use algokit_transact::{
     Address, AssetTransferTransactionFields, KeyRegistrationTransactionFields,
-    PaymentTransactionFields, Transaction, TransactionHeader,
+    PaymentTransactionFields, Transaction, TransactionHeader, Transactions,
 };
 use snafu::ResultExt;
 
@@ -39,10 +39,16 @@ pub fn compose(
     txn_params: Vec<TxnParams>,
     composer_params: ComposerParams,
 ) -> Result<Vec<Transaction>, ComposerError> {
-    txn_params
+    let txns: Vec<Transaction> = txn_params
         .into_iter()
         .map(|p| compose_one(p, &composer_params))
-        .collect()
+        .collect::<Result<Vec<_>, _>>()?;
+
+    if txns.len() > 1 {
+        Ok(txns.as_slice().assign_group()?)
+    } else {
+        Ok(txns)
+    }
 }
 
 fn compose_one(p: TxnParams, composer: &ComposerParams) -> Result<Transaction, ComposerError> {
@@ -219,7 +225,7 @@ fn bytes_to_fixed<const N: usize>(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use algokit_transact::test_utils::TransactionMother;
+    use algokit_transact::test_utils::{TransactionGroupMother, TransactionMother};
     use pretty_assertions::assert_eq;
 
     use crate::params::{
@@ -365,5 +371,39 @@ mod tests {
 
         let composed = compose(vec![params], composer_params).unwrap();
         assert_eq!(composed, vec![expected]);
+    }
+
+    #[test]
+    fn compose_multi_entry_matches_grouped_fixture() {
+        // TransactionGroupMother gives an ungrouped pair; calling assign_group on
+        // its slice produces the canonical grouped output that compose() must match.
+        let ungrouped = TransactionGroupMother::testnet_payment_group();
+        let expected: Vec<Transaction> = ungrouped.as_slice().assign_group().unwrap();
+
+        let composer_params = composer_params_from(expected[0].header());
+
+        let txn_params: Vec<TxnParams> = expected
+            .iter()
+            .map(|tx| match tx {
+                Transaction::Payment(p) => TxnParams::Payment(PaymentParams {
+                    common: common_from(&p.header),
+                    receiver: p.receiver.to_string(),
+                    amount: p.amount,
+                    close_remainder_to: None,
+                }),
+                _ => panic!("expected only Payment entries in the fixture group"),
+            })
+            .collect();
+
+        let composed = compose(txn_params, composer_params).unwrap();
+        assert_eq!(composed, expected);
+
+        // Both entries share the same non-empty group bytes.
+        let group = composed[0].header().group;
+        assert!(
+            group.is_some(),
+            "group must be assigned on multi-entry compose"
+        );
+        assert_eq!(group, composed[1].header().group);
     }
 }
