@@ -76,6 +76,8 @@ dependencies = [
  "pretty_assertions",
  "rstest",
  "snafu",
+ "tokio",
+ "zeroize",
 ]
 
 [[package]]

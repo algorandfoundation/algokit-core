@@ -7,6 +7,8 @@ edition = "2024"
 algokit_transact = { path = "../algokit_transact" }
 algokit_crypto = { path = "../algokit_crypto" }
 snafu.workspace = true
+tokio = { version = "1.49.0", features = ["rt"] }
+zeroize.workspace = true
 
 [dev-dependencies]
 algokit_transact = { path = "../algokit_transact", features = ["test_utils"] }
