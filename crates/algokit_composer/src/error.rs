@@ -20,6 +20,12 @@ pub enum ComposerError {
     Transact {
         source: algokit_transact::AlgoKitTransactError,
     },
+
+    #[snafu(display("transaction count {txns} does not match secret key count {keys}"))]
+    SignerCountMismatch { txns: usize, keys: usize },
+
+    #[snafu(display("signing failed: {message}"))]
+    Signing { message: String },
 }
 
 impl From<algokit_transact::AlgoKitTransactError> for ComposerError {
