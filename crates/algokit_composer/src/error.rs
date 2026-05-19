@@ -15,4 +15,15 @@ pub enum ComposerError {
         expected: usize,
         found: usize,
     },
+
+    #[snafu(display("{source}"))]
+    Transact {
+        source: algokit_transact::AlgoKitTransactError,
+    },
+}
+
+impl From<algokit_transact::AlgoKitTransactError> for ComposerError {
+    fn from(source: algokit_transact::AlgoKitTransactError) -> Self {
+        ComposerError::Transact { source }
+    }
 }
