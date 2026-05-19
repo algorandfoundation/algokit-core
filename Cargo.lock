@@ -85,7 +85,10 @@ name = "algokit_composer_ffi"
 version = "0.1.0"
 dependencies = [
  "algokit_composer",
+ "algokit_transact",
  "ffi_macros",
+ "pretty_assertions",
+ "serde",
  "snafu",
  "uniffi",
 ]
