@@ -1,12 +1,13 @@
 use algokit_transact::{
-    Address, AssetTransferTransactionFields, PaymentTransactionFields, Transaction,
-    TransactionHeader,
+    Address, AssetTransferTransactionFields, KeyRegistrationTransactionFields,
+    PaymentTransactionFields, Transaction, TransactionHeader,
 };
 use snafu::ResultExt;
 
 use crate::error::{ComposerError, InvalidAddressSnafu};
 use crate::params::{
-    AssetOptInParams, AssetTransferParams, CommonTxnParams, PaymentParams, TxnParams,
+    AssetOptInParams, AssetTransferParams, CommonTxnParams, OfflineKeyRegParams,
+    OnlineKeyRegParams, PaymentParams, TxnParams,
 };
 
 /// Network-suggested parameters fetched from algod.
@@ -49,7 +50,8 @@ fn compose_one(p: TxnParams, composer: &ComposerParams) -> Result<Transaction, C
         TxnParams::Payment(payment) => compose_payment(payment, composer),
         TxnParams::AssetTransfer(transfer) => compose_asset_transfer(transfer, composer),
         TxnParams::AssetOptIn(opt_in) => compose_asset_opt_in(opt_in, composer),
-        _ => Err(ComposerError::UnsupportedTxnType),
+        TxnParams::OnlineKeyReg(keyreg) => compose_online_key_reg(keyreg, composer),
+        TxnParams::OfflineKeyReg(keyreg) => compose_offline_key_reg(keyreg, composer),
     }
 }
 
@@ -113,6 +115,49 @@ fn compose_asset_opt_in(
     }))
 }
 
+fn compose_online_key_reg(
+    p: OnlineKeyRegParams,
+    composer: &ComposerParams,
+) -> Result<Transaction, ComposerError> {
+    let header = build_header(&p.common, composer)?;
+    let vote_key = bytes_to_fixed::<32>(&p.vote_key, "vote_key")?;
+    let selection_key = bytes_to_fixed::<32>(&p.selection_key, "selection_key")?;
+    let state_proof_key = bytes_to_fixed::<64>(&p.state_proof_key, "state_proof_key")?;
+
+    Ok(Transaction::KeyRegistration(
+        KeyRegistrationTransactionFields {
+            header,
+            vote_key: Some(vote_key),
+            selection_key: Some(selection_key),
+            state_proof_key: Some(state_proof_key),
+            vote_first: Some(p.vote_first),
+            vote_last: Some(p.vote_last),
+            vote_key_dilution: Some(p.vote_key_dilution),
+            non_participation: None,
+        },
+    ))
+}
+
+fn compose_offline_key_reg(
+    p: OfflineKeyRegParams,
+    composer: &ComposerParams,
+) -> Result<Transaction, ComposerError> {
+    let header = build_header(&p.common, composer)?;
+
+    Ok(Transaction::KeyRegistration(
+        KeyRegistrationTransactionFields {
+            header,
+            vote_key: None,
+            selection_key: None,
+            state_proof_key: None,
+            vote_first: None,
+            vote_last: None,
+            vote_key_dilution: None,
+            non_participation: None,
+        },
+    ))
+}
+
 fn build_header(
     c: &CommonTxnParams,
     composer: &ComposerParams,
@@ -128,20 +173,12 @@ fn build_header(
 
     let fee = c.static_fee.or(Some(sp.fee));
 
-    let genesis_hash = sp
-        .genesis_hash
-        .clone()
-        .try_into()
-        .map_err(|v: Vec<u8>| ComposerError::InvalidGenesisHashLength { found: v.len() })?;
+    let genesis_hash = bytes_to_fixed::<32>(&sp.genesis_hash, "genesis_hash")?;
 
     let lease = c
         .lease
         .as_ref()
-        .map(|v| {
-            v.clone()
-                .try_into()
-                .map_err(|v: Vec<u8>| ComposerError::InvalidLeaseLength { found: v.len() })
-        })
+        .map(|v| bytes_to_fixed::<32>(v, "lease"))
         .transpose()?;
 
     let rekey_to = c.rekey_to.as_deref().map(parse_address).transpose()?;
@@ -166,6 +203,19 @@ fn parse_address(s: &str) -> Result<Address, ComposerError> {
     })
 }
 
+fn bytes_to_fixed<const N: usize>(
+    bytes: &[u8],
+    field: &'static str,
+) -> Result<[u8; N], ComposerError> {
+    bytes
+        .try_into()
+        .map_err(|_| ComposerError::InvalidByteLength {
+            field,
+            expected: N,
+            found: bytes.len(),
+        })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -173,8 +223,11 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     use crate::params::{
-        AssetOptInParams, AssetTransferParams, CommonTxnParams, PaymentParams, TxnParams,
+        AssetOptInParams, AssetTransferParams, CommonTxnParams, OfflineKeyRegParams,
+        OnlineKeyRegParams, PaymentParams, TxnParams,
     };
+
+    const TESTNET_GENESIS_ID: &str = "testnet-v1.0";
 
     fn common_from(header: &TransactionHeader) -> CommonTxnParams {
         CommonTxnParams {
@@ -259,6 +312,55 @@ mod tests {
         let params = TxnParams::AssetOptIn(AssetOptInParams {
             common: common_from(&transfer.header),
             asset_id: transfer.asset_id,
+        });
+
+        let composed = compose(vec![params], composer_params).unwrap();
+        assert_eq!(composed, vec![expected]);
+    }
+
+    #[test]
+    fn compose_online_key_reg_matches_fixture() {
+        // The keyreg fixtures strip genesis_id as a byte-optimization; the composer
+        // always populates it from SuggestedParams, so reinstate it on the expected
+        // value before comparing.
+        let mut expected = algokit_transact::test_utils::KeyRegistrationTransactionMother::online_key_registration().build().unwrap();
+        expected.header_mut().genesis_id = Some(TESTNET_GENESIS_ID.to_string());
+        let keyreg = match &expected {
+            Transaction::KeyRegistration(k) => k.clone(),
+            _ => panic!("expected KeyRegistration fixture"),
+        };
+
+        let mut composer_params = composer_params_from(&keyreg.header);
+        composer_params.suggested_params.genesis_id = TESTNET_GENESIS_ID.to_string();
+
+        let params = TxnParams::OnlineKeyReg(OnlineKeyRegParams {
+            common: common_from(&keyreg.header),
+            vote_key: keyreg.vote_key.unwrap().to_vec(),
+            selection_key: keyreg.selection_key.unwrap().to_vec(),
+            state_proof_key: keyreg.state_proof_key.unwrap().to_vec(),
+            vote_first: keyreg.vote_first.unwrap(),
+            vote_last: keyreg.vote_last.unwrap(),
+            vote_key_dilution: keyreg.vote_key_dilution.unwrap(),
+        });
+
+        let composed = compose(vec![params], composer_params).unwrap();
+        assert_eq!(composed, vec![expected]);
+    }
+
+    #[test]
+    fn compose_offline_key_reg_matches_fixture() {
+        let mut expected = algokit_transact::test_utils::KeyRegistrationTransactionMother::offline_key_registration().build().unwrap();
+        expected.header_mut().genesis_id = Some(TESTNET_GENESIS_ID.to_string());
+        let keyreg = match &expected {
+            Transaction::KeyRegistration(k) => k.clone(),
+            _ => panic!("expected KeyRegistration fixture"),
+        };
+
+        let mut composer_params = composer_params_from(&keyreg.header);
+        composer_params.suggested_params.genesis_id = TESTNET_GENESIS_ID.to_string();
+
+        let params = TxnParams::OfflineKeyReg(OfflineKeyRegParams {
+            common: common_from(&keyreg.header),
         });
 
         let composed = compose(vec![params], composer_params).unwrap();
