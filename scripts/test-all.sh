@@ -11,10 +11,13 @@ echo "5. Comprehensive Rust tests with cargo t (cargo-nextest)..."
 cargo t --workspace --all-targets --profile default --failure-output=immediate --status-level=all
 
 echo "7. Building and testing Python..."
-cargo pkg algokit_transact py
-cd packages/python/algokit_transact
-poetry install --with test
-poetry run pytest
-cd ../../..
+for pkg in algokit_transact algokit_composer; do
+  cargo pkg "$pkg" py
+  (
+    cd "packages/python/$pkg"
+    poetry install --with test
+    poetry run pytest
+  )
+done
 
 echo "=== All tests completed successfully! ==="
