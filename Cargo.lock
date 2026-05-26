@@ -421,7 +421,6 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "color-eyre",
- "convert_case",
  "duct",
  "shlex",
 ]

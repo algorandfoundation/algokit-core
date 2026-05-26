@@ -79,6 +79,15 @@ impl Package {
         get_repo_root().join("crates").join(self.crate_name())
     }
 
+    /// Public Swift module name for this package (the `AlgoKit*` brand prefix).
+    fn swift_module_name(&self) -> &'static str {
+        match self {
+            Self::Transact => "AlgoKitTransact",
+            Self::Crypto => "AlgoKitCrypto",
+            Self::Algo25 => "AlgoKitAlgo25",
+        }
+    }
+
     fn crate_manifest(&self) -> PathBuf {
         self.crate_dir().join("Cargo.toml")
     }
