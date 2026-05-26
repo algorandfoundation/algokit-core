@@ -116,6 +116,9 @@ pub fn build(package: &Package) -> Result<()> {
 
     run(&create_xcf_cmd, None, None).context("Failed to create xcframework")?;
 
+    nest_xcframework_headers(&xcframework_path, &format!("{package}FFI"))
+        .context("Failed to nest xcframework headers under per-module subdir")?;
+
     std::fs::rename(
         format!("target/debug/swift/{package}/{package}.swift"),
         format!("packages/swift/{swift_package}/Sources/{swift_package}/{swift_package}.swift"),
@@ -132,5 +135,38 @@ pub fn build(package: &Package) -> Result<()> {
         .context("Failed to copy test data file")?;
     }
 
+    Ok(())
+}
+
+/// Move each slice's `module.modulemap` and `<module>.h` into a
+/// `Headers/<module>/` subdir so multiple xcframeworks don't collide on the
+/// `module.modulemap` filename when linked into the same Apple app.
+fn nest_xcframework_headers(xcframework_path: &str, module_name: &str) -> Result<()> {
+    for slice in std::fs::read_dir(xcframework_path)? {
+        let slice = slice?;
+        if !slice.file_type()?.is_dir() {
+            continue;
+        }
+        let headers_dir = slice.path().join("Headers");
+        if !headers_dir.exists() {
+            continue;
+        }
+        let nested_dir = headers_dir.join(module_name);
+        std::fs::create_dir_all(&nested_dir)?;
+
+        for entry in std::fs::read_dir(&headers_dir)? {
+            let entry = entry?;
+            let name = entry.file_name();
+            if name == std::ffi::OsStr::new(module_name) {
+                continue;
+            }
+            if name != std::ffi::OsStr::new("module.modulemap")
+                && name != std::ffi::OsStr::new(&format!("{module_name}.h"))
+            {
+                continue;
+            }
+            std::fs::rename(entry.path(), nested_dir.join(&name))?;
+        }
+    }
     Ok(())
 }
