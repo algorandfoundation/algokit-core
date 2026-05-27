@@ -1,4 +1,5 @@
 pub mod algo25;
+pub mod xhd;
 
 use algokit_crypto::ed25519::{
     CryptoxideEd25519Keypair as RustCryptoxideEd25519Keypair, Ed25519Signer as RustEd25519Signer,
