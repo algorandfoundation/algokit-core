@@ -109,21 +109,16 @@ jobs:
                   f'    )'
               )
 
-          replacements = [
-              (
-                  r'    \.binaryTarget\(\s*name: "algokit_transactFFI",\s*path: "Frameworks/algokit_transact\.xcframework"\s*\)',
-                  remote("algokit_transactFFI", os.environ["TRANSACT_SHA"], "algokit_transact.xcframework.zip"),
-              ),
-              (
-                  r'    \.binaryTarget\(\s*name: "algokit_cryptoFFI",\s*path: "Frameworks/algokit_crypto\.xcframework"\s*\)',
-                  remote("algokit_cryptoFFI", os.environ["CRYPTO_SHA"], "algokit_crypto.xcframework.zip"),
-              ),
+          targets = [
+              ("algokit_transactFFI", os.environ["TRANSACT_SHA"], "algokit_transact.xcframework.zip"),
+              ("algokit_cryptoFFI", os.environ["CRYPTO_SHA"], "algokit_crypto.xcframework.zip"),
           ]
 
-          for pattern, replacement in replacements:
-              src, count = re.subn(pattern, replacement, src)
+          for name, sha, zip_name in targets:
+              pattern = rf'    \.binaryTarget\(\s*name: "{re.escape(name)}",[\s\S]*?\n    \)'
+              src, count = re.subn(pattern, remote(name, sha, zip_name), src, count=1)
               if count != 1:
-                  raise RuntimeError(f"expected exactly one replacement for {pattern}, got {count}")
+                  raise RuntimeError(f"expected exactly one binary target named {name}, got {count}")
 
           open(path, "w").write(src)
           PY
