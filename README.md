@@ -18,7 +18,8 @@ The exported interfaces should be purely functional without any state owned by R
 
 ## Crates
 
-- [algokit_transact](./crates/algokit_transact) - Currently a spike to determine feasibility of using UniFFI and wasm-pack. Handles msgpack encoding and decoding of Algorand transactions and allows attaching signatures to transactions.
+- [algokit_transact](./crates/algokit_transact) - Handles msgpack encoding and decoding of Algorand transactions and allows attaching signatures to transactions.
+- [algokit_crypto](./crates/algokit_crypto) - Provides core cryptographic functionality, including Ed25519 signing primitives and Algo25 mnemonic support.
 
 ## ADRs
 
@@ -32,7 +33,7 @@ The exported interfaces should be purely functional without any state owned by R
 
 ## Build Scripts
 
-`cargo pkg` will run the build script. For example: `cargo pkg transact kt` builds `algokit_transact` for `kotlin`.
+`cargo pkg` will run the build script. For example, `cargo pkg transact kt` builds `algokit_transact` for `kotlin`, and `cargo pkg crypto kt` builds `algokit_crypto` for `kotlin`.
 
 The scripts are defined in [tools/build_pkgs] for each language.
 

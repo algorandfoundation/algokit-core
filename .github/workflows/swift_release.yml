@@ -1,13 +1,13 @@
-name: Swift Release
+name: Swift (Distro) Release
 
 on:
   push:
     tags:
-      - 'swift-v*'
+      - 'v*'
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag to release (must already exist, e.g. swift-v1.0.0)'
+        description: 'Tag to release (must already exist, e.g. v1.0.0)'
         required: true
         type: string
 
@@ -22,7 +22,17 @@ jobs:
         shell: bash
     env:
       TAG: ${{ inputs.tag || github.ref_name }}
+      SWIFT_DISTRO_REPOSITORY: algorandecosystem/algokit-core-swift
+      SWIFT_DISTRO_DIR: swift-distro
     steps:
+      - uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          app-id: ${{ secrets.BOT_ID }}
+          private-key: ${{ secrets.BOT_SK }}
+          owner: algorandecosystem
+          repositories: algokit-core-swift
+
       - uses: actions/checkout@v6
         with:
           ref: ${{ env.TAG }}
@@ -31,7 +41,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: 1.85.0
-          targets: aarch64-apple-ios, x86_64-apple-ios, aarch64-apple-ios-sim, x86_64-apple-ios-sim, aarch64-apple-ios-macabi, x86_64-apple-ios-macabi, aarch64-apple-darwin, x86_64-apple-darwin
+          targets: aarch64-apple-ios, x86_64-apple-ios, aarch64-apple-ios-sim, aarch64-apple-ios-macabi, x86_64-apple-ios-macabi, aarch64-apple-darwin, x86_64-apple-darwin
 
       - name: Build xcframeworks
         run: |
@@ -53,16 +63,40 @@ jobs:
           echo "transact=$TRANSACT_SHA" >> "$GITHUB_OUTPUT"
           echo "crypto=$CRYPTO_SHA"     >> "$GITHUB_OUTPUT"
 
-      - name: Rewrite Package.swift for remote binary targets
+      - name: Create GitHub Release in Swift distro repository
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          gh release create "$TAG" \
+            packages/swift/AlgoKitUtils/Frameworks/algokit_transact.xcframework.zip \
+            packages/swift/AlgoKitUtils/Frameworks/algokit_crypto.xcframework.zip \
+            --repo "$SWIFT_DISTRO_REPOSITORY" \
+            --title "$TAG" \
+            --generate-notes
+
+      - name: Checkout Swift distro repository
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ env.SWIFT_DISTRO_REPOSITORY }}
+          token: ${{ steps.app-token.outputs.token }}
+          path: ${{ env.SWIFT_DISTRO_DIR }}
+          fetch-depth: 0
+
+      - name: Sync Swift sources and tests into distro repository
+        run: |
+          rsync -a --delete packages/swift/AlgoKitUtils/Sources/ "$SWIFT_DISTRO_DIR/Sources/"
+          rsync -a --delete packages/swift/AlgoKitUtils/Tests/ "$SWIFT_DISTRO_DIR/Tests/"
+
+      - name: Rewrite distro Package.swift for remote binary targets
         env:
           TRANSACT_SHA: ${{ steps.checksums.outputs.transact }}
           CRYPTO_SHA: ${{ steps.checksums.outputs.crypto }}
-          RELEASE_BASE: ${{ github.server_url }}/${{ github.repository }}/releases/download/${{ env.TAG }}
+          RELEASE_BASE: ${{ github.server_url }}/${{ env.SWIFT_DISTRO_REPOSITORY }}/releases/download/${{ env.TAG }}
         run: |
           python3 - <<'PY'
           import os, re
 
-          path = "packages/swift/AlgoKitUtils/Package.swift"
+          path = os.path.join(os.environ["SWIFT_DISTRO_DIR"], "Package.swift")
           src = open(path).read()
           base = os.environ["RELEASE_BASE"]
 
@@ -75,41 +109,30 @@ jobs:
                   f'    )'
               )
 
-          src = re.sub(
-              r'    \.binaryTarget\(\s*name: "algokit_transactFFI",\s*path: "Frameworks/algokit_transact\.xcframework"\s*\)',
-              remote("algokit_transactFFI", os.environ["TRANSACT_SHA"], "algokit_transact.xcframework.zip"),
-              src,
-          )
-          src = re.sub(
-              r'    \.binaryTarget\(\s*name: "algokit_cryptoFFI",\s*path: "Frameworks/algokit_crypto\.xcframework"\s*\)',
-              remote("algokit_cryptoFFI", os.environ["CRYPTO_SHA"], "algokit_crypto.xcframework.zip"),
-              src,
-          )
+          targets = [
+              ("algokit_transactFFI", os.environ["TRANSACT_SHA"], "algokit_transact.xcframework.zip"),
+              ("algokit_cryptoFFI", os.environ["CRYPTO_SHA"], "algokit_crypto.xcframework.zip"),
+          ]
+
+          for name, sha, zip_name in targets:
+              pattern = rf'    \.binaryTarget\(\s*name: "{re.escape(name)}",[\s\S]*?\n    \)'
+              src, count = re.subn(pattern, remote(name, sha, zip_name), src, count=1)
+              if count != 1:
+                  raise RuntimeError(f"expected exactly one binary target named {name}, got {count}")
 
           open(path, "w").write(src)
           PY
 
-      - name: Create release branch with rewritten manifest
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Update distro main and tag
+        working-directory: ${{ env.SWIFT_DISTRO_DIR }}
         run: |
-          BRANCH="release/${TAG}"
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -b "$BRANCH"
-          git add packages/swift/AlgoKitUtils/Package.swift
-          git commit -m "release($TAG): pin Swift binary targets to release URLs"
-          # Move the tag to this release commit so SwiftPM consumers resolve the rewritten manifest.
+          git checkout main
+          git pull --ff-only origin main
+          git add Package.swift Sources Tests
+          git commit -m "release($TAG): update Swift distro package"
+          # Move the tag to this main commit so SwiftPM consumers resolve the rewritten manifest.
           git tag -f "$TAG"
-          git push origin "$BRANCH"
+          git push origin main
           git push origin "$TAG" --force
-
-      - name: Create GitHub Release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release create "$TAG" \
-            packages/swift/AlgoKitUtils/Frameworks/algokit_transact.xcframework.zip \
-            packages/swift/AlgoKitUtils/Frameworks/algokit_crypto.xcframework.zip \
-            --title "$TAG" \
-            --generate-notes
