@@ -63,6 +63,17 @@ jobs:
           echo "transact=$TRANSACT_SHA" >> "$GITHUB_OUTPUT"
           echo "crypto=$CRYPTO_SHA"     >> "$GITHUB_OUTPUT"
 
+      - name: Create GitHub Release in Swift distro repository
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          gh release create "$TAG" \
+            packages/swift/AlgoKitUtils/Frameworks/algokit_transact.xcframework.zip \
+            packages/swift/AlgoKitUtils/Frameworks/algokit_crypto.xcframework.zip \
+            --repo "$SWIFT_DISTRO_REPOSITORY" \
+            --title "$TAG" \
+            --generate-notes
+
       - name: Checkout Swift distro repository
         uses: actions/checkout@v6
         with:
@@ -70,6 +81,11 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           path: ${{ env.SWIFT_DISTRO_DIR }}
           fetch-depth: 0
+
+      - name: Sync Swift sources and tests into distro repository
+        run: |
+          rsync -a --delete packages/swift/AlgoKitUtils/Sources/ "$SWIFT_DISTRO_DIR/Sources/"
+          rsync -a --delete packages/swift/AlgoKitUtils/Tests/ "$SWIFT_DISTRO_DIR/Tests/"
 
       - name: Rewrite distro Package.swift for remote binary targets
         env:
@@ -112,27 +128,16 @@ jobs:
           open(path, "w").write(src)
           PY
 
-      - name: Create distro release branch with rewritten manifest
+      - name: Update distro Package.swift tag
         working-directory: ${{ env.SWIFT_DISTRO_DIR }}
         run: |
           BRANCH="release/${TAG}"
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -B "$BRANCH"
-          git add Package.swift
-          git commit -m "release($TAG): pin Swift binary targets to release URLs"
+          git add Package.swift Sources Tests
+          git commit -m "release($TAG): update Swift distro package"
           # Move the tag to this release commit so SwiftPM consumers resolve the rewritten manifest.
           git tag -f "$TAG"
           git push origin "$BRANCH" --force-with-lease
           git push origin "$TAG" --force
-
-      - name: Create GitHub Release in Swift distro repository
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: |
-          gh release create "$TAG" \
-            packages/swift/AlgoKitUtils/Frameworks/algokit_transact.xcframework.zip \
-            packages/swift/AlgoKitUtils/Frameworks/algokit_crypto.xcframework.zip \
-            --repo "$SWIFT_DISTRO_REPOSITORY" \
-            --title "$TAG" \
-            --generate-notes
