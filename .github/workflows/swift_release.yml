@@ -3,11 +3,11 @@ name: Swift Release
 on:
   push:
     tags:
-      - 'swift-v*'
+      - 'v*'
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag to release (must already exist, e.g. swift-v1.0.0)'
+        description: 'Tag to release (must already exist, e.g. v1.0.0)'
         required: true
         type: string
 
@@ -22,7 +22,17 @@ jobs:
         shell: bash
     env:
       TAG: ${{ inputs.tag || github.ref_name }}
+      SWIFT_DISTRO_REPOSITORY: algorandecosystem/algokit-core-swift
+      SWIFT_DISTRO_DIR: swift-distro
     steps:
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ secrets.BOT_ID }}
+          private-key: ${{ secrets.BOT_SK }}
+          owner: algorandecosystem
+          repositories: algokit-core-swift
+
       - uses: actions/checkout@v6
         with:
           ref: ${{ env.TAG }}
@@ -31,7 +41,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: 1.85.0
-          targets: aarch64-apple-ios, x86_64-apple-ios, aarch64-apple-ios-sim, x86_64-apple-ios-sim, aarch64-apple-ios-macabi, x86_64-apple-ios-macabi, aarch64-apple-darwin, x86_64-apple-darwin
+          targets: aarch64-apple-ios, x86_64-apple-ios, aarch64-apple-ios-sim, aarch64-apple-ios-macabi, x86_64-apple-ios-macabi, aarch64-apple-darwin, x86_64-apple-darwin
 
       - name: Build xcframeworks
         run: |
@@ -53,16 +63,24 @@ jobs:
           echo "transact=$TRANSACT_SHA" >> "$GITHUB_OUTPUT"
           echo "crypto=$CRYPTO_SHA"     >> "$GITHUB_OUTPUT"
 
-      - name: Rewrite Package.swift for remote binary targets
+      - name: Checkout Swift distro repository
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ env.SWIFT_DISTRO_REPOSITORY }}
+          token: ${{ steps.app-token.outputs.token }}
+          path: ${{ env.SWIFT_DISTRO_DIR }}
+          fetch-depth: 0
+
+      - name: Rewrite distro Package.swift for remote binary targets
         env:
           TRANSACT_SHA: ${{ steps.checksums.outputs.transact }}
           CRYPTO_SHA: ${{ steps.checksums.outputs.crypto }}
-          RELEASE_BASE: ${{ github.server_url }}/${{ github.repository }}/releases/download/${{ env.TAG }}
+          RELEASE_BASE: ${{ github.server_url }}/${{ env.SWIFT_DISTRO_REPOSITORY }}/releases/download/${{ env.TAG }}
         run: |
           python3 - <<'PY'
           import os, re
 
-          path = "packages/swift/AlgoKitUtils/Package.swift"
+          path = os.path.join(os.environ["SWIFT_DISTRO_DIR"], "Package.swift")
           src = open(path).read()
           base = os.environ["RELEASE_BASE"]
 
@@ -75,41 +93,46 @@ jobs:
                   f'    )'
               )
 
-          src = re.sub(
-              r'    \.binaryTarget\(\s*name: "algokit_transactFFI",\s*path: "Frameworks/algokit_transact\.xcframework"\s*\)',
-              remote("algokit_transactFFI", os.environ["TRANSACT_SHA"], "algokit_transact.xcframework.zip"),
-              src,
-          )
-          src = re.sub(
-              r'    \.binaryTarget\(\s*name: "algokit_cryptoFFI",\s*path: "Frameworks/algokit_crypto\.xcframework"\s*\)',
-              remote("algokit_cryptoFFI", os.environ["CRYPTO_SHA"], "algokit_crypto.xcframework.zip"),
-              src,
-          )
+          replacements = [
+              (
+                  r'    \.binaryTarget\(\s*name: "algokit_transactFFI",\s*path: "Frameworks/algokit_transact\.xcframework"\s*\)',
+                  remote("algokit_transactFFI", os.environ["TRANSACT_SHA"], "algokit_transact.xcframework.zip"),
+              ),
+              (
+                  r'    \.binaryTarget\(\s*name: "algokit_cryptoFFI",\s*path: "Frameworks/algokit_crypto\.xcframework"\s*\)',
+                  remote("algokit_cryptoFFI", os.environ["CRYPTO_SHA"], "algokit_crypto.xcframework.zip"),
+              ),
+          ]
+
+          for pattern, replacement in replacements:
+              src, count = re.subn(pattern, replacement, src)
+              if count != 1:
+                  raise RuntimeError(f"expected exactly one replacement for {pattern}, got {count}")
 
           open(path, "w").write(src)
           PY
 
-      - name: Create release branch with rewritten manifest
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create distro release branch with rewritten manifest
+        working-directory: ${{ env.SWIFT_DISTRO_DIR }}
         run: |
           BRANCH="release/${TAG}"
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -b "$BRANCH"
-          git add packages/swift/AlgoKitUtils/Package.swift
+          git checkout -B "$BRANCH"
+          git add Package.swift
           git commit -m "release($TAG): pin Swift binary targets to release URLs"
           # Move the tag to this release commit so SwiftPM consumers resolve the rewritten manifest.
           git tag -f "$TAG"
-          git push origin "$BRANCH"
+          git push origin "$BRANCH" --force-with-lease
           git push origin "$TAG" --force
 
-      - name: Create GitHub Release
+      - name: Create GitHub Release in Swift distro repository
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           gh release create "$TAG" \
             packages/swift/AlgoKitUtils/Frameworks/algokit_transact.xcframework.zip \
             packages/swift/AlgoKitUtils/Frameworks/algokit_crypto.xcframework.zip \
+            --repo "$SWIFT_DISTRO_REPOSITORY" \
             --title "$TAG" \
             --generate-notes
