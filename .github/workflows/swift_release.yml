@@ -25,7 +25,7 @@ jobs:
       SWIFT_DISTRO_REPOSITORY: algorandecosystem/algokit-core-swift
       SWIFT_DISTRO_DIR: swift-distro
     steps:
-      - uses: actions/create-github-app-token@v1
+      - uses: actions/create-github-app-token@v3
         id: app-token
         with:
           app-id: ${{ secrets.BOT_ID }}
