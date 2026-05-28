@@ -1,4 +1,4 @@
-name: Swift Release
+name: Swift (Distro) Release
 
 on:
   push:
