@@ -9,6 +9,7 @@
  */
 
 use crate::models;
+use crate::models::NonAsciiString;
 use serde::{Deserialize, Serialize};
 
 use algokit_transact::AlgorandMsgpack;
@@ -21,8 +22,8 @@ pub struct BlockEvalDelta {
     #[serde(rename = "at")]
     pub action: u32,
     /// [bs] bytes value.
-    #[serde(rename = "bs", skip_serializing_if = "Option::is_none")]
-    pub bytes: Option<String>,
+    #[serde(default, rename = "bs", skip_serializing_if = "Option::is_none")]
+    pub bytes: Option<NonAsciiString>,
     /// [ui] uint value.
     #[serde(rename = "ui", skip_serializing_if = "Option::is_none")]
     pub uint: Option<u64>,

@@ -13,5 +13,7 @@ use std::collections::HashMap;
 
 use crate::models::BlockEvalDelta;
 
+use crate::models::NonAsciiString;
+
 /// BlockStateDelta is a map keyed by state key to BlockEvalDelta.
-pub type BlockStateDelta = HashMap<String, BlockEvalDelta>;
+pub type BlockStateDelta = HashMap<NonAsciiString, BlockEvalDelta>;
