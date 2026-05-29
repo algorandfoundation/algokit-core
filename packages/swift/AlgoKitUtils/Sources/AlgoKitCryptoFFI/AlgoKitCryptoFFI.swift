@@ -400,6 +400,38 @@ fileprivate final class UniffiHandleMap<T>: @unchecked Sendable {
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
+fileprivate struct FfiConverterUInt32: FfiConverterPrimitive {
+    typealias FfiType = UInt32
+    typealias SwiftType = UInt32
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> UInt32 {
+        return try lift(readInt(&buf))
+    }
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterUInt64: FfiConverterPrimitive {
+    typealias FfiType = UInt64
+    typealias SwiftType = UInt64
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> UInt64 {
+        return try lift(readInt(&buf))
+    }
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterString: FfiConverter {
     typealias SwiftType = String
     typealias FfiType = RustBuffer
@@ -455,6 +487,160 @@ fileprivate struct FfiConverterData: FfiConverterRustBuffer {
         writeBytes(&buf, value)
     }
 }
+
+
+public struct MnemonicError {
+    public var kind: MnemonicErrorKind
+    public var expected: UInt64?
+    public var found: UInt64?
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(kind: MnemonicErrorKind, expected: UInt64?, found: UInt64?) {
+        self.kind = kind
+        self.expected = expected
+        self.found = found
+    }
+}
+
+#if compiler(>=6)
+extension MnemonicError: Sendable {}
+#endif
+
+
+extension MnemonicError: Equatable, Hashable {
+    public static func ==(lhs: MnemonicError, rhs: MnemonicError) -> Bool {
+        if lhs.kind != rhs.kind {
+            return false
+        }
+        if lhs.expected != rhs.expected {
+            return false
+        }
+        if lhs.found != rhs.found {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(kind)
+        hasher.combine(expected)
+        hasher.combine(found)
+    }
+}
+
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeMnemonicError: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> MnemonicError {
+        return
+            try MnemonicError(
+                kind: FfiConverterTypeMnemonicErrorKind.read(from: &buf), 
+                expected: FfiConverterOptionUInt64.read(from: &buf), 
+                found: FfiConverterOptionUInt64.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: MnemonicError, into buf: inout [UInt8]) {
+        FfiConverterTypeMnemonicErrorKind.write(value.kind, into: &buf)
+        FfiConverterOptionUInt64.write(value.expected, into: &buf)
+        FfiConverterOptionUInt64.write(value.found, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeMnemonicError_lift(_ buf: RustBuffer) throws -> MnemonicError {
+    return try FfiConverterTypeMnemonicError.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeMnemonicError_lower(_ value: MnemonicError) -> RustBuffer {
+    return FfiConverterTypeMnemonicError.lower(value)
+}
+
+
+public enum AlgoKitAlgo25Error: Swift.Error {
+
+    
+    
+    case Error(errMsg: String
+    )
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeAlgoKitAlgo25Error: FfiConverterRustBuffer {
+    typealias SwiftType = AlgoKitAlgo25Error
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> AlgoKitAlgo25Error {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+
+        
+
+        
+        case 1: return .Error(
+            errMsg: try FfiConverterString.read(from: &buf)
+            )
+
+         default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: AlgoKitAlgo25Error, into buf: inout [UInt8]) {
+        switch value {
+
+        
+
+        
+        
+        case let .Error(errMsg):
+            writeInt(&buf, Int32(1))
+            FfiConverterString.write(errMsg, into: &buf)
+            
+        }
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeAlgoKitAlgo25Error_lift(_ buf: RustBuffer) throws -> AlgoKitAlgo25Error {
+    return try FfiConverterTypeAlgoKitAlgo25Error.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeAlgoKitAlgo25Error_lower(_ value: AlgoKitAlgo25Error) -> RustBuffer {
+    return FfiConverterTypeAlgoKitAlgo25Error.lower(value)
+}
+
+
+extension AlgoKitAlgo25Error: Equatable, Hashable {}
+
+
+
+
+extension AlgoKitAlgo25Error: Foundation.LocalizedError {
+    public var errorDescription: String? {
+        String(reflecting: self)
+    }
+}
+
+
+
 
 
 /**
@@ -534,6 +720,107 @@ extension AlgoKitCryptoError: Foundation.LocalizedError {
 
 
 
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+
+public enum MnemonicErrorKind {
+    
+    case invalidSeedLength
+    case notInWordsList
+    case failedToDecodeMnemonic
+}
+
+
+#if compiler(>=6)
+extension MnemonicErrorKind: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeMnemonicErrorKind: FfiConverterRustBuffer {
+    typealias SwiftType = MnemonicErrorKind
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> MnemonicErrorKind {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .invalidSeedLength
+        
+        case 2: return .notInWordsList
+        
+        case 3: return .failedToDecodeMnemonic
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: MnemonicErrorKind, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case .invalidSeedLength:
+            writeInt(&buf, Int32(1))
+        
+        
+        case .notInWordsList:
+            writeInt(&buf, Int32(2))
+        
+        
+        case .failedToDecodeMnemonic:
+            writeInt(&buf, Int32(3))
+        
+        }
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeMnemonicErrorKind_lift(_ buf: RustBuffer) throws -> MnemonicErrorKind {
+    return try FfiConverterTypeMnemonicErrorKind.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeMnemonicErrorKind_lower(_ value: MnemonicErrorKind) -> RustBuffer {
+    return FfiConverterTypeMnemonicErrorKind.lower(value)
+}
+
+
+extension MnemonicErrorKind: Equatable, Hashable {}
+
+
+
+
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterOptionUInt64: FfiConverterRustBuffer {
+    typealias SwiftType = UInt64?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterUInt64.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterUInt64.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
 public func ed25519PublicKeyFromSeed(seed: Data)throws  -> Data  {
     return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeAlgoKitCryptoError_lift) {
     uniffi_algokit_crypto_ffi_fn_func_ed25519_public_key_from_seed(
@@ -546,6 +833,51 @@ public func ed25519RawSign(secretKey: Data, data: Data)throws  -> Data  {
     uniffi_algokit_crypto_ffi_fn_func_ed25519_raw_sign(
         FfiConverterData.lower(secretKey),
         FfiConverterData.lower(data),$0
+    )
+})
+}
+public func masterDerivationKeyToMnemonic(mdk: Data)throws  -> String  {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeAlgoKitAlgo25Error_lift) {
+    uniffi_algokit_crypto_ffi_fn_func_master_derivation_key_to_mnemonic(
+        FfiConverterData.lower(mdk),$0
+    )
+})
+}
+public func mnemonicFromSeed(seed: Data)throws  -> String  {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeAlgoKitAlgo25Error_lift) {
+    uniffi_algokit_crypto_ffi_fn_func_mnemonic_from_seed(
+        FfiConverterData.lower(seed),$0
+    )
+})
+}
+public func mnemonicToMasterDerivationKey(mnemonic: String)throws  -> Data  {
+    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeAlgoKitAlgo25Error_lift) {
+    uniffi_algokit_crypto_ffi_fn_func_mnemonic_to_master_derivation_key(
+        FfiConverterString.lower(mnemonic),$0
+    )
+})
+}
+/**
+ * Generate random bytes from the operating system's random number generator
+ */
+public func randomBytes(len: UInt32)throws  -> Data  {
+    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeAlgoKitCryptoError_lift) {
+    uniffi_algokit_crypto_ffi_fn_func_random_bytes(
+        FfiConverterUInt32.lower(len),$0
+    )
+})
+}
+public func secretKeyToMnemonic(secretKey: Data)throws  -> String  {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeAlgoKitAlgo25Error_lift) {
+    uniffi_algokit_crypto_ffi_fn_func_secret_key_to_mnemonic(
+        FfiConverterData.lower(secretKey),$0
+    )
+})
+}
+public func seedFromMnemonic(mnemonic: String)throws  -> Data  {
+    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeAlgoKitAlgo25Error_lift) {
+    uniffi_algokit_crypto_ffi_fn_func_seed_from_mnemonic(
+        FfiConverterString.lower(mnemonic),$0
     )
 })
 }
@@ -569,6 +901,24 @@ private let initializationResult: InitializationResult = {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_algokit_crypto_ffi_checksum_func_ed25519_raw_sign() != 65210) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_algokit_crypto_ffi_checksum_func_master_derivation_key_to_mnemonic() != 64790) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_algokit_crypto_ffi_checksum_func_mnemonic_from_seed() != 6770) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_algokit_crypto_ffi_checksum_func_mnemonic_to_master_derivation_key() != 41865) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_algokit_crypto_ffi_checksum_func_random_bytes() != 59429) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_algokit_crypto_ffi_checksum_func_secret_key_to_mnemonic() != 64151) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_algokit_crypto_ffi_checksum_func_seed_from_mnemonic() != 21226) {
         return InitializationResult.apiChecksumMismatch
     }
 

@@ -2,44 +2,7 @@ name: Swift CI
 
 on:
   workflow_call:
-    inputs:
-      crate:
-        description: "Crate name to build Swift package from"
-        required: true
-        type: string
-      package:
-        description: "Swift package (Xcode scheme) name"
-        required: true
-        type: string
-      release:
-        description: "Whether to commit generated package (push only)"
-        required: false
-        type: boolean
-        default: false
   workflow_dispatch:
-    inputs:
-      crate:
-        description: "Crate name"
-        required: true
-        type: string
-        default: algokit_transact
-      package:
-        description: "Swift package name"
-        required: true
-        type: string
-        default: AlgoKitTransact
-      release:
-        description: "Commit generated package"
-        required: false
-        type: boolean
-        default: false
-
-permissions:
-  contents: write
-
-env:
-  CRATE: ${{ inputs.crate }}
-  PACKAGE: ${{ inputs.package }}
 
 jobs:
   build_and_test:
@@ -52,9 +15,12 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: 1.85.0
-          targets: aarch64-apple-ios, x86_64-apple-ios, aarch64-apple-ios-sim, x86_64-apple-ios, aarch64-apple-ios-macabi, x86_64-apple-ios-macabi, aarch64-apple-darwin, x86_64-apple-darwin
-      - name: Build
-        run: cargo pkg ${{ env.CRATE }} swift
+          targets: aarch64-apple-ios, x86_64-apple-ios, aarch64-apple-ios-sim, aarch64-apple-ios-macabi, x86_64-apple-ios-macabi, aarch64-apple-darwin, x86_64-apple-darwin
+
+      - name: Build xcframeworks
+        run: |
+          cargo pkg transact swift
+          cargo pkg crypto swift
 
       # Ideally we'd use a matrix for the platforms, but due to the limitations of Mac runners on GitHub it's probably better to just have a single job with multiple steps
       - name: Detect iOS simulator
@@ -93,17 +59,17 @@ jobs:
           echo "destination=id=${DEST_ID}" >> "$GITHUB_OUTPUT"
 
       - name: Test (iOS)
-        run: cd packages/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "${{ steps.ios_sim.outputs.destination }}"
+        run: cd packages/swift/AlgoKitUtils && xcodebuild -scheme AlgoKitUtils-Package test -destination "${{ steps.ios_sim.outputs.destination }}"
       - name: Test (macOS)
-        run: cd packages/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=macOS"
+        run: cd packages/swift/AlgoKitUtils && xcodebuild -scheme AlgoKitUtils-Package test -destination "platform=macOS"
       - name: Test (Catalyst)
-        run: cd packages/swift/${{ env.PACKAGE }} && xcodebuild -scheme ${{ env.PACKAGE }} test -destination "platform=macOS,variant=Mac Catalyst"
+        run: cd packages/swift/AlgoKitUtils && xcodebuild -scheme AlgoKitUtils-Package test -destination "platform=macOS,variant=Mac Catalyst"
 
       - name: Zip Swift package
-        run: cd packages/swift && zip -r ${{ env.PACKAGE }}.zip ${{ env.PACKAGE }} -x "${{ env.PACKAGE }}/.build/*"
+        run: cd packages/swift && zip -r AlgoKitUtils.zip AlgoKitUtils -x "AlgoKitUtils/.build/*"
 
       - name: Upload Swift package artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.PACKAGE }}
-          path: packages/swift/${{ env.PACKAGE }}.zip
+          name: AlgoKitUtils
+          path: packages/swift/AlgoKitUtils.zip

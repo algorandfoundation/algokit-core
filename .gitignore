@@ -41,4 +41,8 @@ packages/python**/*.so
 packages/python**/*.dylib
 packages/python**/*.whl
 
+# Swift / SwiftPM
 packages/swift/**/Frameworks
+packages/swift/**/.swiftpm/
+packages/swift/**/xcuserdata/
+packages/swift/**/.netrc

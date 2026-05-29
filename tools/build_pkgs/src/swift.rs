@@ -1,7 +1,9 @@
 use color_eyre::eyre::{Context, Result};
 
 use crate::{Package, run};
-use convert_case::{Case, Casing};
+
+/// Destination SwiftPM package directory for all Swift build outputs.
+const SWIFT_PACKAGE_DIR: &str = "packages/swift/AlgoKitUtils";
 
 pub fn build(package: &Package) -> Result<()> {
     let crate_name = package.crate_name();
@@ -68,13 +70,12 @@ pub fn build(package: &Package) -> Result<()> {
         ));
     }
 
-    let swift_package = package.to_string().to_case(Case::Pascal);
+    let swift_module = package.swift_module_name();
+    let binding_module = format!("{swift_module}FFI");
 
-    create_xcf_cmd +=
-        &format!(" -output packages/swift/{swift_package}/Frameworks/{package}.xcframework");
+    create_xcf_cmd += &format!(" -output {SWIFT_PACKAGE_DIR}/Frameworks/{package}.xcframework");
 
-    let xcframework_path =
-        format!("packages/swift/{swift_package}/Frameworks/{package}.xcframework");
+    let xcframework_path = format!("{SWIFT_PACKAGE_DIR}/Frameworks/{package}.xcframework");
 
     if std::path::Path::new(&xcframework_path).exists() {
         std::fs::remove_dir_all(&xcframework_path)
@@ -116,21 +117,55 @@ pub fn build(package: &Package) -> Result<()> {
 
     run(&create_xcf_cmd, None, None).context("Failed to create xcframework")?;
 
+    nest_xcframework_headers(&xcframework_path, &format!("{package}FFI"))
+        .context("Failed to nest xcframework headers under per-module subdir")?;
+
     std::fs::rename(
         format!("target/debug/swift/{package}/{package}.swift"),
-        format!("packages/swift/{swift_package}/Sources/{swift_package}/{swift_package}.swift"),
+        format!("{SWIFT_PACKAGE_DIR}/Sources/{binding_module}/{binding_module}.swift"),
     )
     .context("Failed to rename Swift file")?;
 
-    if crate_name == "algokit_transact" {
+    if matches!(package, Package::Transact) {
         std::fs::copy(
-            format!("crates/{}/test_data.json", crate_name),
-            format!(
-                "packages/swift/{swift_package}/Tests/AlgoKitTransactTests/Resources/test_data.json"
-            ),
+            format!("crates/{crate_name}/test_data.json"),
+            format!("{SWIFT_PACKAGE_DIR}/Tests/AlgoKitTransactTests/Resources/test_data.json"),
         )
         .context("Failed to copy test data file")?;
     }
 
+    Ok(())
+}
+
+/// Move each slice's `module.modulemap` and `<module>.h` into a
+/// `Headers/<module>/` subdir so multiple xcframeworks don't collide on the
+/// `module.modulemap` filename when linked into the same Apple app.
+fn nest_xcframework_headers(xcframework_path: &str, module_name: &str) -> Result<()> {
+    for slice in std::fs::read_dir(xcframework_path)? {
+        let slice = slice?;
+        if !slice.file_type()?.is_dir() {
+            continue;
+        }
+        let headers_dir = slice.path().join("Headers");
+        if !headers_dir.exists() {
+            continue;
+        }
+        let nested_dir = headers_dir.join(module_name);
+        std::fs::create_dir_all(&nested_dir)?;
+
+        for entry in std::fs::read_dir(&headers_dir)? {
+            let entry = entry?;
+            let name = entry.file_name();
+            if name == std::ffi::OsStr::new(module_name) {
+                continue;
+            }
+            if name != std::ffi::OsStr::new("module.modulemap")
+                && name != std::ffi::OsStr::new(&format!("{module_name}.h"))
+            {
+                continue;
+            }
+            std::fs::rename(entry.path(), nested_dir.join(&name))?;
+        }
+    }
     Ok(())
 }
