@@ -39,12 +39,14 @@ pub trait AlgorandMsgpack: Serialize + for<'de> Deserialize<'de> {
         self.serialize(&mut temp_serializer)?;
 
         // Deserialize into a Value and sort recursively
-        let value = rmpv::decode::read_value(&mut temp_buf.as_slice())?;
+        let value = rmpv::decode::read_value(&mut temp_buf.as_slice())
+            .expect("value that was just serialized should deserialize");
         let sorted_value = sort_msgpack_value(value)?;
 
         // Serialize the sorted value
         let mut final_buf = Vec::new();
-        rmpv::encode::write_value(&mut final_buf, &sorted_value)?;
+        rmpv::encode::write_value(&mut final_buf, &sorted_value)
+            .expect("value that was just sorted should serialize");
 
         Ok(final_buf)
     }
@@ -74,9 +76,13 @@ pub trait AlgorandMsgpack: Serialize + for<'de> Deserialize<'de> {
             && &bytes[..Self::PREFIX.len()] == Self::PREFIX
         {
             let without_prefix = &bytes[Self::PREFIX.len()..];
-            Ok(rmp_serde::from_slice(without_prefix)?)
+            Ok(serde_path_to_error::deserialize(
+                &mut rmp_serde::Deserializer::new(std::io::Cursor::new(without_prefix)),
+            )?)
         } else {
-            Ok(rmp_serde::from_slice(bytes)?)
+            Ok(serde_path_to_error::deserialize(
+                &mut rmp_serde::Deserializer::new(std::io::Cursor::new(bytes)),
+            )?)
         }
     }
 

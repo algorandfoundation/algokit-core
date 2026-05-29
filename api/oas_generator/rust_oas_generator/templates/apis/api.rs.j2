@@ -100,7 +100,7 @@ pub async fn {{ operation.rust_function_name }}(
         match content_type {
             ContentType::Json => {
                 let content = resp.text().await?;
-                serde_json::from_str(&content).map_err(Error::from)
+                serde_path_to_error::deserialize(&mut serde_json::Deserializer::from_str(&content)).map_err(Error::from)
             },
             ContentType::Text => Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `{{ get_success_response_type(operation) }}`"))),
             ContentType::Unsupported(unknown_type) => Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `{{ get_success_response_type(operation) }}`")))),

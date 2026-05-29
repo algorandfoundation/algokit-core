@@ -496,9 +496,11 @@ pub struct Arc56Contract {
 impl Arc56Contract {
     /// Create Arc56Contract from JSON string
     pub fn from_json(json_str: &str) -> Result<Self, ABIError> {
-        serde_json::from_str(json_str).map_err(|e| ABIError::ValidationError {
-            message: format!("Failed to parse ARC-56 JSON: {}", e),
-        })
+        serde_path_to_error::deserialize(&mut serde_json::Deserializer::from_str(json_str)).map_err(
+            |e| ABIError::ValidationError {
+                message: format!("Failed to parse ARC-56 JSON: {}", e),
+            },
+        )
     }
 
     /// Convert Arc56Contract to JSON string with optional indentation
