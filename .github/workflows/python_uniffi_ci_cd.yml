@@ -41,7 +41,7 @@ jobs:
       run:
         working-directory: ${{ env.PACKAGE_DIR }}
     steps:
-      - uses: actions/create-github-app-token@v1
+      - uses: actions/create-github-app-token@v3
         if: inputs.release
         id: app_token
         with:
@@ -256,7 +256,7 @@ jobs:
       run:
         working-directory: ${{ env.PACKAGE_DIR }}
     steps:
-      - uses: actions/create-github-app-token@v1
+      - uses: actions/create-github-app-token@v3
         id: app_token
         with:
           app-id: ${{ secrets.BOT_ID }}
@@ -294,7 +294,7 @@ jobs:
       - linux_build_and_test
       - release
     steps:
-      - uses: actions/create-github-app-token@v1
+      - uses: actions/create-github-app-token@v3
         id: app_token
         with:
           app-id: ${{ secrets.BOT_ID }}

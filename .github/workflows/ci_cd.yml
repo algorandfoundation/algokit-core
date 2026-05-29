@@ -78,16 +78,7 @@ jobs:
           PY
 
   swift_ci:
-    needs:
-      - setup
     uses: ./.github/workflows/swift_ci.yml
-    strategy:
-      matrix:
-        include: ${{ fromJSON(needs.setup.outputs.ffi_packages) }}
-    with:
-      crate: ${{ matrix.crate_name }}
-      package: ${{ matrix.swift_package }}
-      release: ${{ github.event_name == 'push' }}
 
   android_ci:
     needs:
