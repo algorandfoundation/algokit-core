@@ -44,16 +44,16 @@ enum Commands {
     /// Generate both algod and indexer API clients
     #[command(name = "generate-all")]
     GenerateAll,
-    /// Convert OpenAPI specifications (both algod and indexer)
+    /// Fetch all OAS3 specs (algod, indexer, kmd) from the pinned upstream commit
     #[command(name = "convert-openapi")]
     ConvertOpenapi,
-    /// Convert algod OpenAPI specification only
+    /// Fetch the algod OAS3 spec from the pinned upstream commit
     #[command(name = "convert-algod")]
     ConvertAlgod,
-    /// Convert indexer OpenAPI specification only
+    /// Fetch the indexer OAS3 spec from the pinned upstream commit
     #[command(name = "convert-indexer")]
     ConvertIndexer,
-    /// Convert kmd OpenAPI specification only
+    /// Fetch the kmd OAS3 spec from the pinned upstream commit
     #[command(name = "convert-kmd")]
     ConvertKmd,
 }
@@ -145,6 +145,23 @@ fn generate_rs_client(config: &RsClientConfig) -> Result<()> {
     Ok(())
 }
 
+/// Pinned `algokit-oas-generator` commit we consume specs from. Bump in sync with
+/// `api/specs/.oas-generator-sha`, then re-run `convert-openapi`.
+const OAS_GENERATOR_SHA: &str = "60ac9cc6fcb33a5fd375f724cc6f54146072eb56";
+
+/// Fetch one OAS3 spec from the pinned upstream commit into `api/specs/`.
+fn fetch_spec(spec: &str) -> Result<()> {
+    let url = format!(
+        "https://raw.githubusercontent.com/algorandfoundation/algokit-oas-generator/{OAS_GENERATOR_SHA}/specs/{spec}.oas3.json"
+    );
+
+    run(
+        &format!("curl -fsSL {url} -o api/specs/{spec}.oas3.json"),
+        None,
+        None,
+    )
+}
+
 fn execute_command(command: &Commands) -> Result<()> {
     match command {
         Commands::TestOas => {
@@ -205,28 +222,18 @@ fn execute_command(command: &Commands) -> Result<()> {
             generate_rs_client(&KMD_RS_CLIENT)?;
         }
         Commands::ConvertOpenapi => {
-            run("npm run convert-openapi", Some(Path::new("api")), None)?;
+            fetch_spec("algod")?;
+            fetch_spec("indexer")?;
+            fetch_spec("kmd")?;
         }
         Commands::ConvertAlgod => {
-            run(
-                "npm run convert-openapi -- --algod-only",
-                Some(Path::new("api")),
-                None,
-            )?;
+            fetch_spec("algod")?;
         }
         Commands::ConvertIndexer => {
-            run(
-                "npm run convert-openapi -- --indexer-only",
-                Some(Path::new("api")),
-                None,
-            )?;
+            fetch_spec("indexer")?;
         }
         Commands::ConvertKmd => {
-            run(
-                "npm run convert-openapi -- --kmd-only",
-                Some(Path::new("api")),
-                None,
-            )?;
+            fetch_spec("kmd")?;
         }
     }
     Ok(())
