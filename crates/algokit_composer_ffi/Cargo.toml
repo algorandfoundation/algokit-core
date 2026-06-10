@@ -23,9 +23,3 @@ serde = { version = "1.0.216", features = ["derive"] }
 [dev-dependencies]
 algokit_transact = { path = "../algokit_transact", features = ["test_utils"] }
 pretty_assertions = "1.4.1"
-
-[build-dependencies]
-uniffi = { workspace = true, features = [
-  "build",
-  "scaffolding-ffi-buffer-fns",
-] }

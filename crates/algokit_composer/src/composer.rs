@@ -41,7 +41,7 @@ pub fn compose(
 ) -> Result<Vec<Transaction>, ComposerError> {
     let txns: Vec<Transaction> = txn_params
         .into_iter()
-        .map(|p| compose_one(p, &composer_params))
+        .map(|p| compose_transaction(p, &composer_params))
         .collect::<Result<Vec<_>, _>>()?;
 
     if txns.len() > 1 {
@@ -51,7 +51,10 @@ pub fn compose(
     }
 }
 
-fn compose_one(p: TxnParams, composer: &ComposerParams) -> Result<Transaction, ComposerError> {
+fn compose_transaction(
+    p: TxnParams,
+    composer: &ComposerParams,
+) -> Result<Transaction, ComposerError> {
     match p {
         TxnParams::Payment(payment) => compose_payment(payment, composer),
         TxnParams::AssetTransfer(transfer) => compose_asset_transfer(transfer, composer),

@@ -26,11 +26,11 @@ pub fn sign_transactions(
 
     txns.into_iter()
         .zip(secret_keys.into_iter().map(Zeroizing::new))
-        .map(|(txn, sk)| sign_one(&rt, txn, sk))
+        .map(|(txn, sk)| sign_transaction(&rt, txn, sk))
         .collect()
 }
 
-fn sign_one(
+fn sign_transaction(
     rt: &tokio::runtime::Runtime,
     txn: Transaction,
     secret_key: Zeroizing<Vec<u8>>,
