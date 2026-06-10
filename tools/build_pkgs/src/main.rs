@@ -51,6 +51,8 @@ enum Package {
     Transact,
     #[value(alias = "algokit_crypto")]
     Crypto,
+    #[value(alias = "algokit_composer")]
+    Composer,
 }
 
 impl Display for Package {
@@ -58,6 +60,7 @@ impl Display for Package {
         match self {
             Package::Transact => f.write_str("algokit_transact"),
             Package::Crypto => f.write_str("algokit_crypto"),
+            Package::Composer => f.write_str("algokit_composer"),
         }
     }
 }
@@ -67,6 +70,7 @@ impl Package {
         match self {
             Self::Transact => "algokit_transact_ffi",
             Self::Crypto => "algokit_crypto_ffi",
+            Self::Composer => "algokit_composer_ffi",
         }
         .to_string()
     }
@@ -80,6 +84,7 @@ impl Package {
         match self {
             Self::Transact => "AlgoKitTransact",
             Self::Crypto => "AlgoKitCrypto",
+            Self::Composer => "AlgoKitComposer",
         }
     }
 
