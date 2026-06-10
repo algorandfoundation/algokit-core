@@ -21,6 +21,7 @@ jobs:
         run: |
           cargo pkg transact swift
           cargo pkg crypto swift
+          cargo pkg composer swift
 
       # Ideally we'd use a matrix for the platforms, but due to the limitations of Mac runners on GitHub it's probably better to just have a single job with multiple steps
       - name: Detect iOS simulator

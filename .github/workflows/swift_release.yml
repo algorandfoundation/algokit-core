@@ -47,12 +47,14 @@ jobs:
         run: |
           cargo pkg transact swift
           cargo pkg crypto swift
+          cargo pkg composer swift
 
       - name: Zip xcframeworks
         working-directory: packages/swift/AlgoKitUtils/Frameworks
         run: |
           zip -r algokit_transact.xcframework.zip algokit_transact.xcframework
           zip -r algokit_crypto.xcframework.zip   algokit_crypto.xcframework
+          zip -r algokit_composer.xcframework.zip algokit_composer.xcframework
 
       - name: Compute SwiftPM checksums
         id: checksums
@@ -60,8 +62,10 @@ jobs:
         run: |
           TRANSACT_SHA=$(swift package compute-checksum Frameworks/algokit_transact.xcframework.zip)
           CRYPTO_SHA=$(swift package compute-checksum   Frameworks/algokit_crypto.xcframework.zip)
+          COMPOSER_SHA=$(swift package compute-checksum Frameworks/algokit_composer.xcframework.zip)
           echo "transact=$TRANSACT_SHA" >> "$GITHUB_OUTPUT"
           echo "crypto=$CRYPTO_SHA"     >> "$GITHUB_OUTPUT"
+          echo "composer=$COMPOSER_SHA" >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub Release in Swift distro repository
         env:
@@ -70,6 +74,7 @@ jobs:
           gh release create "$TAG" \
             packages/swift/AlgoKitUtils/Frameworks/algokit_transact.xcframework.zip \
             packages/swift/AlgoKitUtils/Frameworks/algokit_crypto.xcframework.zip \
+            packages/swift/AlgoKitUtils/Frameworks/algokit_composer.xcframework.zip \
             --repo "$SWIFT_DISTRO_REPOSITORY" \
             --title "$TAG" \
             --generate-notes
@@ -91,6 +96,7 @@ jobs:
         env:
           TRANSACT_SHA: ${{ steps.checksums.outputs.transact }}
           CRYPTO_SHA: ${{ steps.checksums.outputs.crypto }}
+          COMPOSER_SHA: ${{ steps.checksums.outputs.composer }}
           RELEASE_BASE: ${{ github.server_url }}/${{ env.SWIFT_DISTRO_REPOSITORY }}/releases/download/${{ env.TAG }}
         run: |
           python3 - <<'PY'
@@ -112,6 +118,7 @@ jobs:
           targets = [
               ("algokit_transactFFI", os.environ["TRANSACT_SHA"], "algokit_transact.xcframework.zip"),
               ("algokit_cryptoFFI", os.environ["CRYPTO_SHA"], "algokit_crypto.xcframework.zip"),
+              ("algokit_composerFFI", os.environ["COMPOSER_SHA"], "algokit_composer.xcframework.zip"),
           ]
 
           for name, sha, zip_name in targets:
