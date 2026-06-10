@@ -1,0 +1,25 @@
+[package]
+name = "algokit_composer_ffi"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[features]
+default = ["ffi_uniffi"]
+ffi_uniffi = ["dep:uniffi"]
+
+[dependencies]
+algokit_composer = { path = "../algokit_composer" }
+algokit_transact = { path = "../algokit_transact" }
+ffi_macros = { path = "../ffi_macros" }
+uniffi = { workspace = true, features = [
+  "scaffolding-ffi-buffer-fns",
+], optional = true }
+snafu.workspace = true
+serde = { version = "1.0.216", features = ["derive"] }
+
+[dev-dependencies]
+algokit_transact = { path = "../algokit_transact", features = ["test_utils"] }
+pretty_assertions = "1.4.1"
