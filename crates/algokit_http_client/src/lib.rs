@@ -48,6 +48,7 @@ pub struct HttpResponse {
     pub headers: HashMap<String, String>,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 #[cfg_attr(feature = "ffi_uniffi", uniffi::export(with_foreign))]
 #[async_trait]
 /// This trait must be implemented by any HTTP client that is used by our Rust crates.
@@ -55,6 +56,21 @@ pub struct HttpResponse {
 ///
 /// By default, this trait requires the implementing type to be `Send + Sync`.
 pub trait HttpClient: Send + Sync {
+    async fn request(
+        &self,
+        http_method: HttpMethod,
+        path: String,
+        query: Option<HashMap<String, String>>,
+        body: Option<Vec<u8>>,
+        headers: Option<HashMap<String, String>>,
+    ) -> Result<HttpResponse, HttpError>;
+}
+
+#[cfg(target_arch = "wasm32")]
+#[async_trait(?Send)]
+/// This trait must be implemented by any HTTP client that is used by our Rust crates.
+/// It is assumed the implementing type will provide the hostname, port, headers, etc. as needed for each request.
+pub trait HttpClient {
     async fn request(
         &self,
         http_method: HttpMethod,
@@ -112,9 +128,42 @@ impl DefaultHttpClient {
 }
 
 #[cfg(feature = "default_client")]
+#[cfg(not(target_arch = "wasm32"))]
 #[async_trait]
 impl HttpClient for DefaultHttpClient {
     async fn request(
+        &self,
+        method: HttpMethod,
+        path: String,
+        query: Option<HashMap<String, String>>,
+        body: Option<Vec<u8>>,
+        headers: Option<HashMap<String, String>>,
+    ) -> Result<HttpResponse, HttpError> {
+        self.perform_request(method, path, query, body, headers)
+            .await
+    }
+}
+
+#[cfg(feature = "default_client")]
+#[cfg(target_arch = "wasm32")]
+#[async_trait(?Send)]
+impl HttpClient for DefaultHttpClient {
+    async fn request(
+        &self,
+        method: HttpMethod,
+        path: String,
+        query: Option<HashMap<String, String>>,
+        body: Option<Vec<u8>>,
+        headers: Option<HashMap<String, String>>,
+    ) -> Result<HttpResponse, HttpError> {
+        self.perform_request(method, path, query, body, headers)
+            .await
+    }
+}
+
+#[cfg(feature = "default_client")]
+impl DefaultHttpClient {
+    async fn perform_request(
         &self,
         method: HttpMethod,
         path: String,

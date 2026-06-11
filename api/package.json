@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "convert-openapi": "tsx scripts/convert-openapi.ts",
-    "gen:ts": "cargo api generate-ts-all"
+    "gen:ts": "cargo api generate-all"
   },
   "devDependencies": {
     "@apidevtools/swagger-parser": "^11.0.0",
