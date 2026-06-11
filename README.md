@@ -20,6 +20,7 @@ The exported interfaces should be purely functional without any state owned by R
 
 - [algokit_transact](./crates/algokit_transact) - Handles msgpack encoding and decoding of Algorand transactions and allows attaching signatures to transactions.
 - [algokit_crypto](./crates/algokit_crypto) - Provides core cryptographic functionality, including Ed25519 signing primitives and Algo25 mnemonic support.
+- [algokit_composer](./crates/algokit_composer) - Builds, groups, and signs Algorand transactions from high-level parameters.
 
 ## ADRs
 
