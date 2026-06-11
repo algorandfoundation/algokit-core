@@ -87,48 +87,73 @@ jobs:
           path: ${{ env.SWIFT_DISTRO_DIR }}
           fetch-depth: 0
 
-      - name: Sync Swift sources and tests into distro repository
+      - name: Sync Swift package manifest, sources, and tests into distro repository
         run: |
+          cp packages/swift/AlgoKitUtils/Package.swift "$SWIFT_DISTRO_DIR/Package.swift"
           rsync -a --delete packages/swift/AlgoKitUtils/Sources/ "$SWIFT_DISTRO_DIR/Sources/"
           rsync -a --delete packages/swift/AlgoKitUtils/Tests/ "$SWIFT_DISTRO_DIR/Tests/"
 
-      - name: Rewrite distro Package.swift for remote binary targets
+      - name: Rewrite distro Package.swift binary targets to remote URLs
         env:
-          TRANSACT_SHA: ${{ steps.checksums.outputs.transact }}
-          CRYPTO_SHA: ${{ steps.checksums.outputs.crypto }}
-          COMPOSER_SHA: ${{ steps.checksums.outputs.composer }}
           RELEASE_BASE: ${{ github.server_url }}/${{ env.SWIFT_DISTRO_REPOSITORY }}/releases/download/${{ env.TAG }}
+          CHECKSUMS_JSON: |
+            {
+              "algokit_transact": "${{ steps.checksums.outputs.transact }}",
+              "algokit_crypto":   "${{ steps.checksums.outputs.crypto }}",
+              "algokit_composer": "${{ steps.checksums.outputs.composer }}"
+            }
         run: |
           python3 - <<'PY'
-          import os, re
+          import json, os, re, sys
 
           path = os.path.join(os.environ["SWIFT_DISTRO_DIR"], "Package.swift")
-          src = open(path).read()
           base = os.environ["RELEASE_BASE"]
+          checksums = json.loads(os.environ["CHECKSUMS_JSON"])
+          src = open(path).read()
 
-          def remote(name, sha, zip_name):
+          # Match a .binaryTarget(...) block with path: "Frameworks/<stem>.xcframework".
+          # Tolerates trailing commas after the path argument and indentation drift.
+          pattern = re.compile(
+              r'(?P<indent> *)\.binaryTarget\(\s*'
+              r'name:\s*"(?P<name>[^"]+)",\s*'
+              r'path:\s*"Frameworks/(?P<stem>[^"/]+)\.xcframework"\s*,?\s*\)'
+          )
+
+          rewritten = []
+
+          def replace(m):
+              indent, name, stem = m["indent"], m["name"], m["stem"]
+              if stem not in checksums:
+                  sys.exit(
+                      f"no checksum for xcframework '{stem}' (target '{name}'); "
+                      f"add it to CHECKSUMS_JSON in the workflow"
+                  )
+              sha = checksums[stem]
+              if not re.fullmatch(r"[0-9a-f]{64}", sha):
+                  sys.exit(f"checksum for '{stem}' is malformed: {sha!r}")
+              rewritten.append(name)
+              inner = indent + "  "
               return (
-                  f'    .binaryTarget(\n'
-                  f'      name: "{name}",\n'
-                  f'      url: "{base}/{zip_name}",\n'
-                  f'      checksum: "{sha}"\n'
-                  f'    )'
+                  f'{indent}.binaryTarget(\n'
+                  f'{inner}name: "{name}",\n'
+                  f'{inner}url: "{base}/{stem}.xcframework.zip",\n'
+                  f'{inner}checksum: "{sha}"\n'
+                  f'{indent})'
               )
 
-          targets = [
-              ("algokit_transactFFI", os.environ["TRANSACT_SHA"], "algokit_transact.xcframework.zip"),
-              ("algokit_cryptoFFI", os.environ["CRYPTO_SHA"], "algokit_crypto.xcframework.zip"),
-              ("algokit_composerFFI", os.environ["COMPOSER_SHA"], "algokit_composer.xcframework.zip"),
-          ]
+          new_src, count = pattern.subn(replace, src)
+          if count == 0:
+              sys.exit("no path-form .binaryTarget blocks found in Package.swift")
+          if re.search(r'path:\s*"Frameworks/', new_src):
+              sys.exit("a path-form .binaryTarget was not rewritten; check Package.swift formatting")
 
-          for name, sha, zip_name in targets:
-              pattern = rf'    \.binaryTarget\(\s*name: "{re.escape(name)}",[\s\S]*?\n    \)'
-              src, count = re.subn(pattern, remote(name, sha, zip_name), src, count=1)
-              if count != 1:
-                  raise RuntimeError(f"expected exactly one binary target named {name}, got {count}")
-
-          open(path, "w").write(src)
+          open(path, "w").write(new_src)
+          print(f"rewrote {count} binary target(s): {', '.join(rewritten)}")
           PY
+
+      - name: Validate rewritten distro Package.swift parses
+        working-directory: ${{ env.SWIFT_DISTRO_DIR }}
+        run: swift package describe > /dev/null
 
       - name: Update distro main and tag
         working-directory: ${{ env.SWIFT_DISTRO_DIR }}
