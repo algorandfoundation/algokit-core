@@ -29,5 +29,8 @@ bip39 = { version = "2.2", default-features = false, features = ["std", "zeroize
 
 snafu = { workspace = true }
 
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "0.4.1", features = ["wasm_js"] }
+
 [dev-dependencies]
 tokio = { version = "1.49.0", features = ["macros", "rt"] }
