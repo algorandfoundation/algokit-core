@@ -70,7 +70,7 @@ jobs:
         run: cd packages/swift && zip -r AlgoKitUtils.zip AlgoKitUtils -x "AlgoKitUtils/.build/*"
 
       - name: Upload Swift package artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: AlgoKitUtils
           path: packages/swift/AlgoKitUtils.zip
