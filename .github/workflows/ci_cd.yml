@@ -5,7 +5,7 @@ on:
     branches:
       - main
     tags:
-      - 'v*'
+      - "v*"
   pull_request: # For PRs, we run CI, which is the same as CD without the release step(s)
     branches:
       - main
@@ -67,7 +67,7 @@ jobs:
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
           import json
           # Crates that produce FFI bindings
-          crates = ["algokit_transact", "algokit_crypto"]
+          crates = ["algokit_transact", "algokit_crypto", "algokit_composer"]
           items = []
           for crate in crates:
               pascal = ''.join(p.capitalize() for p in crate.split('_'))

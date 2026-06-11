@@ -9,6 +9,7 @@ let package = Package(
   products: [
     .library(name: "AlgoKitTransact", targets: ["AlgoKitTransact"]),
     .library(name: "AlgoKitCrypto", targets: ["AlgoKitCrypto"]),
+    .library(name: "AlgoKitComposer", targets: ["AlgoKitComposer"]),
     .library(name: "AlgoKitUtils", targets: ["AlgoKitUtils"]),
   ],
   dependencies: [
@@ -23,6 +24,10 @@ let package = Package(
       name: "algokit_cryptoFFI",
       path: "Frameworks/algokit_crypto.xcframework"
     ),
+    .binaryTarget(
+      name: "algokit_composerFFI",
+      path: "Frameworks/algokit_composer.xcframework"
+    ),
 
     .target(
       name: "AlgoKitTransactFFI",
@@ -33,6 +38,11 @@ let package = Package(
       name: "AlgoKitCryptoFFI",
       dependencies: ["algokit_cryptoFFI"],
       path: "Sources/AlgoKitCryptoFFI"
+    ),
+    .target(
+      name: "AlgoKitComposerFFI",
+      dependencies: ["algokit_composerFFI"],
+      path: "Sources/AlgoKitComposerFFI"
     ),
 
     .target(
@@ -46,8 +56,13 @@ let package = Package(
       path: "Sources/AlgoKitCrypto"
     ),
     .target(
+      name: "AlgoKitComposer",
+      dependencies: ["AlgoKitComposerFFI"],
+      path: "Sources/AlgoKitComposer"
+    ),
+    .target(
       name: "AlgoKitUtils",
-      dependencies: ["AlgoKitTransact", "AlgoKitCrypto"],
+      dependencies: ["AlgoKitTransact", "AlgoKitCrypto", "AlgoKitComposer"],
       path: "Sources/AlgoKitUtils"
     ),
 
