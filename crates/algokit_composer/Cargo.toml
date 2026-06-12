@@ -13,4 +13,4 @@ zeroize.workspace = true
 [dev-dependencies]
 algokit_transact = { path = "../algokit_transact", features = ["test_utils"] }
 rstest.workspace = true
-pretty_assertions = "1.4.1"
+pretty_assertions.workspace = true

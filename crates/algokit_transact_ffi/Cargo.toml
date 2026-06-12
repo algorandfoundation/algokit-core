@@ -14,7 +14,7 @@ ffi_uniffi = ["dep:uniffi"]
 algokit_transact = { path = "../algokit_transact", features = ['test_utils'] }
 ffi_macros = { path = "../ffi_macros" }
 
-snafu = "0.8"
+snafu = { workspace = true }
 rmp-serde = { workspace = true }
 serde = { workspace = true }
 serde_bytes = { workspace = true }
@@ -24,7 +24,7 @@ base64 = { workspace = true }
 uniffi = { workspace = true, features = [
   "scaffolding-ffi-buffer-fns",
 ], optional = true }
-pretty_assertions = "1.4.1"
+pretty_assertions = { workspace = true }
 async-trait = "0.1.89"
 tokio = { version = "1.49.0", features = ["rt", "time", "net", "io-util", "sync"] }
 algokit_crypto = { version = "0.1.0", path = "../algokit_crypto" }
@@ -41,7 +41,7 @@ uniffi = { workspace = true, features = [
 async-trait = "0.1.89"
 algokit_transact = { path = "../algokit_transact", features = ['test_utils'] }
 ffi_macros = { path = "../ffi_macros" }
-snafu = "0.8"
+snafu = { workspace = true }
 serde = { workspace = true }
 serde_bytes = { workspace = true }
 serde_json = { workspace = true }

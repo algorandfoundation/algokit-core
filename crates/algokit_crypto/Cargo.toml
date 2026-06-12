@@ -5,10 +5,10 @@ edition = "2024"
 
 [dependencies]
 # Provides ed25519 implementation
-cryptoxide = "0.4"
+cryptoxide = { workspace = true }
 
 # Provides cryptographic traits
-signature = "2.2.0"
+signature = { workspace = true }
 
 # Enables zeroing of sk in the concrete implementation when it is dropped
 zeroize = { workspace = true }
