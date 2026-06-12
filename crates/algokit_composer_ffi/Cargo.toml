@@ -18,8 +18,8 @@ uniffi = { workspace = true, features = [
   "scaffolding-ffi-buffer-fns",
 ], optional = true }
 snafu.workspace = true
-serde = { version = "1.0.216", features = ["derive"] }
+serde = { workspace = true }
 
 [dev-dependencies]
 algokit_transact = { path = "../algokit_transact", features = ["test_utils"] }
-pretty_assertions = "1.4.1"
+pretty_assertions.workspace = true

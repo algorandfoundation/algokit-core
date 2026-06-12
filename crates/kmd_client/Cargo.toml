@@ -13,19 +13,15 @@ ffi_uniffi = ["dep:uniffi", "algokit_http_client/ffi_uniffi", "dep:algokit_trans
 
 [dependencies]
 # Core serialization
-serde = { version = "^1.0", features = ["derive"] }
-serde_with = { version = "^3.8", default-features = false, features = [
-  "base64",
-  "std",
-  "macros",
-] }
-serde_json = "^1.0"
-serde_repr = "^0.1"
-serde_bytes = "^0.11"
+serde = { workspace = true }
+serde_with = { workspace = true }
+serde_json = { workspace = true }
+serde_repr = { workspace = true }
+serde_bytes = { workspace = true }
 
 # HTTP client
 algokit_http_client = { path = "../algokit_http_client", default-features = false, features = ["ffi_uniffi"] }
-url = "^2.5"
+url = { workspace = true }
 
 # Uniffi for FFI bindings
 uniffi = { workspace = true, optional = true }
@@ -36,8 +32,8 @@ algokit_transact_ffi = { optional = true, version = "0.1.0", path = "../algokit_
 snafu = { workspace = true }
 
 # Utilities
-base64 = "^0.22"
-uuid = { version = "^1.0", features = ["v4"] }
+base64 = { workspace = true }
+uuid = { workspace = true }
 
 [dev-dependencies]
 tokio = { version = "1.0", features = ["full"] }
