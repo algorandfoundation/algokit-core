@@ -135,7 +135,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 This client provides access to 21 API operations:
 
-- `make_health_check` - Returns 200 if healthy.
+- `health_check` - Returns 200 if healthy.
 - `search_for_accounts` - Search for accounts.
 - `lookup_account_by_id` - Lookup account information.
 - `lookup_account_assets` - Lookup an account's asset holdings, optionally for a specific ID.
@@ -154,7 +154,7 @@ This client provides access to 21 API operations:
 - `lookup_asset_transactions` - Lookup transactions for an asset. Transactions are returned oldest to newest.
 - `search_for_block_headers` - Search for block headers. Block headers are returned in ascending round order. Transactions are not included in the output.
 - `lookup_block` - Lookup block.
-- `lookup_transaction` - Lookup a single transaction.
+- `lookup_transaction_by_id` - Lookup a single transaction.
 - `search_for_transactions` - Search for transactions. Transactions are returned oldest to newest unless the address parameter is used, in which case results are returned newest to oldest.
 
 ## Models
@@ -285,24 +285,21 @@ crypto/stateproof/structs.go : StateProof
 - `StateProofTracking` - No description
 - `MerkleArrayProof` - No description
 - `HashFactory` - No description
-- `SearchForAccounts` - (empty)
-- `LookupAccountById` - (empty)
-- `LookupAccountAssets` - (empty)
-- `LookupAccountCreatedAssets` - (empty)
-- `LookupAccountAppLocalStates` - (empty)
-- `LookupAccountCreatedApplications` - (empty)
-- `LookupAccountTransactions` - (empty)
-- `SearchForApplications` - (empty)
-- `LookupApplicationById` - (empty)
-- `SearchForApplicationBoxes` - Box names of an application
-- `LookupApplicationLogsById` - (empty)
-- `SearchForAssets` - (empty)
-- `LookupAssetById` - (empty)
-- `LookupAssetBalances` - (empty)
-- `LookupAssetTransactions` - (empty)
-- `SearchForBlockHeaders` - (empty)
-- `LookupTransaction` - (empty)
-- `SearchForTransactions` - (empty)
+- `AccountResponse` - No description
+- `AssetHoldingsResponse` - No description
+- `AccountsResponse` - No description
+- `AssetBalancesResponse` - No description
+- `ApplicationResponse` - No description
+- `ApplicationsResponse` - No description
+- `ApplicationLogsResponse` - No description
+- `ApplicationLocalStatesResponse` - No description
+- `AssetResponse` - No description
+- `BoxesResponse` - No description
+- `ErrorResponse` - No description
+- `AssetsResponse` - No description
+- `BlockHeadersResponse` - No description
+- `TransactionResponse` - No description
+- `TransactionsResponse` - No description
 
 ## Error Handling
 

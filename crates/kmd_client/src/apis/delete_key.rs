@@ -15,7 +15,6 @@ use std::collections::HashMap;
 use super::{ContentType, Error, KmdApiError};
 
 // Import all custom types used by this endpoint
-use crate::models::DeleteKeyResponse;
 
 // Import request body type if needed
 use crate::models::DeleteKeyRequest;
@@ -30,7 +29,7 @@ pub enum DeleteKeyError {
 }
 
 /// Deletes the key with the passed public key from the wallet.
-pub async fn delete_key(http_client: &dyn HttpClient) -> Result<DeleteKeyResponse, Error> {
+pub async fn delete_key(http_client: &dyn HttpClient) -> Result<(), Error> {
     let path = "/v1/key".to_string();
 
     let query_params: HashMap<String, String> = HashMap::new();
@@ -51,29 +50,6 @@ pub async fn delete_key(http_client: &dyn HttpClient) -> Result<DeleteKeyRespons
         .await
         .map_err(|e| Error::Http { source: e })?;
 
-    let content_type = response
-        .headers
-        .get("content-type")
-        .map(|s| s.as_str())
-        .unwrap_or("application/json");
-
-    match ContentType::from(content_type) {
-        ContentType::Json => serde_json::from_slice(&response.body).map_err(|e| Error::Serde {
-            message: e.to_string(),
-        }),
-        ContentType::MsgPack => Err(Error::Serde {
-            message: "MsgPack not supported".to_string(),
-        }),
-        ContentType::Text => {
-            let text = String::from_utf8(response.body).map_err(|e| Error::Serde {
-                message: e.to_string(),
-            })?;
-            Err(Error::Serde {
-                message: format!("Unexpected text response: {}", text),
-            })
-        }
-        ContentType::Unsupported(ct) => Err(Error::Serde {
-            message: format!("Unsupported content type: {}", ct),
-        }),
-    }
+    let _ = response;
+    Ok(())
 }

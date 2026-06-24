@@ -15,7 +15,7 @@ use std::collections::HashMap;
 use super::{AlgodApiError, ContentType, Error};
 
 // Import all custom types used by this endpoint
-use crate::models::{ErrorResponse, TealCompile};
+use crate::models::{CompileResponse, ErrorResponse};
 
 // Import request body type if needed
 
@@ -38,7 +38,7 @@ pub async fn teal_compile(
     http_client: &dyn HttpClient,
     request: Vec<u8>,
     sourcemap: Option<bool>,
-) -> Result<TealCompile, Error> {
+) -> Result<CompileResponse, Error> {
     let p_sourcemap = sourcemap;
     let p_request = request;
 

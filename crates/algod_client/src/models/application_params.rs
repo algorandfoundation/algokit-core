@@ -17,6 +17,7 @@ use serde_with::{Bytes, serde_as};
 #[cfg(feature = "ffi_uniffi")]
 use algokit_transact_ffi::SignedTransaction as AlgokitSignedTransaction;
 
+use algokit_transact::Address;
 use algokit_transact::AlgorandMsgpack;
 
 use crate::models::ApplicationStateSchema;
@@ -29,7 +30,7 @@ use crate::models::TealKeyValueStore;
 pub struct ApplicationParams {
     /// The address that created this application. This is the address where the parameters and global state for this application can be found.
     #[serde(rename = "creator")]
-    pub creator: String,
+    pub creator: Address,
     /// \[approv\] approval program.
     #[serde_as(as = "serde_with::base64::Base64")]
     #[serde(rename = "approval-program")]
@@ -56,9 +57,6 @@ pub struct ApplicationParams {
     /// \[v\] the number of updates to the application programs
     #[serde(rename = "version", skip_serializing_if = "Option::is_none")]
     pub version: Option<u64>,
-    /// \[ss\] the account responsible for extra pages and global state MBR
-    #[serde(rename = "size-sponsor", skip_serializing_if = "Option::is_none")]
-    pub size_sponsor: Option<String>,
 }
 
 impl AlgorandMsgpack for ApplicationParams {
@@ -68,7 +66,7 @@ impl AlgorandMsgpack for ApplicationParams {
 impl ApplicationParams {
     /// Constructor for ApplicationParams
     pub fn new(
-        creator: String,
+        creator: Address,
         approval_program: Vec<u8>,
         clear_state_program: Vec<u8>,
     ) -> ApplicationParams {
@@ -81,7 +79,6 @@ impl ApplicationParams {
             global_state_schema: None,
             global_state: None,
             version: None,
-            size_sponsor: None,
         }
     }
 

@@ -17,12 +17,10 @@ use algokit_http_client::HttpClient;
 
 use super::parameter_enums::*;
 use crate::models::{
-    Block, Box, HealthCheck, LookupAccountAppLocalStates, LookupAccountAssets, LookupAccountById,
-    LookupAccountCreatedApplications, LookupAccountCreatedAssets, LookupAccountTransactions,
-    LookupApplicationById, LookupApplicationLogsById, LookupAssetBalances, LookupAssetById,
-    LookupAssetTransactions, LookupTransaction, SearchForAccounts, SearchForApplicationBoxes,
-    SearchForApplications, SearchForAssets, SearchForBlockHeaders, SearchForTransactions,
-    UnknownJsonValue,
+    AccountResponse, AccountsResponse, ApplicationLocalStatesResponse, ApplicationLogsResponse,
+    ApplicationResponse, ApplicationsResponse, AssetBalancesResponse, AssetHoldingsResponse,
+    AssetResponse, AssetsResponse, Block, BlockHeadersResponse, Box, BoxesResponse, ErrorResponse,
+    HealthCheck, TransactionResponse, TransactionsResponse,
 };
 use std::sync::Arc;
 
@@ -80,8 +78,8 @@ impl IndexerClient {
         Self::new(http_client)
     }
     /// Returns 200 if healthy.
-    pub async fn make_health_check(&self) -> Result<HealthCheck, Error> {
-        let result = super::make_health_check::make_health_check(self.http_client.as_ref()).await;
+    pub async fn health_check(&self) -> Result<HealthCheck, Error> {
+        let result = super::health_check::health_check(self.http_client.as_ref()).await;
 
         result
     }
@@ -93,7 +91,7 @@ impl IndexerClient {
         round: Option<u64>,
         include_all: Option<bool>,
         exclude: Option<Vec<String>>,
-    ) -> Result<LookupAccountById, Error> {
+    ) -> Result<AccountResponse, Error> {
         let result = super::lookup_account_by_id::lookup_account_by_id(
             self.http_client.as_ref(),
             account_id,
@@ -111,7 +109,7 @@ impl IndexerClient {
         &self,
         application_id: u64,
         include_all: Option<bool>,
-    ) -> Result<LookupApplicationById, Error> {
+    ) -> Result<ApplicationResponse, Error> {
         let result = super::lookup_application_by_id::lookup_application_by_id(
             self.http_client.as_ref(),
             application_id,
@@ -144,7 +142,7 @@ impl IndexerClient {
         &self,
         asset_id: u64,
         include_all: Option<bool>,
-    ) -> Result<LookupAssetById, Error> {
+    ) -> Result<AssetResponse, Error> {
         let result = super::lookup_asset_by_id::lookup_asset_by_id(
             self.http_client.as_ref(),
             asset_id,
@@ -169,9 +167,12 @@ impl IndexerClient {
     }
 
     /// Lookup a single transaction.
-    pub async fn lookup_transaction(&self, txid: &str) -> Result<LookupTransaction, Error> {
-        let result =
-            super::lookup_transaction::lookup_transaction(self.http_client.as_ref(), txid).await;
+    pub async fn lookup_transaction_by_id(&self, txid: &str) -> Result<TransactionResponse, Error> {
+        let result = super::lookup_transaction_by_id::lookup_transaction_by_id(
+            self.http_client.as_ref(),
+            txid,
+        )
+        .await;
 
         result
     }
@@ -193,7 +194,7 @@ impl IndexerClient {
         round: Option<u64>,
         application_id: Option<u64>,
         online_only: Option<bool>,
-    ) -> Result<SearchForAccounts, Error> {
+    ) -> Result<AccountsResponse, Error> {
         let result = super::search_for_accounts::search_for_accounts(
             self.http_client.as_ref(),
             asset_id,
@@ -221,7 +222,7 @@ impl IndexerClient {
         include_all: Option<bool>,
         limit: Option<u64>,
         next: Option<&str>,
-    ) -> Result<LookupAccountAssets, Error> {
+    ) -> Result<AssetHoldingsResponse, Error> {
         let result = super::lookup_account_assets::lookup_account_assets(
             self.http_client.as_ref(),
             account_id,
@@ -243,7 +244,7 @@ impl IndexerClient {
         include_all: Option<bool>,
         limit: Option<u64>,
         next: Option<&str>,
-    ) -> Result<LookupAccountCreatedAssets, Error> {
+    ) -> Result<AssetsResponse, Error> {
         let result = super::lookup_account_created_assets::lookup_account_created_assets(
             self.http_client.as_ref(),
             account_id,
@@ -265,7 +266,7 @@ impl IndexerClient {
         include_all: Option<bool>,
         limit: Option<u64>,
         next: Option<&str>,
-    ) -> Result<LookupAccountAppLocalStates, Error> {
+    ) -> Result<ApplicationLocalStatesResponse, Error> {
         let result = super::lookup_account_app_local_states::lookup_account_app_local_states(
             self.http_client.as_ref(),
             account_id,
@@ -287,7 +288,7 @@ impl IndexerClient {
         include_all: Option<bool>,
         limit: Option<u64>,
         next: Option<&str>,
-    ) -> Result<LookupAccountCreatedApplications, Error> {
+    ) -> Result<ApplicationsResponse, Error> {
         let result =
             super::lookup_account_created_applications::lookup_account_created_applications(
                 self.http_client.as_ref(),
@@ -321,7 +322,7 @@ impl IndexerClient {
         currency_less_than: Option<u64>,
         account_id: &str,
         rekey_to: Option<bool>,
-    ) -> Result<LookupAccountTransactions, Error> {
+    ) -> Result<TransactionsResponse, Error> {
         let result = super::lookup_account_transactions::lookup_account_transactions(
             self.http_client.as_ref(),
             limit,
@@ -354,7 +355,7 @@ impl IndexerClient {
         include_all: Option<bool>,
         limit: Option<u64>,
         next: Option<&str>,
-    ) -> Result<SearchForApplications, Error> {
+    ) -> Result<ApplicationsResponse, Error> {
         let result = super::search_for_applications::search_for_applications(
             self.http_client.as_ref(),
             application_id,
@@ -374,7 +375,7 @@ impl IndexerClient {
         application_id: u64,
         limit: Option<u64>,
         next: Option<&str>,
-    ) -> Result<SearchForApplicationBoxes, Error> {
+    ) -> Result<BoxesResponse, Error> {
         let result = super::search_for_application_boxes::search_for_application_boxes(
             self.http_client.as_ref(),
             application_id,
@@ -396,7 +397,7 @@ impl IndexerClient {
         min_round: Option<u64>,
         max_round: Option<u64>,
         sender_address: Option<&str>,
-    ) -> Result<LookupApplicationLogsById, Error> {
+    ) -> Result<ApplicationLogsResponse, Error> {
         let result = super::lookup_application_logs_by_id::lookup_application_logs_by_id(
             self.http_client.as_ref(),
             application_id,
@@ -422,7 +423,7 @@ impl IndexerClient {
         name: Option<&str>,
         unit: Option<&str>,
         asset_id: Option<u64>,
-    ) -> Result<SearchForAssets, Error> {
+    ) -> Result<AssetsResponse, Error> {
         let result = super::search_for_assets::search_for_assets(
             self.http_client.as_ref(),
             include_all,
@@ -447,7 +448,7 @@ impl IndexerClient {
         currency_greater_than: Option<u64>,
         currency_less_than: Option<u64>,
         asset_id: u64,
-    ) -> Result<LookupAssetBalances, Error> {
+    ) -> Result<AssetBalancesResponse, Error> {
         let result = super::lookup_asset_balances::lookup_asset_balances(
             self.http_client.as_ref(),
             include_all,
@@ -483,7 +484,7 @@ impl IndexerClient {
         exclude_close_to: Option<bool>,
         asset_id: u64,
         rekey_to: Option<bool>,
-    ) -> Result<LookupAssetTransactions, Error> {
+    ) -> Result<TransactionsResponse, Error> {
         let result = super::lookup_asset_transactions::lookup_asset_transactions(
             self.http_client.as_ref(),
             limit,
@@ -522,7 +523,7 @@ impl IndexerClient {
         proposers: Option<Vec<String>>,
         expired: Option<Vec<String>>,
         absent: Option<Vec<String>>,
-    ) -> Result<SearchForBlockHeaders, Error> {
+    ) -> Result<BlockHeadersResponse, Error> {
         let result = super::search_for_block_headers::search_for_block_headers(
             self.http_client.as_ref(),
             limit,
@@ -563,7 +564,7 @@ impl IndexerClient {
         exclude_close_to: Option<bool>,
         rekey_to: Option<bool>,
         application_id: Option<u64>,
-    ) -> Result<SearchForTransactions, Error> {
+    ) -> Result<TransactionsResponse, Error> {
         let result = super::search_for_transactions::search_for_transactions(
             self.http_client.as_ref(),
             limit,
@@ -610,7 +611,7 @@ impl IndexerClient {
         round: Option<u64>,
         application_id: Option<u64>,
         online_only: Option<bool>,
-    ) -> Result<SearchForAccounts, Error> {
+    ) -> Result<AccountsResponse, Error> {
         let result = super::search_for_accounts::search_for_accounts(
             self.http_client.as_ref(),
             asset_id,
@@ -638,7 +639,7 @@ impl IndexerClient {
         include_all: Option<bool>,
         limit: Option<u64>,
         next: Option<String>,
-    ) -> Result<LookupAccountAssets, Error> {
+    ) -> Result<AssetHoldingsResponse, Error> {
         let result = super::lookup_account_assets::lookup_account_assets(
             self.http_client.as_ref(),
             account_id,
@@ -660,7 +661,7 @@ impl IndexerClient {
         include_all: Option<bool>,
         limit: Option<u64>,
         next: Option<String>,
-    ) -> Result<LookupAccountCreatedAssets, Error> {
+    ) -> Result<AssetsResponse, Error> {
         let result = super::lookup_account_created_assets::lookup_account_created_assets(
             self.http_client.as_ref(),
             account_id,
@@ -682,7 +683,7 @@ impl IndexerClient {
         include_all: Option<bool>,
         limit: Option<u64>,
         next: Option<String>,
-    ) -> Result<LookupAccountAppLocalStates, Error> {
+    ) -> Result<ApplicationLocalStatesResponse, Error> {
         let result = super::lookup_account_app_local_states::lookup_account_app_local_states(
             self.http_client.as_ref(),
             account_id,
@@ -704,7 +705,7 @@ impl IndexerClient {
         include_all: Option<bool>,
         limit: Option<u64>,
         next: Option<String>,
-    ) -> Result<LookupAccountCreatedApplications, Error> {
+    ) -> Result<ApplicationsResponse, Error> {
         let result =
             super::lookup_account_created_applications::lookup_account_created_applications(
                 self.http_client.as_ref(),
@@ -738,7 +739,7 @@ impl IndexerClient {
         currency_less_than: Option<u64>,
         account_id: &str,
         rekey_to: Option<bool>,
-    ) -> Result<LookupAccountTransactions, Error> {
+    ) -> Result<TransactionsResponse, Error> {
         let result = super::lookup_account_transactions::lookup_account_transactions(
             self.http_client.as_ref(),
             limit,
@@ -771,7 +772,7 @@ impl IndexerClient {
         include_all: Option<bool>,
         limit: Option<u64>,
         next: Option<String>,
-    ) -> Result<SearchForApplications, Error> {
+    ) -> Result<ApplicationsResponse, Error> {
         let result = super::search_for_applications::search_for_applications(
             self.http_client.as_ref(),
             application_id,
@@ -791,7 +792,7 @@ impl IndexerClient {
         application_id: u64,
         limit: Option<u64>,
         next: Option<String>,
-    ) -> Result<SearchForApplicationBoxes, Error> {
+    ) -> Result<BoxesResponse, Error> {
         let result = super::search_for_application_boxes::search_for_application_boxes(
             self.http_client.as_ref(),
             application_id,
@@ -813,7 +814,7 @@ impl IndexerClient {
         min_round: Option<u64>,
         max_round: Option<u64>,
         sender_address: Option<String>,
-    ) -> Result<LookupApplicationLogsById, Error> {
+    ) -> Result<ApplicationLogsResponse, Error> {
         let result = super::lookup_application_logs_by_id::lookup_application_logs_by_id(
             self.http_client.as_ref(),
             application_id,
@@ -839,7 +840,7 @@ impl IndexerClient {
         name: Option<String>,
         unit: Option<String>,
         asset_id: Option<u64>,
-    ) -> Result<SearchForAssets, Error> {
+    ) -> Result<AssetsResponse, Error> {
         let result = super::search_for_assets::search_for_assets(
             self.http_client.as_ref(),
             include_all,
@@ -864,7 +865,7 @@ impl IndexerClient {
         currency_greater_than: Option<u64>,
         currency_less_than: Option<u64>,
         asset_id: u64,
-    ) -> Result<LookupAssetBalances, Error> {
+    ) -> Result<AssetBalancesResponse, Error> {
         let result = super::lookup_asset_balances::lookup_asset_balances(
             self.http_client.as_ref(),
             include_all,
@@ -900,7 +901,7 @@ impl IndexerClient {
         exclude_close_to: Option<bool>,
         asset_id: u64,
         rekey_to: Option<bool>,
-    ) -> Result<LookupAssetTransactions, Error> {
+    ) -> Result<TransactionsResponse, Error> {
         let result = super::lookup_asset_transactions::lookup_asset_transactions(
             self.http_client.as_ref(),
             limit,
@@ -939,7 +940,7 @@ impl IndexerClient {
         proposers: Option<Vec<String>>,
         expired: Option<Vec<String>>,
         absent: Option<Vec<String>>,
-    ) -> Result<SearchForBlockHeaders, Error> {
+    ) -> Result<BlockHeadersResponse, Error> {
         let result = super::search_for_block_headers::search_for_block_headers(
             self.http_client.as_ref(),
             limit,
@@ -980,7 +981,7 @@ impl IndexerClient {
         exclude_close_to: Option<bool>,
         rekey_to: Option<bool>,
         application_id: Option<u64>,
-    ) -> Result<SearchForTransactions, Error> {
+    ) -> Result<TransactionsResponse, Error> {
         let result = super::search_for_transactions::search_for_transactions(
             self.http_client.as_ref(),
             limit,

@@ -30,8 +30,9 @@ pub struct TransactionApplication {
     #[serde(rename = "on-completion")]
     pub on_completion: OnCompletion,
     /// \[apaa\] transaction specific arguments accessed from the application's approval-program and clear-state-program.
+    #[serde_as(as = "Option<Vec<serde_with::base64::Base64>>")]
     #[serde(rename = "application-args", skip_serializing_if = "Option::is_none")]
-    pub application_args: Option<Vec<String>>,
+    pub application_args: Option<Vec<Vec<u8>>>,
     /// \[al\] Access unifies `accounts`, `foreign-apps`, `foreign-assets`, and `box-references` under a single list. If access is non-empty, these lists must be empty. If access is empty, those lists may be non-empty.
     #[serde(rename = "access", skip_serializing_if = "Option::is_none")]
     pub access: Option<Vec<ResourceRef>>,

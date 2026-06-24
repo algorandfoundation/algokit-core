@@ -13,27 +13,41 @@ use serde::{Deserialize, Serialize};
 
 use crate::models::TxType;
 
-/// APIV1Wallet is the API's representation of a wallet
+/// Wallet is the API's representation of a wallet
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct Wallet {
-    #[serde(rename = "driver_name", skip_serializing_if = "Option::is_none")]
-    pub driver_name: Option<String>,
-    #[serde(rename = "driver_version", skip_serializing_if = "Option::is_none")]
-    pub driver_version: Option<u32>,
-    #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
-    #[serde(rename = "mnemonic_ux", skip_serializing_if = "Option::is_none")]
-    pub mnemonic_ux: Option<bool>,
-    #[serde(rename = "name", skip_serializing_if = "Option::is_none")]
-    pub name: Option<String>,
-    #[serde(rename = "supported_txs", skip_serializing_if = "Option::is_none")]
-    pub supported_txs: Option<Vec<TxType>>,
+    #[serde(rename = "driver_name")]
+    pub driver_name: String,
+    #[serde(rename = "driver_version")]
+    pub driver_version: u32,
+    #[serde(rename = "id")]
+    pub id: String,
+    #[serde(rename = "mnemonic_ux")]
+    pub mnemonic_ux: bool,
+    #[serde(rename = "name")]
+    pub name: String,
+    #[serde(rename = "supported_txs")]
+    pub supported_txs: Vec<TxType>,
 }
 
 impl Wallet {
-    /// Default constructor for Wallet
-    pub fn new() -> Wallet {
-        Wallet::default()
+    /// Constructor for Wallet
+    pub fn new(
+        driver_name: String,
+        driver_version: u32,
+        id: String,
+        mnemonic_ux: bool,
+        name: String,
+        supported_txs: Vec<TxType>,
+    ) -> Wallet {
+        Wallet {
+            driver_name,
+            driver_version,
+            id,
+            mnemonic_ux,
+            name,
+            supported_txs,
+        }
     }
 }

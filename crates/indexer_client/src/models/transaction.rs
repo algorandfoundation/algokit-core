@@ -8,6 +8,7 @@
  */
 
 use crate::models;
+use algokit_transact::Address;
 use serde::{Deserialize, Serialize};
 use serde_with::{Bytes, serde_as};
 
@@ -64,7 +65,7 @@ pub struct Transaction {
     pub heartbeat_transaction: Option<TransactionHeartbeat>,
     /// \[sgnr\] this is included with signed transactions when the signing address does not equal the sender. The backend can use this to ensure that auth addr is equal to the accounts auth addr.
     #[serde(rename = "auth-addr", skip_serializing_if = "Option::is_none")]
-    pub auth_addr: Option<String>,
+    pub auth_addr: Option<Address>,
     /// \[rc\] rewards applied to close-remainder-to account.
     #[serde(rename = "close-rewards", skip_serializing_if = "Option::is_none")]
     pub close_rewards: Option<u64>,
@@ -79,30 +80,30 @@ pub struct Transaction {
         rename = "created-application-index",
         skip_serializing_if = "Option::is_none"
     )]
-    pub created_application_index: Option<u64>,
+    pub created_app_id: Option<u64>,
     /// Specifies an asset index (ID) if an asset was created with this transaction.
     #[serde(
         rename = "created-asset-index",
         skip_serializing_if = "Option::is_none"
     )]
-    pub created_asset_index: Option<u64>,
+    pub created_asset_id: Option<u64>,
     /// \[fee\] Transaction fee.
     #[serde(rename = "fee")]
     pub fee: u64,
     /// \[fv\] First valid round for this transaction.
     #[serde(rename = "first-valid")]
-    pub first_valid: u32,
+    pub first_valid: u64,
     /// \[gh\] Hash of genesis block.
     #[serde_as(as = "Option<serde_with::base64::Base64>")]
     #[serde(rename = "genesis-hash", skip_serializing_if = "Option::is_none")]
-    pub genesis_hash: Option<Vec<u8>>,
+    pub genesis_hash: Option<[u8; 32]>,
     /// \[gen\] genesis block ID.
     #[serde(rename = "genesis-id", skip_serializing_if = "Option::is_none")]
     pub genesis_id: Option<String>,
     /// \[grp\] Base64 encoded byte array of a sha512/256 digest. When present indicates that this transaction is part of a transaction group and the value is the sha512/256 hash of the transactions in that group.
     #[serde_as(as = "Option<serde_with::base64::Base64>")]
     #[serde(rename = "group", skip_serializing_if = "Option::is_none")]
-    pub group: Option<Vec<u8>>,
+    pub group: Option<[u8; 32]>,
     /// Transaction ID
     #[serde(rename = "id", skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
@@ -113,11 +114,11 @@ pub struct Transaction {
     pub keyreg_transaction: Option<TransactionKeyreg>,
     /// \[lv\] Last valid round for this transaction.
     #[serde(rename = "last-valid")]
-    pub last_valid: u32,
+    pub last_valid: u64,
     /// \[lx\] Base64 encoded 32-byte array. Lease enforces mutual exclusion of transactions.  If this field is nonzero, then once the transaction is confirmed, it acquires the lease identified by the (Sender, Lease) pair of the transaction until the LastValid round passes.  While this transaction possesses the lease, no other transaction specifying this lease can be confirmed.
     #[serde_as(as = "Option<serde_with::base64::Base64>")]
     #[serde(rename = "lease", skip_serializing_if = "Option::is_none")]
-    pub lease: Option<Vec<u8>>,
+    pub lease: Option<[u8; 32]>,
     /// \[note\] Free form data.
     #[serde_as(as = "Option<serde_with::base64::Base64>")]
     #[serde(rename = "note", skip_serializing_if = "Option::is_none")]
@@ -132,7 +133,7 @@ pub struct Transaction {
     pub receiver_rewards: Option<u64>,
     /// \[rekey\] when included in a valid transaction, the accounts auth addr will be updated with this value and future signatures must be signed with the key represented by this address.
     #[serde(rename = "rekey-to", skip_serializing_if = "Option::is_none")]
-    pub rekey_to: Option<String>,
+    pub rekey_to: Option<Address>,
     /// Time when the block this transaction is in was confirmed.
     #[serde(rename = "round-time", skip_serializing_if = "Option::is_none")]
     pub round_time: Option<u64>,
@@ -175,8 +176,8 @@ impl Transaction {
     /// Constructor for Transaction
     pub fn new(
         fee: u64,
-        first_valid: u32,
-        last_valid: u32,
+        first_valid: u64,
+        last_valid: u64,
         sender: String,
         tx_type: String,
     ) -> Transaction {
@@ -196,8 +197,8 @@ impl Transaction {
             close_rewards: None,
             closing_amount: None,
             confirmed_round: None,
-            created_application_index: None,
-            created_asset_index: None,
+            created_app_id: None,
+            created_asset_id: None,
             genesis_hash: None,
             genesis_id: None,
             group: None,

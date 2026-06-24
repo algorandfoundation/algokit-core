@@ -14,7 +14,7 @@ use std::collections::HashMap;
 use super::{ContentType, Error, IndexerApiError};
 
 // Import all custom types used by this endpoint
-use crate::models::{LookupAccountById, UnknownJsonValue};
+use crate::models::{AccountResponse, ErrorResponse};
 
 // Import request body type if needed
 
@@ -23,9 +23,9 @@ use crate::models::{LookupAccountById, UnknownJsonValue};
 #[serde(untagged)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum LookupAccountByIdError {
-    Status400(UnknownJsonValue),
-    Status404(UnknownJsonValue),
-    Status500(UnknownJsonValue),
+    Status400(ErrorResponse),
+    Status404(ErrorResponse),
+    Status500(ErrorResponse),
     DefaultResponse(),
     UnknownValue(crate::models::UnknownJsonValue),
 }
@@ -37,7 +37,7 @@ pub async fn lookup_account_by_id(
     round: Option<u64>,
     include_all: Option<bool>,
     exclude: Option<Vec<String>>,
-) -> Result<LookupAccountById, Error> {
+) -> Result<AccountResponse, Error> {
     let p_account_id = account_id;
     let p_round = round;
     let p_include_all = include_all;

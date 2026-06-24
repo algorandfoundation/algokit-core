@@ -11,20 +11,19 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
-/// APIV1POSTKeyListRequest is the request for `POST /v1/key/list`
+/// The request for `POST /v1/key/list`
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct ListKeysRequest {
-    #[serde(
-        rename = "wallet_handle_token",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub wallet_handle_token: Option<String>,
+    #[serde(rename = "wallet_handle_token")]
+    pub wallet_handle_token: String,
 }
 
 impl ListKeysRequest {
-    /// Default constructor for ListKeysRequest
-    pub fn new() -> ListKeysRequest {
-        ListKeysRequest::default()
+    /// Constructor for ListKeysRequest
+    pub fn new(wallet_handle_token: String) -> ListKeysRequest {
+        ListKeysRequest {
+            wallet_handle_token,
+        }
     }
 }

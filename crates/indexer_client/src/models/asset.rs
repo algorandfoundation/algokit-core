@@ -18,7 +18,7 @@ use crate::models::AssetParams;
 pub struct Asset {
     /// unique asset identifier
     #[serde(rename = "index")]
-    pub index: u64,
+    pub id: u64,
     /// Whether or not this asset is currently deleted.
     #[serde(rename = "deleted", skip_serializing_if = "Option::is_none")]
     pub deleted: Option<bool>,
@@ -34,9 +34,9 @@ pub struct Asset {
 
 impl Asset {
     /// Constructor for Asset
-    pub fn new(index: u64, params: AssetParams) -> Asset {
+    pub fn new(id: u64, params: AssetParams) -> Asset {
         Asset {
-            index,
+            id,
             params,
             deleted: None,
             created_at_round: None,

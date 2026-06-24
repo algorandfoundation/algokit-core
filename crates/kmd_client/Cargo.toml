@@ -27,6 +27,8 @@ url = { workspace = true }
 uniffi = { workspace = true, optional = true }
 algokit_transact_ffi = { optional = true, version = "0.1.0", path = "../algokit_transact_ffi" }
 
+# AlgoKit core types (Address, SignedTransaction)
+algokit_transact = { path = "../algokit_transact" }
 
 # Error handling
 snafu = { workspace = true }

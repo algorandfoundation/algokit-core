@@ -17,17 +17,21 @@ use crate::models::MultisigSubsig;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct MultisigSig {
-    #[serde(rename = "Subsigs", skip_serializing_if = "Option::is_none")]
-    pub subsigs: Option<Vec<MultisigSubsig>>,
-    #[serde(rename = "Threshold", skip_serializing_if = "Option::is_none")]
-    pub threshold: Option<u8>,
-    #[serde(rename = "Version", skip_serializing_if = "Option::is_none")]
-    pub version: Option<u8>,
+    #[serde(rename = "subsig")]
+    pub subsignatures: Vec<MultisigSubsig>,
+    #[serde(rename = "thr")]
+    pub threshold: u8,
+    #[serde(rename = "v")]
+    pub version: u8,
 }
 
 impl MultisigSig {
-    /// Default constructor for MultisigSig
-    pub fn new() -> MultisigSig {
-        MultisigSig::default()
+    /// Constructor for MultisigSig
+    pub fn new(subsignatures: Vec<MultisigSubsig>, threshold: u8, version: u8) -> MultisigSig {
+        MultisigSig {
+            subsignatures,
+            threshold,
+            version,
+        }
     }
 }

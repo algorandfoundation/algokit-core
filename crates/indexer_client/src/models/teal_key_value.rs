@@ -9,22 +9,25 @@
 
 use crate::models;
 use serde::{Deserialize, Serialize};
+use serde_with::{Bytes, serde_as};
 
 use crate::models::TealValue;
 
 /// Represents a key-value pair in an application store.
+#[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct TealKeyValue {
+    #[serde_as(as = "serde_with::base64::Base64")]
     #[serde(rename = "key")]
-    pub key: String,
+    pub key: Vec<u8>,
     #[serde(rename = "value")]
     pub value: TealValue,
 }
 
 impl TealKeyValue {
     /// Constructor for TealKeyValue
-    pub fn new(key: String, value: TealValue) -> TealKeyValue {
+    pub fn new(key: Vec<u8>, value: TealValue) -> TealKeyValue {
         TealKeyValue { key, value }
     }
 }

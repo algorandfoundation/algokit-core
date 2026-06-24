@@ -13,26 +13,33 @@ use serde::{Deserialize, Serialize};
 
 use crate::models::PublicKey;
 
-/// APIV1POSTMultisigImportRequest is the request for `POST /v1/multisig/import`
+/// The request for `POST /v1/multisig/import`
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct ImportMultisigRequest {
-    #[serde(rename = "multisig_version", skip_serializing_if = "Option::is_none")]
-    pub multisig_version: Option<u8>,
-    #[serde(rename = "pks", skip_serializing_if = "Option::is_none")]
-    pub pks: Option<Vec<PublicKey>>,
-    #[serde(rename = "threshold", skip_serializing_if = "Option::is_none")]
-    pub threshold: Option<u8>,
-    #[serde(
-        rename = "wallet_handle_token",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub wallet_handle_token: Option<String>,
+    #[serde(rename = "multisig_version")]
+    pub multisig_version: u8,
+    #[serde(rename = "pks")]
+    pub public_keys: Vec<PublicKey>,
+    #[serde(rename = "threshold")]
+    pub threshold: u8,
+    #[serde(rename = "wallet_handle_token")]
+    pub wallet_handle_token: String,
 }
 
 impl ImportMultisigRequest {
-    /// Default constructor for ImportMultisigRequest
-    pub fn new() -> ImportMultisigRequest {
-        ImportMultisigRequest::default()
+    /// Constructor for ImportMultisigRequest
+    pub fn new(
+        multisig_version: u8,
+        public_keys: Vec<PublicKey>,
+        threshold: u8,
+        wallet_handle_token: String,
+    ) -> ImportMultisigRequest {
+        ImportMultisigRequest {
+            multisig_version,
+            public_keys,
+            threshold,
+            wallet_handle_token,
+        }
     }
 }

@@ -16,15 +16,17 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "ffi_uniffi")]
 use algokit_transact_ffi::SignedTransaction as AlgokitSignedTransaction;
 
+use algokit_transact::Address;
 use algokit_transact::AlgorandMsgpack;
 
 /// References an account's local state for an application.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+// This struct represents an Algorand application local-state reference (account + app id).
 pub struct ApplicationLocalReference {
     /// Address of the account with the local state.
     #[serde(rename = "account")]
-    pub account: String,
+    pub account: Address,
     /// Application ID of the local state application.
     #[serde(rename = "app")]
     pub app: u64,
@@ -36,7 +38,7 @@ impl AlgorandMsgpack for ApplicationLocalReference {
 
 impl ApplicationLocalReference {
     /// Constructor for ApplicationLocalReference
-    pub fn new(account: String, app: u64) -> ApplicationLocalReference {
+    pub fn new(account: Address, app: u64) -> ApplicationLocalReference {
         ApplicationLocalReference { account, app }
     }
 

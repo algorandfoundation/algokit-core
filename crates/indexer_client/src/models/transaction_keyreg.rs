@@ -28,7 +28,7 @@ pub struct TransactionKeyreg {
         rename = "selection-participation-key",
         skip_serializing_if = "Option::is_none"
     )]
-    pub selection_participation_key: Option<Vec<u8>>,
+    pub selection_participation_key: Option<[u8; 32]>,
     /// \[votefst\] First round this participation key is valid.
     #[serde(rename = "vote-first-valid", skip_serializing_if = "Option::is_none")]
     pub vote_first_valid: Option<u64>,
@@ -44,11 +44,11 @@ pub struct TransactionKeyreg {
         rename = "vote-participation-key",
         skip_serializing_if = "Option::is_none"
     )]
-    pub vote_participation_key: Option<Vec<u8>>,
+    pub vote_participation_key: Option<[u8; 32]>,
     /// \[sprfkey\] State proof key used in key registration transactions.
     #[serde_as(as = "Option<serde_with::base64::Base64>")]
     #[serde(rename = "state-proof-key", skip_serializing_if = "Option::is_none")]
-    pub state_proof_key: Option<Vec<u8>>,
+    pub state_proof_key: Option<[u8; 64]>,
 }
 
 impl TransactionKeyreg {

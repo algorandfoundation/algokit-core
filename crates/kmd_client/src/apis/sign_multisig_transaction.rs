@@ -15,10 +15,10 @@ use std::collections::HashMap;
 use super::{ContentType, Error, KmdApiError};
 
 // Import all custom types used by this endpoint
-use crate::models::PostMultisigTransactionSignResponse;
+use crate::models::SignMultisigResponse;
 
 // Import request body type if needed
-use crate::models::SignMultisigRequest;
+use crate::models::SignMultisigTxnRequest;
 
 /// struct for typed errors of method [`sign_multisig_transaction`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -32,8 +32,8 @@ pub enum SignMultisigTransactionError {
 /// Start a multisig signature, or add a signature to a partially completed multisig signature object.
 pub async fn sign_multisig_transaction(
     http_client: &dyn HttpClient,
-    request: SignMultisigRequest,
-) -> Result<PostMultisigTransactionSignResponse, Error> {
+    request: SignMultisigTxnRequest,
+) -> Result<SignMultisigResponse, Error> {
     let p_request = request;
 
     let path = "/v1/multisig/sign".to_string();

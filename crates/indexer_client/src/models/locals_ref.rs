@@ -8,6 +8,7 @@
  */
 
 use crate::models;
+use algokit_transact::Address;
 use serde::{Deserialize, Serialize};
 
 /// LocalsRef names a local state by referring to an Address and App it belongs to.
@@ -16,7 +17,7 @@ use serde::{Deserialize, Serialize};
 pub struct LocalsRef {
     /// \[d\] Address in access list, or the sender of the transaction.
     #[serde(rename = "address")]
-    pub address: String,
+    pub address: Address,
     /// \[p\] Application ID for app in access list, or zero if referring to the called application.
     #[serde(rename = "app")]
     pub app: u64,
@@ -24,7 +25,7 @@ pub struct LocalsRef {
 
 impl LocalsRef {
     /// Constructor for LocalsRef
-    pub fn new(address: String, app: u64) -> LocalsRef {
+    pub fn new(address: Address, app: u64) -> LocalsRef {
         LocalsRef { address, app }
     }
 }

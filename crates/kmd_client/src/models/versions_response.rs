@@ -16,13 +16,13 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct VersionsResponse {
-    #[serde(rename = "versions", skip_serializing_if = "Option::is_none")]
-    pub versions: Option<Vec<String>>,
+    #[serde(rename = "versions")]
+    pub versions: Vec<String>,
 }
 
 impl VersionsResponse {
-    /// Default constructor for VersionsResponse
-    pub fn new() -> VersionsResponse {
-        VersionsResponse::default()
+    /// Constructor for VersionsResponse
+    pub fn new(versions: Vec<String>) -> VersionsResponse {
+        VersionsResponse { versions }
     }
 }

@@ -37,7 +37,7 @@ pub struct AssetParams {
     pub creator: String,
     /// \[dc\] The number of digits to use after the decimal point when displaying this asset. If 0, the asset is not divisible. If 1, the base unit of the asset is in tenths. If 2, the base unit of the asset is in hundredths, and so on. This value must be between 0 and 19 (inclusive).
     #[serde(rename = "decimals")]
-    pub decimals: u64,
+    pub decimals: u32,
     /// \[df\] Whether holdings of this asset are frozen by default.
     #[serde(rename = "default-frozen", skip_serializing_if = "Option::is_none")]
     pub default_frozen: Option<bool>,
@@ -50,7 +50,7 @@ pub struct AssetParams {
     /// \[am\] A commitment to some unspecified asset metadata. The format of this metadata is up to the application.
     #[serde_as(as = "Option<serde_with::base64::Base64>")]
     #[serde(rename = "metadata-hash", skip_serializing_if = "Option::is_none")]
-    pub metadata_hash: Option<Vec<u8>>,
+    pub metadata_hash: Option<[u8; 32]>,
     /// \[an\] Name of this asset, as supplied by the creator. Included only when the asset name is composed of printable utf-8 characters.
     #[serde(rename = "name", skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
@@ -86,7 +86,7 @@ impl AlgorandMsgpack for AssetParams {
 
 impl AssetParams {
     /// Constructor for AssetParams
-    pub fn new(creator: String, decimals: u64, total: u64) -> AssetParams {
+    pub fn new(creator: String, decimals: u32, total: u64) -> AssetParams {
         AssetParams {
             creator,
             decimals,

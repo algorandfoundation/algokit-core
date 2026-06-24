@@ -19,23 +19,23 @@ pub struct HbProofFields {
     /// \[s\] Signature of the heartbeat message.
     #[serde_as(as = "Option<serde_with::base64::Base64>")]
     #[serde(rename = "hb-sig", skip_serializing_if = "Option::is_none")]
-    pub hb_sig: Option<Vec<u8>>,
+    pub hb_sig: Option<[u8; 64]>,
     /// \[p\] Public key of the heartbeat message.
     #[serde_as(as = "Option<serde_with::base64::Base64>")]
     #[serde(rename = "hb-pk", skip_serializing_if = "Option::is_none")]
-    pub hb_pk: Option<Vec<u8>>,
+    pub hb_pk: Option<[u8; 32]>,
     /// \[p2\] Key for new-style two-level ephemeral signature.
     #[serde_as(as = "Option<serde_with::base64::Base64>")]
     #[serde(rename = "hb-pk2", skip_serializing_if = "Option::is_none")]
-    pub hb_pk2: Option<Vec<u8>>,
+    pub hb_pk2: Option<[u8; 32]>,
     /// \[p1s\] Signature of OneTimeSignatureSubkeyOffsetID(PK, Batch, Offset) under the key PK2.
     #[serde_as(as = "Option<serde_with::base64::Base64>")]
     #[serde(rename = "hb-pk1sig", skip_serializing_if = "Option::is_none")]
-    pub hb_pk1sig: Option<Vec<u8>>,
+    pub hb_pk1sig: Option<[u8; 64]>,
     /// \[p2s\] Signature of OneTimeSignatureSubkeyBatchID(PK2, Batch) under the master key (OneTimeSignatureVerifier).
     #[serde_as(as = "Option<serde_with::base64::Base64>")]
     #[serde(rename = "hb-pk2sig", skip_serializing_if = "Option::is_none")]
-    pub hb_pk2sig: Option<Vec<u8>>,
+    pub hb_pk2sig: Option<[u8; 64]>,
 }
 
 impl HbProofFields {

@@ -42,7 +42,7 @@ pub struct AssetParams {
     /// A commitment to some unspecified asset metadata. The format of this metadata is up to the application.
     #[serde_as(as = "Option<serde_with::base64::Base64>")]
     #[serde(rename = "metadata-hash", skip_serializing_if = "Option::is_none")]
-    pub metadata_hash: Option<Vec<u8>>,
+    pub metadata_hash: Option<[u8; 32]>,
     /// Name of this asset, as supplied by the creator. Included only when the asset name is composed of printable utf-8 characters.
     #[serde(rename = "name", skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,

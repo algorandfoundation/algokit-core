@@ -8,6 +8,7 @@
  */
 
 use crate::models;
+use algokit_transact::Address;
 use serde::{Deserialize, Serialize};
 
 use crate::models::AccountParticipation;
@@ -116,7 +117,7 @@ pub struct Account {
     pub total_created_assets: u64,
     /// The address against which signing should be checked. If empty, the address of the current account is used. This field can be updated in any transaction by setting the RekeyTo field.
     #[serde(rename = "auth-addr", skip_serializing_if = "Option::is_none")]
-    pub auth_addr: Option<String>,
+    pub auth_addr: Option<Address>,
     /// The round in which this account last proposed the block.
     #[serde(rename = "last-proposed", skip_serializing_if = "Option::is_none")]
     pub last_proposed: Option<u64>,

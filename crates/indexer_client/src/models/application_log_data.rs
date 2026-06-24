@@ -18,7 +18,7 @@ use serde_with::{Bytes, serde_as};
 pub struct ApplicationLogData {
     /// Transaction ID
     #[serde(rename = "txid")]
-    pub txid: String,
+    pub tx_id: String,
     /// Logs for the application being executed by the transaction.
     #[serde_as(as = "Vec<serde_with::base64::Base64>")]
     #[serde(rename = "logs")]
@@ -27,7 +27,7 @@ pub struct ApplicationLogData {
 
 impl ApplicationLogData {
     /// Constructor for ApplicationLogData
-    pub fn new(txid: String, logs: Vec<Vec<u8>>) -> ApplicationLogData {
-        ApplicationLogData { txid, logs }
+    pub fn new(tx_id: String, logs: Vec<Vec<u8>>) -> ApplicationLogData {
+        ApplicationLogData { tx_id, logs }
     }
 }

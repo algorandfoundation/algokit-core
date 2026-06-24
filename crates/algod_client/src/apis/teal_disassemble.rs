@@ -16,7 +16,7 @@ use super::{AlgodApiError, ContentType, Error};
 use algokit_transact::AlgorandMsgpack;
 
 // Import all custom types used by this endpoint
-use crate::models::{ErrorResponse, TealDisassemble};
+use crate::models::{DisassembleResponse, ErrorResponse};
 
 // Import request body type if needed
 
@@ -38,7 +38,7 @@ pub enum TealDisassembleError {
 pub async fn teal_disassemble(
     http_client: &dyn HttpClient,
     request: String,
-) -> Result<TealDisassemble, Error> {
+) -> Result<DisassembleResponse, Error> {
     let p_request = request;
 
     let path = "/v2/teal/disassemble".to_string();

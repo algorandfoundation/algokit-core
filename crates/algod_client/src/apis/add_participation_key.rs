@@ -16,7 +16,7 @@ use super::{AlgodApiError, ContentType, Error};
 use algokit_transact::AlgorandMsgpack;
 
 // Import all custom types used by this endpoint
-use crate::models::{AddParticipationKey, ErrorResponse};
+use crate::models::{ErrorResponse, PostParticipationResponse};
 
 // Import request body type if needed
 
@@ -39,7 +39,7 @@ pub enum AddParticipationKeyError {
 pub async fn add_participation_key(
     http_client: &dyn HttpClient,
     request: Vec<u8>,
-) -> Result<AddParticipationKey, Error> {
+) -> Result<PostParticipationResponse, Error> {
     let p_request = request;
 
     let path = "/v2/participation".to_string();

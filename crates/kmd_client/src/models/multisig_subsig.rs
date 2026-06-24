@@ -19,15 +19,18 @@ use crate::models::Signature;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct MultisigSubsig {
-    #[serde(rename = "Key", skip_serializing_if = "Option::is_none")]
-    pub key: Option<PublicKey>,
-    #[serde(rename = "Sig", skip_serializing_if = "Option::is_none")]
-    pub sig: Option<Signature>,
+    #[serde(rename = "pk")]
+    pub public_key: PublicKey,
+    #[serde(rename = "s", skip_serializing_if = "Option::is_none")]
+    pub signature: Option<Signature>,
 }
 
 impl MultisigSubsig {
-    /// Default constructor for MultisigSubsig
-    pub fn new() -> MultisigSubsig {
-        MultisigSubsig::default()
+    /// Constructor for MultisigSubsig
+    pub fn new(public_key: PublicKey) -> MultisigSubsig {
+        MultisigSubsig {
+            public_key,
+            signature: None,
+        }
     }
 }

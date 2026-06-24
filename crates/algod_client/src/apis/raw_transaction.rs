@@ -16,7 +16,7 @@ use super::{AlgodApiError, ContentType, Error};
 use algokit_transact::AlgorandMsgpack;
 
 // Import all custom types used by this endpoint
-use crate::models::{ErrorResponse, RawTransaction};
+use crate::models::{ErrorResponse, PostTransactionsResponse};
 
 // Import request body type if needed
 
@@ -38,7 +38,7 @@ pub enum RawTransactionError {
 pub async fn raw_transaction(
     http_client: &dyn HttpClient,
     request: Vec<u8>,
-) -> Result<RawTransaction, Error> {
+) -> Result<PostTransactionsResponse, Error> {
     let p_request = request;
 
     let path = "/v2/transactions".to_string();

@@ -8,6 +8,7 @@
  */
 
 use crate::models;
+use algokit_transact::Address;
 use serde::{Deserialize, Serialize};
 use serde_with::{Bytes, serde_as};
 
@@ -21,7 +22,7 @@ use crate::models::TealKeyValueStore;
 pub struct ApplicationParams {
     /// The address that created this application. This is the address where the parameters and global state for this application can be found.
     #[serde(rename = "creator", skip_serializing_if = "Option::is_none")]
-    pub creator: Option<String>,
+    pub creator: Option<Address>,
     /// approval program.
     #[serde_as(as = "Option<serde_with::base64::Base64>")]
     #[serde(rename = "approval-program", skip_serializing_if = "Option::is_none")]

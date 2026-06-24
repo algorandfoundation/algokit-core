@@ -15,7 +15,7 @@ use std::collections::HashMap;
 use super::{AlgodApiError, ContentType, Error};
 
 // Import all custom types used by this endpoint
-use crate::models::{AbortCatchup, ErrorResponse};
+use crate::models::{CatchpointAbortResponse, ErrorResponse};
 
 // Import request body type if needed
 
@@ -36,7 +36,7 @@ pub enum AbortCatchupError {
 pub async fn abort_catchup(
     http_client: &dyn HttpClient,
     catchpoint: &str,
-) -> Result<AbortCatchup, Error> {
+) -> Result<CatchpointAbortResponse, Error> {
     let p_catchpoint = catchpoint;
 
     let path = format!(
