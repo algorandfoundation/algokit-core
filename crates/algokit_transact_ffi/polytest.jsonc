@@ -1,0 +1,123 @@
+{
+  "name": "algokit_transact Test Plan",
+  "package_name": "algokit_transact",
+  "version": "0.8.0",
+  "suite": {
+    "Payment": {
+      "desc": "Tests for payment transactions",
+      "groups": ["Transaction Tests"]
+    },
+    "AssetConfig": {
+      "desc": "Tests for asset config transactions",
+      "groups": ["Transaction Tests"]
+    },
+    "App Call": {
+      "desc": "Tests for app call transactions",
+      "groups": ["Transaction Tests"]
+    },
+    "Generic Transaction": {
+      "desc": "Generic transaction tests",
+      "groups": ["Generic Transaction Tests"]
+    },
+    "Transaction Group": {
+      "desc": "Transaction Group tests",
+      "groups": ["Transaction Group Tests"]
+    },
+    "Key Registration": {
+      "desc": "Tests for key registration transactions",
+      "groups": ["Transaction Tests"]
+    },
+    "Heartbeat": {
+      "desc": "Tests for heartbeat transactions",
+      "groups": ["Transaction Tests"]
+    },
+    "State Proof": {
+      "desc": "Tests for state proof transactions",
+      "groups": ["Transaction Tests"]
+    }
+  },
+  "group": {
+    "Generic Transaction Tests": {
+      "desc": "Generic transaction-related tests",
+      "test": {
+        "encode 0 bytes": {
+          "desc": "Ensure a helpful error message is thrown when attempting to encode 0 bytes"
+        },
+        "malformed bytes": {
+          "desc": "Ensure a helpful error message is thrown when attempting to decode malformed bytes"
+        }
+        // TODO: Need way to exclude targets from test
+        // "Invalid type": {
+        //   "desc": "Ensure a helpful error message is thrown when giving the wrong type to a field"
+        // }
+      }
+    },
+    "Transaction Tests": {
+      "desc": "Tests that apply to all transaction types",
+      "test": {
+        "encode": {
+          "desc": "A transaction with valid fields is encoded properly"
+        },
+        "encode with signature": {
+          "desc": "A signature can be attached to a encoded transaction"
+        },
+        "encode with auth address": {
+          "desc": "An auth address can be attached to a encoded transaction with a signature"
+        },
+        "decode with prefix": {
+          "desc": "A transaction with TX prefix and valid fields is decoded properly"
+        },
+        "decode without prefix": {
+          "desc": "A transaction without TX prefix and valid fields is decoded properly"
+        },
+        // TODO: decode signed transaction
+        // "decode signed transaction": {
+        //   "desc": "A transaction with a valid signature is decoded properly"
+        // },
+        "get encoded transaction type": {
+          "desc": "The transaction type of an encoded transaction can be retrieved"
+        },
+        "get transaction id": {
+          "desc": "A transaction id can be obtained from a transaction"
+        },
+        "example": {
+          "desc": "A human-readable example of forming a transaction and signing it"
+        },
+        "multisig example": {
+          "desc": "A human-readable example of forming a transaction and signing it with a multisignature sig"
+        },
+        "assign fee": {
+          "desc": "A fee can be calculated and assigned to a transaction"
+        }
+      }
+    },
+    "Transaction Group Tests": {
+      "desc": "Tests that apply to collections of transactions",
+      "test": {
+        "group transactions": {
+          "desc": "A collection of transactions can be grouped"
+        },
+        "encode transactions": {
+          "desc": "A collection of transactions can be encoded"
+        },
+        "encode signed transactions": {
+          "desc": "A collection of signed transactions can be encoded"
+        }
+      }
+    }
+  },
+  "target": {
+    "pytest": {
+      "out_dir": "../../packages/python/algokit_transact/tests"
+    }
+    // Temporarily commented out swift while we focus on Python and TypeScript
+    // "swift": {
+    //   "out_dir": "../../packages/swift/AlgoKitTransact/Tests/AlgoKitTransactTests"
+    // }
+  },
+  "document": {
+    "markdown": {
+      "out_file": "test_plan.md"
+    }
+  }
+}
