@@ -10,6 +10,7 @@ node_modules/
 .dmypy.json
 .build
 .bin/
+.polytest_*/
 .vscode/
 .DS_Store
 *.idea
