@@ -1,0 +1,17 @@
+[package]
+name = "algokit_localnet_testing"
+version = "0.1.0"
+edition = "2024"
+description = "Live localnet test support (capturing HTTP client, response-schema validation, KMD fixtures) shared across the generated API client crates"
+publish = false
+
+[lib]
+name = "algokit_localnet_testing"
+path = "src/lib.rs"
+
+[dependencies]
+algod_client = { path = "../algod_client" }
+algokit_http_client = { path = "../algokit_http_client", default-features = false, features = ["default_client"] }
+async-trait = "0.1"
+jsonschema = "0.30"
+serde_json = { workspace = true }
