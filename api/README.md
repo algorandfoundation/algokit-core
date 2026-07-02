@@ -77,6 +77,26 @@ The generated Rust clients will be available at:
 - `../crates/indexer_client/`
 - `../crates/kmd_client/`
 
+### Generate endpoint test stubs (polytest)
+
+Per-endpoint test stubs are generated from the shared
+[`algorandfoundation/algokit-polytest`](https://github.com/algorandfoundation/algokit-polytest)
+catalog, cloned on demand via polytest's `--git` flag (the clone lands in a gitignored
+`.polytest_*/` dir).
+
+```bash
+# Generate algod endpoint stubs into crates/algod_client/tests/generated/
+# (plus a generated.rs aggregator so cargo test discovers them), then format.
+cargo api polytest-algod
+
+# Check catalog <-> stub-file parity.
+cargo api polytest-validate-algod
+```
+
+Each stub is a single `#[ignore]`'d test; bodies are filled in a later phase. `generated/` and
+`generated.rs` are overwritten on regeneration — keep custom test code elsewhere. Indexer and kmd
+follow the same pattern in a later PR.
+
 ### Development Scripts
 
 ```bash
