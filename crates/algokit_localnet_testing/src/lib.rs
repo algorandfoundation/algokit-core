@@ -3,11 +3,15 @@
 //! Kept as a standalone crate (not the low-level [`algokit_test_artifacts`] static-artifacts crate)
 //! so it can depend on the client crates without dragging them into foundational crates' test builds.
 
+/// Localnet fixtures (KMD accounts, transaction seeding).
+pub mod fixtures;
 /// An HTTP client that records raw response bytes.
 pub mod http_capture;
 /// Validates response bytes against the algod OpenAPI response schemas.
 pub mod schema;
 
+pub use fixtures::LocalnetFixture;
+pub use fixtures::kmd_account::KmdAccount;
 pub use http_capture::CapturingHttpClient;
 pub use schema::validate_response;
 
