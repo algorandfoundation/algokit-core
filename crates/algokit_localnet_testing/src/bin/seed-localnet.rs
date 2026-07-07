@@ -10,7 +10,11 @@
 async fn main() {
     let manifest = algokit_localnet_testing::seed_localnet().await;
     println!(
-        "seeded localnet: asset_id={} app_id={} round={} txid={}",
-        manifest.asset_id, manifest.app_id, manifest.confirmed_round, manifest.txid
+        "seeded localnet: asset_id={} app_id={} box_app_id={} round={} txid={}",
+        manifest.asset_id,
+        manifest.app_id,
+        manifest.box_app_id,
+        manifest.confirmed_round,
+        manifest.txid
     );
 }
