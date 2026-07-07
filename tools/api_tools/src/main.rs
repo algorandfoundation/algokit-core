@@ -62,6 +62,9 @@ enum Commands {
     /// Validate algod endpoint test files against the polytest catalog
     #[command(name = "polytest-validate-algod")]
     PolytestValidateAlgod,
+    /// Seed localnet with test state and write the manifest for endpoint tests
+    #[command(name = "seed-localnet")]
+    SeedLocalnet,
 }
 
 fn repo_root() -> &'static Path {
@@ -306,6 +309,13 @@ fn execute_command(command: &Commands) -> Result<()> {
         }
         Commands::PolytestValidateAlgod => {
             validate_polytest_algod()?;
+        }
+        Commands::SeedLocalnet => {
+            run(
+                "cargo run -p algokit_localnet_testing --bin seed-localnet",
+                None,
+                None,
+            )?;
         }
     }
     Ok(())
