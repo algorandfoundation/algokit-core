@@ -26,6 +26,13 @@ const RESPONSE_SCHEMAS: &[&str] = &[
     "Version",
     "SupplyResponse",
     "TransactionParametersResponse",
+    "Account",
+    "AccountAssetResponse",
+    "AccountApplicationResponse",
+    "Asset",
+    "Application",
+    "BoxesResponse",
+    "Box",
 ];
 
 /// Lazily built, then read-only: one compiled validator per schema name.
