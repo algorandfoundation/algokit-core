@@ -33,6 +33,7 @@ const RESPONSE_SCHEMAS: &[&str] = &[
     "Application",
     "BoxesResponse",
     "Box",
+    "CompileResponse",
 ];
 
 /// Lazily built, then read-only: one compiled validator per schema name.

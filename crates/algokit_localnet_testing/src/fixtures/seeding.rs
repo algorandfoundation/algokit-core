@@ -5,14 +5,26 @@
 
 use algod_client::AlgodClient;
 use algokit_transact::{
-    Address, AlgorandMsgpack, PaymentTransactionBuilder, Transaction, TransactionHeaderBuilder,
-    TransactionId,
+    Address, AlgorandMsgpack, AppCallTransactionBuilder, OnApplicationComplete,
+    PaymentTransactionBuilder, SignedTransaction, Transaction, TransactionHeader,
+    TransactionHeaderBuilder, TransactionId,
 };
 
 use super::kmd_account::KmdAccount;
 
 /// How many rounds to wait for a submitted transaction to confirm before giving up.
 const CONFIRMATION_ROUNDS: u64 = 10;
+
+/// Sign a transaction with `account`, returning the signed transaction without submitting it.
+pub async fn sign(account: &KmdAccount, transaction: Transaction) -> SignedTransaction {
+    account
+        .signer
+        .signer
+        .sign_transactions(&[transaction], &[0])
+        .await
+        .expect("failed to sign transaction")
+        .remove(0)
+}
 
 /// Sign a transaction with `account`, submit it, and wait until it confirms. Returns the txid.
 pub async fn submit_and_confirm(
@@ -51,19 +63,14 @@ pub async fn fund_account(
     submit_and_confirm(algod, dispenser, payment).await
 }
 
-/// Build a payment transaction using algod's current suggested params.
-pub async fn payment(
-    algod: &AlgodClient,
-    sender: &Address,
-    receiver: &Address,
-    amount: u64,
-) -> Transaction {
+/// Build a transaction header for `sender` from algod's current suggested params.
+async fn header(algod: &AlgodClient, sender: &Address) -> TransactionHeader {
     let params = algod
         .transaction_params()
         .await
         .expect("failed to fetch suggested params");
 
-    let header = TransactionHeaderBuilder::default()
+    TransactionHeaderBuilder::default()
         .sender(sender.clone())
         .fee(params.min_fee)
         .first_valid(params.last_round + 1)
@@ -71,14 +78,32 @@ pub async fn payment(
         .genesis_hash(params.genesis_hash)
         .genesis_id(params.genesis_id)
         .build()
-        .expect("failed to build transaction header");
+        .expect("failed to build transaction header")
+}
 
+/// Build a payment transaction using algod's current suggested params.
+pub async fn payment(
+    algod: &AlgodClient,
+    sender: &Address,
+    receiver: &Address,
+    amount: u64,
+) -> Transaction {
     PaymentTransactionBuilder::default()
-        .header(header)
+        .header(header(algod, sender).await)
         .receiver(receiver.clone())
         .amount(amount)
         .build()
         .expect("failed to build payment transaction")
+}
+
+/// Build a no-op call to `app_id` from `sender` using algod's current suggested params.
+pub async fn app_noop_call(algod: &AlgodClient, sender: &Address, app_id: u64) -> Transaction {
+    AppCallTransactionBuilder::default()
+        .header(header(algod, sender).await)
+        .app_id(app_id)
+        .on_complete(OnApplicationComplete::NoOp)
+        .build()
+        .expect("failed to build app call transaction")
 }
 
 /// Poll pending-transaction info until the transaction reports a confirmed round.
