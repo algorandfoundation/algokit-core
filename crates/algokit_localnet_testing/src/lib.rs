@@ -9,11 +9,14 @@ pub mod fixtures;
 pub mod http_capture;
 /// Validates response bytes against the algod OpenAPI response schemas.
 pub mod schema;
+/// Seeds localnet with shared state and reads/writes the test manifest.
+pub mod seed;
 
 pub use fixtures::LocalnetFixture;
 pub use fixtures::kmd_account::KmdAccount;
 pub use http_capture::CapturingHttpClient;
 pub use schema::validate_response;
+pub use seed::{Manifest, load_manifest, seed_localnet};
 
 #[cfg(test)]
 mod schema_selftest {

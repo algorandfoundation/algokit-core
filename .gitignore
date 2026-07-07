@@ -47,3 +47,6 @@ packages/swift/**/Frameworks
 packages/swift/**/.swiftpm/
 packages/swift/**/xcuserdata/
 packages/swift/**/.netrc
+
+# Generated localnet seed manifest (per-machine, not committed)
+.localnet-manifest.json
