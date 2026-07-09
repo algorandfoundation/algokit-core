@@ -93,9 +93,12 @@ cargo api polytest-algod
 cargo api polytest-validate-algod
 ```
 
-Each stub is a single `#[ignore]`'d test; bodies are filled in a later phase. `generated/` and
-`generated.rs` are overwritten on regeneration — keep custom test code elsewhere. Indexer and kmd
-follow the same pattern in a later PR.
+Each stub is a single per-endpoint test. Filled bodies are preserved across regeneration; the
+`generated.rs` aggregator is rewritten each time — keep custom test code elsewhere. The filled
+tests run against a live, seeded localnet as part of `cargo t`; see
+[`crates/algod_client/tests/README.md`](../crates/algod_client/tests/README.md) for how to run them,
+the validation model, and the deferred endpoints. Indexer and kmd follow the same pattern in a later
+PR.
 
 ### Development Scripts
 
