@@ -1,7 +1,6 @@
 // Polytest Suite: GET v2_deltas_ROUND
 // Polytest Group: Common Tests
 #[tokio::test]
-#[ignore = "requires localnet"]
 async fn basic_request_and_response_validation() {
     use algokit_localnet_testing::fixtures::seeding;
 

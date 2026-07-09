@@ -10,6 +10,9 @@ edition = "2024"
 default = ["default_client"]
 default_client = ["algokit_http_client/default_client"]
 ffi_uniffi = ["dep:uniffi", "algokit_http_client/ffi_uniffi", "dep:algokit_transact_ffi"]
+# Compiles the generated live-localnet endpoint tests. Off by default so offline `cargo t` stays
+# green; enable with `--features localnet-tests` against a seeded localnet.
+localnet-tests = []
 
 [dependencies]
 # Core serialization

@@ -1,9 +1,8 @@
 // Polytest Suite: POST v2_devmode_blocks_offset_OFFSET
 // Polytest Group: Common Tests
 #[tokio::test]
-#[ignore = "requires localnet"]
 async fn basic_request_and_response_validation() {
-    let _guard = algokit_localnet_testing::state_lock();
+    let _guard = algokit_localnet_testing::state_lock().await;
     let capture = algokit_localnet_testing::CapturingHttpClient::localnet();
     let client = capture.client();
 

@@ -1,7 +1,6 @@
 // Polytest Suite: GET v2_accounts_ADDRESS
 // Polytest Group: Common Tests
 #[tokio::test]
-#[ignore = "requires localnet"]
 async fn basic_request_and_response_validation() {
     let manifest = algokit_localnet_testing::load_manifest();
     let capture = algokit_localnet_testing::CapturingHttpClient::localnet();

@@ -18,12 +18,11 @@ pub use http_capture::CapturingHttpClient;
 pub use schema::validate_response;
 pub use seed::{Manifest, load_manifest, seed_localnet};
 
-/// Serializes tests that mutate shared node state. Hold the guard for the whole test.
-pub fn state_lock() -> std::sync::MutexGuard<'static, ()> {
-    static STATE_MUTEX: std::sync::Mutex<()> = std::sync::Mutex::new(());
-    STATE_MUTEX
-        .lock()
-        .unwrap_or_else(|poisoned| poisoned.into_inner())
+/// Serializes tests that mutate shared node state. Hold the guard for the whole test. Async-aware so
+/// it can be safely held across the `.await`s of the requests it guards.
+pub async fn state_lock() -> tokio::sync::MutexGuard<'static, ()> {
+    static STATE_MUTEX: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
+    STATE_MUTEX.lock().await
 }
 
 #[cfg(test)]

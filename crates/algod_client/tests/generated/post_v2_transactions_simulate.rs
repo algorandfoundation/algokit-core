@@ -1,7 +1,6 @@
 // Polytest Suite: POST v2_transactions_simulate
 // Polytest Group: Common Tests
 #[tokio::test]
-#[ignore = "requires localnet"]
 async fn basic_request_and_response_validation() {
     use algod_client::models::{SimulateRequest, SimulateRequestTransactionGroup};
     use algokit_localnet_testing::fixtures::seeding;

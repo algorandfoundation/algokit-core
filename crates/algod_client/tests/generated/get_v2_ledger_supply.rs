@@ -1,7 +1,6 @@
 // Polytest Suite: GET v2_ledger_supply
 // Polytest Group: Common Tests
 #[tokio::test]
-#[ignore = "requires localnet"]
 async fn basic_request_and_response_validation() {
     let capture = algokit_localnet_testing::CapturingHttpClient::localnet();
     let client = capture.client();
