@@ -1,0 +1,8 @@
+# Serialize tests that mutate shared localnet node state. nextest runs each test in its own process,
+# so the in-process state_lock() mutex does not cover it; this group caps them at one at a time.
+[test-groups]
+localnet-shared-state = { max-threads = 1 }
+
+[[profile.default.overrides]]
+filter = 'test(devmode_blocks_offset)'
+test-group = 'localnet-shared-state'

@@ -18,6 +18,14 @@ pub use http_capture::CapturingHttpClient;
 pub use schema::validate_response;
 pub use seed::{Manifest, load_manifest, seed_localnet};
 
+/// Serializes tests that mutate shared node state. Hold the guard for the whole test.
+pub fn state_lock() -> std::sync::MutexGuard<'static, ()> {
+    static STATE_MUTEX: std::sync::Mutex<()> = std::sync::Mutex::new(());
+    STATE_MUTEX
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
+}
+
 #[cfg(test)]
 mod schema_selftest {
     use super::validate_response;

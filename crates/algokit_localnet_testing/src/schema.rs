@@ -38,6 +38,7 @@ const RESPONSE_SCHEMAS: &[&str] = &[
     "BlockTxidsResponse",
     "PostTransactionsResponse",
     "TransactionProof",
+    "GetBlockTimeStampOffsetResponse",
 ];
 
 /// Lazily built, then read-only: one compiled validator per schema name.
