@@ -13,4 +13,7 @@ cargo clippy -- -D warnings
 
 cargo check
 
+# The generated client endpoint tests run against a live localnet; seed it first.
+cargo api seed-localnet
+
 cargo t

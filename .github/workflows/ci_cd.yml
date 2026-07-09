@@ -52,6 +52,9 @@ jobs:
       - name: Build all crates
         run: cargo build --workspace
 
+      - name: Seed localnet for endpoint tests
+        run: cargo api seed-localnet
+
       - name: Run Rust tests with cargo t (cargo-nextest)
         run: cargo t --workspace --all-targets --failure-output=immediate --status-level=all
 
