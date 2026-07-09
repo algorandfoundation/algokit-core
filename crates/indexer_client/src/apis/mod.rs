@@ -14,6 +14,7 @@ pub mod client;
 pub mod parameter_enums;
 
 // Individual endpoint modules
+pub mod health_check;
 pub mod lookup_account_app_local_states;
 pub mod lookup_account_assets;
 pub mod lookup_account_by_id;
@@ -27,8 +28,7 @@ pub mod lookup_asset_balances;
 pub mod lookup_asset_by_id;
 pub mod lookup_asset_transactions;
 pub mod lookup_block;
-pub mod lookup_transaction;
-pub mod make_health_check;
+pub mod lookup_transaction_by_id;
 pub mod search_for_accounts;
 pub mod search_for_application_boxes;
 pub mod search_for_applications;
@@ -42,9 +42,9 @@ use snafu::Snafu;
 #[derive(Debug, Snafu)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum IndexerApiError {
-    #[snafu(display("Make_health_check error: {error:?}"))]
-    MakeHealthCheck {
-        error: make_health_check::MakeHealthCheckError,
+    #[snafu(display("Health_check error: {error:?}"))]
+    HealthCheck {
+        error: health_check::HealthCheckError,
     },
     #[snafu(display("Search_for_accounts error: {error:?}"))]
     SearchForAccounts {
@@ -118,9 +118,9 @@ pub enum IndexerApiError {
     LookupBlock {
         error: lookup_block::LookupBlockError,
     },
-    #[snafu(display("Lookup_transaction error: {error:?}"))]
-    LookupTransaction {
-        error: lookup_transaction::LookupTransactionError,
+    #[snafu(display("Lookup_transaction_by_id error: {error:?}"))]
+    LookupTransactionById {
+        error: lookup_transaction_by_id::LookupTransactionByIdError,
     },
     #[snafu(display("Search_for_transactions error: {error:?}"))]
     SearchForTransactions {
@@ -130,9 +130,9 @@ pub enum IndexerApiError {
     Unknown { message: String },
 }
 
-impl From<make_health_check::MakeHealthCheckError> for IndexerApiError {
-    fn from(err: make_health_check::MakeHealthCheckError) -> Self {
-        IndexerApiError::MakeHealthCheck { error: err }
+impl From<health_check::HealthCheckError> for IndexerApiError {
+    fn from(err: health_check::HealthCheckError) -> Self {
+        IndexerApiError::HealthCheck { error: err }
     }
 }
 
@@ -252,9 +252,9 @@ impl From<lookup_block::LookupBlockError> for IndexerApiError {
     }
 }
 
-impl From<lookup_transaction::LookupTransactionError> for IndexerApiError {
-    fn from(err: lookup_transaction::LookupTransactionError) -> Self {
-        IndexerApiError::LookupTransaction { error: err }
+impl From<lookup_transaction_by_id::LookupTransactionByIdError> for IndexerApiError {
+    fn from(err: lookup_transaction_by_id::LookupTransactionByIdError) -> Self {
+        IndexerApiError::LookupTransactionById { error: err }
     }
 }
 
@@ -311,6 +311,7 @@ pub use client::IndexerClient;
 pub use parameter_enums::*;
 
 // Re-export all endpoint functions
+pub use health_check::{HealthCheckError, health_check};
 pub use lookup_account_app_local_states::{
     LookupAccountAppLocalStatesError, lookup_account_app_local_states,
 };
@@ -336,8 +337,7 @@ pub use lookup_asset_balances::{LookupAssetBalancesError, lookup_asset_balances}
 pub use lookup_asset_by_id::{LookupAssetByIdError, lookup_asset_by_id};
 pub use lookup_asset_transactions::{LookupAssetTransactionsError, lookup_asset_transactions};
 pub use lookup_block::{LookupBlockError, lookup_block};
-pub use lookup_transaction::{LookupTransactionError, lookup_transaction};
-pub use make_health_check::{MakeHealthCheckError, make_health_check};
+pub use lookup_transaction_by_id::{LookupTransactionByIdError, lookup_transaction_by_id};
 pub use search_for_accounts::{SearchForAccountsError, search_for_accounts};
 pub use search_for_application_boxes::{
     SearchForApplicationBoxesError, search_for_application_boxes,

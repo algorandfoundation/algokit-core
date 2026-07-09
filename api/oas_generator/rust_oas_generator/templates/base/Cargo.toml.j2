@@ -27,9 +27,11 @@ url = { workspace = true }
 uniffi = { workspace = true, optional = true }
 algokit_transact_ffi = { optional = true, version = "0.1.0", path = "../algokit_transact_ffi" }
 
-{% if spec.has_msgpack_operations %}
-# AlgoKit dependencies for msgpack and signed transactions
+{% if spec.has_msgpack_operations or spec.has_address_fields %}
+# AlgoKit core types (Address, SignedTransaction)
 algokit_transact = { path = "../algokit_transact" }
+{% endif %}
+{% if spec.has_msgpack_operations %}
 # MessagePack serialization
 rmp-serde = { workspace = true }
 rmpv = { workspace = true }
@@ -45,3 +47,5 @@ uuid = { workspace = true }
 [dev-dependencies]
 tokio = { version = "1.0", features = ["full"] }
 tokio-test = "^0.4"
+# Shared localnet test support (capturing client, response-schema validation, fixtures).
+algokit_localnet_testing = { path = "../algokit_localnet_testing" }

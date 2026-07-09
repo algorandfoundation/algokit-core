@@ -16,6 +16,7 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "ffi_uniffi")]
 use algokit_transact_ffi::SignedTransaction as AlgokitSignedTransaction;
 
+use algokit_transact::Address;
 use algokit_transact::AlgorandMsgpack;
 
 use crate::models::AccountParticipation;
@@ -34,7 +35,7 @@ use crate::models::AssetHolding;
 pub struct Account {
     /// the account public key
     #[serde(rename = "address")]
-    pub address: String,
+    pub address: Address,
     /// \[algo\] total number of MicroAlgos in the account
     #[serde(rename = "amount")]
     pub amount: u64,
@@ -123,7 +124,7 @@ pub struct Account {
     pub sig_type: Option<String>,
     /// \[spend\] the address against which signing should be checked. If empty, the address of the current account is used. This field can be updated in any transaction by setting the RekeyTo field.
     #[serde(rename = "auth-addr", skip_serializing_if = "Option::is_none")]
-    pub auth_addr: Option<String>,
+    pub auth_addr: Option<Address>,
     /// The round in which this account last proposed the block.
     #[serde(rename = "last-proposed", skip_serializing_if = "Option::is_none")]
     pub last_proposed: Option<u64>,
@@ -139,7 +140,7 @@ impl AlgorandMsgpack for Account {
 impl Account {
     /// Constructor for Account
     pub fn new(
-        address: String,
+        address: Address,
         amount: u64,
         min_balance: u64,
         amount_without_pending_rewards: u64,

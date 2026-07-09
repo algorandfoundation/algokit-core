@@ -9,26 +9,28 @@
  */
 
 use crate::models;
+use algokit_transact::Address;
 use serde::{Deserialize, Serialize};
 
-/// APIV1DELETEMultisigRequest is the request for `DELETE /v1/multisig`
+/// The request for `DELETE /v1/multisig`
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct DeleteMultisigRequest {
-    #[serde(rename = "address", skip_serializing_if = "Option::is_none")]
-    pub address: Option<String>,
-    #[serde(
-        rename = "wallet_handle_token",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub wallet_handle_token: Option<String>,
+    #[serde(rename = "address")]
+    pub address: Address,
+    #[serde(rename = "wallet_handle_token")]
+    pub wallet_handle_token: String,
     #[serde(rename = "wallet_password", skip_serializing_if = "Option::is_none")]
     pub wallet_password: Option<String>,
 }
 
 impl DeleteMultisigRequest {
-    /// Default constructor for DeleteMultisigRequest
-    pub fn new() -> DeleteMultisigRequest {
-        DeleteMultisigRequest::default()
+    /// Constructor for DeleteMultisigRequest
+    pub fn new(address: Address, wallet_handle_token: String) -> DeleteMultisigRequest {
+        DeleteMultisigRequest {
+            address,
+            wallet_handle_token,
+            wallet_password: None,
+        }
     }
 }

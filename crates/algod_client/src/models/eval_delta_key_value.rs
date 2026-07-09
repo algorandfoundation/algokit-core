@@ -12,6 +12,7 @@ use crate::models;
 #[cfg(not(feature = "ffi_uniffi"))]
 use algokit_transact::SignedTransaction as AlgokitSignedTransaction;
 use serde::{Deserialize, Serialize};
+use serde_with::{Bytes, serde_as};
 
 #[cfg(feature = "ffi_uniffi")]
 use algokit_transact_ffi::SignedTransaction as AlgokitSignedTransaction;
@@ -21,11 +22,13 @@ use algokit_transact::AlgorandMsgpack;
 use crate::models::EvalDelta;
 
 /// Key-value pairs for StateDelta.
+#[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct EvalDeltaKeyValue {
+    #[serde_as(as = "Bytes")]
     #[serde(rename = "key")]
-    pub key: String,
+    pub key: Vec<u8>,
     #[serde(rename = "value")]
     pub value: EvalDelta,
 }
@@ -36,7 +39,7 @@ impl AlgorandMsgpack for EvalDeltaKeyValue {
 
 impl EvalDeltaKeyValue {
     /// Constructor for EvalDeltaKeyValue
-    pub fn new(key: String, value: EvalDelta) -> EvalDeltaKeyValue {
+    pub fn new(key: Vec<u8>, value: EvalDelta) -> EvalDeltaKeyValue {
         EvalDeltaKeyValue { key, value }
     }
 

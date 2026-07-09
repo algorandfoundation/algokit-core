@@ -9,6 +9,7 @@
  */
 
 use crate::models;
+use algokit_transact::Address;
 use serde::{Deserialize, Serialize};
 
 use crate::models::AccountParticipation;
@@ -22,7 +23,7 @@ pub struct ParticipationKey {
     pub id: String,
     /// Address the key was generated for.
     #[serde(rename = "address")]
-    pub address: String,
+    pub address: Address,
     /// When registered, this is the first round it may be used.
     #[serde(
         rename = "effective-first-valid",
@@ -53,7 +54,7 @@ pub struct ParticipationKey {
 
 impl ParticipationKey {
     /// Constructor for ParticipationKey
-    pub fn new(id: String, address: String, key: AccountParticipation) -> ParticipationKey {
+    pub fn new(id: String, address: Address, key: AccountParticipation) -> ParticipationKey {
         ParticipationKey {
             id,
             address,

@@ -7,7 +7,7 @@ This package contains tools for working with the Algorand API specifications and
 - [Python 3.12+](https://www.python.org/) - Required for the custom OAS generator
 - [uv](https://docs.astral.sh/uv/) - Python package manager
 - [Rust](https://rustup.rs/) - Required for compiling generated clients and running API tools
-- [Node.js](https://nodejs.org/) - JavaScript runtime (only for convert-openapi script)
+- [curl](https://curl.se/) - Used by `convert-*` to fetch the pinned OAS3 specs
 
 ## Setup
 
@@ -15,25 +15,23 @@ This package contains tools for working with the Algorand API specifications and
 # Install Python dependencies for the OAS generator
 cd api/oas_generator
 uv install
-
-# Install JavaScript dependencies (only needed for convert-openapi)
-cd ../
-npm install
 ```
 
 ## Available Scripts
 
 > NOTE: These scripts can be run from the repository root using `cargo api <command>`.
 
-### Convert OpenAPI 2.0 to OpenAPI 3.0
+### Fetch OpenAPI 3.0 specs
 
-Converts the Algod, Indexer, and KMD OpenAPI 2.0 specs to OpenAPI 3.0:
+Fetches the Algod, Indexer, and KMD OAS3 specs from the pinned
+[`algokit-oas-generator`](https://github.com/algorandfoundation/algokit-oas-generator)
+commit (recorded in `specs/.oas-generator-sha`) into `specs/`:
 
 ```bash
 cargo api convert-openapi
 ```
 
-Convert individual specifications:
+Fetch individual specifications:
 
 ```bash
 # Convert only algod spec
@@ -78,6 +76,29 @@ The generated Rust clients will be available at:
 - `../crates/algod_client/`
 - `../crates/indexer_client/`
 - `../crates/kmd_client/`
+
+### Generate endpoint test stubs (polytest)
+
+Per-endpoint test stubs are generated from the shared
+[`algorandfoundation/algokit-polytest`](https://github.com/algorandfoundation/algokit-polytest)
+catalog, cloned on demand via polytest's `--git` flag (the clone lands in a gitignored
+`.polytest_*/` dir).
+
+```bash
+# Generate algod endpoint stubs into crates/algod_client/tests/generated/
+# (plus a generated.rs aggregator so cargo test discovers them), then format.
+cargo api polytest-algod
+
+# Check catalog <-> stub-file parity.
+cargo api polytest-validate-algod
+```
+
+Each stub is a single per-endpoint test. Filled bodies are preserved across regeneration; the
+`generated.rs` aggregator is rewritten each time — keep custom test code elsewhere. The filled
+tests run against a live, seeded localnet as part of `cargo t`; see
+[`crates/algod_client/tests/README.md`](../crates/algod_client/tests/README.md) for how to run them,
+the validation model, and the deferred endpoints. Indexer and kmd follow the same pattern in a later
+PR.
 
 ### Development Scripts
 
@@ -130,19 +151,27 @@ crates/{algod_client,indexer_client,kmd_client}/
 
 ## OpenAPI Specs for Algorand APIs
 
-### Algod
+The OAS3 specs in `specs/{algod,indexer,kmd}.oas3.json` are the canonical, Algorand-patched
+specs published by [`algokit-oas-generator`](https://github.com/algorandfoundation/algokit-oas-generator)
+— the same source consumed by `algokit-utils-ts` and `algokit-utils-py`. `algokit-core` no
+longer maintains its own OAS2→OAS3 converter; `cargo api convert-*` simply fetches the published
+spec for the pinned upstream commit.
 
-The `algod.oas2.json` is taken directly from [go-algorand](https://github.com/algorand/go-algorand/blob/master/daemon/algod/api/algod.oas2.json). To convert the spec to OpenAPI 3.0, use `cargo api convert-algod` which runs the TypeScript script [scripts/convert-openapi.ts](scripts/convert-openapi.ts) via [swagger converter](https://converter.swagger.io/) endpoint.
+### Pinning and upgrading
 
-### Indexer
+The pinned upstream commit is recorded in `specs/.oas-generator-sha` and mirrored by
+`OAS_GENERATOR_SHA` in [`../tools/api_tools/src/main.rs`](../tools/api_tools/src/main.rs). To pull
+a newer spec:
 
-The `indexer.oas2.json` is taken directly from [indexer](https://github.com/algorand/indexer/blob/master/api/indexer.oas2.json). To convert the spec to OpenAPI 3.0, use `cargo api convert-indexer` which runs the same TypeScript conversion script.
+1. Update the SHA in `specs/.oas-generator-sha` and `OAS_GENERATOR_SHA`.
+2. Run `cargo api convert-openapi` to re-fetch `specs/*.oas3.json`.
+3. Run `cargo api generate-all` to regenerate the Rust clients.
+4. Review the spec and client diffs and commit.
 
-### KMD
-
-The KMD Swagger 2.0 specification is sourced from [go-algorand](https://github.com/algorand/go-algorand/blob/master/daemon/kmd/api/swagger.json). Convert it to OpenAPI 3.0 with `cargo api convert-kmd` which invokes [scripts/convert-openapi.ts](scripts/convert-openapi.ts).
-
-The current approach is to manually edit and tweak the OAS2 specs fixing known issues from the source repositories, then use the custom Rust OAS generator to generate clients from the v3 specs. OpenAPI v3 is preferred for client generation as it offers enhanced schema features, better component reusability, and improved type definitions compared to v2.
+Algorand-specific spec fixes and vendor extensions (`x-algokit-bigint`, `x-algokit-signed-txn`,
+`x-algokit-bytes-base64`, `x-algokit-field-rename`, `x-algokit-byte-length`,
+`x-algorand-format: "Address"`, and the box/holding/locals reference markers) are produced
+upstream and consumed by the Rust generator — see [`oas_generator/ARCHITECTURE.md`](oas_generator/ARCHITECTURE.md).
 
 ## Generator Configuration
 

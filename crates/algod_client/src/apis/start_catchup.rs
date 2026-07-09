@@ -15,7 +15,7 @@ use std::collections::HashMap;
 use super::{AlgodApiError, ContentType, Error};
 
 // Import all custom types used by this endpoint
-use crate::models::{ErrorResponse, StartCatchup};
+use crate::models::{CatchpointStartResponse, ErrorResponse};
 
 // Import request body type if needed
 
@@ -38,7 +38,7 @@ pub async fn start_catchup(
     http_client: &dyn HttpClient,
     catchpoint: &str,
     min: Option<u64>,
-) -> Result<StartCatchup, Error> {
+) -> Result<CatchpointStartResponse, Error> {
     let p_catchpoint = catchpoint;
     let p_min = min;
 

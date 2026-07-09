@@ -8,6 +8,7 @@
  */
 
 use crate::models;
+use algokit_transact::Address;
 use serde::{Deserialize, Serialize};
 
 /// HoldingRef names a holding by referring to an Address and Asset it belongs to.
@@ -16,7 +17,7 @@ use serde::{Deserialize, Serialize};
 pub struct HoldingRef {
     /// \[d\] Address in access list, or the sender of the transaction.
     #[serde(rename = "address")]
-    pub address: String,
+    pub address: Address,
     /// \[s\] Asset ID for asset in access list.
     #[serde(rename = "asset")]
     pub asset: u64,
@@ -24,7 +25,7 @@ pub struct HoldingRef {
 
 impl HoldingRef {
     /// Constructor for HoldingRef
-    pub fn new(address: String, asset: u64) -> HoldingRef {
+    pub fn new(address: Address, asset: u64) -> HoldingRef {
         HoldingRef { address, asset }
     }
 }

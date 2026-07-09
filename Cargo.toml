@@ -6,6 +6,7 @@ members = [
   "crates/algokit_transact_ffi",
   "crates/algokit_abi",
   "crates/algokit_test_artifacts",
+  "crates/algokit_localnet_testing",
   "crates/ffi_macros",
   "crates/algod_client",
   "crates/indexer_client",
@@ -45,6 +46,6 @@ uuid = { version = "1.0", features = ["v4"] }
 convert_case = { version = "0.8.0" }
 
 [workspace.metadata.bin]
-polytest = { version = "0.3.0", locked = true }
+polytest = { version = "0.8.1", locked = true }
 cargo-insta = { version = "1.43.1", locked = true }
 cargo-nextest = { version = "0.9.100", locked = true }

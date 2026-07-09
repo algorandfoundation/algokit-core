@@ -16,6 +16,7 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "ffi_uniffi")]
 use algokit_transact_ffi::SignedTransaction as AlgokitSignedTransaction;
 
+use algokit_transact::Address;
 use algokit_transact::AlgorandMsgpack;
 
 use crate::models::PendingTransactionResponse;
@@ -49,7 +50,7 @@ pub struct SimulateTransactionResult {
     pub unnamed_resources_accessed: Option<SimulateUnnamedResourcesAccessed>,
     /// The account that needed to sign this transaction when no signature was provided and the provided signer was incorrect.
     #[serde(rename = "fixed-signer", skip_serializing_if = "Option::is_none")]
-    pub fixed_signer: Option<String>,
+    pub fixed_signer: Option<Address>,
 }
 
 impl AlgorandMsgpack for SimulateTransactionResult {

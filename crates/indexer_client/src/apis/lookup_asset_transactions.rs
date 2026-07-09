@@ -15,7 +15,7 @@ use super::parameter_enums::*;
 use super::{ContentType, Error, IndexerApiError};
 
 // Import all custom types used by this endpoint
-use crate::models::{LookupAssetTransactions, UnknownJsonValue};
+use crate::models::{ErrorResponse, TransactionsResponse};
 
 // Import request body type if needed
 
@@ -24,8 +24,8 @@ use crate::models::{LookupAssetTransactions, UnknownJsonValue};
 #[serde(untagged)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum LookupAssetTransactionsError {
-    Status400(UnknownJsonValue),
-    Status500(UnknownJsonValue),
+    Status400(ErrorResponse),
+    Status500(ErrorResponse),
     DefaultResponse(),
     UnknownValue(crate::models::UnknownJsonValue),
 }
@@ -51,7 +51,7 @@ pub async fn lookup_asset_transactions(
     exclude_close_to: Option<bool>,
     asset_id: u64,
     rekey_to: Option<bool>,
-) -> Result<LookupAssetTransactions, Error> {
+) -> Result<TransactionsResponse, Error> {
     let p_limit = limit;
     let p_next = next;
     let p_note_prefix = note_prefix;

@@ -11,20 +11,19 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
-/// APIV1POSTMultisigListRequest is the request for `POST /v1/multisig/list`
+/// The request for `POST /v1/multisig/list`
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct ListMultisigRequest {
-    #[serde(
-        rename = "wallet_handle_token",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub wallet_handle_token: Option<String>,
+    #[serde(rename = "wallet_handle_token")]
+    pub wallet_handle_token: String,
 }
 
 impl ListMultisigRequest {
-    /// Default constructor for ListMultisigRequest
-    pub fn new() -> ListMultisigRequest {
-        ListMultisigRequest::default()
+    /// Constructor for ListMultisigRequest
+    pub fn new(wallet_handle_token: String) -> ListMultisigRequest {
+        ListMultisigRequest {
+            wallet_handle_token,
+        }
     }
 }

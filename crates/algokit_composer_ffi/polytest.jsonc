@@ -1,0 +1,55 @@
+{
+  "name": "algokit_composer Test Plan",
+  "package_name": "algokit_composer",
+  "version": "0.8.0",
+  "suite": {
+    "Composer": {
+      "desc": "Tests for the stateless transaction composer",
+      "groups": ["Composer Tests"]
+    }
+  },
+  "group": {
+    "Composer Tests": {
+      "desc": "Tests that exercise compose() and sign_transactions() across transaction types",
+      "test": {
+        "compose payment": {
+          "desc": "compose() with a single Payment TxnParams produces the canonical encoded transaction"
+        },
+        "compose asset opt in": {
+          "desc": "compose() with an AssetOptIn TxnParams produces a 0-amount asset transfer to self"
+        },
+        "compose asset transfer": {
+          "desc": "compose() with an AssetTransfer TxnParams produces the canonical encoded transaction"
+        },
+        "compose online keyreg": {
+          "desc": "compose() with an OnlineKeyReg TxnParams produces the canonical encoded transaction"
+        },
+        "compose offline keyreg": {
+          "desc": "compose() with an OfflineKeyReg TxnParams produces the canonical encoded transaction"
+        },
+        "compose multi-entry assigns shared group": {
+          "desc": "compose() with more than one TxnParams returns transactions that share an atomic group ID"
+        },
+        "sign single transaction": {
+          "desc": "sign_transactions() with one encoded transaction and one secret key produces the canonical signed bytes"
+        },
+        "sign paired transactions": {
+          "desc": "sign_transactions() pairs each transaction with the secret key at the same index"
+        },
+        "sign rejects length mismatch": {
+          "desc": "sign_transactions() returns an error when txn count and key count differ"
+        }
+      }
+    }
+  },
+  "target": {
+    "pytest": {
+      "out_dir": "../../packages/python/algokit_composer/tests"
+    }
+  },
+  "document": {
+    "markdown": {
+      "out_file": "test_plan.md"
+    }
+  }
+}

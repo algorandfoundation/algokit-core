@@ -10,8 +10,9 @@ use crate::utils::{hash, pub_key_to_checksum};
 use crate::{
     ALGORAND_ADDRESS_LENGTH, ALGORAND_CHECKSUM_BYTE_LENGTH, ALGORAND_PUBLIC_KEY_BYTE_LENGTH,
 };
+use serde::de::{Deserializer, Error as DeError, SeqAccess, Visitor};
+use serde::ser::Serializer;
 use serde::{Deserialize, Serialize};
-use serde_with::{Bytes, serde_as};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::str::FromStr;
 
@@ -20,10 +21,58 @@ use std::str::FromStr;
 /// The [`Address`] type stores the 32 bytes of the address (the public key or hash digest),
 /// and provides methods for encoding to and decoding from the standard Algorand base32 string format.
 /// The checksum is automatically calculated and validated as part of parsing and formatting.
-#[serde_as]
-#[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq, Eq, Hash)]
-#[serde(transparent)]
-pub struct Address(#[serde_as(as = "Bytes")] pub(crate) Byte32);
+#[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
+pub struct Address(pub(crate) Byte32);
+
+// JSON encodes addresses as base32 strings, msgpack as raw 32 bytes. Serialization uses
+// `is_human_readable()`; deserialization dispatches on the arriving value because that flag is
+// unreliable inside serde's buffered internally-tagged enum decoding. (e.g. as done in Transaction type)
+impl Serialize for Address {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        if serializer.is_human_readable() {
+            serializer.serialize_str(&self.as_str())
+        } else {
+            serializer.serialize_bytes(&self.0)
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for Address {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        struct AddressVisitor;
+
+        impl<'de> Visitor<'de> for AddressVisitor {
+            type Value = Address;
+
+            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+                f.write_str("a base32 Algorand address string or 32 address bytes")
+            }
+
+            fn visit_str<E: DeError>(self, v: &str) -> Result<Address, E> {
+                Address::from_str(v).map_err(DeError::custom)
+            }
+
+            fn visit_bytes<E: DeError>(self, v: &[u8]) -> Result<Address, E> {
+                let bytes: Byte32 = v
+                    .try_into()
+                    .map_err(|_| DeError::invalid_length(v.len(), &"32 address bytes"))?;
+                Ok(Address(bytes))
+            }
+
+            fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> Result<Address, A::Error> {
+                let mut bytes = [0u8; ALGORAND_PUBLIC_KEY_BYTE_LENGTH];
+                for (i, slot) in bytes.iter_mut().enumerate() {
+                    *slot = seq
+                        .next_element()?
+                        .ok_or_else(|| DeError::invalid_length(i, &"32 address bytes"))?;
+                }
+                Ok(Address(bytes))
+            }
+        }
+
+        deserializer.deserialize_any(AddressVisitor)
+    }
+}
 
 impl Address {
     /// Creates a new Address from a 32-byte public key or hash digest.
@@ -121,5 +170,26 @@ mod tests {
             address_str,
             "WRBMNT66ECE2AOYKM76YVWIJMBW6Z3XCQZOKG5BL7NISAQC2LBGEKTZLRM"
         );
+    }
+
+    const SAMPLE: &str = "WRBMNT66ECE2AOYKM76YVWIJMBW6Z3XCQZOKG5BL7NISAQC2LBGEKTZLRM";
+
+    /// JSON encodes an address as the base32 string and decodes it back.
+    #[test]
+    fn json_serdes_as_base32_string() {
+        let address = Address::from_str(SAMPLE).unwrap();
+        let json = serde_json::to_string(&address).unwrap();
+        assert_eq!(json, format!("\"{SAMPLE}\""));
+        assert_eq!(serde_json::from_str::<Address>(&json).unwrap(), address);
+    }
+
+    /// msgpack encodes an address as 32 raw bytes and decodes it back.
+    #[test]
+    fn msgpack_serdes_as_bytes() {
+        let address = Address::from_str(SAMPLE).unwrap();
+        let bytes = rmp_serde::to_vec(&address).unwrap();
+        // `c4 20` is the msgpack marker for a 32-byte binary string.
+        assert_eq!(&bytes[..2], &[0xc4, 0x20]);
+        assert_eq!(rmp_serde::from_slice::<Address>(&bytes).unwrap(), address);
     }
 }

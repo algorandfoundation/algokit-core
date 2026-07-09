@@ -13,20 +13,23 @@ use serde::{Deserialize, Serialize};
 
 use crate::models::Wallet;
 
-/// APIV1WalletHandle includes the wallet the handle corresponds to
+/// WalletHandle includes the wallet the handle corresponds to
 /// and the number of number of seconds to expiration
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct WalletHandle {
-    #[serde(rename = "expires_seconds", skip_serializing_if = "Option::is_none")]
-    pub expires_seconds: Option<u64>,
-    #[serde(rename = "wallet", skip_serializing_if = "Option::is_none")]
-    pub wallet: Option<Wallet>,
+    #[serde(rename = "expires_seconds")]
+    pub expires_seconds: u64,
+    #[serde(rename = "wallet")]
+    pub wallet: Wallet,
 }
 
 impl WalletHandle {
-    /// Default constructor for WalletHandle
-    pub fn new() -> WalletHandle {
-        WalletHandle::default()
+    /// Constructor for WalletHandle
+    pub fn new(expires_seconds: u64, wallet: Wallet) -> WalletHandle {
+        WalletHandle {
+            expires_seconds,
+            wallet,
+        }
     }
 }

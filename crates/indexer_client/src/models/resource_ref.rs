@@ -8,6 +8,7 @@
  */
 
 use crate::models;
+use algokit_transact::Address;
 use serde::{Deserialize, Serialize};
 
 use crate::models::BoxReference;
@@ -20,7 +21,7 @@ use crate::models::LocalsRef;
 pub struct ResourceRef {
     /// \[d\] Account whose balance record is accessible by the executing ApprovalProgram or ClearStateProgram.
     #[serde(rename = "address", skip_serializing_if = "Option::is_none")]
-    pub address: Option<String>,
+    pub address: Option<Address>,
     /// \[p\] Application id whose GlobalState may be read by the executing
     /// ApprovalProgram or ClearStateProgram.
     #[serde(rename = "application-id", skip_serializing_if = "Option::is_none")]

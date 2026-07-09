@@ -15,10 +15,10 @@ use std::collections::HashMap;
 use super::{ContentType, Error, KmdApiError};
 
 // Import all custom types used by this endpoint
-use crate::models::PostTransactionSignResponse;
+use crate::models::SignTransactionResponse;
 
 // Import request body type if needed
-use crate::models::SignTransactionRequest;
+use crate::models::SignTxnRequest;
 
 /// struct for typed errors of method [`sign_transaction`]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -32,8 +32,8 @@ pub enum SignTransactionError {
 /// Signs the passed transaction with a key from the wallet, determined by the sender encoded in the transaction.
 pub async fn sign_transaction(
     http_client: &dyn HttpClient,
-    request: SignTransactionRequest,
-) -> Result<PostTransactionSignResponse, Error> {
+    request: SignTxnRequest,
+) -> Result<SignTransactionResponse, Error> {
     let p_request = request;
 
     let path = "/v1/transaction/sign".to_string();

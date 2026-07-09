@@ -32,7 +32,7 @@
           "common"
         ],
         "summary": "Returns 200 if healthy.",
-        "operationId": "makeHealthCheck",
+        "operationId": "HealthCheck",
         "responses": {
           "200": {
             "description": "(empty)",
@@ -64,7 +64,8 @@
             "in": "query",
             "description": "Asset ID",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -88,7 +89,8 @@
             "in": "query",
             "description": "Results should have an amount greater than this value. MicroAlgos are the default currency unless an asset-id is provided, in which case the asset will be used.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -125,7 +127,8 @@
             "in": "query",
             "description": "Results should have an amount less than this value. MicroAlgos are the default currency unless an asset-id is provided, in which case the asset will be used.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -143,7 +146,8 @@
             "in": "query",
             "description": "Include results for the specified round. For performance reasons, this parameter may be disabled on some configurations. Using application-id or asset-id filters will return both creator and opt-in accounts. Filtering by include-all will return creator and opt-in accounts for deleted assets and accounts. Non-opt-in managers are not included in the results when asset-id is used.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -151,7 +155,8 @@
             "in": "query",
             "description": "Application ID",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -169,27 +174,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "accounts",
-                    "current-round"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "accounts": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Account"
-                      }
-                    },
-                    "current-round": {
-                      "type": "integer",
-                      "description": "Round at which the results were computed."
-                    },
-                    "next-token": {
-                      "type": "string",
-                      "description": "Used for pagination, when making another request provide this token with the next parameter."
-                    }
-                  }
+                  "$ref": "#/components/schemas/AccountsResponse"
                 }
               }
             }
@@ -199,19 +184,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -221,19 +194,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -255,15 +216,18 @@
             "description": "account string",
             "required": true,
             "schema": {
-              "type": "string"
-            }
+              "type": "string",
+              "x-algorand-format": "Address"
+            },
+            "x-algokit-field-rename": "account"
           },
           {
             "name": "round",
             "in": "query",
             "description": "Include results for the specified round.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -302,20 +266,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "account",
-                    "current-round"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "account": {
-                      "$ref": "#/components/schemas/Account"
-                    },
-                    "current-round": {
-                      "type": "integer",
-                      "description": "Round at which the results were computed."
-                    }
-                  }
+                  "$ref": "#/components/schemas/AccountResponse"
                 }
               }
             }
@@ -325,19 +276,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -347,19 +286,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -369,19 +296,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -403,15 +318,18 @@
             "description": "account string",
             "required": true,
             "schema": {
-              "type": "string"
-            }
+              "type": "string",
+              "x-algorand-format": "Address"
+            },
+            "x-algokit-field-rename": "account"
           },
           {
             "name": "asset-id",
             "in": "query",
             "description": "Asset ID",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -445,27 +363,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "assets",
-                    "current-round"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "current-round": {
-                      "type": "integer",
-                      "description": "Round at which the results were computed."
-                    },
-                    "next-token": {
-                      "type": "string",
-                      "description": "Used for pagination, when making another request provide this token with the next parameter."
-                    },
-                    "assets": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/AssetHolding"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/AssetHoldingsResponse"
                 }
               }
             }
@@ -475,19 +373,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -497,19 +383,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -519,19 +393,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -553,15 +415,18 @@
             "description": "account string",
             "required": true,
             "schema": {
-              "type": "string"
-            }
+              "type": "string",
+              "x-algorand-format": "Address"
+            },
+            "x-algokit-field-rename": "account"
           },
           {
             "name": "asset-id",
             "in": "query",
             "description": "Asset ID",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -595,27 +460,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "assets",
-                    "current-round"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "assets": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Asset"
-                      }
-                    },
-                    "current-round": {
-                      "type": "integer",
-                      "description": "Round at which the results were computed."
-                    },
-                    "next-token": {
-                      "type": "string",
-                      "description": "Used for pagination, when making another request provide this token with the next parameter."
-                    }
-                  }
+                  "$ref": "#/components/schemas/AssetsResponse"
                 }
               }
             }
@@ -625,19 +470,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -647,19 +480,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -669,19 +490,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -703,15 +512,18 @@
             "description": "account string",
             "required": true,
             "schema": {
-              "type": "string"
-            }
+              "type": "string",
+              "x-algorand-format": "Address"
+            },
+            "x-algokit-field-rename": "account"
           },
           {
             "name": "application-id",
             "in": "query",
             "description": "Application ID",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -745,27 +557,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "apps-local-states",
-                    "current-round"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "apps-local-states": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/ApplicationLocalState"
-                      }
-                    },
-                    "current-round": {
-                      "type": "integer",
-                      "description": "Round at which the results were computed."
-                    },
-                    "next-token": {
-                      "type": "string",
-                      "description": "Used for pagination, when making another request provide this token with the next parameter."
-                    }
-                  }
+                  "$ref": "#/components/schemas/ApplicationLocalStatesResponse"
                 }
               }
             }
@@ -775,19 +567,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -797,19 +577,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -819,19 +587,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -853,15 +609,18 @@
             "description": "account string",
             "required": true,
             "schema": {
-              "type": "string"
-            }
+              "type": "string",
+              "x-algorand-format": "Address"
+            },
+            "x-algokit-field-rename": "account"
           },
           {
             "name": "application-id",
             "in": "query",
             "description": "Application ID",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -895,27 +654,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "applications",
-                    "current-round"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "applications": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Application"
-                      }
-                    },
-                    "current-round": {
-                      "type": "integer",
-                      "description": "Round at which the results were computed."
-                    },
-                    "next-token": {
-                      "type": "string",
-                      "description": "Used for pagination, when making another request provide this token with the next parameter."
-                    }
-                  }
+                  "$ref": "#/components/schemas/ApplicationsResponse"
                 }
               }
             }
@@ -925,19 +664,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -947,19 +674,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -969,19 +684,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1059,14 +762,16 @@
             "description": "Lookup the specific transaction by ID.",
             "schema": {
               "type": "string"
-            }
+            },
+            "x-algokit-field-rename": "txId"
           },
           {
             "name": "round",
             "in": "query",
             "description": "Include results for the specified round.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -1074,7 +779,8 @@
             "in": "query",
             "description": "Include results at or after the specified min-round.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -1082,7 +788,8 @@
             "in": "query",
             "description": "Include results at or before the specified max-round.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -1090,7 +797,8 @@
             "in": "query",
             "description": "Asset ID",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -1120,7 +828,8 @@
             "in": "query",
             "description": "Results should have an amount greater than this value. MicroAlgos are the default currency unless an asset-id is provided, in which case the asset will be used.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -1128,7 +837,8 @@
             "in": "query",
             "description": "Results should have an amount less than this value. MicroAlgos are the default currency unless an asset-id is provided, in which case the asset will be used.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -1137,8 +847,10 @@
             "description": "account string",
             "required": true,
             "schema": {
-              "type": "string"
-            }
+              "type": "string",
+              "x-algorand-format": "Address"
+            },
+            "x-algokit-field-rename": "account"
           },
           {
             "name": "rekey-to",
@@ -1155,27 +867,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "current-round",
-                    "transactions"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "current-round": {
-                      "type": "integer",
-                      "description": "Round at which the results were computed."
-                    },
-                    "next-token": {
-                      "type": "string",
-                      "description": "Used for pagination, when making another request provide this token with the next parameter."
-                    },
-                    "transactions": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Transaction"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/TransactionsResponse"
                 }
               }
             }
@@ -1185,19 +877,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1207,19 +887,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1240,7 +908,8 @@
             "in": "query",
             "description": "Application ID",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -1282,27 +951,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "applications",
-                    "current-round"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "applications": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Application"
-                      }
-                    },
-                    "current-round": {
-                      "type": "integer",
-                      "description": "Round at which the results were computed."
-                    },
-                    "next-token": {
-                      "type": "string",
-                      "description": "Used for pagination, when making another request provide this token with the next parameter."
-                    }
-                  }
+                  "$ref": "#/components/schemas/ApplicationsResponse"
                 }
               }
             }
@@ -1312,19 +961,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1345,7 +982,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -1363,19 +1001,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "current-round"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "application": {
-                      "$ref": "#/components/schemas/Application"
-                    },
-                    "current-round": {
-                      "type": "integer",
-                      "description": "Round at which the results were computed."
-                    }
-                  }
+                  "$ref": "#/components/schemas/ApplicationResponse"
                 }
               }
             }
@@ -1385,19 +1011,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1407,19 +1021,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1441,7 +1043,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -1467,27 +1070,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "application-id",
-                    "boxes"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "application-id": {
-                      "type": "integer",
-                      "description": "\\[appidx\\] application index."
-                    },
-                    "boxes": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/BoxDescriptor"
-                      }
-                    },
-                    "next-token": {
-                      "type": "string",
-                      "description": "Used for pagination, when making another request provide this token with the next parameter."
-                    }
-                  }
+                  "$ref": "#/components/schemas/BoxesResponse"
                 }
               }
             }
@@ -1497,19 +1080,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1519,19 +1090,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1541,19 +1100,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1575,7 +1122,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -1604,19 +1152,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1626,19 +1162,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1648,19 +1172,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1681,7 +1193,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -1706,14 +1219,16 @@
             "description": "Lookup the specific transaction by ID.",
             "schema": {
               "type": "string"
-            }
+            },
+            "x-algokit-field-rename": "txId"
           },
           {
             "name": "min-round",
             "in": "query",
             "description": "Include results at or after the specified min-round.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -1721,7 +1236,8 @@
             "in": "query",
             "description": "Include results at or before the specified max-round.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -1741,31 +1257,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "application-id",
-                    "current-round"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "application-id": {
-                      "type": "integer",
-                      "description": "\\[appidx\\] application index."
-                    },
-                    "current-round": {
-                      "type": "integer",
-                      "description": "Round at which the results were computed."
-                    },
-                    "next-token": {
-                      "type": "string",
-                      "description": "Used for pagination, when making another request provide this token with the next parameter."
-                    },
-                    "log-data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/ApplicationLogData"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ApplicationLogsResponse"
                 }
               }
             }
@@ -1834,7 +1326,8 @@
             "in": "query",
             "description": "Asset ID",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           }
         ],
@@ -1844,27 +1337,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "assets",
-                    "current-round"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "assets": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Asset"
-                      }
-                    },
-                    "current-round": {
-                      "type": "integer",
-                      "description": "Round at which the results were computed."
-                    },
-                    "next-token": {
-                      "type": "string",
-                      "description": "Used for pagination, when making another request provide this token with the next parameter."
-                    }
-                  }
+                  "$ref": "#/components/schemas/AssetsResponse"
                 }
               }
             }
@@ -1874,19 +1347,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1896,19 +1357,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1929,7 +1378,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -1947,20 +1397,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "asset",
-                    "current-round"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "asset": {
-                      "$ref": "#/components/schemas/Asset"
-                    },
-                    "current-round": {
-                      "type": "integer",
-                      "description": "Round at which the results were computed."
-                    }
-                  }
+                  "$ref": "#/components/schemas/AssetResponse"
                 }
               }
             }
@@ -1970,19 +1407,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -1992,19 +1417,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2014,19 +1427,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2071,7 +1472,8 @@
             "in": "query",
             "description": "Results should have an amount greater than this value. MicroAlgos are the default currency unless an asset-id is provided, in which case the asset will be used.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -2079,7 +1481,8 @@
             "in": "query",
             "description": "Results should have an amount less than this value. MicroAlgos are the default currency unless an asset-id is provided, in which case the asset will be used.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -2087,7 +1490,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           }
         ],
@@ -2097,27 +1501,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "balances",
-                    "current-round"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "balances": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/MiniAssetHolding"
-                      }
-                    },
-                    "current-round": {
-                      "type": "integer",
-                      "description": "Round at which the results were computed."
-                    },
-                    "next-token": {
-                      "type": "string",
-                      "description": "Used for pagination, when making another request provide this token with the next parameter."
-                    }
-                  }
+                  "$ref": "#/components/schemas/AssetBalancesResponse"
                 }
               }
             }
@@ -2127,19 +1511,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2149,19 +1521,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2239,14 +1599,16 @@
             "description": "Lookup the specific transaction by ID.",
             "schema": {
               "type": "string"
-            }
+            },
+            "x-algokit-field-rename": "txId"
           },
           {
             "name": "round",
             "in": "query",
             "description": "Include results for the specified round.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -2254,7 +1616,8 @@
             "in": "query",
             "description": "Include results at or after the specified min-round.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -2262,7 +1625,8 @@
             "in": "query",
             "description": "Include results at or before the specified max-round.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -2292,7 +1656,8 @@
             "in": "query",
             "description": "Results should have an amount greater than this value. MicroAlgos are the default currency unless an asset-id is provided, in which case the asset will be used.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -2300,7 +1665,8 @@
             "in": "query",
             "description": "Results should have an amount less than this value. MicroAlgos are the default currency unless an asset-id is provided, in which case the asset will be used.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -2339,7 +1705,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -2357,27 +1724,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "current-round",
-                    "transactions"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "current-round": {
-                      "type": "integer",
-                      "description": "Round at which the results were computed."
-                    },
-                    "next-token": {
-                      "type": "string",
-                      "description": "Used for pagination, when making another request provide this token with the next parameter."
-                    },
-                    "transactions": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Transaction"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/TransactionsResponse"
                 }
               }
             }
@@ -2387,19 +1734,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2409,19 +1744,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2458,7 +1781,8 @@
             "in": "query",
             "description": "Include results at or after the specified min-round.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -2466,7 +1790,8 @@
             "in": "query",
             "description": "Include results at or before the specified max-round.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -2540,27 +1865,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "blocks",
-                    "current-round"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "current-round": {
-                      "type": "integer",
-                      "description": "Round at which the results were computed."
-                    },
-                    "next-token": {
-                      "type": "string",
-                      "description": "Used for pagination, when making another request provide this token with the next parameter."
-                    },
-                    "blocks": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Block"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/BlockHeadersResponse"
                 }
               }
             }
@@ -2570,19 +1875,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2592,19 +1885,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2626,7 +1907,8 @@
             "description": "Round number",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -2654,19 +1936,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2676,19 +1946,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2702,7 +1960,7 @@
           "lookup"
         ],
         "description": "Lookup a single transaction.",
-        "operationId": "lookupTransaction",
+        "operationId": "lookupTransactionByID",
         "parameters": [
           {
             "name": "txid",
@@ -2710,7 +1968,8 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
+            },
+            "x-algokit-field-rename": "txId"
           }
         ],
         "responses": {
@@ -2719,20 +1978,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "current-round",
-                    "transaction"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "transaction": {
-                      "$ref": "#/components/schemas/Transaction"
-                    },
-                    "current-round": {
-                      "type": "integer",
-                      "description": "Round at which the results were computed."
-                    }
-                  }
+                  "$ref": "#/components/schemas/TransactionResponse"
                 }
               }
             }
@@ -2742,19 +1988,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2764,19 +1998,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2786,19 +2008,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2886,14 +2096,16 @@
             "description": "Lookup the specific transaction by ID.",
             "schema": {
               "type": "string"
-            }
+            },
+            "x-algokit-field-rename": "txId"
           },
           {
             "name": "round",
             "in": "query",
             "description": "Include results for the specified round.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -2901,7 +2113,8 @@
             "in": "query",
             "description": "Include results at or after the specified min-round.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -2909,7 +2122,8 @@
             "in": "query",
             "description": "Include results at or before the specified max-round.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -2917,7 +2131,8 @@
             "in": "query",
             "description": "Asset ID",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -2947,7 +2162,8 @@
             "in": "query",
             "description": "Results should have an amount greater than this value. MicroAlgos are the default currency unless an asset-id is provided, in which case the asset will be used.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -2955,7 +2171,8 @@
             "in": "query",
             "description": "Results should have an amount less than this value. MicroAlgos are the default currency unless an asset-id is provided, in which case the asset will be used.",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           {
@@ -3002,7 +2219,8 @@
             "in": "query",
             "description": "Application ID",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           }
         ],
@@ -3012,27 +2230,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "current-round",
-                    "transactions"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "current-round": {
-                      "type": "integer",
-                      "description": "Round at which the results were computed."
-                    },
-                    "next-token": {
-                      "type": "string",
-                      "description": "Used for pagination, when making another request provide this token with the next parameter."
-                    },
-                    "transactions": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Transaction"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/TransactionsResponse"
                 }
               }
             }
@@ -3042,19 +2240,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -3064,19 +2250,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "required": [
-                    "message"
-                  ],
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {}
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -3278,7 +2452,8 @@
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
             "description": "Selection public key (if any) currently registered for this round.",
-            "format": "byte"
+            "format": "byte",
+            "x-algokit-byte-length": 32
           },
           "vote-first-valid": {
             "type": "integer",
@@ -3299,13 +2474,15 @@
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
             "description": "root participation public key (if any) currently registered for this round.",
-            "format": "byte"
+            "format": "byte",
+            "x-algokit-byte-length": 32
           },
           "state-proof-key": {
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
             "description": "Root of the state proof key (if any)",
-            "format": "byte"
+            "format": "byte",
+            "x-algokit-byte-length": 64
           }
         },
         "description": "AccountParticipation describes the parameters used by this account in consensus protocol."
@@ -3320,12 +2497,14 @@
           "num-uint": {
             "type": "integer",
             "description": "number of uints.",
+            "x-algokit-field-rename": "num_uints",
             "minimum": 0,
             "maximum": 64
           },
           "num-byte-slice": {
             "type": "integer",
             "description": "number of byte slices.",
+            "x-algokit-field-rename": "num_byte_slices",
             "minimum": 0,
             "maximum": 64
           }
@@ -3382,7 +2561,8 @@
         "type": "object",
         "properties": {
           "key": {
-            "type": "string"
+            "type": "string",
+            "format": "byte"
           },
           "value": {
             "$ref": "#/components/schemas/TealValue"
@@ -3405,7 +2585,7 @@
           "bytes": {
             "type": "string",
             "description": "bytes value.",
-            "x-algokit-bytes-base64": true
+            "format": "byte"
           },
           "uint": {
             "type": "integer",
@@ -3500,7 +2680,8 @@
         "properties": {
           "txid": {
             "type": "string",
-            "description": "Transaction ID"
+            "description": "Transaction ID",
+            "x-algokit-field-rename": "txId"
           },
           "logs": {
             "type": "array",
@@ -3524,6 +2705,7 @@
           "index": {
             "type": "integer",
             "description": "unique asset identifier",
+            "x-algokit-field-rename": "id",
             "x-algokit-bigint": true
           },
           "deleted": {
@@ -3623,7 +2805,8 @@
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
             "description": "A commitment to some unspecified asset metadata. The format of this metadata is up to the application.",
-            "format": "byte"
+            "format": "byte",
+            "x-algokit-byte-length": 32
           },
           "name": {
             "type": "string",
@@ -3676,7 +2859,10 @@
           "seed",
           "timestamp",
           "transactions-root",
-          "transactions-root-sha256"
+          "rewards",
+          "upgrade-state",
+          "participation-updates",
+          "transactions"
         ],
         "type": "object",
         "properties": {
@@ -3701,7 +2887,8 @@
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
             "description": "\\[gh\\] hash to which this block belongs.",
-            "format": "byte"
+            "format": "byte",
+            "x-algokit-byte-length": 32
           },
           "genesis-id": {
             "type": "string",
@@ -3711,13 +2898,15 @@
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
             "description": "\\[prev\\] Previous block hash.",
-            "format": "byte"
+            "format": "byte",
+            "x-algokit-byte-length": 32
           },
           "previous-block-hash-512": {
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
             "description": "\\[prev512\\] Previous block hash, using SHA-512.",
-            "format": "byte"
+            "format": "byte",
+            "x-algokit-byte-length": 64
           },
           "rewards": {
             "$ref": "#/components/schemas/BlockRewards"
@@ -3731,7 +2920,8 @@
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
             "description": "\\[seed\\] Sortition seed.",
-            "format": "byte"
+            "format": "byte",
+            "x-algokit-byte-length": 32
           },
           "state-proof-tracking": {
             "type": "array",
@@ -3755,19 +2945,22 @@
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
             "description": "\\[txn\\] TransactionsRoot authenticates the set of transactions appearing in the block. More specifically, it's the root of a merkle tree whose leaves are the block's Txids, in lexicographic order. For the empty block, it's 0. Note that the TxnRoot does not authenticate the signatures on the transactions, only the transactions themselves. Two blocks with the same transactions but in a different order and with different signatures will have the same TxnRoot.",
-            "format": "byte"
+            "format": "byte",
+            "x-algokit-byte-length": 32
           },
           "transactions-root-sha256": {
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
             "description": "\\[txn256\\] TransactionsRootSHA256 is an auxiliary TransactionRoot, built using a vector commitment instead of a merkle tree, and SHA256 hash function instead of the default SHA512_256. This commitment can be used on environments where only the SHA256 function exists.",
-            "format": "byte"
+            "format": "byte",
+            "x-algokit-byte-length": 32
           },
           "transactions-root-sha512": {
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
             "description": "\\[txn512\\] TransactionsRootSHA512 is an auxiliary TransactionRoot, built using a vector commitment instead of a merkle tree, and SHA512 hash function instead of the default SHA512_256.",
-            "format": "byte"
+            "format": "byte",
+            "x-algokit-byte-length": 64
           },
           "txn-counter": {
             "type": "integer",
@@ -3802,11 +2995,13 @@
           },
           "rewards-calculation-round": {
             "type": "integer",
-            "description": "\\[rwcalr\\] number of leftover MicroAlgos after the distribution of rewards-rate MicroAlgos for every reward unit in the next round."
+            "description": "\\[rwcalr\\] number of leftover MicroAlgos after the distribution of rewards-rate MicroAlgos for every reward unit in the next round.",
+            "x-algokit-bigint": true
           },
           "rewards-level": {
             "type": "integer",
-            "description": "\\[earn\\] How many rewards, in MicroAlgos, have been distributed to each RewardUnit of MicroAlgos since genesis."
+            "description": "\\[earn\\] How many rewards, in MicroAlgos, have been distributed to each RewardUnit of MicroAlgos since genesis.",
+            "x-algokit-bigint": true
           },
           "rewards-pool": {
             "type": "string",
@@ -3814,11 +3009,13 @@
           },
           "rewards-rate": {
             "type": "integer",
-            "description": "\\[rate\\] Number of new MicroAlgos added to the participation stake from rewards at the next round."
+            "description": "\\[rate\\] Number of new MicroAlgos added to the participation stake from rewards at the next round.",
+            "x-algokit-bigint": true
           },
           "rewards-residue": {
             "type": "integer",
-            "description": "\\[frac\\] Number of leftover MicroAlgos after the distribution of RewardsRate/rewardUnits MicroAlgos for every reward unit in the next round."
+            "description": "\\[frac\\] Number of leftover MicroAlgos after the distribution of RewardsRate/rewardUnits MicroAlgos for every reward unit in the next round.",
+            "x-algokit-bigint": true
           }
         },
         "description": "Fields relating to rewards,"
@@ -3843,11 +3040,13 @@
           },
           "next-protocol-switch-on": {
             "type": "integer",
-            "description": "\\[nextswitch\\] Round on which the protocol upgrade will take effect."
+            "description": "\\[nextswitch\\] Round on which the protocol upgrade will take effect.",
+            "x-algokit-bigint": true
           },
           "next-protocol-vote-before": {
             "type": "integer",
-            "description": "\\[nextbefore\\] Deadline round for this protocol upgrade (No votes will be consider after this round)."
+            "description": "\\[nextbefore\\] Deadline round for this protocol upgrade (No votes will be consider after this round).",
+            "x-algokit-bigint": true
           }
         },
         "description": "Fields relating to a protocol upgrade."
@@ -3861,7 +3060,8 @@
           },
           "upgrade-delay": {
             "type": "integer",
-            "description": "\\[upgradedelay\\] Indicates the time between acceptance and execution."
+            "description": "\\[upgradedelay\\] Indicates the time between acceptance and execution.",
+            "x-algokit-bigint": true
           },
           "upgrade-propose": {
             "type": "string",
@@ -3922,7 +3122,8 @@
         "properties": {
           "app": {
             "type": "integer",
-            "description": "Application ID to which the box belongs, or zero if referring to the called application."
+            "description": "Application ID to which the box belongs, or zero if referring to the called application.",
+            "x-algokit-bigint": true
           },
           "name": {
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
@@ -3987,7 +3188,8 @@
           },
           "asset": {
             "type": "integer",
-            "description": "\\[s\\] Asset ID for asset in access list."
+            "description": "\\[s\\] Asset ID for asset in access list.",
+            "x-algokit-bigint": true
           }
         },
         "description": "HoldingRef names a holding by referring to an Address and Asset it belongs to."
@@ -4006,7 +3208,8 @@
           },
           "app": {
             "type": "integer",
-            "description": "\\[p\\] Application ID for app in access list, or zero if referring to the called application."
+            "description": "\\[p\\] Application ID for app in access list, or zero if referring to the called application.",
+            "x-algokit-bigint": true
           }
         },
         "description": "LocalsRef names a local state by referring to an Address and App it belongs to."
@@ -4076,7 +3279,11 @@
             }
           }
         },
-        "description": "Participation account data that needs to be checked/acted on by the network."
+        "description": "Participation account data that needs to be checked/acted on by the network.",
+        "required": [
+          "expired-participation-accounts",
+          "absent-participation-accounts"
+        ]
       },
       "ResourceRef": {
         "type": "object",
@@ -4088,7 +3295,8 @@
           },
           "application-id": {
             "type": "integer",
-            "description": "\\[p\\] Application id whose GlobalState may be read by the executing\n ApprovalProgram or ClearStateProgram."
+            "description": "\\[p\\] Application id whose GlobalState may be read by the executing\n ApprovalProgram or ClearStateProgram.",
+            "x-algokit-bigint": true
           },
           "asset-id": {
             "type": "integer",
@@ -4138,7 +3346,8 @@
         "type": "object",
         "properties": {
           "key": {
-            "type": "string"
+            "type": "string",
+            "format": "byte"
           },
           "value": {
             "$ref": "#/components/schemas/EvalDelta"
@@ -4158,7 +3367,8 @@
           },
           "bytes": {
             "type": "string",
-            "description": "\\[bs\\] bytes value."
+            "description": "\\[bs\\] bytes value.",
+            "format": "byte"
           },
           "uint": {
             "type": "integer",
@@ -4178,12 +3388,14 @@
           "num-uint": {
             "type": "integer",
             "description": "Maximum number of TEAL uints that may be stored in the key/value store.",
+            "x-algokit-field-rename": "num_uints",
             "minimum": 0,
             "maximum": 64
           },
           "num-byte-slice": {
             "type": "integer",
             "description": "Maximum number of TEAL byte slices that may be stored in the key/value store.",
+            "x-algokit-field-rename": "num_byte_slices",
             "minimum": 0,
             "maximum": 64
           }
@@ -4225,7 +3437,8 @@
           },
           "close-rewards": {
             "type": "integer",
-            "description": "\\[rc\\] rewards applied to close-remainder-to account."
+            "description": "\\[rc\\] rewards applied to close-remainder-to account.",
+            "x-algokit-bigint": true
           },
           "closing-amount": {
             "type": "integer",
@@ -4240,11 +3453,13 @@
           "created-application-index": {
             "type": "integer",
             "description": "Specifies an application index (ID) if an application was created with this transaction.",
+            "x-algokit-field-rename": "created_app_id",
             "x-algokit-bigint": true
           },
           "created-asset-index": {
             "type": "integer",
             "description": "Specifies an asset index (ID) if an asset was created with this transaction.",
+            "x-algokit-field-rename": "created_asset_id",
             "x-algokit-bigint": true
           },
           "fee": {
@@ -4254,13 +3469,15 @@
           },
           "first-valid": {
             "type": "integer",
-            "description": "\\[fv\\] First valid round for this transaction."
+            "description": "\\[fv\\] First valid round for this transaction.",
+            "x-algokit-bigint": true
           },
           "genesis-hash": {
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
             "description": "\\[gh\\] Hash of genesis block.",
-            "format": "byte"
+            "format": "byte",
+            "x-algokit-byte-length": 32
           },
           "genesis-id": {
             "type": "string",
@@ -4270,7 +3487,8 @@
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
             "description": "\\[grp\\] Base64 encoded byte array of a sha512/256 digest. When present indicates that this transaction is part of a transaction group and the value is the sha512/256 hash of the transactions in that group.",
-            "format": "byte"
+            "format": "byte",
+            "x-algokit-byte-length": 32
           },
           "id": {
             "type": "string",
@@ -4285,13 +3503,15 @@
           },
           "last-valid": {
             "type": "integer",
-            "description": "\\[lv\\] Last valid round for this transaction."
+            "description": "\\[lv\\] Last valid round for this transaction.",
+            "x-algokit-bigint": true
           },
           "lease": {
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
             "description": "\\[lx\\] Base64 encoded 32-byte array. Lease enforces mutual exclusion of transactions.  If this field is nonzero, then once the transaction is confirmed, it acquires the lease identified by the (Sender, Lease) pair of the transaction until the LastValid round passes.  While this transaction possesses the lease, no other transaction specifying this lease can be confirmed.",
-            "format": "byte"
+            "format": "byte",
+            "x-algokit-byte-length": 32
           },
           "note": {
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
@@ -4304,7 +3524,8 @@
           },
           "receiver-rewards": {
             "type": "integer",
-            "description": "\\[rr\\] rewards applied to receiver account."
+            "description": "\\[rr\\] rewards applied to receiver account.",
+            "x-algokit-bigint": true
           },
           "rekey-to": {
             "type": "string",
@@ -4321,7 +3542,8 @@
           },
           "sender-rewards": {
             "type": "integer",
-            "description": "\\[rs\\] rewards applied to sender account."
+            "description": "\\[rs\\] rewards applied to sender account.",
+            "x-algokit-bigint": true
           },
           "signature": {
             "$ref": "#/components/schemas/TransactionSignature"
@@ -4379,7 +3601,8 @@
         "properties": {
           "application-id": {
             "type": "integer",
-            "description": "\\[apid\\] ID of the application being configured or empty if creating."
+            "description": "\\[apid\\] ID of the application being configured or empty if creating.",
+            "x-algokit-bigint": true
           },
           "on-completion": {
             "$ref": "#/components/schemas/OnCompletion"
@@ -4388,7 +3611,8 @@
             "type": "array",
             "description": "\\[apaa\\] transaction specific arguments accessed from the application's approval-program and clear-state-program.",
             "items": {
-              "type": "string"
+              "type": "string",
+              "format": "byte"
             }
           },
           "access": {
@@ -4417,14 +3641,16 @@
             "type": "array",
             "description": "\\[apfa\\] Lists the applications in addition to the application-id whose global states may be accessed by this application's approval-program and clear-state-program. The access is read-only.",
             "items": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           "foreign-assets": {
             "type": "array",
             "description": "\\[apas\\] lists the assets whose parameters may be accessed by this application's ApprovalProgram and ClearStateProgram. The access is read-only.",
             "items": {
-              "type": "integer"
+              "type": "integer",
+              "x-algokit-bigint": true
             }
           },
           "local-state-schema": {
@@ -4503,8 +3729,7 @@
         "properties": {
           "state-proof-type": {
             "type": "integer",
-            "description": "\\[sptype\\] Type of the state proof. Integer representing an entry defined in protocol/stateproof.go",
-            "x-algokit-bigint": true
+            "description": "\\[sptype\\] Type of the state proof. Integer representing an entry defined in protocol/stateproof.go"
           },
           "state-proof": {
             "$ref": "#/components/schemas/StateProofFields"
@@ -4542,7 +3767,8 @@
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
             "description": "\\[hbvid\\] HbVoteID must match the HbAddress account's current VoteID.",
-            "format": "byte"
+            "format": "byte",
+            "x-algokit-byte-length": 32
           },
           "hb-key-dilution": {
             "type": "integer",
@@ -4601,7 +3827,8 @@
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
             "description": "\\[selkey\\] Public key used with the Verified Random Function (VRF) result during committee selection.",
-            "format": "byte"
+            "format": "byte",
+            "x-algokit-byte-length": 32
           },
           "vote-first-valid": {
             "type": "integer",
@@ -4622,13 +3849,15 @@
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
             "description": "\\[votekey\\] Participation public key used in key registration transactions.",
-            "format": "byte"
+            "format": "byte",
+            "x-algokit-byte-length": 32
           },
           "state-proof-key": {
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
             "description": "\\[sprfkey\\] State proof key used in key registration transactions.",
-            "format": "byte"
+            "format": "byte",
+            "x-algokit-byte-length": 64
           }
         },
         "description": "Fields for a keyreg transaction.\n\nDefinition:\ndata/transactions/keyreg.go : KeyregTxnFields"
@@ -4647,7 +3876,8 @@
           },
           "close-amount": {
             "type": "integer",
-            "description": "Number of MicroAlgos that were sent to the close-remainder-to address when closing the sender account."
+            "description": "Number of MicroAlgos that were sent to the close-remainder-to address when closing the sender account.",
+            "x-algokit-bigint": true
           },
           "close-remainder-to": {
             "type": "string",
@@ -4688,7 +3918,8 @@
             "type": "array",
             "description": "\\[arg\\] Logic arguments, base64 encoded.",
             "items": {
-              "type": "string"
+              "type": "string",
+              "format": "byte"
             }
           },
           "logic": {
@@ -4707,7 +3938,8 @@
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
             "description": "\\[sig\\] ed25519 signature.",
-            "format": "byte"
+            "format": "byte",
+            "x-algokit-byte-length": 64
           }
         },
         "description": "\\[lsig\\] Programatic transaction signature.\n\nDefinition:\ndata/transactions/logicsig.go"
@@ -4740,13 +3972,15 @@
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
             "description": "\\[pk\\]",
-            "format": "byte"
+            "format": "byte",
+            "x-algokit-byte-length": 32
           },
           "signature": {
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
             "description": "\\[s\\]",
-            "format": "byte"
+            "format": "byte",
+            "x-algokit-byte-length": 64
           }
         }
       },
@@ -4799,31 +4033,36 @@
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
             "description": "\\[s\\] Signature of the heartbeat message.",
-            "format": "byte"
+            "format": "byte",
+            "x-algokit-byte-length": 64
           },
           "hb-pk": {
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
             "description": "\\[p\\] Public key of the heartbeat message.",
-            "format": "byte"
+            "format": "byte",
+            "x-algokit-byte-length": 32
           },
           "hb-pk2": {
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
             "description": "\\[p2\\] Key for new-style two-level ephemeral signature.",
-            "format": "byte"
+            "format": "byte",
+            "x-algokit-byte-length": 32
           },
           "hb-pk1sig": {
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
             "description": "\\[p1s\\] Signature of OneTimeSignatureSubkeyOffsetID(PK, Batch, Offset) under the key PK2.",
-            "format": "byte"
+            "format": "byte",
+            "x-algokit-byte-length": 64
           },
           "hb-pk2sig": {
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
             "description": "\\[p2s\\] Signature of OneTimeSignatureSubkeyBatchID(PK2, Batch) under the master key (OneTimeSignatureVerifier).",
-            "format": "byte"
+            "format": "byte",
+            "x-algokit-byte-length": 64
           }
         },
         "description": "\\[hbprf\\] HbProof is a signature using HeartbeatAddress's partkey, thereby showing it is online."
@@ -4899,7 +4138,7 @@
           },
           "merkle-array-index": {
             "type": "integer",
-            "x-algorand-foramt": "uint64"
+            "x-algorand-format": "uint64"
           },
           "proof": {
             "$ref": "#/components/schemas/MerkleArrayProof"
@@ -4932,7 +4171,8 @@
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
             "description": "\\[cmt\\] Represents the root of the vector commitment tree.",
-            "format": "byte"
+            "format": "byte",
+            "x-algokit-byte-length": 64
           },
           "key-lifetime": {
             "type": "integer",
@@ -4957,7 +4197,8 @@
           },
           "online-total-weight": {
             "type": "integer",
-            "description": "\\[t\\] The total number of microalgos held by the online accounts during the StateProof round."
+            "description": "\\[t\\] The total number of microalgos held by the online accounts during the StateProof round.",
+            "x-algokit-bigint": true
           },
           "next-round": {
             "type": "integer",
@@ -4996,6 +4237,333 @@
             "x-algorand-format": "uint16"
           }
         }
+      },
+      "AccountResponse": {
+        "required": [
+          "account",
+          "current-round"
+        ],
+        "type": "object",
+        "properties": {
+          "account": {
+            "$ref": "#/components/schemas/Account"
+          },
+          "current-round": {
+            "type": "integer",
+            "description": "Round at which the results were computed.",
+            "x-algokit-bigint": true
+          }
+        }
+      },
+      "AssetHoldingsResponse": {
+        "required": [
+          "assets",
+          "current-round"
+        ],
+        "type": "object",
+        "properties": {
+          "current-round": {
+            "type": "integer",
+            "description": "Round at which the results were computed.",
+            "x-algokit-bigint": true
+          },
+          "next-token": {
+            "type": "string",
+            "description": "Used for pagination, when making another request provide this token with the next parameter."
+          },
+          "assets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssetHolding"
+            }
+          }
+        }
+      },
+      "AccountsResponse": {
+        "required": [
+          "accounts",
+          "current-round"
+        ],
+        "type": "object",
+        "properties": {
+          "accounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Account"
+            }
+          },
+          "current-round": {
+            "type": "integer",
+            "description": "Round at which the results were computed.",
+            "x-algokit-bigint": true
+          },
+          "next-token": {
+            "type": "string",
+            "description": "Used for pagination, when making another request provide this token with the next parameter."
+          }
+        }
+      },
+      "AssetBalancesResponse": {
+        "required": [
+          "balances",
+          "current-round"
+        ],
+        "type": "object",
+        "properties": {
+          "balances": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MiniAssetHolding"
+            }
+          },
+          "current-round": {
+            "type": "integer",
+            "description": "Round at which the results were computed.",
+            "x-algokit-bigint": true
+          },
+          "next-token": {
+            "type": "string",
+            "description": "Used for pagination, when making another request provide this token with the next parameter."
+          }
+        }
+      },
+      "ApplicationResponse": {
+        "required": [
+          "current-round"
+        ],
+        "type": "object",
+        "properties": {
+          "application": {
+            "$ref": "#/components/schemas/Application"
+          },
+          "current-round": {
+            "type": "integer",
+            "description": "Round at which the results were computed.",
+            "x-algokit-bigint": true
+          }
+        }
+      },
+      "ApplicationsResponse": {
+        "required": [
+          "applications",
+          "current-round"
+        ],
+        "type": "object",
+        "properties": {
+          "applications": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Application"
+            }
+          },
+          "current-round": {
+            "type": "integer",
+            "description": "Round at which the results were computed.",
+            "x-algokit-bigint": true
+          },
+          "next-token": {
+            "type": "string",
+            "description": "Used for pagination, when making another request provide this token with the next parameter."
+          }
+        }
+      },
+      "ApplicationLogsResponse": {
+        "required": [
+          "application-id",
+          "current-round"
+        ],
+        "type": "object",
+        "properties": {
+          "application-id": {
+            "type": "integer",
+            "description": "\\[appidx\\] application index.",
+            "x-algokit-bigint": true
+          },
+          "current-round": {
+            "type": "integer",
+            "description": "Round at which the results were computed.",
+            "x-algokit-bigint": true
+          },
+          "next-token": {
+            "type": "string",
+            "description": "Used for pagination, when making another request provide this token with the next parameter."
+          },
+          "log-data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApplicationLogData"
+            }
+          }
+        }
+      },
+      "ApplicationLocalStatesResponse": {
+        "required": [
+          "apps-local-states",
+          "current-round"
+        ],
+        "type": "object",
+        "properties": {
+          "apps-local-states": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApplicationLocalState"
+            }
+          },
+          "current-round": {
+            "type": "integer",
+            "description": "Round at which the results were computed.",
+            "x-algokit-bigint": true
+          },
+          "next-token": {
+            "type": "string",
+            "description": "Used for pagination, when making another request provide this token with the next parameter."
+          }
+        }
+      },
+      "AssetResponse": {
+        "required": [
+          "asset",
+          "current-round"
+        ],
+        "type": "object",
+        "properties": {
+          "asset": {
+            "$ref": "#/components/schemas/Asset"
+          },
+          "current-round": {
+            "type": "integer",
+            "description": "Round at which the results were computed.",
+            "x-algokit-bigint": true
+          }
+        }
+      },
+      "BoxesResponse": {
+        "required": [
+          "application-id",
+          "boxes"
+        ],
+        "type": "object",
+        "properties": {
+          "application-id": {
+            "type": "integer",
+            "description": "\\[appidx\\] application index.",
+            "x-algokit-bigint": true
+          },
+          "boxes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BoxDescriptor"
+            }
+          },
+          "next-token": {
+            "type": "string",
+            "description": "Used for pagination, when making another request provide this token with the next parameter."
+          }
+        }
+      },
+      "ErrorResponse": {
+        "required": [
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {}
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "AssetsResponse": {
+        "required": [
+          "assets",
+          "current-round"
+        ],
+        "type": "object",
+        "properties": {
+          "assets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Asset"
+            }
+          },
+          "current-round": {
+            "type": "integer",
+            "description": "Round at which the results were computed.",
+            "x-algokit-bigint": true
+          },
+          "next-token": {
+            "type": "string",
+            "description": "Used for pagination, when making another request provide this token with the next parameter."
+          }
+        }
+      },
+      "BlockHeadersResponse": {
+        "required": [
+          "blocks",
+          "current-round"
+        ],
+        "type": "object",
+        "properties": {
+          "current-round": {
+            "type": "integer",
+            "description": "Round at which the results were computed.",
+            "x-algokit-bigint": true
+          },
+          "next-token": {
+            "type": "string",
+            "description": "Used for pagination, when making another request provide this token with the next parameter."
+          },
+          "blocks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Block"
+            }
+          }
+        }
+      },
+      "TransactionResponse": {
+        "required": [
+          "current-round",
+          "transaction"
+        ],
+        "type": "object",
+        "properties": {
+          "transaction": {
+            "$ref": "#/components/schemas/Transaction"
+          },
+          "current-round": {
+            "type": "integer",
+            "description": "Round at which the results were computed.",
+            "x-algokit-bigint": true
+          }
+        }
+      },
+      "TransactionsResponse": {
+        "required": [
+          "current-round",
+          "transactions"
+        ],
+        "type": "object",
+        "properties": {
+          "current-round": {
+            "type": "integer",
+            "description": "Round at which the results were computed.",
+            "x-algokit-bigint": true
+          },
+          "next-token": {
+            "type": "string",
+            "description": "Used for pagination, when making another request provide this token with the next parameter."
+          },
+          "transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
+            }
+          }
+        }
       }
     },
     "responses": {
@@ -5004,20 +4572,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "required": [
-                "account",
-                "current-round"
-              ],
-              "type": "object",
-              "properties": {
-                "account": {
-                  "$ref": "#/components/schemas/Account"
-                },
-                "current-round": {
-                  "type": "integer",
-                  "description": "Round at which the results were computed."
-                }
-              }
+              "$ref": "#/components/schemas/AccountResponse"
             }
           }
         }
@@ -5027,27 +4582,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "required": [
-                "assets",
-                "current-round"
-              ],
-              "type": "object",
-              "properties": {
-                "current-round": {
-                  "type": "integer",
-                  "description": "Round at which the results were computed."
-                },
-                "next-token": {
-                  "type": "string",
-                  "description": "Used for pagination, when making another request provide this token with the next parameter."
-                },
-                "assets": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AssetHolding"
-                  }
-                }
-              }
+              "$ref": "#/components/schemas/AssetHoldingsResponse"
             }
           }
         }
@@ -5057,27 +4592,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "required": [
-                "accounts",
-                "current-round"
-              ],
-              "type": "object",
-              "properties": {
-                "accounts": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Account"
-                  }
-                },
-                "current-round": {
-                  "type": "integer",
-                  "description": "Round at which the results were computed."
-                },
-                "next-token": {
-                  "type": "string",
-                  "description": "Used for pagination, when making another request provide this token with the next parameter."
-                }
-              }
+              "$ref": "#/components/schemas/AccountsResponse"
             }
           }
         }
@@ -5087,27 +4602,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "required": [
-                "balances",
-                "current-round"
-              ],
-              "type": "object",
-              "properties": {
-                "balances": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/MiniAssetHolding"
-                  }
-                },
-                "current-round": {
-                  "type": "integer",
-                  "description": "Round at which the results were computed."
-                },
-                "next-token": {
-                  "type": "string",
-                  "description": "Used for pagination, when making another request provide this token with the next parameter."
-                }
-              }
+              "$ref": "#/components/schemas/AssetBalancesResponse"
             }
           }
         }
@@ -5117,19 +4612,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "required": [
-                "current-round"
-              ],
-              "type": "object",
-              "properties": {
-                "application": {
-                  "$ref": "#/components/schemas/Application"
-                },
-                "current-round": {
-                  "type": "integer",
-                  "description": "Round at which the results were computed."
-                }
-              }
+              "$ref": "#/components/schemas/ApplicationResponse"
             }
           }
         }
@@ -5139,27 +4622,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "required": [
-                "applications",
-                "current-round"
-              ],
-              "type": "object",
-              "properties": {
-                "applications": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Application"
-                  }
-                },
-                "current-round": {
-                  "type": "integer",
-                  "description": "Round at which the results were computed."
-                },
-                "next-token": {
-                  "type": "string",
-                  "description": "Used for pagination, when making another request provide this token with the next parameter."
-                }
-              }
+              "$ref": "#/components/schemas/ApplicationsResponse"
             }
           }
         }
@@ -5169,31 +4632,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "required": [
-                "application-id",
-                "current-round"
-              ],
-              "type": "object",
-              "properties": {
-                "application-id": {
-                  "type": "integer",
-                  "description": "\\[appidx\\] application index."
-                },
-                "current-round": {
-                  "type": "integer",
-                  "description": "Round at which the results were computed."
-                },
-                "next-token": {
-                  "type": "string",
-                  "description": "Used for pagination, when making another request provide this token with the next parameter."
-                },
-                "log-data": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ApplicationLogData"
-                  }
-                }
-              }
+              "$ref": "#/components/schemas/ApplicationLogsResponse"
             }
           }
         }
@@ -5203,27 +4642,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "required": [
-                "apps-local-states",
-                "current-round"
-              ],
-              "type": "object",
-              "properties": {
-                "apps-local-states": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ApplicationLocalState"
-                  }
-                },
-                "current-round": {
-                  "type": "integer",
-                  "description": "Round at which the results were computed."
-                },
-                "next-token": {
-                  "type": "string",
-                  "description": "Used for pagination, when making another request provide this token with the next parameter."
-                }
-              }
+              "$ref": "#/components/schemas/ApplicationLocalStatesResponse"
             }
           }
         }
@@ -5233,20 +4652,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "required": [
-                "asset",
-                "current-round"
-              ],
-              "type": "object",
-              "properties": {
-                "asset": {
-                  "$ref": "#/components/schemas/Asset"
-                },
-                "current-round": {
-                  "type": "integer",
-                  "description": "Round at which the results were computed."
-                }
-              }
+              "$ref": "#/components/schemas/AssetResponse"
             }
           }
         }
@@ -5256,27 +4662,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "required": [
-                "application-id",
-                "boxes"
-              ],
-              "type": "object",
-              "properties": {
-                "application-id": {
-                  "type": "integer",
-                  "description": "\\[appidx\\] application index."
-                },
-                "boxes": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/BoxDescriptor"
-                  }
-                },
-                "next-token": {
-                  "type": "string",
-                  "description": "Used for pagination, when making another request provide this token with the next parameter."
-                }
-              }
+              "$ref": "#/components/schemas/BoxesResponse"
             }
           }
         }
@@ -5296,19 +4682,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "required": [
-                "message"
-              ],
-              "type": "object",
-              "properties": {
-                "data": {
-                  "type": "object",
-                  "properties": {}
-                },
-                "message": {
-                  "type": "string"
-                }
-              }
+              "$ref": "#/components/schemas/ErrorResponse"
             }
           }
         }
@@ -5318,27 +4692,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "required": [
-                "assets",
-                "current-round"
-              ],
-              "type": "object",
-              "properties": {
-                "assets": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Asset"
-                  }
-                },
-                "current-round": {
-                  "type": "integer",
-                  "description": "Round at which the results were computed."
-                },
-                "next-token": {
-                  "type": "string",
-                  "description": "Used for pagination, when making another request provide this token with the next parameter."
-                }
-              }
+              "$ref": "#/components/schemas/AssetsResponse"
             }
           }
         }
@@ -5358,27 +4712,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "required": [
-                "blocks",
-                "current-round"
-              ],
-              "type": "object",
-              "properties": {
-                "current-round": {
-                  "type": "integer",
-                  "description": "Round at which the results were computed."
-                },
-                "next-token": {
-                  "type": "string",
-                  "description": "Used for pagination, when making another request provide this token with the next parameter."
-                },
-                "blocks": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Block"
-                  }
-                }
-              }
+              "$ref": "#/components/schemas/BlockHeadersResponse"
             }
           }
         }
@@ -5398,20 +4732,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "required": [
-                "current-round",
-                "transaction"
-              ],
-              "type": "object",
-              "properties": {
-                "transaction": {
-                  "$ref": "#/components/schemas/Transaction"
-                },
-                "current-round": {
-                  "type": "integer",
-                  "description": "Round at which the results were computed."
-                }
-              }
+              "$ref": "#/components/schemas/TransactionResponse"
             }
           }
         }
@@ -5421,27 +4742,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "required": [
-                "current-round",
-                "transactions"
-              ],
-              "type": "object",
-              "properties": {
-                "current-round": {
-                  "type": "integer",
-                  "description": "Round at which the results were computed."
-                },
-                "next-token": {
-                  "type": "string",
-                  "description": "Used for pagination, when making another request provide this token with the next parameter."
-                },
-                "transactions": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Transaction"
-                  }
-                }
-              }
+              "$ref": "#/components/schemas/TransactionsResponse"
             }
           }
         }
@@ -5496,8 +4797,10 @@
         "description": "account string",
         "required": true,
         "schema": {
-          "type": "string"
-        }
+          "type": "string",
+          "x-algorand-format": "Address"
+        },
+        "x-algokit-field-rename": "account"
       },
       "address": {
         "name": "address",
@@ -5754,7 +5057,8 @@
         "description": "Lookup the specific transaction by ID.",
         "schema": {
           "type": "string"
-        }
+        },
+        "x-algokit-field-rename": "txId"
       },
       "tx-type": {
         "name": "tx-type",

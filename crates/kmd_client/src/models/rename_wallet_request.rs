@@ -11,21 +11,29 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
-/// APIV1POSTWalletRenameRequest is the request for `POST /v1/wallet/rename`
+/// The request for `POST /v1/wallet/rename`
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct RenameWalletRequest {
-    #[serde(rename = "wallet_id", skip_serializing_if = "Option::is_none")]
-    pub wallet_id: Option<String>,
-    #[serde(rename = "wallet_name", skip_serializing_if = "Option::is_none")]
-    pub wallet_name: Option<String>,
-    #[serde(rename = "wallet_password", skip_serializing_if = "Option::is_none")]
-    pub wallet_password: Option<String>,
+    #[serde(rename = "wallet_id")]
+    pub wallet_id: String,
+    #[serde(rename = "wallet_name")]
+    pub wallet_name: String,
+    #[serde(rename = "wallet_password")]
+    pub wallet_password: String,
 }
 
 impl RenameWalletRequest {
-    /// Default constructor for RenameWalletRequest
-    pub fn new() -> RenameWalletRequest {
-        RenameWalletRequest::default()
+    /// Constructor for RenameWalletRequest
+    pub fn new(
+        wallet_id: String,
+        wallet_name: String,
+        wallet_password: String,
+    ) -> RenameWalletRequest {
+        RenameWalletRequest {
+            wallet_id,
+            wallet_name,
+            wallet_password,
+        }
     }
 }

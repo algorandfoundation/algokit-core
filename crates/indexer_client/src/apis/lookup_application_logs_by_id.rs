@@ -14,7 +14,7 @@ use std::collections::HashMap;
 use super::{ContentType, Error, IndexerApiError};
 
 // Import all custom types used by this endpoint
-use crate::models::LookupApplicationLogsById;
+use crate::models::ApplicationLogsResponse;
 
 // Import request body type if needed
 
@@ -37,7 +37,7 @@ pub async fn lookup_application_logs_by_id(
     min_round: Option<u64>,
     max_round: Option<u64>,
     sender_address: Option<&str>,
-) -> Result<LookupApplicationLogsById, Error> {
+) -> Result<ApplicationLogsResponse, Error> {
     let p_application_id = application_id;
     let p_limit = limit;
     let p_next = next;

@@ -15,7 +15,7 @@ use std::collections::HashMap;
 use super::{ContentType, Error, KmdApiError};
 
 // Import all custom types used by this endpoint
-use crate::models::PostWalletRenewResponse;
+use crate::models::RenewWalletHandleTokenResponse;
 
 // Import request body type if needed
 use crate::models::RenewWalletHandleTokenRequest;
@@ -33,7 +33,7 @@ pub enum RenewWalletHandleTokenError {
 pub async fn renew_wallet_handle_token(
     http_client: &dyn HttpClient,
     request: RenewWalletHandleTokenRequest,
-) -> Result<PostWalletRenewResponse, Error> {
+) -> Result<RenewWalletHandleTokenResponse, Error> {
     let p_request = request;
 
     let path = "/v1/wallet/renew".to_string();

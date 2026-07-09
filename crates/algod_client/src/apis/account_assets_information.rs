@@ -15,7 +15,7 @@ use std::collections::HashMap;
 use super::{AlgodApiError, ContentType, Error};
 
 // Import all custom types used by this endpoint
-use crate::models::{AccountAssetsInformation, ErrorResponse};
+use crate::models::{AccountAssetsInformationResponse, ErrorResponse};
 
 // Import request body type if needed
 
@@ -38,7 +38,7 @@ pub async fn account_assets_information(
     address: &str,
     limit: Option<u64>,
     next: Option<&str>,
-) -> Result<AccountAssetsInformation, Error> {
+) -> Result<AccountAssetsInformationResponse, Error> {
     let p_address = address;
     let p_limit = limit;
     let p_next = next;

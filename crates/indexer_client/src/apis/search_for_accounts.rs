@@ -14,7 +14,7 @@ use std::collections::HashMap;
 use super::{ContentType, Error, IndexerApiError};
 
 // Import all custom types used by this endpoint
-use crate::models::{SearchForAccounts, UnknownJsonValue};
+use crate::models::{AccountsResponse, ErrorResponse};
 
 // Import request body type if needed
 
@@ -23,8 +23,8 @@ use crate::models::{SearchForAccounts, UnknownJsonValue};
 #[serde(untagged)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum SearchForAccountsError {
-    Status400(UnknownJsonValue),
-    Status500(UnknownJsonValue),
+    Status400(ErrorResponse),
+    Status500(ErrorResponse),
     DefaultResponse(),
     UnknownValue(crate::models::UnknownJsonValue),
 }
@@ -43,7 +43,7 @@ pub async fn search_for_accounts(
     round: Option<u64>,
     application_id: Option<u64>,
     online_only: Option<bool>,
-) -> Result<SearchForAccounts, Error> {
+) -> Result<AccountsResponse, Error> {
     let p_asset_id = asset_id;
     let p_limit = limit;
     let p_next = next;

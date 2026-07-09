@@ -15,7 +15,7 @@ use std::collections::HashMap;
 use super::{AlgodApiError, ContentType, Error};
 
 // Import all custom types used by this endpoint
-use crate::models::{ErrorResponse, TransactionParams};
+use crate::models::{ErrorResponse, TransactionParametersResponse};
 
 // Import request body type if needed
 
@@ -33,7 +33,9 @@ pub enum TransactionParamsError {
 }
 
 /// Get parameters for constructing a new transaction
-pub async fn transaction_params(http_client: &dyn HttpClient) -> Result<TransactionParams, Error> {
+pub async fn transaction_params(
+    http_client: &dyn HttpClient,
+) -> Result<TransactionParametersResponse, Error> {
     let path = "/v2/transactions/params".to_string();
 
     let query_params: HashMap<String, String> = HashMap::new();

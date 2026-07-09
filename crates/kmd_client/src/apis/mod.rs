@@ -19,13 +19,11 @@ pub mod export_key;
 pub mod export_master_key;
 pub mod export_multisig;
 pub mod generate_key;
-pub mod get_version;
-pub mod get_wallet_info;
 pub mod import_key;
 pub mod import_multisig;
-pub mod init_wallet_handle_token;
+pub mod init_wallet_handle;
 pub mod list_keys_in_wallet;
-pub mod list_multisg;
+pub mod list_multisig;
 pub mod list_wallets;
 pub mod release_wallet_handle_token;
 pub mod rename_wallet;
@@ -35,6 +33,8 @@ pub mod sign_multisig_transaction;
 pub mod sign_program;
 pub mod sign_transaction;
 pub mod swagger_handler;
+pub mod version;
+pub mod wallet_info;
 
 use snafu::Snafu;
 
@@ -76,9 +76,9 @@ pub enum KmdApiError {
     ImportMultisig {
         error: import_multisig::ImportMultisigError,
     },
-    #[snafu(display("List_multisg error: {error:?}"))]
-    ListMultisg {
-        error: list_multisg::ListMultisgError,
+    #[snafu(display("List_multisig error: {error:?}"))]
+    ListMultisig {
+        error: list_multisig::ListMultisigError,
     },
     #[snafu(display("Sign_multisig_transaction error: {error:?}"))]
     SignMultisigTransaction {
@@ -100,13 +100,11 @@ pub enum KmdApiError {
     CreateWallet {
         error: create_wallet::CreateWalletError,
     },
-    #[snafu(display("Get_wallet_info error: {error:?}"))]
-    GetWalletInfo {
-        error: get_wallet_info::GetWalletInfoError,
-    },
-    #[snafu(display("Init_wallet_handle_token error: {error:?}"))]
-    InitWalletHandleToken {
-        error: init_wallet_handle_token::InitWalletHandleTokenError,
+    #[snafu(display("Wallet_info error: {error:?}"))]
+    WalletInfo { error: wallet_info::WalletInfoError },
+    #[snafu(display("Init_wallet_handle error: {error:?}"))]
+    InitWalletHandle {
+        error: init_wallet_handle::InitWalletHandleError,
     },
     #[snafu(display("Release_wallet_handle_token error: {error:?}"))]
     ReleaseWalletHandleToken {
@@ -124,8 +122,8 @@ pub enum KmdApiError {
     ListWallets {
         error: list_wallets::ListWalletsError,
     },
-    #[snafu(display("Get_version error: {error:?}"))]
-    GetVersion { error: get_version::GetVersionError },
+    #[snafu(display("Version error: {error:?}"))]
+    Version { error: version::VersionError },
     #[snafu(display("Unknown API error: {message}"))]
     Unknown { message: String },
 }
@@ -190,9 +188,9 @@ impl From<import_multisig::ImportMultisigError> for KmdApiError {
     }
 }
 
-impl From<list_multisg::ListMultisgError> for KmdApiError {
-    fn from(err: list_multisg::ListMultisgError) -> Self {
-        KmdApiError::ListMultisg { error: err }
+impl From<list_multisig::ListMultisigError> for KmdApiError {
+    fn from(err: list_multisig::ListMultisigError) -> Self {
+        KmdApiError::ListMultisig { error: err }
     }
 }
 
@@ -226,15 +224,15 @@ impl From<create_wallet::CreateWalletError> for KmdApiError {
     }
 }
 
-impl From<get_wallet_info::GetWalletInfoError> for KmdApiError {
-    fn from(err: get_wallet_info::GetWalletInfoError) -> Self {
-        KmdApiError::GetWalletInfo { error: err }
+impl From<wallet_info::WalletInfoError> for KmdApiError {
+    fn from(err: wallet_info::WalletInfoError) -> Self {
+        KmdApiError::WalletInfo { error: err }
     }
 }
 
-impl From<init_wallet_handle_token::InitWalletHandleTokenError> for KmdApiError {
-    fn from(err: init_wallet_handle_token::InitWalletHandleTokenError) -> Self {
-        KmdApiError::InitWalletHandleToken { error: err }
+impl From<init_wallet_handle::InitWalletHandleError> for KmdApiError {
+    fn from(err: init_wallet_handle::InitWalletHandleError) -> Self {
+        KmdApiError::InitWalletHandle { error: err }
     }
 }
 
@@ -262,9 +260,9 @@ impl From<list_wallets::ListWalletsError> for KmdApiError {
     }
 }
 
-impl From<get_version::GetVersionError> for KmdApiError {
-    fn from(err: get_version::GetVersionError) -> Self {
-        KmdApiError::GetVersion { error: err }
+impl From<version::VersionError> for KmdApiError {
+    fn from(err: version::VersionError) -> Self {
+        KmdApiError::Version { error: err }
     }
 }
 
@@ -319,13 +317,11 @@ pub use export_key::{ExportKeyError, export_key};
 pub use export_master_key::{ExportMasterKeyError, export_master_key};
 pub use export_multisig::{ExportMultisigError, export_multisig};
 pub use generate_key::{GenerateKeyError, generate_key};
-pub use get_version::{GetVersionError, get_version};
-pub use get_wallet_info::{GetWalletInfoError, get_wallet_info};
 pub use import_key::{ImportKeyError, import_key};
 pub use import_multisig::{ImportMultisigError, import_multisig};
-pub use init_wallet_handle_token::{InitWalletHandleTokenError, init_wallet_handle_token};
+pub use init_wallet_handle::{InitWalletHandleError, init_wallet_handle};
 pub use list_keys_in_wallet::{ListKeysInWalletError, list_keys_in_wallet};
-pub use list_multisg::{ListMultisgError, list_multisg};
+pub use list_multisig::{ListMultisigError, list_multisig};
 pub use list_wallets::{ListWalletsError, list_wallets};
 pub use release_wallet_handle_token::{ReleaseWalletHandleTokenError, release_wallet_handle_token};
 pub use rename_wallet::{RenameWalletError, rename_wallet};
@@ -335,3 +331,5 @@ pub use sign_multisig_transaction::{SignMultisigTransactionError, sign_multisig_
 pub use sign_program::{SignProgramError, sign_program};
 pub use sign_transaction::{SignTransactionError, sign_transaction};
 pub use swagger_handler::{SwaggerHandlerError, swagger_handler};
+pub use version::{VersionError, version};
+pub use wallet_info::{WalletInfoError, wallet_info};

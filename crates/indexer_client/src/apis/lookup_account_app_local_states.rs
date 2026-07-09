@@ -14,7 +14,7 @@ use std::collections::HashMap;
 use super::{ContentType, Error, IndexerApiError};
 
 // Import all custom types used by this endpoint
-use crate::models::{LookupAccountAppLocalStates, UnknownJsonValue};
+use crate::models::{ApplicationLocalStatesResponse, ErrorResponse};
 
 // Import request body type if needed
 
@@ -23,9 +23,9 @@ use crate::models::{LookupAccountAppLocalStates, UnknownJsonValue};
 #[serde(untagged)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
 pub enum LookupAccountAppLocalStatesError {
-    Status400(UnknownJsonValue),
-    Status404(UnknownJsonValue),
-    Status500(UnknownJsonValue),
+    Status400(ErrorResponse),
+    Status404(ErrorResponse),
+    Status500(ErrorResponse),
     DefaultResponse(),
     UnknownValue(crate::models::UnknownJsonValue),
 }
@@ -38,7 +38,7 @@ pub async fn lookup_account_app_local_states(
     include_all: Option<bool>,
     limit: Option<u64>,
     next: Option<&str>,
-) -> Result<LookupAccountAppLocalStates, Error> {
+) -> Result<ApplicationLocalStatesResponse, Error> {
     let p_account_id = account_id;
     let p_application_id = application_id;
     let p_include_all = include_all;

@@ -33,7 +33,7 @@ pub struct TransactionHeartbeat {
     /// \[hbvid\] HbVoteID must match the HbAddress account's current VoteID.
     #[serde_as(as = "serde_with::base64::Base64")]
     #[serde(rename = "hb-vote-id")]
-    pub hb_vote_id: Vec<u8>,
+    pub hb_vote_id: [u8; 32],
     /// \[hbkd\] HbKeyDilution must match HbAddress account's current KeyDilution.
     #[serde(rename = "hb-key-dilution")]
     pub hb_key_dilution: u64,
@@ -45,7 +45,7 @@ impl TransactionHeartbeat {
         hb_address: String,
         hb_proof: HbProofFields,
         hb_seed: Vec<u8>,
-        hb_vote_id: Vec<u8>,
+        hb_vote_id: [u8; 32],
         hb_key_dilution: u64,
     ) -> TransactionHeartbeat {
         TransactionHeartbeat {

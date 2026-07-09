@@ -27,6 +27,8 @@ url = { workspace = true }
 uniffi = { workspace = true, optional = true }
 algokit_transact_ffi = { optional = true, version = "0.1.0", path = "../algokit_transact_ffi" }
 
+# AlgoKit core types (Address, SignedTransaction)
+algokit_transact = { path = "../algokit_transact" }
 
 # Error handling
 snafu = { workspace = true }
@@ -38,3 +40,5 @@ uuid = { workspace = true }
 [dev-dependencies]
 tokio = { version = "1.0", features = ["full"] }
 tokio-test = "^0.4"
+# Shared localnet test support (capturing client, response-schema validation, fixtures).
+algokit_localnet_testing = { path = "../algokit_localnet_testing" }

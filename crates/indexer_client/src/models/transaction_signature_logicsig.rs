@@ -39,7 +39,7 @@ pub struct TransactionSignatureLogicsig {
     /// \[sig\] ed25519 signature.
     #[serde_as(as = "Option<serde_with::base64::Base64>")]
     #[serde(rename = "signature", skip_serializing_if = "Option::is_none")]
-    pub signature: Option<Vec<u8>>,
+    pub signature: Option<[u8; 64]>,
 }
 
 impl TransactionSignatureLogicsig {

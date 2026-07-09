@@ -389,6 +389,10 @@ class Property:
     rust_type_with_msgpack: str = field(init=False)
     is_msgpack_field: bool = field(init=False)
     is_signed_transaction: bool = field(init=False)
+    # Fixed byte-array length from x-algokit-byte-length (emits [u8; N] instead of Vec<u8>)
+    byte_length: int | None = field(init=False)
+    # True if x-algorand-format == "Address" (maps to algokit_transact::Address)
+    is_address: bool = field(init=False)
 
     def __post_init__(self) -> None:
         # Check for field name override from vendor extension
@@ -402,7 +406,18 @@ class Property:
         if self._has_bytes_base64_extension():
             self.is_base64_encoded = True
 
-        if self.is_base64_encoded:
+        # x-algorand-format: "Address" maps to algokit_transact::Address
+        self.is_address = self._has_address_format()
+        # x-algokit-byte-length: N emits a fixed [u8; N] array
+        self.byte_length = self._get_byte_length()
+
+        if self.is_address:
+            self.rust_type_with_msgpack = "Address"
+        elif self.byte_length is not None:
+            # Fixed-length byte arrays serialize via serde_with::Bytes, same as Vec<u8>.
+            self.is_base64_encoded = True
+            self.rust_type_with_msgpack = f"[u8; {self.byte_length}]"
+        elif self.is_base64_encoded:
             self.rust_type_with_msgpack = "Vec<u8>"
         elif self.items and self.items.is_base64_encoded and self.rust_type.startswith("Vec<"):
             self.rust_type_with_msgpack = "Vec<Vec<u8>>"
@@ -432,6 +447,20 @@ class Property:
             if ext_name == "x-algokit-bytes-base64" and ext_value is True:
                 return True
         return False
+
+    def _has_address_format(self) -> bool:
+        """Check if this property is an Address via x-algorand-format."""
+        for ext_name, ext_value in self.vendor_extensions:
+            if ext_name == "x-algorand-format" and ext_value == "Address":
+                return True
+        return False
+
+    def _get_byte_length(self) -> int | None:
+        """Get the fixed byte-array length from x-algokit-byte-length, if present."""
+        for ext_name, ext_value in self.vendor_extensions:
+            if ext_name == "x-algokit-byte-length" and isinstance(ext_value, int):
+                return ext_value
+        return None
 
 
 @dataclass
@@ -479,6 +508,8 @@ class ParsedSpec:
     schemas: dict[str, Schema]
     content_types: list[str]
     has_msgpack_operations: bool = False
+    # True if any schema field maps to algokit_transact::Address (x-algorand-format: Address)
+    has_address_fields: bool = False
 
 
 class OASParser:
@@ -518,6 +549,8 @@ class OASParser:
         has_msgpack_operations = len(self.msgpack_operations) > 0
         self._update_schemas_for_msgpack(schemas, has_msgpack_operations=has_msgpack_operations)
 
+        has_address_fields = any(prop.is_address for schema in schemas.values() for prop in schema.properties)
+
         return ParsedSpec(
             info=info,
             servers=servers,
@@ -525,6 +558,7 @@ class OASParser:
             schemas=schemas,
             content_types=content_types,
             has_msgpack_operations=has_msgpack_operations,
+            has_address_fields=has_address_fields,
         )
 
     def _update_schemas_for_msgpack(

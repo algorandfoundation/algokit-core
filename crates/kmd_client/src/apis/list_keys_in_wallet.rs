@@ -15,7 +15,7 @@ use std::collections::HashMap;
 use super::{ContentType, Error, KmdApiError};
 
 // Import all custom types used by this endpoint
-use crate::models::PostKeyListResponse;
+use crate::models::ListKeysResponse;
 
 // Import request body type if needed
 use crate::models::ListKeysRequest;
@@ -33,7 +33,7 @@ pub enum ListKeysInWalletError {
 pub async fn list_keys_in_wallet(
     http_client: &dyn HttpClient,
     request: ListKeysRequest,
-) -> Result<PostKeyListResponse, Error> {
+) -> Result<ListKeysResponse, Error> {
     let p_request = request;
 
     let path = "/v1/key/list".to_string();

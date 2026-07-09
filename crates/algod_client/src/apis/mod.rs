@@ -22,54 +22,54 @@ pub mod account_assets_information;
 pub mod account_information;
 pub mod add_participation_key;
 pub mod append_keys;
+pub mod application_box_by_name;
+pub mod application_boxes;
+pub mod application_by_id;
+pub mod asset_by_id;
+pub mod block;
+pub mod block_hash;
+pub mod block_logs;
+pub mod block_time_stamp_offset;
+pub mod block_tx_ids;
+pub mod config;
+pub mod debug_settings_prof;
 pub mod delete_participation_key_by_id;
 pub mod experimental_check;
 pub mod generate_participation_keys;
-pub mod get_application_box_by_name;
-pub mod get_application_boxes;
-pub mod get_application_by_id;
-pub mod get_asset_by_id;
-pub mod get_block;
-pub mod get_block_hash;
-pub mod get_block_logs;
-pub mod get_block_time_stamp_offset;
-pub mod get_block_txids;
-pub mod get_config;
-pub mod get_debug_settings_prof;
-pub mod get_genesis;
-pub mod get_ledger_state_delta;
-pub mod get_ledger_state_delta_for_transaction_group;
-pub mod get_light_block_header_proof;
-pub mod get_participation_key_by_id;
-pub mod get_participation_keys;
-pub mod get_pending_transactions;
-pub mod get_pending_transactions_by_address;
-pub mod get_ready;
-pub mod get_state_proof;
-pub mod get_status;
-pub mod get_supply;
-pub mod get_sync_round;
-pub mod get_transaction_group_ledger_state_deltas_for_round;
-pub mod get_transaction_proof;
-pub mod get_version;
+pub mod genesis;
 pub mod health_check;
+pub mod ledger_state_delta;
+pub mod ledger_state_delta_for_transaction_group;
+pub mod light_block_header_proof;
 pub mod metrics;
+pub mod participation_key_by_id;
+pub mod participation_keys;
 pub mod pending_transaction_information;
+pub mod pending_transactions;
+pub mod pending_transactions_by_address;
 pub mod put_debug_settings_prof;
 pub mod raw_transaction;
 pub mod raw_transaction_async;
+pub mod ready;
 pub mod set_block_time_stamp_offset;
 pub mod set_sync_round;
 pub mod shutdown_node;
-pub mod simulate_transaction;
+pub mod simulate_transactions;
 pub mod start_catchup;
+pub mod state_proof;
+pub mod status;
+pub mod status_after_block;
+pub mod supply;
 pub mod swagger_json;
+pub mod sync_round;
 pub mod teal_compile;
 pub mod teal_disassemble;
 pub mod teal_dryrun;
+pub mod transaction_group_ledger_state_deltas_for_round;
 pub mod transaction_params;
+pub mod transaction_proof;
 pub mod unset_sync_round;
-pub mod wait_for_block;
+pub mod version;
 
 use snafu::Snafu;
 
@@ -79,22 +79,22 @@ use snafu::Snafu;
 pub enum AlgodApiError {
     #[snafu(display("Health_check error: {error:?}"))]
     HealthCheck { error: health_check::HealthCheckError },
-    #[snafu(display("Get_ready error: {error:?}"))]
-    GetReady { error: get_ready::GetReadyError },
+    #[snafu(display("Ready error: {error:?}"))]
+    Ready { error: ready::ReadyError },
     #[snafu(display("Metrics error: {error:?}"))]
     Metrics { error: metrics::MetricsError },
-    #[snafu(display("Get_genesis error: {error:?}"))]
-    GetGenesis { error: get_genesis::GetGenesisError },
+    #[snafu(display("Genesis error: {error:?}"))]
+    Genesis { error: genesis::GenesisError },
     #[snafu(display("Swagger_json error: {error:?}"))]
     SwaggerJson { error: swagger_json::SwaggerJsonError },
-    #[snafu(display("Get_version error: {error:?}"))]
-    GetVersion { error: get_version::GetVersionError },
-    #[snafu(display("Get_debug_settings_prof error: {error:?}"))]
-    GetDebugSettingsProf { error: get_debug_settings_prof::GetDebugSettingsProfError },
+    #[snafu(display("Version error: {error:?}"))]
+    Version { error: version::VersionError },
+    #[snafu(display("Debug_settings_prof error: {error:?}"))]
+    DebugSettingsProf { error: debug_settings_prof::DebugSettingsProfError },
     #[snafu(display("Put_debug_settings_prof error: {error:?}"))]
     PutDebugSettingsProf { error: put_debug_settings_prof::PutDebugSettingsProfError },
-    #[snafu(display("Get_config error: {error:?}"))]
-    GetConfig { error: get_config::GetConfigError },
+    #[snafu(display("Config error: {error:?}"))]
+    Config { error: config::ConfigError },
     #[snafu(display("Account_information error: {error:?}"))]
     AccountInformation { error: account_information::AccountInformationError },
     #[snafu(display("Account_asset_information error: {error:?}"))]
@@ -103,70 +103,70 @@ pub enum AlgodApiError {
     AccountAssetsInformation { error: account_assets_information::AccountAssetsInformationError },
     #[snafu(display("Account_application_information error: {error:?}"))]
     AccountApplicationInformation { error: account_application_information::AccountApplicationInformationError },
-    #[snafu(display("Get_pending_transactions_by_address error: {error:?}"))]
-    GetPendingTransactionsByAddress { error: get_pending_transactions_by_address::GetPendingTransactionsByAddressError },
-    #[snafu(display("Get_block error: {error:?}"))]
-    GetBlock { error: get_block::GetBlockError },
-    #[snafu(display("Get_block_txids error: {error:?}"))]
-    GetBlockTxids { error: get_block_txids::GetBlockTxidsError },
-    #[snafu(display("Get_block_hash error: {error:?}"))]
-    GetBlockHash { error: get_block_hash::GetBlockHashError },
-    #[snafu(display("Get_transaction_proof error: {error:?}"))]
-    GetTransactionProof { error: get_transaction_proof::GetTransactionProofError },
-    #[snafu(display("Get_block_logs error: {error:?}"))]
-    GetBlockLogs { error: get_block_logs::GetBlockLogsError },
-    #[snafu(display("Get_supply error: {error:?}"))]
-    GetSupply { error: get_supply::GetSupplyError },
-    #[snafu(display("Get_participation_keys error: {error:?}"))]
-    GetParticipationKeys { error: get_participation_keys::GetParticipationKeysError },
+    #[snafu(display("Pending_transactions_by_address error: {error:?}"))]
+    PendingTransactionsByAddress { error: pending_transactions_by_address::PendingTransactionsByAddressError },
+    #[snafu(display("Block error: {error:?}"))]
+    Block { error: block::BlockError },
+    #[snafu(display("Block_tx_ids error: {error:?}"))]
+    BlockTxIds { error: block_tx_ids::BlockTxIdsError },
+    #[snafu(display("Block_hash error: {error:?}"))]
+    BlockHash { error: block_hash::BlockHashError },
+    #[snafu(display("Transaction_proof error: {error:?}"))]
+    TransactionProof { error: transaction_proof::TransactionProofError },
+    #[snafu(display("Block_logs error: {error:?}"))]
+    BlockLogs { error: block_logs::BlockLogsError },
+    #[snafu(display("Supply error: {error:?}"))]
+    Supply { error: supply::SupplyError },
+    #[snafu(display("Participation_keys error: {error:?}"))]
+    ParticipationKeys { error: participation_keys::ParticipationKeysError },
     #[snafu(display("Add_participation_key error: {error:?}"))]
     AddParticipationKey { error: add_participation_key::AddParticipationKeyError },
     #[snafu(display("Generate_participation_keys error: {error:?}"))]
     GenerateParticipationKeys { error: generate_participation_keys::GenerateParticipationKeysError },
-    #[snafu(display("Get_participation_key_by_id error: {error:?}"))]
-    GetParticipationKeyById { error: get_participation_key_by_id::GetParticipationKeyByIdError },
+    #[snafu(display("Participation_key_by_id error: {error:?}"))]
+    ParticipationKeyById { error: participation_key_by_id::ParticipationKeyByIdError },
     #[snafu(display("Append_keys error: {error:?}"))]
     AppendKeys { error: append_keys::AppendKeysError },
     #[snafu(display("Delete_participation_key_by_id error: {error:?}"))]
     DeleteParticipationKeyById { error: delete_participation_key_by_id::DeleteParticipationKeyByIdError },
     #[snafu(display("Shutdown_node error: {error:?}"))]
     ShutdownNode { error: shutdown_node::ShutdownNodeError },
-    #[snafu(display("Get_status error: {error:?}"))]
-    GetStatus { error: get_status::GetStatusError },
-    #[snafu(display("Wait_for_block error: {error:?}"))]
-    WaitForBlock { error: wait_for_block::WaitForBlockError },
+    #[snafu(display("Status error: {error:?}"))]
+    Status { error: status::StatusError },
+    #[snafu(display("Status_after_block error: {error:?}"))]
+    StatusAfterBlock { error: status_after_block::StatusAfterBlockError },
     #[snafu(display("Raw_transaction error: {error:?}"))]
     RawTransaction { error: raw_transaction::RawTransactionError },
     #[snafu(display("Raw_transaction_async error: {error:?}"))]
     RawTransactionAsync { error: raw_transaction_async::RawTransactionAsyncError },
-    #[snafu(display("Simulate_transaction error: {error:?}"))]
-    SimulateTransaction { error: simulate_transaction::SimulateTransactionError },
+    #[snafu(display("Simulate_transactions error: {error:?}"))]
+    SimulateTransactions { error: simulate_transactions::SimulateTransactionsError },
     #[snafu(display("Transaction_params error: {error:?}"))]
     TransactionParams { error: transaction_params::TransactionParamsError },
-    #[snafu(display("Get_pending_transactions error: {error:?}"))]
-    GetPendingTransactions { error: get_pending_transactions::GetPendingTransactionsError },
+    #[snafu(display("Pending_transactions error: {error:?}"))]
+    PendingTransactions { error: pending_transactions::PendingTransactionsError },
     #[snafu(display("Pending_transaction_information error: {error:?}"))]
     PendingTransactionInformation { error: pending_transaction_information::PendingTransactionInformationError },
-    #[snafu(display("Get_ledger_state_delta error: {error:?}"))]
-    GetLedgerStateDelta { error: get_ledger_state_delta::GetLedgerStateDeltaError },
-    #[snafu(display("Get_transaction_group_ledger_state_deltas_for_round error: {error:?}"))]
-    GetTransactionGroupLedgerStateDeltasForRound { error: get_transaction_group_ledger_state_deltas_for_round::GetTransactionGroupLedgerStateDeltasForRoundError },
-    #[snafu(display("Get_ledger_state_delta_for_transaction_group error: {error:?}"))]
-    GetLedgerStateDeltaForTransactionGroup { error: get_ledger_state_delta_for_transaction_group::GetLedgerStateDeltaForTransactionGroupError },
-    #[snafu(display("Get_state_proof error: {error:?}"))]
-    GetStateProof { error: get_state_proof::GetStateProofError },
-    #[snafu(display("Get_light_block_header_proof error: {error:?}"))]
-    GetLightBlockHeaderProof { error: get_light_block_header_proof::GetLightBlockHeaderProofError },
-    #[snafu(display("Get_application_by_id error: {error:?}"))]
-    GetApplicationById { error: get_application_by_id::GetApplicationByIdError },
-    #[snafu(display("Get_application_boxes error: {error:?}"))]
-    GetApplicationBoxes { error: get_application_boxes::GetApplicationBoxesError },
-    #[snafu(display("Get_application_box_by_name error: {error:?}"))]
-    GetApplicationBoxByName { error: get_application_box_by_name::GetApplicationBoxByNameError },
-    #[snafu(display("Get_asset_by_id error: {error:?}"))]
-    GetAssetById { error: get_asset_by_id::GetAssetByIdError },
-    #[snafu(display("Get_sync_round error: {error:?}"))]
-    GetSyncRound { error: get_sync_round::GetSyncRoundError },
+    #[snafu(display("Ledger_state_delta error: {error:?}"))]
+    LedgerStateDelta { error: ledger_state_delta::LedgerStateDeltaError },
+    #[snafu(display("Transaction_group_ledger_state_deltas_for_round error: {error:?}"))]
+    TransactionGroupLedgerStateDeltasForRound { error: transaction_group_ledger_state_deltas_for_round::TransactionGroupLedgerStateDeltasForRoundError },
+    #[snafu(display("Ledger_state_delta_for_transaction_group error: {error:?}"))]
+    LedgerStateDeltaForTransactionGroup { error: ledger_state_delta_for_transaction_group::LedgerStateDeltaForTransactionGroupError },
+    #[snafu(display("State_proof error: {error:?}"))]
+    StateProof { error: state_proof::StateProofError },
+    #[snafu(display("Light_block_header_proof error: {error:?}"))]
+    LightBlockHeaderProof { error: light_block_header_proof::LightBlockHeaderProofError },
+    #[snafu(display("Application_by_id error: {error:?}"))]
+    ApplicationById { error: application_by_id::ApplicationByIdError },
+    #[snafu(display("Application_boxes error: {error:?}"))]
+    ApplicationBoxes { error: application_boxes::ApplicationBoxesError },
+    #[snafu(display("Application_box_by_name error: {error:?}"))]
+    ApplicationBoxByName { error: application_box_by_name::ApplicationBoxByNameError },
+    #[snafu(display("Asset_by_id error: {error:?}"))]
+    AssetById { error: asset_by_id::AssetByIdError },
+    #[snafu(display("Sync_round error: {error:?}"))]
+    SyncRound { error: sync_round::SyncRoundError },
     #[snafu(display("Unset_sync_round error: {error:?}"))]
     UnsetSyncRound { error: unset_sync_round::UnsetSyncRoundError },
     #[snafu(display("Set_sync_round error: {error:?}"))]
@@ -183,8 +183,8 @@ pub enum AlgodApiError {
     TealDryrun { error: teal_dryrun::TealDryrunError },
     #[snafu(display("Experimental_check error: {error:?}"))]
     ExperimentalCheck { error: experimental_check::ExperimentalCheckError },
-    #[snafu(display("Get_block_time_stamp_offset error: {error:?}"))]
-    GetBlockTimeStampOffset { error: get_block_time_stamp_offset::GetBlockTimeStampOffsetError },
+    #[snafu(display("Block_time_stamp_offset error: {error:?}"))]
+    BlockTimeStampOffset { error: block_time_stamp_offset::BlockTimeStampOffsetError },
     #[snafu(display("Set_block_time_stamp_offset error: {error:?}"))]
     SetBlockTimeStampOffset { error: set_block_time_stamp_offset::SetBlockTimeStampOffsetError },
     #[snafu(display("Unknown API error: {message}"))]
@@ -197,9 +197,9 @@ impl From<health_check::HealthCheckError> for AlgodApiError {
     }
 }
 
-impl From<get_ready::GetReadyError> for AlgodApiError {
-    fn from(err: get_ready::GetReadyError) -> Self {
-        AlgodApiError::GetReady { error: err }
+impl From<ready::ReadyError> for AlgodApiError {
+    fn from(err: ready::ReadyError) -> Self {
+        AlgodApiError::Ready { error: err }
     }
 }
 
@@ -209,9 +209,9 @@ impl From<metrics::MetricsError> for AlgodApiError {
     }
 }
 
-impl From<get_genesis::GetGenesisError> for AlgodApiError {
-    fn from(err: get_genesis::GetGenesisError) -> Self {
-        AlgodApiError::GetGenesis { error: err }
+impl From<genesis::GenesisError> for AlgodApiError {
+    fn from(err: genesis::GenesisError) -> Self {
+        AlgodApiError::Genesis { error: err }
     }
 }
 
@@ -221,15 +221,15 @@ impl From<swagger_json::SwaggerJsonError> for AlgodApiError {
     }
 }
 
-impl From<get_version::GetVersionError> for AlgodApiError {
-    fn from(err: get_version::GetVersionError) -> Self {
-        AlgodApiError::GetVersion { error: err }
+impl From<version::VersionError> for AlgodApiError {
+    fn from(err: version::VersionError) -> Self {
+        AlgodApiError::Version { error: err }
     }
 }
 
-impl From<get_debug_settings_prof::GetDebugSettingsProfError> for AlgodApiError {
-    fn from(err: get_debug_settings_prof::GetDebugSettingsProfError) -> Self {
-        AlgodApiError::GetDebugSettingsProf { error: err }
+impl From<debug_settings_prof::DebugSettingsProfError> for AlgodApiError {
+    fn from(err: debug_settings_prof::DebugSettingsProfError) -> Self {
+        AlgodApiError::DebugSettingsProf { error: err }
     }
 }
 
@@ -239,9 +239,9 @@ impl From<put_debug_settings_prof::PutDebugSettingsProfError> for AlgodApiError 
     }
 }
 
-impl From<get_config::GetConfigError> for AlgodApiError {
-    fn from(err: get_config::GetConfigError) -> Self {
-        AlgodApiError::GetConfig { error: err }
+impl From<config::ConfigError> for AlgodApiError {
+    fn from(err: config::ConfigError) -> Self {
+        AlgodApiError::Config { error: err }
     }
 }
 
@@ -269,55 +269,51 @@ impl From<account_application_information::AccountApplicationInformationError> f
     }
 }
 
-impl From<get_pending_transactions_by_address::GetPendingTransactionsByAddressError>
-    for AlgodApiError
-{
-    fn from(
-        err: get_pending_transactions_by_address::GetPendingTransactionsByAddressError,
-    ) -> Self {
-        AlgodApiError::GetPendingTransactionsByAddress { error: err }
+impl From<pending_transactions_by_address::PendingTransactionsByAddressError> for AlgodApiError {
+    fn from(err: pending_transactions_by_address::PendingTransactionsByAddressError) -> Self {
+        AlgodApiError::PendingTransactionsByAddress { error: err }
     }
 }
 
-impl From<get_block::GetBlockError> for AlgodApiError {
-    fn from(err: get_block::GetBlockError) -> Self {
-        AlgodApiError::GetBlock { error: err }
+impl From<block::BlockError> for AlgodApiError {
+    fn from(err: block::BlockError) -> Self {
+        AlgodApiError::Block { error: err }
     }
 }
 
-impl From<get_block_txids::GetBlockTxidsError> for AlgodApiError {
-    fn from(err: get_block_txids::GetBlockTxidsError) -> Self {
-        AlgodApiError::GetBlockTxids { error: err }
+impl From<block_tx_ids::BlockTxIdsError> for AlgodApiError {
+    fn from(err: block_tx_ids::BlockTxIdsError) -> Self {
+        AlgodApiError::BlockTxIds { error: err }
     }
 }
 
-impl From<get_block_hash::GetBlockHashError> for AlgodApiError {
-    fn from(err: get_block_hash::GetBlockHashError) -> Self {
-        AlgodApiError::GetBlockHash { error: err }
+impl From<block_hash::BlockHashError> for AlgodApiError {
+    fn from(err: block_hash::BlockHashError) -> Self {
+        AlgodApiError::BlockHash { error: err }
     }
 }
 
-impl From<get_transaction_proof::GetTransactionProofError> for AlgodApiError {
-    fn from(err: get_transaction_proof::GetTransactionProofError) -> Self {
-        AlgodApiError::GetTransactionProof { error: err }
+impl From<transaction_proof::TransactionProofError> for AlgodApiError {
+    fn from(err: transaction_proof::TransactionProofError) -> Self {
+        AlgodApiError::TransactionProof { error: err }
     }
 }
 
-impl From<get_block_logs::GetBlockLogsError> for AlgodApiError {
-    fn from(err: get_block_logs::GetBlockLogsError) -> Self {
-        AlgodApiError::GetBlockLogs { error: err }
+impl From<block_logs::BlockLogsError> for AlgodApiError {
+    fn from(err: block_logs::BlockLogsError) -> Self {
+        AlgodApiError::BlockLogs { error: err }
     }
 }
 
-impl From<get_supply::GetSupplyError> for AlgodApiError {
-    fn from(err: get_supply::GetSupplyError) -> Self {
-        AlgodApiError::GetSupply { error: err }
+impl From<supply::SupplyError> for AlgodApiError {
+    fn from(err: supply::SupplyError) -> Self {
+        AlgodApiError::Supply { error: err }
     }
 }
 
-impl From<get_participation_keys::GetParticipationKeysError> for AlgodApiError {
-    fn from(err: get_participation_keys::GetParticipationKeysError) -> Self {
-        AlgodApiError::GetParticipationKeys { error: err }
+impl From<participation_keys::ParticipationKeysError> for AlgodApiError {
+    fn from(err: participation_keys::ParticipationKeysError) -> Self {
+        AlgodApiError::ParticipationKeys { error: err }
     }
 }
 
@@ -333,9 +329,9 @@ impl From<generate_participation_keys::GenerateParticipationKeysError> for Algod
     }
 }
 
-impl From<get_participation_key_by_id::GetParticipationKeyByIdError> for AlgodApiError {
-    fn from(err: get_participation_key_by_id::GetParticipationKeyByIdError) -> Self {
-        AlgodApiError::GetParticipationKeyById { error: err }
+impl From<participation_key_by_id::ParticipationKeyByIdError> for AlgodApiError {
+    fn from(err: participation_key_by_id::ParticipationKeyByIdError) -> Self {
+        AlgodApiError::ParticipationKeyById { error: err }
     }
 }
 
@@ -357,15 +353,15 @@ impl From<shutdown_node::ShutdownNodeError> for AlgodApiError {
     }
 }
 
-impl From<get_status::GetStatusError> for AlgodApiError {
-    fn from(err: get_status::GetStatusError) -> Self {
-        AlgodApiError::GetStatus { error: err }
+impl From<status::StatusError> for AlgodApiError {
+    fn from(err: status::StatusError) -> Self {
+        AlgodApiError::Status { error: err }
     }
 }
 
-impl From<wait_for_block::WaitForBlockError> for AlgodApiError {
-    fn from(err: wait_for_block::WaitForBlockError) -> Self {
-        AlgodApiError::WaitForBlock { error: err }
+impl From<status_after_block::StatusAfterBlockError> for AlgodApiError {
+    fn from(err: status_after_block::StatusAfterBlockError) -> Self {
+        AlgodApiError::StatusAfterBlock { error: err }
     }
 }
 
@@ -381,9 +377,9 @@ impl From<raw_transaction_async::RawTransactionAsyncError> for AlgodApiError {
     }
 }
 
-impl From<simulate_transaction::SimulateTransactionError> for AlgodApiError {
-    fn from(err: simulate_transaction::SimulateTransactionError) -> Self {
-        AlgodApiError::SimulateTransaction { error: err }
+impl From<simulate_transactions::SimulateTransactionsError> for AlgodApiError {
+    fn from(err: simulate_transactions::SimulateTransactionsError) -> Self {
+        AlgodApiError::SimulateTransactions { error: err }
     }
 }
 
@@ -393,9 +389,9 @@ impl From<transaction_params::TransactionParamsError> for AlgodApiError {
     }
 }
 
-impl From<get_pending_transactions::GetPendingTransactionsError> for AlgodApiError {
-    fn from(err: get_pending_transactions::GetPendingTransactionsError) -> Self {
-        AlgodApiError::GetPendingTransactions { error: err }
+impl From<pending_transactions::PendingTransactionsError> for AlgodApiError {
+    fn from(err: pending_transactions::PendingTransactionsError) -> Self {
+        AlgodApiError::PendingTransactions { error: err }
     }
 }
 
@@ -405,67 +401,67 @@ impl From<pending_transaction_information::PendingTransactionInformationError> f
     }
 }
 
-impl From<get_ledger_state_delta::GetLedgerStateDeltaError> for AlgodApiError {
-    fn from(err: get_ledger_state_delta::GetLedgerStateDeltaError) -> Self {
-        AlgodApiError::GetLedgerStateDelta { error: err }
+impl From<ledger_state_delta::LedgerStateDeltaError> for AlgodApiError {
+    fn from(err: ledger_state_delta::LedgerStateDeltaError) -> Self {
+        AlgodApiError::LedgerStateDelta { error: err }
     }
 }
 
-impl From<get_transaction_group_ledger_state_deltas_for_round::GetTransactionGroupLedgerStateDeltasForRoundError> for AlgodApiError {
-    fn from(err: get_transaction_group_ledger_state_deltas_for_round::GetTransactionGroupLedgerStateDeltasForRoundError) -> Self {
-        AlgodApiError::GetTransactionGroupLedgerStateDeltasForRound { error: err }
+impl From<transaction_group_ledger_state_deltas_for_round::TransactionGroupLedgerStateDeltasForRoundError> for AlgodApiError {
+    fn from(err: transaction_group_ledger_state_deltas_for_round::TransactionGroupLedgerStateDeltasForRoundError) -> Self {
+        AlgodApiError::TransactionGroupLedgerStateDeltasForRound { error: err }
     }
 }
 
-impl From<get_ledger_state_delta_for_transaction_group::GetLedgerStateDeltaForTransactionGroupError>
+impl From<ledger_state_delta_for_transaction_group::LedgerStateDeltaForTransactionGroupError>
     for AlgodApiError
 {
     fn from(
-        err: get_ledger_state_delta_for_transaction_group::GetLedgerStateDeltaForTransactionGroupError,
+        err: ledger_state_delta_for_transaction_group::LedgerStateDeltaForTransactionGroupError,
     ) -> Self {
-        AlgodApiError::GetLedgerStateDeltaForTransactionGroup { error: err }
+        AlgodApiError::LedgerStateDeltaForTransactionGroup { error: err }
     }
 }
 
-impl From<get_state_proof::GetStateProofError> for AlgodApiError {
-    fn from(err: get_state_proof::GetStateProofError) -> Self {
-        AlgodApiError::GetStateProof { error: err }
+impl From<state_proof::StateProofError> for AlgodApiError {
+    fn from(err: state_proof::StateProofError) -> Self {
+        AlgodApiError::StateProof { error: err }
     }
 }
 
-impl From<get_light_block_header_proof::GetLightBlockHeaderProofError> for AlgodApiError {
-    fn from(err: get_light_block_header_proof::GetLightBlockHeaderProofError) -> Self {
-        AlgodApiError::GetLightBlockHeaderProof { error: err }
+impl From<light_block_header_proof::LightBlockHeaderProofError> for AlgodApiError {
+    fn from(err: light_block_header_proof::LightBlockHeaderProofError) -> Self {
+        AlgodApiError::LightBlockHeaderProof { error: err }
     }
 }
 
-impl From<get_application_by_id::GetApplicationByIdError> for AlgodApiError {
-    fn from(err: get_application_by_id::GetApplicationByIdError) -> Self {
-        AlgodApiError::GetApplicationById { error: err }
+impl From<application_by_id::ApplicationByIdError> for AlgodApiError {
+    fn from(err: application_by_id::ApplicationByIdError) -> Self {
+        AlgodApiError::ApplicationById { error: err }
     }
 }
 
-impl From<get_application_boxes::GetApplicationBoxesError> for AlgodApiError {
-    fn from(err: get_application_boxes::GetApplicationBoxesError) -> Self {
-        AlgodApiError::GetApplicationBoxes { error: err }
+impl From<application_boxes::ApplicationBoxesError> for AlgodApiError {
+    fn from(err: application_boxes::ApplicationBoxesError) -> Self {
+        AlgodApiError::ApplicationBoxes { error: err }
     }
 }
 
-impl From<get_application_box_by_name::GetApplicationBoxByNameError> for AlgodApiError {
-    fn from(err: get_application_box_by_name::GetApplicationBoxByNameError) -> Self {
-        AlgodApiError::GetApplicationBoxByName { error: err }
+impl From<application_box_by_name::ApplicationBoxByNameError> for AlgodApiError {
+    fn from(err: application_box_by_name::ApplicationBoxByNameError) -> Self {
+        AlgodApiError::ApplicationBoxByName { error: err }
     }
 }
 
-impl From<get_asset_by_id::GetAssetByIdError> for AlgodApiError {
-    fn from(err: get_asset_by_id::GetAssetByIdError) -> Self {
-        AlgodApiError::GetAssetById { error: err }
+impl From<asset_by_id::AssetByIdError> for AlgodApiError {
+    fn from(err: asset_by_id::AssetByIdError) -> Self {
+        AlgodApiError::AssetById { error: err }
     }
 }
 
-impl From<get_sync_round::GetSyncRoundError> for AlgodApiError {
-    fn from(err: get_sync_round::GetSyncRoundError) -> Self {
-        AlgodApiError::GetSyncRound { error: err }
+impl From<sync_round::SyncRoundError> for AlgodApiError {
+    fn from(err: sync_round::SyncRoundError) -> Self {
+        AlgodApiError::SyncRound { error: err }
     }
 }
 
@@ -517,9 +513,9 @@ impl From<experimental_check::ExperimentalCheckError> for AlgodApiError {
     }
 }
 
-impl From<get_block_time_stamp_offset::GetBlockTimeStampOffsetError> for AlgodApiError {
-    fn from(err: get_block_time_stamp_offset::GetBlockTimeStampOffsetError) -> Self {
-        AlgodApiError::GetBlockTimeStampOffset { error: err }
+impl From<block_time_stamp_offset::BlockTimeStampOffsetError> for AlgodApiError {
+    fn from(err: block_time_stamp_offset::BlockTimeStampOffsetError) -> Self {
+        AlgodApiError::BlockTimeStampOffset { error: err }
     }
 }
 
@@ -585,6 +581,17 @@ pub use account_assets_information::{AccountAssetsInformationError, account_asse
 pub use account_information::{AccountInformationError, account_information};
 pub use add_participation_key::{AddParticipationKeyError, add_participation_key};
 pub use append_keys::{AppendKeysError, append_keys};
+pub use application_box_by_name::{ApplicationBoxByNameError, application_box_by_name};
+pub use application_boxes::{ApplicationBoxesError, application_boxes};
+pub use application_by_id::{ApplicationByIdError, application_by_id};
+pub use asset_by_id::{AssetByIdError, asset_by_id};
+pub use block::{BlockError, block};
+pub use block_hash::{BlockHashError, block_hash};
+pub use block_logs::{BlockLogsError, block_logs};
+pub use block_time_stamp_offset::{BlockTimeStampOffsetError, block_time_stamp_offset};
+pub use block_tx_ids::{BlockTxIdsError, block_tx_ids};
+pub use config::{ConfigError, config};
+pub use debug_settings_prof::{DebugSettingsProfError, debug_settings_prof};
 pub use delete_participation_key_by_id::{
     DeleteParticipationKeyByIdError, delete_participation_key_by_id,
 };
@@ -592,59 +599,45 @@ pub use experimental_check::{ExperimentalCheckError, experimental_check};
 pub use generate_participation_keys::{
     GenerateParticipationKeysError, generate_participation_keys,
 };
-pub use get_application_box_by_name::{GetApplicationBoxByNameError, get_application_box_by_name};
-pub use get_application_boxes::{GetApplicationBoxesError, get_application_boxes};
-pub use get_application_by_id::{GetApplicationByIdError, get_application_by_id};
-pub use get_asset_by_id::{GetAssetByIdError, get_asset_by_id};
-pub use get_block::{GetBlockError, get_block};
-pub use get_block_hash::{GetBlockHashError, get_block_hash};
-pub use get_block_logs::{GetBlockLogsError, get_block_logs};
-pub use get_block_time_stamp_offset::{GetBlockTimeStampOffsetError, get_block_time_stamp_offset};
-pub use get_block_txids::{GetBlockTxidsError, get_block_txids};
-pub use get_config::{GetConfigError, get_config};
-pub use get_debug_settings_prof::{GetDebugSettingsProfError, get_debug_settings_prof};
-pub use get_genesis::{GetGenesisError, get_genesis};
-pub use get_ledger_state_delta::{GetLedgerStateDeltaError, get_ledger_state_delta};
-pub use get_ledger_state_delta_for_transaction_group::{
-    GetLedgerStateDeltaForTransactionGroupError, get_ledger_state_delta_for_transaction_group,
-};
-pub use get_light_block_header_proof::{
-    GetLightBlockHeaderProofError, get_light_block_header_proof,
-};
-pub use get_participation_key_by_id::{GetParticipationKeyByIdError, get_participation_key_by_id};
-pub use get_participation_keys::{GetParticipationKeysError, get_participation_keys};
-pub use get_pending_transactions::{GetPendingTransactionsError, get_pending_transactions};
-pub use get_pending_transactions_by_address::{
-    GetPendingTransactionsByAddressError, get_pending_transactions_by_address,
-};
-pub use get_ready::{GetReadyError, get_ready};
-pub use get_state_proof::{GetStateProofError, get_state_proof};
-pub use get_status::{GetStatusError, get_status};
-pub use get_supply::{GetSupplyError, get_supply};
-pub use get_sync_round::{GetSyncRoundError, get_sync_round};
-pub use get_transaction_group_ledger_state_deltas_for_round::{
-    GetTransactionGroupLedgerStateDeltasForRoundError,
-    get_transaction_group_ledger_state_deltas_for_round,
-};
-pub use get_transaction_proof::{GetTransactionProofError, get_transaction_proof};
-pub use get_version::{GetVersionError, get_version};
+pub use genesis::{GenesisError, genesis};
 pub use health_check::{HealthCheckError, health_check};
+pub use ledger_state_delta::{LedgerStateDeltaError, ledger_state_delta};
+pub use ledger_state_delta_for_transaction_group::{
+    LedgerStateDeltaForTransactionGroupError, ledger_state_delta_for_transaction_group,
+};
+pub use light_block_header_proof::{LightBlockHeaderProofError, light_block_header_proof};
 pub use metrics::{MetricsError, metrics};
+pub use participation_key_by_id::{ParticipationKeyByIdError, participation_key_by_id};
+pub use participation_keys::{ParticipationKeysError, participation_keys};
 pub use pending_transaction_information::{
     PendingTransactionInformationError, pending_transaction_information,
+};
+pub use pending_transactions::{PendingTransactionsError, pending_transactions};
+pub use pending_transactions_by_address::{
+    PendingTransactionsByAddressError, pending_transactions_by_address,
 };
 pub use put_debug_settings_prof::{PutDebugSettingsProfError, put_debug_settings_prof};
 pub use raw_transaction::{RawTransactionError, raw_transaction};
 pub use raw_transaction_async::{RawTransactionAsyncError, raw_transaction_async};
+pub use ready::{ReadyError, ready};
 pub use set_block_time_stamp_offset::{SetBlockTimeStampOffsetError, set_block_time_stamp_offset};
 pub use set_sync_round::{SetSyncRoundError, set_sync_round};
 pub use shutdown_node::{ShutdownNodeError, shutdown_node};
-pub use simulate_transaction::{SimulateTransactionError, simulate_transaction};
+pub use simulate_transactions::{SimulateTransactionsError, simulate_transactions};
 pub use start_catchup::{StartCatchupError, start_catchup};
+pub use state_proof::{StateProofError, state_proof};
+pub use status::{StatusError, status};
+pub use status_after_block::{StatusAfterBlockError, status_after_block};
+pub use supply::{SupplyError, supply};
 pub use swagger_json::{SwaggerJsonError, swagger_json};
+pub use sync_round::{SyncRoundError, sync_round};
 pub use teal_compile::{TealCompileError, teal_compile};
 pub use teal_disassemble::{TealDisassembleError, teal_disassemble};
 pub use teal_dryrun::{TealDryrunError, teal_dryrun};
+pub use transaction_group_ledger_state_deltas_for_round::{
+    TransactionGroupLedgerStateDeltasForRoundError, transaction_group_ledger_state_deltas_for_round,
+};
 pub use transaction_params::{TransactionParamsError, transaction_params};
+pub use transaction_proof::{TransactionProofError, transaction_proof};
 pub use unset_sync_round::{UnsetSyncRoundError, unset_sync_round};
-pub use wait_for_block::{WaitForBlockError, wait_for_block};
+pub use version::{VersionError, version};
