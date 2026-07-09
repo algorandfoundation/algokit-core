@@ -63,6 +63,20 @@ pub async fn fund_account(
     submit_and_confirm(algod, dispenser, payment).await
 }
 
+/// A per-transaction note giving otherwise-identical transactions distinct ids, so a repeated
+/// self-payment against an idle devmode node is not rejected as already in the ledger.
+fn unique_note() -> Vec<u8> {
+    static COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+    let count = COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    let nanos = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_nanos() as u64)
+        .unwrap_or(0);
+    let mut note = count.to_be_bytes().to_vec();
+    note.extend_from_slice(&nanos.to_be_bytes());
+    note
+}
+
 /// Build a transaction header for `sender` from algod's current suggested params.
 async fn header(algod: &AlgodClient, sender: &Address) -> TransactionHeader {
     let params = algod
@@ -77,6 +91,7 @@ async fn header(algod: &AlgodClient, sender: &Address) -> TransactionHeader {
         .last_valid(params.last_round + 1 + 1000)
         .genesis_hash(params.genesis_hash)
         .genesis_id(params.genesis_id)
+        .note(unique_note())
         .build()
         .expect("failed to build transaction header")
 }

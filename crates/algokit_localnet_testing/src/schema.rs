@@ -36,6 +36,8 @@ const RESPONSE_SCHEMAS: &[&str] = &[
     "CompileResponse",
     "BlockHashResponse",
     "BlockTxidsResponse",
+    "PostTransactionsResponse",
+    "TransactionProof",
 ];
 
 /// Lazily built, then read-only: one compiled validator per schema name.
