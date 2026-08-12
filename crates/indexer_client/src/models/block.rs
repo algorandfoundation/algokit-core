@@ -8,6 +8,7 @@
  */
 
 use crate::models;
+use algokit_transact::Address;
 use serde::{Deserialize, Serialize};
 use serde_with::{Bytes, serde_as};
 
@@ -28,7 +29,7 @@ use crate::models::Transaction;
 pub struct Block {
     /// the proposer of this block.
     #[serde(rename = "proposer", skip_serializing_if = "Option::is_none")]
-    pub proposer: Option<String>,
+    pub proposer: Option<Address>,
     /// the sum of all fees paid by transactions in this block.
     #[serde(rename = "fees-collected", skip_serializing_if = "Option::is_none")]
     pub fees_collected: Option<u64>,
@@ -41,30 +42,30 @@ pub struct Block {
     /// \[gh\] hash to which this block belongs.
     #[serde_as(as = "serde_with::base64::Base64")]
     #[serde(rename = "genesis-hash")]
-    pub genesis_hash: Vec<u8>,
+    pub genesis_hash: [u8; 32],
     /// \[gen\] ID to which this block belongs.
     #[serde(rename = "genesis-id")]
     pub genesis_id: String,
     /// \[prev\] Previous block hash.
     #[serde_as(as = "serde_with::base64::Base64")]
     #[serde(rename = "previous-block-hash")]
-    pub previous_block_hash: Vec<u8>,
+    pub previous_block_hash: [u8; 32],
     /// \[prev512\] Previous block hash, using SHA-512.
     #[serde_as(as = "Option<serde_with::base64::Base64>")]
     #[serde(
         rename = "previous-block-hash-512",
         skip_serializing_if = "Option::is_none"
     )]
-    pub previous_block_hash_512: Option<Vec<u8>>,
-    #[serde(rename = "rewards", skip_serializing_if = "Option::is_none")]
-    pub rewards: Option<BlockRewards>,
+    pub previous_block_hash_512: Option<[u8; 64]>,
+    #[serde(rename = "rewards")]
+    pub rewards: BlockRewards,
     /// \[rnd\] Current round on which this block was appended to the chain.
     #[serde(rename = "round")]
     pub round: u64,
     /// \[seed\] Sortition seed.
     #[serde_as(as = "serde_with::base64::Base64")]
     #[serde(rename = "seed")]
-    pub seed: Vec<u8>,
+    pub seed: [u8; 32],
     /// Tracks the status of state proofs.
     #[serde(
         rename = "state-proof-tracking",
@@ -75,73 +76,76 @@ pub struct Block {
     #[serde(rename = "timestamp")]
     pub timestamp: u64,
     /// \[txns\] list of transactions corresponding to a given round.
-    #[serde(rename = "transactions", skip_serializing_if = "Option::is_none")]
-    pub transactions: Option<Vec<Transaction>>,
+    #[serde(rename = "transactions")]
+    pub transactions: Vec<Transaction>,
     /// \[txn\] TransactionsRoot authenticates the set of transactions appearing in the block. More specifically, it's the root of a merkle tree whose leaves are the block's Txids, in lexicographic order. For the empty block, it's 0. Note that the TxnRoot does not authenticate the signatures on the transactions, only the transactions themselves. Two blocks with the same transactions but in a different order and with different signatures will have the same TxnRoot.
     #[serde_as(as = "serde_with::base64::Base64")]
     #[serde(rename = "transactions-root")]
-    pub transactions_root: Vec<u8>,
+    pub transactions_root: [u8; 32],
     /// \[txn256\] TransactionsRootSHA256 is an auxiliary TransactionRoot, built using a vector commitment instead of a merkle tree, and SHA256 hash function instead of the default SHA512_256. This commitment can be used on environments where only the SHA256 function exists.
-    #[serde_as(as = "serde_with::base64::Base64")]
-    #[serde(rename = "transactions-root-sha256")]
-    pub transactions_root_sha256: Vec<u8>,
+    #[serde_as(as = "Option<serde_with::base64::Base64>")]
+    #[serde(
+        rename = "transactions-root-sha256",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub transactions_root_sha256: Option<[u8; 32]>,
     /// \[txn512\] TransactionsRootSHA512 is an auxiliary TransactionRoot, built using a vector commitment instead of a merkle tree, and SHA512 hash function instead of the default SHA512_256.
     #[serde_as(as = "Option<serde_with::base64::Base64>")]
     #[serde(
         rename = "transactions-root-sha512",
         skip_serializing_if = "Option::is_none"
     )]
-    pub transactions_root_sha512: Option<Vec<u8>>,
+    pub transactions_root_sha512: Option<[u8; 64]>,
     /// \[tc\] TxnCounter counts the number of transactions committed in the ledger, from the time at which support for this feature was introduced.
     ///
     /// Specifically, TxnCounter is the number of the next transaction that will be committed after this block.  It is 0 when no transactions have ever been committed (since TxnCounter started being supported).
     #[serde(rename = "txn-counter", skip_serializing_if = "Option::is_none")]
     pub txn_counter: Option<u64>,
-    #[serde(rename = "upgrade-state", skip_serializing_if = "Option::is_none")]
-    pub upgrade_state: Option<BlockUpgradeState>,
+    #[serde(rename = "upgrade-state")]
+    pub upgrade_state: BlockUpgradeState,
     #[serde(rename = "upgrade-vote", skip_serializing_if = "Option::is_none")]
     pub upgrade_vote: Option<BlockUpgradeVote>,
-    #[serde(
-        rename = "participation-updates",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub participation_updates: Option<ParticipationUpdates>,
+    #[serde(rename = "participation-updates")]
+    pub participation_updates: ParticipationUpdates,
 }
 
 impl Block {
     /// Constructor for Block
     pub fn new(
-        genesis_hash: Vec<u8>,
+        genesis_hash: [u8; 32],
         genesis_id: String,
-        previous_block_hash: Vec<u8>,
+        previous_block_hash: [u8; 32],
+        rewards: BlockRewards,
         round: u64,
-        seed: Vec<u8>,
+        seed: [u8; 32],
         timestamp: u64,
-        transactions_root: Vec<u8>,
-        transactions_root_sha256: Vec<u8>,
+        transactions: Vec<Transaction>,
+        transactions_root: [u8; 32],
+        upgrade_state: BlockUpgradeState,
+        participation_updates: ParticipationUpdates,
     ) -> Block {
         Block {
             genesis_hash,
             genesis_id,
             previous_block_hash,
+            rewards,
             round,
             seed,
             timestamp,
+            transactions,
             transactions_root,
-            transactions_root_sha256,
+            upgrade_state,
+            participation_updates,
             proposer: None,
             fees_collected: None,
             bonus: None,
             proposer_payout: None,
             previous_block_hash_512: None,
-            rewards: None,
             state_proof_tracking: None,
-            transactions: None,
+            transactions_root_sha256: None,
             transactions_root_sha512: None,
             txn_counter: None,
-            upgrade_state: None,
             upgrade_vote: None,
-            participation_updates: None,
         }
     }
 }

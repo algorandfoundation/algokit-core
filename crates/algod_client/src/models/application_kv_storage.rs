@@ -16,6 +16,7 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "ffi_uniffi")]
 use algokit_transact_ffi::SignedTransaction as AlgokitSignedTransaction;
 
+use algokit_transact::Address;
 use algokit_transact::AlgorandMsgpack;
 
 use crate::models::AvmKeyValue;
@@ -29,7 +30,7 @@ pub struct ApplicationKvStorage {
     pub kvs: Vec<AvmKeyValue>,
     /// The address of the account associated with the local state.
     #[serde(rename = "account", skip_serializing_if = "Option::is_none")]
-    pub account: Option<String>,
+    pub account: Option<Address>,
 }
 
 impl AlgorandMsgpack for ApplicationKvStorage {

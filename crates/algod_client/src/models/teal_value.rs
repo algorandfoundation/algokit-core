@@ -26,7 +26,7 @@ use algokit_transact::AlgorandMsgpack;
 pub struct TealValue {
     /// \[tt\] value type. Value `1` refers to **bytes**, value `2` refers to **uint**
     #[serde(rename = "type")]
-    pub r#type: u64,
+    pub r#type: u32,
     /// \[tb\] bytes value.
     #[serde_as(as = "Bytes")]
     #[serde(rename = "bytes")]
@@ -42,7 +42,7 @@ impl AlgorandMsgpack for TealValue {
 
 impl TealValue {
     /// Constructor for TealValue
-    pub fn new(r#type: u64, bytes: Vec<u8>, uint: u64) -> TealValue {
+    pub fn new(r#type: u32, bytes: Vec<u8>, uint: u64) -> TealValue {
         TealValue {
             r#type,
             bytes,

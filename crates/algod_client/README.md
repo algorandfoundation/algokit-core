@@ -137,50 +137,50 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 This client provides access to 55 API operations:
 
 - `health_check` - Returns OK if healthy.
-- `get_ready` - Returns OK if healthy and fully caught up.
+- `ready` - Returns OK if healthy and fully caught up.
 - `metrics` - Return metrics about algod functioning.
-- `get_genesis` - Gets the genesis information.
+- `genesis` - Gets the genesis information.
 - `swagger_json` - Gets the current swagger spec.
-- `get_version` - Retrieves the supported API versions, binary build versions, and genesis information.
-- `get_debug_settings_prof` - Retrieves the current settings for blocking and mutex profiles
+- `version` - Retrieves the supported API versions, binary build versions, and genesis information.
+- `debug_settings_prof` - Retrieves the current settings for blocking and mutex profiles
 - `put_debug_settings_prof` - Enables blocking and mutex profiles, and returns the old settings
-- `get_config` - Gets the merged config file.
+- `config` - Gets the merged config file.
 - `account_information` - Get account information.
 - `account_asset_information` - Get account information about a given asset.
 - `account_assets_information` - Get a list of assets held by an account, inclusive of asset params.
 - `account_application_information` - Get account information about a given app.
-- `get_pending_transactions_by_address` - Get a list of unconfirmed transactions currently in the transaction pool by address.
-- `get_block` - Get the block for the given round.
-- `get_block_txids` - Get the top level transaction IDs for the block on the given round.
-- `get_block_hash` - Get the block hash for the block on the given round.
-- `get_transaction_proof` - Get a proof for a transaction in a block.
-- `get_block_logs` - Get all of the logs from outer and inner app calls in the given round
-- `get_supply` - Get the current supply reported by the ledger.
-- `get_participation_keys` - Return a list of participation keys
+- `pending_transactions_by_address` - Get a list of unconfirmed transactions currently in the transaction pool by address.
+- `block` - Get the block for the given round.
+- `block_tx_ids` - Get the top level transaction IDs for the block on the given round.
+- `block_hash` - Get the block hash for the block on the given round.
+- `transaction_proof` - Get a proof for a transaction in a block.
+- `block_logs` - Get all of the logs from outer and inner app calls in the given round
+- `supply` - Get the current supply reported by the ledger.
+- `participation_keys` - Return a list of participation keys
 - `add_participation_key` - Add a participation key to the node
 - `generate_participation_keys` - Generate and install participation keys to the node.
-- `get_participation_key_by_id` - Get participation key info given a participation ID
+- `participation_key_by_id` - Get participation key info given a participation ID
 - `append_keys` - Append state proof keys to a participation key
 - `delete_participation_key_by_id` - Delete a given participation key by ID
 - `shutdown_node` - Special management endpoint to shutdown the node. Optionally provide a timeout parameter to indicate that the node should begin shutting down after a number of seconds.
-- `get_status` - Gets the current node status.
-- `wait_for_block` - Gets the node status after waiting for a round after the given round.
+- `status` - Gets the current node status.
+- `status_after_block` - Gets the node status after waiting for a round after the given round.
 - `raw_transaction` - Broadcasts a raw transaction or transaction group to the network.
 - `raw_transaction_async` - Fast track for broadcasting a raw transaction or transaction group to the network through the tx handler without performing most of the checks and reporting detailed errors. Should be only used for development and performance testing.
-- `simulate_transaction` - Simulates a raw transaction or transaction group as it would be evaluated on the network. The simulation will use blockchain state from the latest committed round.
+- `simulate_transactions` - Simulates a raw transaction or transaction group as it would be evaluated on the network. The simulation will use blockchain state from the latest committed round.
 - `transaction_params` - Get parameters for constructing a new transaction
-- `get_pending_transactions` - Get a list of unconfirmed transactions currently in the transaction pool.
+- `pending_transactions` - Get a list of unconfirmed transactions currently in the transaction pool.
 - `pending_transaction_information` - Get a specific pending transaction.
-- `get_ledger_state_delta` - Get a LedgerStateDelta object for a given round
-- `get_transaction_group_ledger_state_deltas_for_round` - Get LedgerStateDelta objects for all transaction groups in a given round
-- `get_ledger_state_delta_for_transaction_group` - Get a LedgerStateDelta object for a given transaction group
-- `get_state_proof` - Get a state proof that covers a given round
-- `get_light_block_header_proof` - Gets a proof for a given light block header inside a state proof commitment
-- `get_application_by_id` - Get application information.
-- `get_application_boxes` - Get all box names for a given application.
-- `get_application_box_by_name` - Get box information for a given application.
-- `get_asset_by_id` - Get asset information.
-- `get_sync_round` - Returns the minimum sync round the ledger is keeping in cache.
+- `ledger_state_delta` - Get a LedgerStateDelta object for a given round
+- `transaction_group_ledger_state_deltas_for_round` - Get LedgerStateDelta objects for all transaction groups in a given round
+- `ledger_state_delta_for_transaction_group` - Get a LedgerStateDelta object for a given transaction group
+- `state_proof` - Get a state proof that covers a given round
+- `light_block_header_proof` - Gets a proof for a given light block header inside a state proof commitment
+- `application_by_id` - Get application information.
+- `application_boxes` - Get all box names for a given application.
+- `application_box_by_name` - Get box information for a given application.
+- `asset_by_id` - Get asset information.
+- `sync_round` - Returns the minimum sync round the ledger is keeping in cache.
 - `unset_sync_round` - Removes minimum sync round restriction from the ledger.
 - `set_sync_round` - Given a round, tells the ledger to keep that round in its cache.
 - `teal_compile` - Compile TEAL source code to binary, produce its hash
@@ -189,7 +189,7 @@ This client provides access to 55 API operations:
 - `abort_catchup` - Aborts a catchpoint catchup.
 - `teal_dryrun` - Provide debugging information for a transaction (or group).
 - `experimental_check` - Returns OK if experimental API is enabled.
-- `get_block_time_stamp_offset` - Returns the timestamp offset. Timestamp offsets can only be set in dev mode.
+- `block_time_stamp_offset` - Returns the timestamp offset. Timestamp offsets can only be set in dev mode.
 - `set_block_time_stamp_offset` - Given a timestamp offset in seconds, adds the offset to every subsequent block header's timestamp.
 
 ## Models
@@ -265,32 +265,32 @@ data/transactions/asset.go : AssetParams
 - `SimulateInitialStates` - Initial states of resources that were accessed during simulation.
 - `AppCallLogs` - The logged messages from an app call along with the app ID and outer transaction ID. Logs appear in the same order that they were emitted.
 - `TransactionProof` - Proof of transaction in a block.
-- `AccountAssetInformation` - AccountAssetResponse describes the account's asset holding and asset parameters (if either exist) for a specific asset ID. Asset parameters will only be returned if the provided address is the asset's creator.
-- `AccountAssetsInformation` - AccountAssetsInformationResponse contains a list of assets held by an account.
-- `AccountApplicationInformation` - AccountApplicationResponse describes the account's application local state and global state (AppLocalState and AppParams, if either exists) for a specific application ID. Global state will only be returned if the provided address is the application's creator.
-- `GetPendingTransactionsByAddress` - PendingTransactions is an array of signed transactions exactly as they were submitted.
-- `GetBlock` - Encoded block object.
-- `GetBlockTxids` - Top level transaction IDs in a block.
-- `GetBlockHash` - Hash of a block header.
-- `GetBlockLogs` - All logs emitted in the given round. Each app call, whether top-level or inner, that contains logs results in a separate AppCallLogs object. Therefore there may be multiple AppCallLogs with the same application ID and outer transaction ID in the event of multiple inner app calls to the same app. App calls with no logs are not included in the response. AppCallLogs are returned in the same order that their corresponding app call appeared in the block (pre-order traversal of inner app calls)
-- `GetSupply` - Supply represents the current supply of MicroAlgos in the system
-- `AddParticipationKey` - Participation ID of the submission
-- `GetStatus` - NodeStatus contains the information about a node status
-- `WaitForBlock` - NodeStatus contains the information about a node status
-- `RawTransaction` - Transaction ID of the submission.
-- `SimulateTransaction` - Result of a transaction group simulation.
-- `TransactionParams` - TransactionParams contains the parameters that help a client construct
+- `GetBlockTimeStampOffsetResponse` - No description
+- `GetSyncRoundResponse` - No description
+- `TransactionGroupLedgerStateDeltasForRoundResponse` - No description
+- `AccountAssetResponse` - No description
+- `AccountAssetsInformationResponse` - No description
+- `AccountApplicationResponse` - No description
+- `BlockResponse` - No description
+- `BlockTxidsResponse` - No description
+- `BlockHashResponse` - No description
+- `CatchpointStartResponse` - An catchpoint start response.
+- `CatchpointAbortResponse` - An catchpoint abort response.
+- `NodeStatusResponse` - NodeStatus contains the information about a node status
+- `PendingTransactionsResponse` - PendingTransactions is an array of signed transactions exactly as they were submitted.
+- `ParticipationKeysResponse` - No description
+- `PostParticipationResponse` - No description
+- `PostTransactionsResponse` - No description
+- `SimulateResponse` - No description
+- `BlockLogsResponse` - No description
+- `SupplyResponse` - Supply represents the current supply of MicroAlgos in the system
+- `TransactionParametersResponse` - TransactionParams contains the parameters that help a client construct
 a new transaction.
-- `GetPendingTransactions` - PendingTransactions is an array of signed transactions exactly as they were submitted.
-- `GetTransactionGroupLedgerStateDeltasForRound` - Response containing all ledger state deltas for transaction groups, with their associated Ids, in a single round.
-- `GetApplicationBoxes` - Box names of an application
-- `GetSyncRound` - Response containing the ledger's minimum sync round
-- `TealCompile` - Teal compile Result
-- `TealDisassemble` - Teal disassembly Result
-- `StartCatchup` - An catchpoint start response.
-- `AbortCatchup` - An catchpoint abort response.
-- `TealDryrun` - DryrunResponse contains per-txn debug information from a dryrun.
-- `GetBlockTimeStampOffset` - Response containing the timestamp offset in seconds
+- `BoxesResponse` - No description
+- `CompileResponse` - No description
+- `DisassembleResponse` - No description
+- `DryrunResponse` - No description
+- `SourceMap` - Source map for the program
 
 ## Error Handling
 

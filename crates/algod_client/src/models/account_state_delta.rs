@@ -16,6 +16,7 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "ffi_uniffi")]
 use algokit_transact_ffi::SignedTransaction as AlgokitSignedTransaction;
 
+use algokit_transact::Address;
 use algokit_transact::AlgorandMsgpack;
 
 use crate::models::StateDelta;
@@ -25,7 +26,7 @@ use crate::models::StateDelta;
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct AccountStateDelta {
     #[serde(rename = "address")]
-    pub address: String,
+    pub address: Address,
     #[serde(rename = "delta")]
     pub delta: StateDelta,
 }
@@ -36,7 +37,7 @@ impl AlgorandMsgpack for AccountStateDelta {
 
 impl AccountStateDelta {
     /// Constructor for AccountStateDelta
-    pub fn new(address: String, delta: StateDelta) -> AccountStateDelta {
+    pub fn new(address: Address, delta: StateDelta) -> AccountStateDelta {
         AccountStateDelta { address, delta }
     }
 

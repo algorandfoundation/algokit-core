@@ -18,15 +18,16 @@ use algokit_http_client::HttpClient;
 
 use super::parameter_enums::*;
 use crate::models::{
-    AbortCatchup, Account, AccountApplicationInformation, AccountAssetInformation,
-    AccountAssetsInformation, AddParticipationKey, Application, Asset, Box, DebugSettingsProf,
-    DryrunRequest, ErrorResponse, Genesis, GetApplicationBoxes, GetBlock, GetBlockHash,
-    GetBlockLogs, GetBlockTimeStampOffset, GetBlockTxids, GetPendingTransactions,
-    GetPendingTransactionsByAddress, GetStatus, GetSupply, GetSyncRound,
-    GetTransactionGroupLedgerStateDeltasForRound, LedgerStateDelta, LightBlockHeaderProof,
-    ParticipationKey, PendingTransactionResponse, RawTransaction, SimulateRequest,
-    SimulateTransaction, StartCatchup, StateProof, TealCompile, TealDisassemble, TealDryrun,
-    TransactionParams, TransactionProof, UnknownJsonValue, Version, WaitForBlock,
+    Account, AccountApplicationResponse, AccountAssetResponse, AccountAssetsInformationResponse,
+    Application, Asset, BlockHashResponse, BlockLogsResponse, BlockResponse, BlockTxidsResponse,
+    Box, BoxesResponse, CatchpointAbortResponse, CatchpointStartResponse, CompileResponse,
+    DebugSettingsProf, DisassembleResponse, DryrunRequest, DryrunResponse, ErrorResponse, Genesis,
+    GetBlockTimeStampOffsetResponse, GetSyncRoundResponse, LedgerStateDelta, LightBlockHeaderProof,
+    NodeStatusResponse, ParticipationKey, ParticipationKeysResponse, PendingTransactionResponse,
+    PendingTransactionsResponse, PostParticipationResponse, PostTransactionsResponse,
+    SimulateRequest, SimulateResponse, StateProof, SupplyResponse,
+    TransactionGroupLedgerStateDeltasForRoundResponse, TransactionParametersResponse,
+    TransactionProof, UnknownJsonValue, Version,
 };
 use std::sync::Arc;
 
@@ -91,8 +92,8 @@ impl AlgodClient {
     }
 
     /// Returns OK if healthy and fully caught up.
-    pub async fn get_ready(&self) -> Result<(), Error> {
-        let result = super::get_ready::get_ready(self.http_client.as_ref()).await;
+    pub async fn ready(&self) -> Result<(), Error> {
+        let result = super::ready::ready(self.http_client.as_ref()).await;
 
         result
     }
@@ -105,8 +106,8 @@ impl AlgodClient {
     }
 
     /// Gets the genesis information.
-    pub async fn get_genesis(&self) -> Result<Genesis, Error> {
-        let result = super::get_genesis::get_genesis(self.http_client.as_ref()).await;
+    pub async fn genesis(&self) -> Result<Genesis, Error> {
+        let result = super::genesis::genesis(self.http_client.as_ref()).await;
 
         result
     }
@@ -119,17 +120,16 @@ impl AlgodClient {
     }
 
     /// Retrieves the supported API versions, binary build versions, and genesis information.
-    pub async fn get_version(&self) -> Result<Version, Error> {
-        let result = super::get_version::get_version(self.http_client.as_ref()).await;
+    pub async fn version(&self) -> Result<Version, Error> {
+        let result = super::version::version(self.http_client.as_ref()).await;
 
         result
     }
 
     /// Retrieves the current settings for blocking and mutex profiles
-    pub async fn get_debug_settings_prof(&self) -> Result<DebugSettingsProf, Error> {
+    pub async fn debug_settings_prof(&self) -> Result<DebugSettingsProf, Error> {
         let result =
-            super::get_debug_settings_prof::get_debug_settings_prof(self.http_client.as_ref())
-                .await;
+            super::debug_settings_prof::debug_settings_prof(self.http_client.as_ref()).await;
 
         result
     }
@@ -144,8 +144,8 @@ impl AlgodClient {
     }
 
     /// Gets the merged config file.
-    pub async fn get_config(&self) -> Result<String, Error> {
-        let result = super::get_config::get_config(self.http_client.as_ref()).await;
+    pub async fn config(&self) -> Result<String, Error> {
+        let result = super::config::config(self.http_client.as_ref()).await;
 
         result
     }
@@ -171,7 +171,7 @@ impl AlgodClient {
         &self,
         address: &str,
         asset_id: u64,
-    ) -> Result<AccountAssetInformation, Error> {
+    ) -> Result<AccountAssetResponse, Error> {
         let result = super::account_asset_information::account_asset_information(
             self.http_client.as_ref(),
             address,
@@ -188,7 +188,7 @@ impl AlgodClient {
         address: &str,
         application_id: u64,
         format: Option<Format>,
-    ) -> Result<AccountApplicationInformation, Error> {
+    ) -> Result<AccountApplicationResponse, Error> {
         let result = super::account_application_information::account_application_information(
             self.http_client.as_ref(),
             address,
@@ -201,58 +201,55 @@ impl AlgodClient {
     }
 
     /// Get a list of unconfirmed transactions currently in the transaction pool by address.
-    pub async fn get_pending_transactions_by_address(
+    pub async fn pending_transactions_by_address(
         &self,
         address: &str,
         max: Option<u64>,
-    ) -> Result<GetPendingTransactionsByAddress, Error> {
-        let result =
-            super::get_pending_transactions_by_address::get_pending_transactions_by_address(
-                self.http_client.as_ref(),
-                address,
-                max,
-            )
-            .await;
+    ) -> Result<PendingTransactionsResponse, Error> {
+        let result = super::pending_transactions_by_address::pending_transactions_by_address(
+            self.http_client.as_ref(),
+            address,
+            max,
+        )
+        .await;
 
         result
     }
 
     /// Get the block for the given round.
-    pub async fn get_block(
+    pub async fn block(
         &self,
         round: u64,
         header_only: Option<bool>,
-    ) -> Result<GetBlock, Error> {
-        let result =
-            super::get_block::get_block(self.http_client.as_ref(), round, header_only).await;
+    ) -> Result<BlockResponse, Error> {
+        let result = super::block::block(self.http_client.as_ref(), round, header_only).await;
 
         result
     }
 
     /// Get the top level transaction IDs for the block on the given round.
-    pub async fn get_block_txids(&self, round: u64) -> Result<GetBlockTxids, Error> {
-        let result =
-            super::get_block_txids::get_block_txids(self.http_client.as_ref(), round).await;
+    pub async fn block_tx_ids(&self, round: u64) -> Result<BlockTxidsResponse, Error> {
+        let result = super::block_tx_ids::block_tx_ids(self.http_client.as_ref(), round).await;
 
         result
     }
 
     /// Get the block hash for the block on the given round.
-    pub async fn get_block_hash(&self, round: u64) -> Result<GetBlockHash, Error> {
-        let result = super::get_block_hash::get_block_hash(self.http_client.as_ref(), round).await;
+    pub async fn block_hash(&self, round: u64) -> Result<BlockHashResponse, Error> {
+        let result = super::block_hash::block_hash(self.http_client.as_ref(), round).await;
 
         result
     }
 
     /// Get a proof for a transaction in a block.
-    pub async fn get_transaction_proof(
+    pub async fn transaction_proof(
         &self,
         round: u64,
         txid: &str,
         hashtype: Option<Hashtype>,
         format: Option<Format>,
     ) -> Result<TransactionProof, Error> {
-        let result = super::get_transaction_proof::get_transaction_proof(
+        let result = super::transaction_proof::transaction_proof(
             self.http_client.as_ref(),
             round,
             txid,
@@ -265,23 +262,22 @@ impl AlgodClient {
     }
 
     /// Get all of the logs from outer and inner app calls in the given round
-    pub async fn get_block_logs(&self, round: u64) -> Result<GetBlockLogs, Error> {
-        let result = super::get_block_logs::get_block_logs(self.http_client.as_ref(), round).await;
+    pub async fn block_logs(&self, round: u64) -> Result<BlockLogsResponse, Error> {
+        let result = super::block_logs::block_logs(self.http_client.as_ref(), round).await;
 
         result
     }
 
     /// Get the current supply reported by the ledger.
-    pub async fn get_supply(&self) -> Result<GetSupply, Error> {
-        let result = super::get_supply::get_supply(self.http_client.as_ref()).await;
+    pub async fn supply(&self) -> Result<SupplyResponse, Error> {
+        let result = super::supply::supply(self.http_client.as_ref()).await;
 
         result
     }
 
     /// Return a list of participation keys
-    pub async fn get_participation_keys(&self) -> Result<Vec<ParticipationKey>, Error> {
-        let result =
-            super::get_participation_keys::get_participation_keys(self.http_client.as_ref()).await;
+    pub async fn participation_keys(&self) -> Result<ParticipationKeysResponse, Error> {
+        let result = super::participation_keys::participation_keys(self.http_client.as_ref()).await;
 
         result
     }
@@ -290,7 +286,7 @@ impl AlgodClient {
     pub async fn add_participation_key(
         &self,
         request: Vec<u8>,
-    ) -> Result<AddParticipationKey, Error> {
+    ) -> Result<PostParticipationResponse, Error> {
         let result =
             super::add_participation_key::add_participation_key(self.http_client.as_ref(), request)
                 .await;
@@ -319,11 +315,11 @@ impl AlgodClient {
     }
 
     /// Get participation key info given a participation ID
-    pub async fn get_participation_key_by_id(
+    pub async fn participation_key_by_id(
         &self,
         participation_id: &str,
     ) -> Result<ParticipationKey, Error> {
-        let result = super::get_participation_key_by_id::get_participation_key_by_id(
+        let result = super::participation_key_by_id::participation_key_by_id(
             self.http_client.as_ref(),
             participation_id,
         )
@@ -379,21 +375,25 @@ impl AlgodClient {
     }
 
     /// Gets the current node status.
-    pub async fn get_status(&self) -> Result<GetStatus, Error> {
-        let result = super::get_status::get_status(self.http_client.as_ref()).await;
+    pub async fn status(&self) -> Result<NodeStatusResponse, Error> {
+        let result = super::status::status(self.http_client.as_ref()).await;
 
         result
     }
 
     /// Gets the node status after waiting for a round after the given round.
-    pub async fn wait_for_block(&self, round: u64) -> Result<WaitForBlock, Error> {
-        let result = super::wait_for_block::wait_for_block(self.http_client.as_ref(), round).await;
+    pub async fn status_after_block(&self, round: u64) -> Result<NodeStatusResponse, Error> {
+        let result =
+            super::status_after_block::status_after_block(self.http_client.as_ref(), round).await;
 
         result
     }
 
     /// Broadcasts a raw transaction or transaction group to the network.
-    pub async fn raw_transaction(&self, request: Vec<u8>) -> Result<RawTransaction, Error> {
+    pub async fn raw_transaction(
+        &self,
+        request: Vec<u8>,
+    ) -> Result<PostTransactionsResponse, Error> {
         let result =
             super::raw_transaction::raw_transaction(self.http_client.as_ref(), request).await;
 
@@ -410,38 +410,31 @@ impl AlgodClient {
     }
 
     /// Simulates a raw transaction or transaction group as it would be evaluated on the network. The simulation will use blockchain state from the latest committed round.
-    pub async fn simulate_transaction(
+    pub async fn simulate_transactions(
         &self,
         request: SimulateRequest,
-        format: Option<Format>,
-    ) -> Result<SimulateTransaction, Error> {
-        let result = super::simulate_transaction::simulate_transaction(
-            self.http_client.as_ref(),
-            request,
-            format,
-        )
-        .await;
+    ) -> Result<SimulateResponse, Error> {
+        let result =
+            super::simulate_transactions::simulate_transactions(self.http_client.as_ref(), request)
+                .await;
 
         result
     }
 
     /// Get parameters for constructing a new transaction
-    pub async fn transaction_params(&self) -> Result<TransactionParams, Error> {
+    pub async fn transaction_params(&self) -> Result<TransactionParametersResponse, Error> {
         let result = super::transaction_params::transaction_params(self.http_client.as_ref()).await;
 
         result
     }
 
     /// Get a list of unconfirmed transactions currently in the transaction pool.
-    pub async fn get_pending_transactions(
+    pub async fn pending_transactions(
         &self,
         max: Option<u64>,
-    ) -> Result<GetPendingTransactions, Error> {
-        let result = super::get_pending_transactions::get_pending_transactions(
-            self.http_client.as_ref(),
-            max,
-        )
-        .await;
+    ) -> Result<PendingTransactionsResponse, Error> {
+        let result =
+            super::pending_transactions::pending_transactions(self.http_client.as_ref(), max).await;
 
         result
     }
@@ -461,20 +454,19 @@ impl AlgodClient {
     }
 
     /// Get a LedgerStateDelta object for a given round
-    pub async fn get_ledger_state_delta(&self, round: u64) -> Result<LedgerStateDelta, Error> {
+    pub async fn ledger_state_delta(&self, round: u64) -> Result<LedgerStateDelta, Error> {
         let result =
-            super::get_ledger_state_delta::get_ledger_state_delta(self.http_client.as_ref(), round)
-                .await;
+            super::ledger_state_delta::ledger_state_delta(self.http_client.as_ref(), round).await;
 
         result
     }
 
     /// Get LedgerStateDelta objects for all transaction groups in a given round
-    pub async fn get_transaction_group_ledger_state_deltas_for_round(
+    pub async fn transaction_group_ledger_state_deltas_for_round(
         &self,
         round: u64,
-    ) -> Result<GetTransactionGroupLedgerStateDeltasForRound, Error> {
-        let result = super::get_transaction_group_ledger_state_deltas_for_round::get_transaction_group_ledger_state_deltas_for_round(
+    ) -> Result<TransactionGroupLedgerStateDeltasForRoundResponse, Error> {
+        let result = super::transaction_group_ledger_state_deltas_for_round::transaction_group_ledger_state_deltas_for_round(
             self.http_client.as_ref(),
             round,
         ).await;
@@ -483,11 +475,11 @@ impl AlgodClient {
     }
 
     /// Get a LedgerStateDelta object for a given transaction group
-    pub async fn get_ledger_state_delta_for_transaction_group(
+    pub async fn ledger_state_delta_for_transaction_group(
         &self,
         id: &str,
     ) -> Result<LedgerStateDelta, Error> {
-        let result = super::get_ledger_state_delta_for_transaction_group::get_ledger_state_delta_for_transaction_group(
+        let result = super::ledger_state_delta_for_transaction_group::ledger_state_delta_for_transaction_group(
             self.http_client.as_ref(),
             id,
         ).await;
@@ -496,19 +488,18 @@ impl AlgodClient {
     }
 
     /// Get a state proof that covers a given round
-    pub async fn get_state_proof(&self, round: u64) -> Result<StateProof, Error> {
-        let result =
-            super::get_state_proof::get_state_proof(self.http_client.as_ref(), round).await;
+    pub async fn state_proof(&self, round: u64) -> Result<StateProof, Error> {
+        let result = super::state_proof::state_proof(self.http_client.as_ref(), round).await;
 
         result
     }
 
     /// Gets a proof for a given light block header inside a state proof commitment
-    pub async fn get_light_block_header_proof(
+    pub async fn light_block_header_proof(
         &self,
         round: u64,
     ) -> Result<LightBlockHeaderProof, Error> {
-        let result = super::get_light_block_header_proof::get_light_block_header_proof(
+        let result = super::light_block_header_proof::light_block_header_proof(
             self.http_client.as_ref(),
             round,
         )
@@ -518,23 +509,21 @@ impl AlgodClient {
     }
 
     /// Get application information.
-    pub async fn get_application_by_id(&self, application_id: u64) -> Result<Application, Error> {
-        let result = super::get_application_by_id::get_application_by_id(
-            self.http_client.as_ref(),
-            application_id,
-        )
-        .await;
+    pub async fn application_by_id(&self, application_id: u64) -> Result<Application, Error> {
+        let result =
+            super::application_by_id::application_by_id(self.http_client.as_ref(), application_id)
+                .await;
 
         result
     }
 
     /// Get all box names for a given application.
-    pub async fn get_application_boxes(
+    pub async fn application_boxes(
         &self,
         application_id: u64,
         max: Option<u64>,
-    ) -> Result<GetApplicationBoxes, Error> {
-        let result = super::get_application_boxes::get_application_boxes(
+    ) -> Result<BoxesResponse, Error> {
+        let result = super::application_boxes::application_boxes(
             self.http_client.as_ref(),
             application_id,
             max,
@@ -545,12 +534,12 @@ impl AlgodClient {
     }
 
     /// Get box information for a given application.
-    pub async fn get_application_box_by_name(
+    pub async fn application_box_by_name(
         &self,
         application_id: u64,
         name: &str,
     ) -> Result<crate::models::Box, Error> {
-        let result = super::get_application_box_by_name::get_application_box_by_name(
+        let result = super::application_box_by_name::application_box_by_name(
             self.http_client.as_ref(),
             application_id,
             name,
@@ -561,16 +550,15 @@ impl AlgodClient {
     }
 
     /// Get asset information.
-    pub async fn get_asset_by_id(&self, asset_id: u64) -> Result<Asset, Error> {
-        let result =
-            super::get_asset_by_id::get_asset_by_id(self.http_client.as_ref(), asset_id).await;
+    pub async fn asset_by_id(&self, asset_id: u64) -> Result<Asset, Error> {
+        let result = super::asset_by_id::asset_by_id(self.http_client.as_ref(), asset_id).await;
 
         result
     }
 
     /// Returns the minimum sync round the ledger is keeping in cache.
-    pub async fn get_sync_round(&self) -> Result<GetSyncRound, Error> {
-        let result = super::get_sync_round::get_sync_round(self.http_client.as_ref()).await;
+    pub async fn sync_round(&self) -> Result<GetSyncRoundResponse, Error> {
+        let result = super::sync_round::sync_round(self.http_client.as_ref()).await;
 
         result
     }
@@ -594,7 +582,7 @@ impl AlgodClient {
         &self,
         request: Vec<u8>,
         sourcemap: Option<bool>,
-    ) -> Result<TealCompile, Error> {
+    ) -> Result<CompileResponse, Error> {
         let result =
             super::teal_compile::teal_compile(self.http_client.as_ref(), request, sourcemap).await;
 
@@ -602,7 +590,7 @@ impl AlgodClient {
     }
 
     /// Disassemble program bytes into the TEAL source code.
-    pub async fn teal_disassemble(&self, request: String) -> Result<TealDisassemble, Error> {
+    pub async fn teal_disassemble(&self, request: String) -> Result<DisassembleResponse, Error> {
         let result =
             super::teal_disassemble::teal_disassemble(self.http_client.as_ref(), request).await;
 
@@ -614,7 +602,7 @@ impl AlgodClient {
         &self,
         catchpoint: &str,
         min: Option<u64>,
-    ) -> Result<StartCatchup, Error> {
+    ) -> Result<CatchpointStartResponse, Error> {
         let result =
             super::start_catchup::start_catchup(self.http_client.as_ref(), catchpoint, min).await;
 
@@ -622,7 +610,7 @@ impl AlgodClient {
     }
 
     /// Aborts a catchpoint catchup.
-    pub async fn abort_catchup(&self, catchpoint: &str) -> Result<AbortCatchup, Error> {
+    pub async fn abort_catchup(&self, catchpoint: &str) -> Result<CatchpointAbortResponse, Error> {
         let result =
             super::abort_catchup::abort_catchup(self.http_client.as_ref(), catchpoint).await;
 
@@ -630,7 +618,10 @@ impl AlgodClient {
     }
 
     /// Provide debugging information for a transaction (or group).
-    pub async fn teal_dryrun(&self, request: Option<DryrunRequest>) -> Result<TealDryrun, Error> {
+    pub async fn teal_dryrun(
+        &self,
+        request: Option<DryrunRequest>,
+    ) -> Result<DryrunResponse, Error> {
         let result = super::teal_dryrun::teal_dryrun(self.http_client.as_ref(), request).await;
 
         result
@@ -644,11 +635,10 @@ impl AlgodClient {
     }
 
     /// Returns the timestamp offset. Timestamp offsets can only be set in dev mode.
-    pub async fn get_block_time_stamp_offset(&self) -> Result<GetBlockTimeStampOffset, Error> {
-        let result = super::get_block_time_stamp_offset::get_block_time_stamp_offset(
-            self.http_client.as_ref(),
-        )
-        .await;
+    pub async fn block_time_stamp_offset(&self) -> Result<GetBlockTimeStampOffsetResponse, Error> {
+        let result =
+            super::block_time_stamp_offset::block_time_stamp_offset(self.http_client.as_ref())
+                .await;
 
         result
     }
@@ -673,7 +663,7 @@ impl AlgodClient {
         address: &str,
         limit: Option<u64>,
         next: Option<&str>,
-    ) -> Result<AccountAssetsInformation, Error> {
+    ) -> Result<AccountAssetsInformationResponse, Error> {
         let result = super::account_assets_information::account_assets_information(
             self.http_client.as_ref(),
             address,
@@ -695,7 +685,7 @@ impl AlgodClient {
         address: &str,
         limit: Option<u64>,
         next: Option<String>,
-    ) -> Result<AccountAssetsInformation, Error> {
+    ) -> Result<AccountAssetsInformationResponse, Error> {
         let result = super::account_assets_information::account_assets_information(
             self.http_client.as_ref(),
             address,

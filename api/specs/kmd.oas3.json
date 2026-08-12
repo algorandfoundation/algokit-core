@@ -39,7 +39,10 @@
             "description": "Unknown Error",
             "content": {}
           }
-        }
+        },
+        "tags": [
+          "skip"
+        ]
       }
     },
     "/v1/key": {
@@ -63,7 +66,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/POSTKeyResponse"
+                  "$ref": "#/components/schemas/GenerateKeyResponse"
                 }
               }
             }
@@ -88,13 +91,7 @@
         "responses": {
           "200": {
             "description": "Response to `DELETE /v1/key`",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DELETEKeyResponse"
-                }
-              }
-            }
+            "content": {}
           }
         },
         "x-codegen-request-body-name": "Delete Key Request"
@@ -121,7 +118,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/POSTKeyExportResponse"
+                  "$ref": "#/components/schemas/ExportKeyResponse"
                 }
               }
             }
@@ -151,7 +148,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/POSTKeyImportResponse"
+                  "$ref": "#/components/schemas/ImportKeyResponse"
                 }
               }
             }
@@ -181,7 +178,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/POSTKeyListResponse"
+                  "$ref": "#/components/schemas/ListKeysResponse"
                 }
               }
             }
@@ -211,7 +208,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/POSTMasterKeyExportResponse"
+                  "$ref": "#/components/schemas/ExportMasterKeyResponse"
                 }
               }
             }
@@ -238,13 +235,7 @@
         "responses": {
           "200": {
             "description": "Response to POST /v1/multisig/delete",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DELETEMultisigResponse"
-                }
-              }
-            }
+            "content": {}
           }
         },
         "x-codegen-request-body-name": "Delete Multisig Request"
@@ -271,7 +262,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/POSTMultisigExportResponse"
+                  "$ref": "#/components/schemas/ExportMultisigResponse"
                 }
               }
             }
@@ -301,7 +292,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/POSTMultisigImportResponse"
+                  "$ref": "#/components/schemas/ImportMultisigResponse"
                 }
               }
             }
@@ -314,7 +305,7 @@
       "post": {
         "summary": "List multisig accounts",
         "description": "Lists all of the multisig accounts whose preimages this wallet stores",
-        "operationId": "ListMultisg",
+        "operationId": "ListMultisig",
         "requestBody": {
           "content": {
             "application/json": {
@@ -331,7 +322,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/POSTMultisigListResponse"
+                  "$ref": "#/components/schemas/ListMultisigResponse"
                 }
               }
             }
@@ -349,7 +340,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SignMultisigRequest"
+                "$ref": "#/components/schemas/SignMultisigTxnRequest"
               }
             }
           },
@@ -361,7 +352,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/POSTMultisigTransactionSignResponse"
+                  "$ref": "#/components/schemas/SignMultisigResponse"
                 }
               }
             }
@@ -391,7 +382,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/POSTMultisigProgramSignResponse"
+                  "$ref": "#/components/schemas/SignProgramMultisigResponse"
                 }
               }
             }
@@ -421,7 +412,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/POSTProgramSignResponse"
+                  "$ref": "#/components/schemas/SignProgramResponse"
                 }
               }
             }
@@ -439,7 +430,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SignTransactionRequest"
+                "$ref": "#/components/schemas/SignTxnRequest"
               }
             }
           },
@@ -451,7 +442,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/POSTTransactionSignResponse"
+                  "$ref": "#/components/schemas/SignTransactionResponse"
                 }
               }
             }
@@ -481,7 +472,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/POSTWalletResponse"
+                  "$ref": "#/components/schemas/CreateWalletResponse"
                 }
               }
             }
@@ -494,7 +485,7 @@
       "post": {
         "summary": "Get wallet info",
         "description": "Returns information about the wallet associated with the passed wallet handle token. Additionally returns expiration information about the token itself.\n",
-        "operationId": "GetWalletInfo",
+        "operationId": "WalletInfo",
         "requestBody": {
           "content": {
             "application/json": {
@@ -511,7 +502,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/POSTWalletInfoResponse"
+                  "$ref": "#/components/schemas/WalletInfoResponse"
                 }
               }
             }
@@ -524,7 +515,7 @@
       "post": {
         "summary": "Initialize a wallet handle token",
         "description": "Unlock the wallet and return a wallet handle token that can be used for subsequent operations. These tokens expire periodically and must be renewed. You can `POST` the token to `/v1/wallet/info` to see how much time remains until expiration, and renew it with `/v1/wallet/renew`. When you're done, you can invalidate the token with `/v1/wallet/release`.\n",
-        "operationId": "InitWalletHandleToken",
+        "operationId": "InitWalletHandle",
         "requestBody": {
           "content": {
             "application/json": {
@@ -541,7 +532,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/POSTWalletInitResponse"
+                  "$ref": "#/components/schemas/InitWalletHandleTokenResponse"
                 }
               }
             }
@@ -568,13 +559,7 @@
         "responses": {
           "200": {
             "description": "Response to `POST /v1/wallet/release`",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/POSTWalletReleaseResponse"
-                }
-              }
-            }
+            "content": {}
           }
         },
         "x-codegen-request-body-name": "Release Wallet Handle Token Request"
@@ -601,7 +586,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/POSTWalletRenameResponse"
+                  "$ref": "#/components/schemas/RenameWalletResponse"
                 }
               }
             }
@@ -631,7 +616,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/POSTWalletRenewResponse"
+                  "$ref": "#/components/schemas/RenewWalletHandleTokenResponse"
                 }
               }
             }
@@ -661,7 +646,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GETWalletsResponse"
+                  "$ref": "#/components/schemas/ListWalletsResponse"
                 }
               }
             }
@@ -673,7 +658,7 @@
     "/versions": {
       "get": {
         "summary": "Retrieves the current version",
-        "operationId": "GetVersion",
+        "operationId": "Version",
         "requestBody": {
           "content": {
             "application/json": {
@@ -702,51 +687,9 @@
   },
   "components": {
     "schemas": {
-      "DELETEKeyResponse": {
+      "ListWalletsResponse": {
         "type": "object",
         "properties": {
-          "error": {
-            "type": "boolean",
-            "x-go-name": "Error"
-          },
-          "message": {
-            "type": "string",
-            "x-go-name": "Message"
-          }
-        },
-        "description": "APIV1DELETEKeyResponse is the response to `DELETE /v1/key`\nfriendly:DeleteKeyResponse",
-        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
-        "x-algokit-original-name": "APIV1DELETEKeyResponse",
-        "x-algokit-kmd-api-version": 1
-      },
-      "DELETEMultisigResponse": {
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "boolean",
-            "x-go-name": "Error"
-          },
-          "message": {
-            "type": "string",
-            "x-go-name": "Message"
-          }
-        },
-        "description": "APIV1DELETEMultisigResponse is the response to POST /v1/multisig/delete`\nfriendly:DeleteMultisigResponse",
-        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
-        "x-algokit-original-name": "APIV1DELETEMultisigResponse",
-        "x-algokit-kmd-api-version": 1
-      },
-      "GETWalletsResponse": {
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "boolean",
-            "x-go-name": "Error"
-          },
-          "message": {
-            "type": "string",
-            "x-go-name": "Message"
-          },
           "wallets": {
             "type": "array",
             "items": {
@@ -755,129 +698,96 @@
             "x-go-name": "Wallets"
           }
         },
-        "description": "APIV1GETWalletsResponse is the response to `GET /v1/wallets`\nfriendly:ListWalletsResponse",
+        "description": "ListWalletsResponse is the response to `GET /v1/wallets`",
         "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
         "x-algokit-original-name": "APIV1GETWalletsResponse",
-        "x-algokit-kmd-api-version": 1
+        "required": [
+          "wallets"
+        ]
       },
-      "POSTKeyExportResponse": {
+      "ExportKeyResponse": {
         "type": "object",
         "properties": {
-          "error": {
-            "type": "boolean",
-            "x-go-name": "Error"
-          },
-          "message": {
-            "type": "string",
-            "x-go-name": "Message"
-          },
           "private_key": {
             "type": "string",
-            "x-algokit-bytes-base64": true
+            "format": "byte"
           }
         },
-        "description": "APIV1POSTKeyExportResponse is the response to `POST /v1/key/export`\nfriendly:ExportKeyResponse",
+        "description": "ExportKeyResponse is the response to `POST /v1/key/export`",
         "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
         "x-algokit-original-name": "APIV1POSTKeyExportResponse",
-        "x-algokit-kmd-api-version": 1
+        "required": [
+          "private_key"
+        ]
       },
-      "POSTKeyImportResponse": {
+      "ImportKeyResponse": {
         "type": "object",
         "properties": {
           "address": {
             "type": "string",
-            "x-go-name": "Address"
-          },
-          "error": {
-            "type": "boolean",
-            "x-go-name": "Error"
-          },
-          "message": {
-            "type": "string",
-            "x-go-name": "Message"
+            "x-go-name": "Address",
+            "x-algorand-format": "Address"
           }
         },
-        "description": "APIV1POSTKeyImportResponse is the response to `POST /v1/key/import`\nfriendly:ImportKeyResponse",
+        "description": "ImportKeyResponse is the response to `POST /v1/key/import`",
         "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
         "x-algokit-original-name": "APIV1POSTKeyImportResponse",
-        "x-algokit-kmd-api-version": 1
+        "required": [
+          "address"
+        ]
       },
-      "POSTKeyListResponse": {
+      "ListKeysResponse": {
         "type": "object",
         "properties": {
           "addresses": {
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "string",
+              "x-algorand-format": "Address"
             },
             "x-go-name": "Addresses"
-          },
-          "error": {
-            "type": "boolean",
-            "x-go-name": "Error"
-          },
-          "message": {
-            "type": "string",
-            "x-go-name": "Message"
           }
         },
-        "description": "APIV1POSTKeyListResponse is the response to `POST /v1/key/list`\nfriendly:ListKeysResponse",
+        "description": "ListKeysResponse is the response to `POST /v1/key/list`",
         "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
         "x-algokit-original-name": "APIV1POSTKeyListResponse",
-        "x-algokit-kmd-api-version": 1
+        "required": [
+          "addresses"
+        ]
       },
-      "POSTKeyResponse": {
+      "GenerateKeyResponse": {
         "type": "object",
         "properties": {
           "address": {
             "type": "string",
-            "x-go-name": "Address"
-          },
-          "error": {
-            "type": "boolean",
-            "x-go-name": "Error"
-          },
-          "message": {
-            "type": "string",
-            "x-go-name": "Message"
+            "x-go-name": "Address",
+            "x-algorand-format": "Address"
           }
         },
-        "description": "APIV1POSTKeyResponse is the response to `POST /v1/key`\nfriendly:GenerateKeyResponse",
+        "description": "GenerateKeyResponse is the response to `POST /v1/key`",
         "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
         "x-algokit-original-name": "APIV1POSTKeyResponse",
-        "x-algokit-kmd-api-version": 1
+        "required": [
+          "address"
+        ]
       },
-      "POSTMasterKeyExportResponse": {
+      "ExportMasterKeyResponse": {
         "type": "object",
         "properties": {
-          "error": {
-            "type": "boolean",
-            "x-go-name": "Error"
-          },
           "master_derivation_key": {
             "$ref": "#/components/schemas/MasterDerivationKey"
-          },
-          "message": {
-            "type": "string",
-            "x-go-name": "Message"
           }
         },
-        "description": "APIV1POSTMasterKeyExportResponse is the response to `POST /v1/master-key/export`\nfriendly:ExportMasterKeyResponse",
+        "description": "ExportMasterKeyResponse is the response to `POST /v1/master-key/export`",
         "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
         "x-algokit-original-name": "APIV1POSTMasterKeyExportResponse",
-        "x-algokit-kmd-api-version": 1
+        "required": [
+          "master_derivation_key"
+        ]
       },
-      "POSTMultisigExportResponse": {
+      "ExportMultisigResponse": {
         "type": "object",
         "properties": {
-          "error": {
-            "type": "boolean",
-            "x-go-name": "Error"
-          },
-          "message": {
-            "type": "string",
-            "x-go-name": "Message"
-          },
           "multisig_version": {
             "type": "integer",
             "format": "uint8",
@@ -888,7 +798,8 @@
             "items": {
               "$ref": "#/components/schemas/PublicKey"
             },
-            "x-go-name": "PKs"
+            "x-go-name": "PKs",
+            "x-algokit-field-rename": "publicKeys"
           },
           "threshold": {
             "type": "integer",
@@ -896,67 +807,53 @@
             "x-go-name": "Threshold"
           }
         },
-        "description": "APIV1POSTMultisigExportResponse is the response to `POST /v1/multisig/export`\nfriendly:ExportMultisigResponse",
+        "description": "ExportMultisigResponse is the response to `POST /v1/multisig/export`",
         "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
         "x-algokit-original-name": "APIV1POSTMultisigExportResponse",
-        "x-algokit-kmd-api-version": 1
+        "required": [
+          "multisig_version",
+          "pks",
+          "threshold"
+        ]
       },
-      "POSTMultisigImportResponse": {
+      "ImportMultisigResponse": {
         "type": "object",
         "properties": {
           "address": {
             "type": "string",
-            "x-go-name": "Address"
-          },
-          "error": {
-            "type": "boolean",
-            "x-go-name": "Error"
-          },
-          "message": {
-            "type": "string",
-            "x-go-name": "Message"
+            "x-go-name": "Address",
+            "x-algorand-format": "Address"
           }
         },
-        "description": "APIV1POSTMultisigImportResponse is the response to `POST /v1/multisig/import`\nfriendly:ImportMultisigResponse",
+        "description": "ImportMultisigResponse is the response to `POST /v1/multisig/import`",
         "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
         "x-algokit-original-name": "APIV1POSTMultisigImportResponse",
-        "x-algokit-kmd-api-version": 1
+        "required": [
+          "address"
+        ]
       },
-      "POSTMultisigListResponse": {
+      "ListMultisigResponse": {
         "type": "object",
         "properties": {
           "addresses": {
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "string",
+              "x-algorand-format": "Address"
             },
             "x-go-name": "Addresses"
-          },
-          "error": {
-            "type": "boolean",
-            "x-go-name": "Error"
-          },
-          "message": {
-            "type": "string",
-            "x-go-name": "Message"
           }
         },
-        "description": "APIV1POSTMultisigListResponse is the response to `POST /v1/multisig/list`\nfriendly:ListMultisigResponse",
+        "description": "ListMultisigResponse is the response to `POST /v1/multisig/list`",
         "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
         "x-algokit-original-name": "APIV1POSTMultisigListResponse",
-        "x-algokit-kmd-api-version": 1
+        "required": [
+          "addresses"
+        ]
       },
-      "POSTMultisigProgramSignResponse": {
+      "SignProgramMultisigResponse": {
         "type": "object",
         "properties": {
-          "error": {
-            "type": "boolean",
-            "x-go-name": "Error"
-          },
-          "message": {
-            "type": "string",
-            "x-go-name": "Message"
-          },
           "multisig": {
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
@@ -964,22 +861,16 @@
             "x-go-name": "Multisig"
           }
         },
-        "description": "APIV1POSTMultisigProgramSignResponse is the response to `POST /v1/multisig/signdata`\nfriendly:SignProgramMultisigResponse",
+        "description": "SignProgramMultisigResponse is the response to `POST /v1/multisig/signdata`",
         "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
         "x-algokit-original-name": "APIV1POSTMultisigProgramSignResponse",
-        "x-algokit-kmd-api-version": 1
+        "required": [
+          "multisig"
+        ]
       },
-      "POSTMultisigTransactionSignResponse": {
+      "SignMultisigResponse": {
         "type": "object",
         "properties": {
-          "error": {
-            "type": "boolean",
-            "x-go-name": "Error"
-          },
-          "message": {
-            "type": "string",
-            "x-go-name": "Message"
-          },
           "multisig": {
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
@@ -987,22 +878,16 @@
             "x-go-name": "Multisig"
           }
         },
-        "description": "APIV1POSTMultisigTransactionSignResponse is the response to `POST /v1/multisig/sign`\nfriendly:SignMultisigResponse",
+        "description": "SignMultisigResponse is the response to `POST /v1/multisig/sign`",
         "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
         "x-algokit-original-name": "APIV1POSTMultisigTransactionSignResponse",
-        "x-algokit-kmd-api-version": 1
+        "required": [
+          "multisig"
+        ]
       },
-      "POSTProgramSignResponse": {
+      "SignProgramResponse": {
         "type": "object",
         "properties": {
-          "error": {
-            "type": "boolean",
-            "x-go-name": "Error"
-          },
-          "message": {
-            "type": "string",
-            "x-go-name": "Message"
-          },
           "sig": {
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
@@ -1010,22 +895,16 @@
             "x-go-name": "Signature"
           }
         },
-        "description": "APIV1POSTProgramSignResponse is the response to `POST /v1/data/sign`\nfriendly:SignProgramResponse",
+        "description": "SignProgramResponse is the response to `POST /v1/data/sign`",
         "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
         "x-algokit-original-name": "APIV1POSTProgramSignResponse",
-        "x-algokit-kmd-api-version": 1
+        "required": [
+          "sig"
+        ]
       },
-      "POSTTransactionSignResponse": {
+      "SignTransactionResponse": {
         "type": "object",
         "properties": {
-          "error": {
-            "type": "boolean",
-            "x-go-name": "Error"
-          },
-          "message": {
-            "type": "string",
-            "x-go-name": "Message"
-          },
           "signed_transaction": {
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
@@ -1033,128 +912,83 @@
             "x-go-name": "SignedTransaction"
           }
         },
-        "description": "APIV1POSTTransactionSignResponse is the response to `POST /v1/transaction/sign`\nfriendly:SignTransactionResponse",
+        "description": "SignTransactionResponse is the response to `POST /v1/transaction/sign`",
         "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
         "x-algokit-original-name": "APIV1POSTTransactionSignResponse",
-        "x-algokit-kmd-api-version": 1
+        "required": [
+          "signed_transaction"
+        ]
       },
-      "POSTWalletInfoResponse": {
+      "WalletInfoResponse": {
         "type": "object",
         "properties": {
-          "error": {
-            "type": "boolean",
-            "x-go-name": "Error"
-          },
-          "message": {
-            "type": "string",
-            "x-go-name": "Message"
-          },
           "wallet_handle": {
             "$ref": "#/components/schemas/WalletHandle"
           }
         },
-        "description": "APIV1POSTWalletInfoResponse is the response to `POST /v1/wallet/info`\nfriendly:WalletInfoResponse",
+        "description": "WalletInfoResponse is the response to `POST /v1/wallet/info`",
         "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
         "x-algokit-original-name": "APIV1POSTWalletInfoResponse",
-        "x-algokit-kmd-api-version": 1
+        "required": [
+          "wallet_handle"
+        ]
       },
-      "POSTWalletInitResponse": {
+      "InitWalletHandleTokenResponse": {
         "type": "object",
         "properties": {
-          "error": {
-            "type": "boolean",
-            "x-go-name": "Error"
-          },
-          "message": {
-            "type": "string",
-            "x-go-name": "Message"
-          },
           "wallet_handle_token": {
             "type": "string",
             "x-go-name": "WalletHandleToken"
           }
         },
-        "description": "APIV1POSTWalletInitResponse is the response to `POST /v1/wallet/init`\nfriendly:InitWalletHandleTokenResponse",
+        "description": "InitWalletHandleTokenResponse is the response to `POST /v1/wallet/init`",
         "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
         "x-algokit-original-name": "APIV1POSTWalletInitResponse",
-        "x-algokit-kmd-api-version": 1
+        "required": [
+          "wallet_handle_token"
+        ]
       },
-      "POSTWalletReleaseResponse": {
+      "RenameWalletResponse": {
         "type": "object",
         "properties": {
-          "error": {
-            "type": "boolean",
-            "x-go-name": "Error"
-          },
-          "message": {
-            "type": "string",
-            "x-go-name": "Message"
-          }
-        },
-        "description": "APIV1POSTWalletReleaseResponse is the response to `POST /v1/wallet/release`\nfriendly:ReleaseWalletHandleTokenResponse",
-        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
-        "x-algokit-original-name": "APIV1POSTWalletReleaseResponse",
-        "x-algokit-kmd-api-version": 1
-      },
-      "POSTWalletRenameResponse": {
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "boolean",
-            "x-go-name": "Error"
-          },
-          "message": {
-            "type": "string",
-            "x-go-name": "Message"
-          },
           "wallet": {
             "$ref": "#/components/schemas/Wallet"
           }
         },
-        "description": "APIV1POSTWalletRenameResponse is the response to `POST /v1/wallet/rename`\nfriendly:RenameWalletResponse",
+        "description": "RenameWalletResponse is the response to `POST /v1/wallet/rename`",
         "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
         "x-algokit-original-name": "APIV1POSTWalletRenameResponse",
-        "x-algokit-kmd-api-version": 1
+        "required": [
+          "wallet"
+        ]
       },
-      "POSTWalletRenewResponse": {
+      "RenewWalletHandleTokenResponse": {
         "type": "object",
         "properties": {
-          "error": {
-            "type": "boolean",
-            "x-go-name": "Error"
-          },
-          "message": {
-            "type": "string",
-            "x-go-name": "Message"
-          },
           "wallet_handle": {
             "$ref": "#/components/schemas/WalletHandle"
           }
         },
-        "description": "APIV1POSTWalletRenewResponse is the response to `POST /v1/wallet/renew`\nfriendly:RenewWalletHandleTokenResponse",
+        "description": "RenewWalletHandleTokenResponse is the response to `POST /v1/wallet/renew`",
         "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
         "x-algokit-original-name": "APIV1POSTWalletRenewResponse",
-        "x-algokit-kmd-api-version": 1
+        "required": [
+          "wallet_handle"
+        ]
       },
-      "POSTWalletResponse": {
+      "CreateWalletResponse": {
         "type": "object",
         "properties": {
-          "error": {
-            "type": "boolean",
-            "x-go-name": "Error"
-          },
-          "message": {
-            "type": "string",
-            "x-go-name": "Message"
-          },
           "wallet": {
             "$ref": "#/components/schemas/Wallet"
           }
         },
-        "description": "APIV1POSTWalletResponse is the response to `POST /v1/wallet`\nfriendly:CreateWalletResponse",
+        "description": "CreateWalletResponse is the response to `POST /v1/wallet`",
         "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
         "x-algokit-original-name": "APIV1POSTWalletResponse",
-        "x-algokit-kmd-api-version": 1
+        "required": [
+          "wallet"
+        ]
       },
       "Wallet": {
         "type": "object",
@@ -1188,10 +1022,17 @@
             "x-go-name": "SupportedTransactions"
           }
         },
-        "description": "APIV1Wallet is the API's representation of a wallet",
+        "description": "Wallet is the API's representation of a wallet",
         "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
         "x-algokit-original-name": "APIV1Wallet",
-        "x-algokit-kmd-api-version": 1
+        "required": [
+          "driver_name",
+          "driver_version",
+          "id",
+          "mnemonic_ux",
+          "name",
+          "supported_txs"
+        ]
       },
       "WalletHandle": {
         "type": "object",
@@ -1205,10 +1046,13 @@
             "$ref": "#/components/schemas/Wallet"
           }
         },
-        "description": "APIV1WalletHandle includes the wallet the handle corresponds to\nand the number of number of seconds to expiration",
+        "description": "WalletHandle includes the wallet the handle corresponds to\nand the number of number of seconds to expiration",
         "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
         "x-algokit-original-name": "APIV1WalletHandle",
-        "x-algokit-kmd-api-version": 1
+        "required": [
+          "expires_seconds",
+          "wallet"
+        ]
       },
       "CreateWalletRequest": {
         "type": "object",
@@ -1218,7 +1062,8 @@
           },
           "wallet_driver_name": {
             "type": "string",
-            "x-go-name": "WalletDriverName"
+            "x-go-name": "WalletDriverName",
+            "default": "sqlite"
           },
           "wallet_name": {
             "type": "string",
@@ -1229,16 +1074,21 @@
             "x-go-name": "WalletPassword"
           }
         },
-        "description": "APIV1POSTWalletRequest is the request for `POST /v1/wallet`",
+        "description": "The request for `POST /v1/wallet`",
         "x-go-name": "APIV1POSTWalletRequest",
-        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi"
+        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
+        "required": [
+          "wallet_name",
+          "wallet_password"
+        ]
       },
       "DeleteKeyRequest": {
         "type": "object",
         "properties": {
           "address": {
             "type": "string",
-            "x-go-name": "Address"
+            "x-go-name": "Address",
+            "x-algorand-format": "Address"
           },
           "wallet_handle_token": {
             "type": "string",
@@ -1249,16 +1099,21 @@
             "x-go-name": "WalletPassword"
           }
         },
-        "description": "APIV1DELETEKeyRequest is the request for `DELETE /v1/key`",
+        "description": "The request for `DELETE /v1/key`",
         "x-go-name": "APIV1DELETEKeyRequest",
-        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi"
+        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
+        "required": [
+          "address",
+          "wallet_handle_token"
+        ]
       },
       "DeleteMultisigRequest": {
         "type": "object",
         "properties": {
           "address": {
             "type": "string",
-            "x-go-name": "Address"
+            "x-go-name": "Address",
+            "x-algorand-format": "Address"
           },
           "wallet_handle_token": {
             "type": "string",
@@ -1269,9 +1124,13 @@
             "x-go-name": "WalletPassword"
           }
         },
-        "description": "APIV1DELETEMultisigRequest is the request for `DELETE /v1/multisig`",
+        "description": "The request for `DELETE /v1/multisig`",
         "x-go-name": "APIV1DELETEMultisigRequest",
-        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi"
+        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
+        "required": [
+          "address",
+          "wallet_handle_token"
+        ]
       },
       "Digest": {
         "title": "Digest represents a 32-byte value holding the 256-bit Hash digest.",
@@ -1287,7 +1146,8 @@
         "properties": {
           "address": {
             "type": "string",
-            "x-go-name": "Address"
+            "x-go-name": "Address",
+            "x-algorand-format": "Address"
           },
           "wallet_handle_token": {
             "type": "string",
@@ -1298,9 +1158,13 @@
             "x-go-name": "WalletPassword"
           }
         },
-        "description": "APIV1POSTKeyExportRequest is the request for `POST /v1/key/export`",
+        "description": "The request for `POST /v1/key/export`",
         "x-go-name": "APIV1POSTKeyExportRequest",
-        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi"
+        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
+        "required": [
+          "address",
+          "wallet_handle_token"
+        ]
       },
       "ExportMasterKeyRequest": {
         "type": "object",
@@ -1314,57 +1178,68 @@
             "x-go-name": "WalletPassword"
           }
         },
-        "description": "APIV1POSTMasterKeyExportRequest is the request for `POST /v1/master-key/export`",
+        "description": "The request for `POST /v1/master-key/export`",
         "x-go-name": "APIV1POSTMasterKeyExportRequest",
-        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi"
+        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
+        "required": [
+          "wallet_handle_token"
+        ]
       },
       "ExportMultisigRequest": {
         "type": "object",
         "properties": {
           "address": {
             "type": "string",
-            "x-go-name": "Address"
+            "x-go-name": "Address",
+            "x-algorand-format": "Address"
           },
           "wallet_handle_token": {
             "type": "string",
             "x-go-name": "WalletHandleToken"
           }
         },
-        "description": "APIV1POSTMultisigExportRequest is the request for `POST /v1/multisig/export`",
+        "description": "The request for `POST /v1/multisig/export`",
         "x-go-name": "APIV1POSTMultisigExportRequest",
-        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi"
+        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
+        "required": [
+          "address",
+          "wallet_handle_token"
+        ]
       },
       "GenerateKeyRequest": {
         "type": "object",
         "properties": {
-          "display_mnemonic": {
-            "type": "boolean",
-            "x-go-name": "DisplayMnemonic"
-          },
           "wallet_handle_token": {
             "type": "string",
             "x-go-name": "WalletHandleToken"
           }
         },
-        "description": "APIV1POSTKeyRequest is the request for `POST /v1/key`",
+        "description": "The request for `POST /v1/key`",
         "x-go-name": "APIV1POSTKeyRequest",
-        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi"
+        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
+        "required": [
+          "wallet_handle_token"
+        ]
       },
       "ImportKeyRequest": {
         "type": "object",
         "properties": {
           "private_key": {
             "type": "string",
-            "x-algokit-bytes-base64": true
+            "format": "byte"
           },
           "wallet_handle_token": {
             "type": "string",
             "x-go-name": "WalletHandleToken"
           }
         },
-        "description": "APIV1POSTKeyImportRequest is the request for `POST /v1/key/import`",
+        "description": "The request for `POST /v1/key/import`",
         "x-go-name": "APIV1POSTKeyImportRequest",
-        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi"
+        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
+        "required": [
+          "private_key",
+          "wallet_handle_token"
+        ]
       },
       "ImportMultisigRequest": {
         "type": "object",
@@ -1379,7 +1254,8 @@
             "items": {
               "$ref": "#/components/schemas/PublicKey"
             },
-            "x-go-name": "PKs"
+            "x-go-name": "PKs",
+            "x-algokit-field-rename": "publicKeys"
           },
           "threshold": {
             "type": "integer",
@@ -1391,9 +1267,15 @@
             "x-go-name": "WalletHandleToken"
           }
         },
-        "description": "APIV1POSTMultisigImportRequest is the request for `POST /v1/multisig/import`",
+        "description": "The request for `POST /v1/multisig/import`",
         "x-go-name": "APIV1POSTMultisigImportRequest",
-        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi"
+        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
+        "required": [
+          "multisig_version",
+          "pks",
+          "threshold",
+          "wallet_handle_token"
+        ]
       },
       "InitWalletHandleTokenRequest": {
         "type": "object",
@@ -1407,9 +1289,13 @@
             "x-go-name": "WalletPassword"
           }
         },
-        "description": "APIV1POSTWalletInitRequest is the request for `POST /v1/wallet/init`",
+        "description": "The request for `POST /v1/wallet/init`",
         "x-go-name": "APIV1POSTWalletInitRequest",
-        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi"
+        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
+        "required": [
+          "wallet_id",
+          "wallet_password"
+        ]
       },
       "ListKeysRequest": {
         "type": "object",
@@ -1419,9 +1305,12 @@
             "x-go-name": "WalletHandleToken"
           }
         },
-        "description": "APIV1POSTKeyListRequest is the request for `POST /v1/key/list`",
+        "description": "The request for `POST /v1/key/list`",
         "x-go-name": "APIV1POSTKeyListRequest",
-        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi"
+        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
+        "required": [
+          "wallet_handle_token"
+        ]
       },
       "ListMultisigRequest": {
         "type": "object",
@@ -1431,9 +1320,12 @@
             "x-go-name": "WalletHandleToken"
           }
         },
-        "description": "APIV1POSTMultisigListRequest is the request for `POST /v1/multisig/list`",
+        "description": "The request for `POST /v1/multisig/list`",
         "x-go-name": "APIV1POSTMultisigListRequest",
-        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi"
+        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
+        "required": [
+          "wallet_handle_token"
+        ]
       },
       "ListWalletsRequest": {
         "type": "object",
@@ -1453,36 +1345,49 @@
       "MultisigSig": {
         "type": "object",
         "properties": {
-          "Subsigs": {
+          "subsig": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/MultisigSubsig"
-            }
+            },
+            "x-algokit-field-rename": "subsignatures"
           },
-          "Threshold": {
+          "thr": {
             "type": "integer",
-            "format": "uint8"
+            "format": "uint8",
+            "x-algokit-field-rename": "threshold"
           },
-          "Version": {
+          "v": {
             "type": "integer",
-            "format": "uint8"
+            "format": "uint8",
+            "x-algokit-field-rename": "version"
           }
         },
         "description": "MultisigSig is the structure that holds multiple Subsigs",
-        "x-go-package": "github.com/algorand/go-algorand/crypto"
+        "x-go-package": "github.com/algorand/go-algorand/crypto",
+        "required": [
+          "subsig",
+          "thr",
+          "v"
+        ]
       },
       "MultisigSubsig": {
         "type": "object",
         "properties": {
-          "Key": {
-            "$ref": "#/components/schemas/PublicKey"
+          "pk": {
+            "$ref": "#/components/schemas/PublicKey",
+            "x-algokit-field-rename": "publicKey"
           },
-          "Sig": {
-            "$ref": "#/components/schemas/Signature"
+          "s": {
+            "$ref": "#/components/schemas/Signature",
+            "x-algokit-field-rename": "signature"
           }
         },
         "description": "MultisigSubsig is a struct that holds a pair of public key and signatures\nsignatures may be empty",
-        "x-go-package": "github.com/algorand/go-algorand/crypto"
+        "x-go-package": "github.com/algorand/go-algorand/crypto",
+        "required": [
+          "pk"
+        ]
       },
       "PrivateKey": {
         "$ref": "#/components/schemas/ed25519PrivateKey"
@@ -1498,9 +1403,12 @@
             "x-go-name": "WalletHandleToken"
           }
         },
-        "description": "APIV1POSTWalletReleaseRequest is the request for `POST /v1/wallet/release`",
+        "description": "The request for `POST /v1/wallet/release`",
         "x-go-name": "APIV1POSTWalletReleaseRequest",
-        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi"
+        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
+        "required": [
+          "wallet_handle_token"
+        ]
       },
       "RenameWalletRequest": {
         "type": "object",
@@ -1518,9 +1426,14 @@
             "x-go-name": "WalletPassword"
           }
         },
-        "description": "APIV1POSTWalletRenameRequest is the request for `POST /v1/wallet/rename`",
+        "description": "The request for `POST /v1/wallet/rename`",
         "x-go-name": "APIV1POSTWalletRenameRequest",
-        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi"
+        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
+        "required": [
+          "wallet_id",
+          "wallet_name",
+          "wallet_password"
+        ]
       },
       "RenewWalletHandleTokenRequest": {
         "type": "object",
@@ -1530,11 +1443,14 @@
             "x-go-name": "WalletHandleToken"
           }
         },
-        "description": "APIV1POSTWalletRenewRequest is the request for `POST /v1/wallet/renew`",
+        "description": "The request for `POST /v1/wallet/renew`",
         "x-go-name": "APIV1POSTWalletRenewRequest",
-        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi"
+        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
+        "required": [
+          "wallet_handle_token"
+        ]
       },
-      "SignMultisigRequest": {
+      "SignMultisigTxnRequest": {
         "type": "object",
         "properties": {
           "partial_multisig": {
@@ -1561,22 +1477,30 @@
             "x-go-name": "WalletPassword"
           }
         },
-        "description": "APIV1POSTMultisigTransactionSignRequest is the request for `POST /v1/multisig/sign`",
+        "description": "The request for `POST /v1/multisig/sign`",
         "x-go-name": "APIV1POSTMultisigTransactionSignRequest",
-        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi"
+        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
+        "x-algokit-original-name": "SignMultisigRequest",
+        "required": [
+          "public_key",
+          "transaction",
+          "wallet_handle_token"
+        ]
       },
       "SignProgramMultisigRequest": {
         "type": "object",
         "properties": {
           "address": {
             "type": "string",
-            "x-go-name": "Address"
+            "x-go-name": "Address",
+            "x-algorand-format": "Address"
           },
           "data": {
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
             "format": "byte",
-            "x-go-name": "Program"
+            "x-go-name": "Program",
+            "x-algokit-field-rename": "program"
           },
           "partial_multisig": {
             "$ref": "#/components/schemas/MultisigSig"
@@ -1597,22 +1521,30 @@
             "x-go-name": "WalletPassword"
           }
         },
-        "description": "APIV1POSTMultisigProgramSignRequest is the request for `POST /v1/multisig/signprogram`",
+        "description": "The request for `POST /v1/multisig/signprogram`",
         "x-go-name": "APIV1POSTMultisigProgramSignRequest",
-        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi"
+        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
+        "required": [
+          "address",
+          "data",
+          "public_key",
+          "wallet_handle_token"
+        ]
       },
       "SignProgramRequest": {
         "type": "object",
         "properties": {
           "address": {
             "type": "string",
-            "x-go-name": "Address"
+            "x-go-name": "Address",
+            "x-algorand-format": "Address"
           },
           "data": {
             "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
             "type": "string",
             "format": "byte",
-            "x-go-name": "Program"
+            "x-go-name": "Program",
+            "x-algokit-field-rename": "program"
           },
           "wallet_handle_token": {
             "type": "string",
@@ -1623,11 +1555,16 @@
             "x-go-name": "WalletPassword"
           }
         },
-        "description": "APIV1POSTProgramSignRequest is the request for `POST /v1/program/sign`",
+        "description": "The request for `POST /v1/program/sign`",
         "x-go-name": "APIV1POSTProgramSignRequest",
-        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi"
+        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
+        "required": [
+          "address",
+          "data",
+          "wallet_handle_token"
+        ]
       },
-      "SignTransactionRequest": {
+      "SignTxnRequest": {
         "type": "object",
         "properties": {
           "public_key": {
@@ -1649,9 +1586,14 @@
             "x-go-name": "WalletPassword"
           }
         },
-        "description": "APIV1POSTTransactionSignRequest is the request for `POST /v1/transaction/sign`",
+        "description": "The request for `POST /v1/transaction/sign`",
         "x-go-name": "APIV1POSTTransactionSignRequest",
-        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi"
+        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
+        "x-algokit-original-name": "SignTransactionRequest",
+        "required": [
+          "transaction",
+          "wallet_handle_token"
+        ]
       },
       "Signature": {
         "$ref": "#/components/schemas/ed25519Signature"
@@ -1678,7 +1620,10 @@
           }
         },
         "description": "VersionsResponse is the response to `GET /versions`\nfriendly:VersionsResponse",
-        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi"
+        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
+        "required": [
+          "versions"
+        ]
       },
       "WalletInfoRequest": {
         "type": "object",
@@ -1688,9 +1633,12 @@
             "x-go-name": "WalletHandleToken"
           }
         },
-        "description": "APIV1POSTWalletInfoRequest is the request for `POST /v1/wallet/info`",
+        "description": "The request for `POST /v1/wallet/info`",
         "x-go-name": "APIV1POSTWalletInfoRequest",
-        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi"
+        "x-go-package": "github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi",
+        "required": [
+          "wallet_handle_token"
+        ]
       },
       "ed25519PrivateKey": {
         "type": "array",
@@ -1724,37 +1672,25 @@
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/POSTWalletResponse"
+              "$ref": "#/components/schemas/CreateWalletResponse"
             }
           }
         }
       },
       "DeleteKeyResponse": {
         "description": "Response to `DELETE /v1/key`",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/DELETEKeyResponse"
-            }
-          }
-        }
+        "content": {}
       },
       "DeleteMultisigResponse": {
         "description": "Response to POST /v1/multisig/delete",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/DELETEMultisigResponse"
-            }
-          }
-        }
+        "content": {}
       },
       "ExportKeyResponse": {
         "description": "Response to `POST /v1/key/export`",
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/POSTKeyExportResponse"
+              "$ref": "#/components/schemas/ExportKeyResponse"
             }
           }
         }
@@ -1764,7 +1700,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/POSTMasterKeyExportResponse"
+              "$ref": "#/components/schemas/ExportMasterKeyResponse"
             }
           }
         }
@@ -1774,7 +1710,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/POSTMultisigExportResponse"
+              "$ref": "#/components/schemas/ExportMultisigResponse"
             }
           }
         }
@@ -1784,7 +1720,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/POSTKeyResponse"
+              "$ref": "#/components/schemas/GenerateKeyResponse"
             }
           }
         }
@@ -1794,7 +1730,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/POSTKeyImportResponse"
+              "$ref": "#/components/schemas/ImportKeyResponse"
             }
           }
         }
@@ -1804,7 +1740,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/POSTMultisigImportResponse"
+              "$ref": "#/components/schemas/ImportMultisigResponse"
             }
           }
         }
@@ -1814,7 +1750,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/POSTWalletInitResponse"
+              "$ref": "#/components/schemas/InitWalletHandleTokenResponse"
             }
           }
         }
@@ -1824,7 +1760,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/POSTKeyListResponse"
+              "$ref": "#/components/schemas/ListKeysResponse"
             }
           }
         }
@@ -1834,7 +1770,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/POSTMultisigListResponse"
+              "$ref": "#/components/schemas/ListMultisigResponse"
             }
           }
         }
@@ -1844,27 +1780,21 @@
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/GETWalletsResponse"
+              "$ref": "#/components/schemas/ListWalletsResponse"
             }
           }
         }
       },
       "ReleaseWalletHandleTokenResponse": {
         "description": "Response to `POST /v1/wallet/release`",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/POSTWalletReleaseResponse"
-            }
-          }
-        }
+        "content": {}
       },
       "RenameWalletResponse": {
         "description": "Response to `POST /v1/wallet/rename`",
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/POSTWalletRenameResponse"
+              "$ref": "#/components/schemas/RenameWalletResponse"
             }
           }
         }
@@ -1874,7 +1804,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/POSTWalletRenewResponse"
+              "$ref": "#/components/schemas/RenewWalletHandleTokenResponse"
             }
           }
         }
@@ -1884,7 +1814,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/POSTMultisigTransactionSignResponse"
+              "$ref": "#/components/schemas/SignMultisigResponse"
             }
           }
         }
@@ -1894,7 +1824,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/POSTMultisigProgramSignResponse"
+              "$ref": "#/components/schemas/SignProgramMultisigResponse"
             }
           }
         }
@@ -1904,7 +1834,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/POSTProgramSignResponse"
+              "$ref": "#/components/schemas/SignProgramResponse"
             }
           }
         }
@@ -1914,7 +1844,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/POSTTransactionSignResponse"
+              "$ref": "#/components/schemas/SignTransactionResponse"
             }
           }
         }
@@ -1934,7 +1864,7 @@
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/POSTWalletInfoResponse"
+              "$ref": "#/components/schemas/WalletInfoResponse"
             }
           }
         }

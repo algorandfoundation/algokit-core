@@ -11,22 +11,19 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
-/// APIV1POSTKeyRequest is the request for `POST /v1/key`
+/// The request for `POST /v1/key`
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct GenerateKeyRequest {
-    #[serde(rename = "display_mnemonic", skip_serializing_if = "Option::is_none")]
-    pub display_mnemonic: Option<bool>,
-    #[serde(
-        rename = "wallet_handle_token",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub wallet_handle_token: Option<String>,
+    #[serde(rename = "wallet_handle_token")]
+    pub wallet_handle_token: String,
 }
 
 impl GenerateKeyRequest {
-    /// Default constructor for GenerateKeyRequest
-    pub fn new() -> GenerateKeyRequest {
-        GenerateKeyRequest::default()
+    /// Constructor for GenerateKeyRequest
+    pub fn new(wallet_handle_token: String) -> GenerateKeyRequest {
+        GenerateKeyRequest {
+            wallet_handle_token,
+        }
     }
 }

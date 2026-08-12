@@ -9,8 +9,10 @@
 
 use crate::models;
 use serde::{Deserialize, Serialize};
+use serde_with::{Bytes, serde_as};
 
 /// Represents a TEAL value delta.
+#[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct EvalDelta {
@@ -18,8 +20,9 @@ pub struct EvalDelta {
     #[serde(rename = "action")]
     pub action: u32,
     /// \[bs\] bytes value.
+    #[serde_as(as = "Option<serde_with::base64::Base64>")]
     #[serde(rename = "bytes", skip_serializing_if = "Option::is_none")]
-    pub bytes: Option<String>,
+    pub bytes: Option<Vec<u8>>,
     /// \[ui\] uint value.
     #[serde(rename = "uint", skip_serializing_if = "Option::is_none")]
     pub uint: Option<u64>,

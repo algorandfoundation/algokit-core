@@ -1,5 +1,13 @@
 # OpenAPI Generators for Algorand APIs
 
+> **Historical / outdated.** This document describes an early `@openapitools/openapi-generator-cli`
+> (Mustache + `bun`) approach that is no longer used. The repo now uses a custom Jinja2 generator
+> (`api/oas_generator/`) and fetches OAS3 specs from the pinned
+> [`algokit-oas-generator`](https://github.com/algorandfoundation/algokit-oas-generator) commit.
+> See [`api/README.md`](../../../api/README.md) and `api/oas_generator/ARCHITECTURE.md` for the
+> current pipeline. Files referenced below (`openapitools.json`, `package.json`, `oas_templates/`,
+> `scripts/generate-api-clients.ts`) no longer exist.
+
 ## Overview
 
 The `/api` directory is central codebase for generating API clients for Algorand APIs across multiple languages. This document outlines the architecture, structure, and workflows implemented in this directory.

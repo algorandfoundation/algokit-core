@@ -18,7 +18,7 @@ pub struct StateProofVerifier {
     /// \[cmt\] Represents the root of the vector commitment tree.
     #[serde_as(as = "Option<serde_with::base64::Base64>")]
     #[serde(rename = "commitment", skip_serializing_if = "Option::is_none")]
-    pub commitment: Option<Vec<u8>>,
+    pub commitment: Option<[u8; 64]>,
     /// \[lf\] Key lifetime.
     #[serde(rename = "key-lifetime", skip_serializing_if = "Option::is_none")]
     pub key_lifetime: Option<u64>,

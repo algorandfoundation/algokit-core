@@ -9,40 +9,51 @@
  */
 
 use crate::models;
+use algokit_transact::Address;
 use serde::{Deserialize, Serialize};
 use serde_with::{Bytes, serde_as};
 
 use crate::models::MultisigSig;
 use crate::models::PublicKey;
 
-/// APIV1POSTMultisigProgramSignRequest is the request for `POST /v1/multisig/signprogram`
+/// The request for `POST /v1/multisig/signprogram`
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct SignProgramMultisigRequest {
-    #[serde(rename = "address", skip_serializing_if = "Option::is_none")]
-    pub address: Option<String>,
-    #[serde_as(as = "Option<serde_with::base64::Base64>")]
-    #[serde(rename = "data", skip_serializing_if = "Option::is_none")]
-    pub data: Option<Vec<u8>>,
+    #[serde(rename = "address")]
+    pub address: Address,
+    #[serde_as(as = "serde_with::base64::Base64")]
+    #[serde(rename = "data")]
+    pub program: Vec<u8>,
     #[serde(rename = "partial_multisig", skip_serializing_if = "Option::is_none")]
     pub partial_multisig: Option<MultisigSig>,
-    #[serde(rename = "public_key", skip_serializing_if = "Option::is_none")]
-    pub public_key: Option<PublicKey>,
+    #[serde(rename = "public_key")]
+    pub public_key: PublicKey,
     #[serde(rename = "use_legacy_msig", skip_serializing_if = "Option::is_none")]
     pub use_legacy_msig: Option<bool>,
-    #[serde(
-        rename = "wallet_handle_token",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub wallet_handle_token: Option<String>,
+    #[serde(rename = "wallet_handle_token")]
+    pub wallet_handle_token: String,
     #[serde(rename = "wallet_password", skip_serializing_if = "Option::is_none")]
     pub wallet_password: Option<String>,
 }
 
 impl SignProgramMultisigRequest {
-    /// Default constructor for SignProgramMultisigRequest
-    pub fn new() -> SignProgramMultisigRequest {
-        SignProgramMultisigRequest::default()
+    /// Constructor for SignProgramMultisigRequest
+    pub fn new(
+        address: Address,
+        program: Vec<u8>,
+        public_key: PublicKey,
+        wallet_handle_token: String,
+    ) -> SignProgramMultisigRequest {
+        SignProgramMultisigRequest {
+            address,
+            program,
+            public_key,
+            wallet_handle_token,
+            partial_multisig: None,
+            use_legacy_msig: None,
+            wallet_password: None,
+        }
     }
 }

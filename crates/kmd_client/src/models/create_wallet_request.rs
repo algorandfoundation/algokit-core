@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::models::MasterDerivationKey;
 
-/// APIV1POSTWalletRequest is the request for `POST /v1/wallet`
+/// The request for `POST /v1/wallet`
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct CreateWalletRequest {
@@ -24,15 +24,20 @@ pub struct CreateWalletRequest {
     pub master_derivation_key: Option<MasterDerivationKey>,
     #[serde(rename = "wallet_driver_name", skip_serializing_if = "Option::is_none")]
     pub wallet_driver_name: Option<String>,
-    #[serde(rename = "wallet_name", skip_serializing_if = "Option::is_none")]
-    pub wallet_name: Option<String>,
-    #[serde(rename = "wallet_password", skip_serializing_if = "Option::is_none")]
-    pub wallet_password: Option<String>,
+    #[serde(rename = "wallet_name")]
+    pub wallet_name: String,
+    #[serde(rename = "wallet_password")]
+    pub wallet_password: String,
 }
 
 impl CreateWalletRequest {
-    /// Default constructor for CreateWalletRequest
-    pub fn new() -> CreateWalletRequest {
-        CreateWalletRequest::default()
+    /// Constructor for CreateWalletRequest
+    pub fn new(wallet_name: String, wallet_password: String) -> CreateWalletRequest {
+        CreateWalletRequest {
+            wallet_name,
+            wallet_password,
+            master_derivation_key: None,
+            wallet_driver_name: None,
+        }
     }
 }

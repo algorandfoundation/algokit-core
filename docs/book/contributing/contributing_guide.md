@@ -41,8 +41,8 @@ cargo api <subcommand>
 - `generate-algod` / `generate-indexer` / `generate-kmd` - Generate Rust API clients
 - `generate-ts-algod` / `generate-ts-indexer` / `generate-ts-kmd` - Generate TypeScript API clients
 - `generate-all` / `generate-ts-all` - Generate all Rust or TypeScript clients
-- `convert-openapi` - Convert all OpenAPI specifications
-- `convert-algod` / `convert-indexer` / `convert-kmd` - Convert individual OpenAPI specs
+- `convert-openapi` - Fetch all OAS3 specs from the pinned algokit-oas-generator commit
+- `convert-algod` / `convert-indexer` / `convert-kmd` - Fetch individual OAS3 specs
 
 #### 3. Documentation Building
 

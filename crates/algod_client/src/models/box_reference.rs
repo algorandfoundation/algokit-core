@@ -23,6 +23,7 @@ use algokit_transact::AlgorandMsgpack;
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+// This struct represents an Algorand box reference (app id + box name).
 pub struct BoxReference {
     /// Application ID which this box belongs to
     #[serde(rename = "app")]

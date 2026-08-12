@@ -12,6 +12,7 @@ use crate::models;
 #[cfg(not(feature = "ffi_uniffi"))]
 use algokit_transact::SignedTransaction as AlgokitSignedTransaction;
 use serde::{Deserialize, Serialize};
+use serde_with::{Bytes, serde_as};
 
 #[cfg(feature = "ffi_uniffi")]
 use algokit_transact_ffi::SignedTransaction as AlgokitSignedTransaction;
@@ -19,15 +20,17 @@ use algokit_transact_ffi::SignedTransaction as AlgokitSignedTransaction;
 use algokit_transact::AlgorandMsgpack;
 
 /// Represents an AVM value.
+#[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct AvmValue {
     /// value type. Value `1` refers to **bytes**, value `2` refers to **uint64**
     #[serde(rename = "type")]
-    pub r#type: u64,
+    pub r#type: u32,
     /// bytes value.
+    #[serde_as(as = "Option<Bytes>")]
     #[serde(rename = "bytes", skip_serializing_if = "Option::is_none")]
-    pub bytes: Option<String>,
+    pub bytes: Option<Vec<u8>>,
     /// uint value.
     #[serde(rename = "uint", skip_serializing_if = "Option::is_none")]
     pub uint: Option<u64>,
@@ -39,7 +42,7 @@ impl AlgorandMsgpack for AvmValue {
 
 impl AvmValue {
     /// Constructor for AvmValue
-    pub fn new(r#type: u64) -> AvmValue {
+    pub fn new(r#type: u32) -> AvmValue {
         AvmValue {
             r#type,
             bytes: None,

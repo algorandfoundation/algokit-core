@@ -15,22 +15,22 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct ParticipationUpdates {
     /// \[partupdrmv\] a list of online accounts that needs to be converted to offline since their participation key expired.
-    #[serde(
-        rename = "expired-participation-accounts",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub expired_participation_accounts: Option<Vec<String>>,
+    #[serde(rename = "expired-participation-accounts")]
+    pub expired_participation_accounts: Vec<String>,
     /// \[partupabs\] a list of online accounts that need to be suspended.
-    #[serde(
-        rename = "absent-participation-accounts",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub absent_participation_accounts: Option<Vec<String>>,
+    #[serde(rename = "absent-participation-accounts")]
+    pub absent_participation_accounts: Vec<String>,
 }
 
 impl ParticipationUpdates {
-    /// Default constructor for ParticipationUpdates
-    pub fn new() -> ParticipationUpdates {
-        ParticipationUpdates::default()
+    /// Constructor for ParticipationUpdates
+    pub fn new(
+        expired_participation_accounts: Vec<String>,
+        absent_participation_accounts: Vec<String>,
+    ) -> ParticipationUpdates {
+        ParticipationUpdates {
+            expired_participation_accounts,
+            absent_participation_accounts,
+        }
     }
 }

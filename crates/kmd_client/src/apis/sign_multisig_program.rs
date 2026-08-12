@@ -15,7 +15,7 @@ use std::collections::HashMap;
 use super::{ContentType, Error, KmdApiError};
 
 // Import all custom types used by this endpoint
-use crate::models::PostMultisigProgramSignResponse;
+use crate::models::SignProgramMultisigResponse;
 
 // Import request body type if needed
 use crate::models::SignProgramMultisigRequest;
@@ -33,7 +33,7 @@ pub enum SignMultisigProgramError {
 pub async fn sign_multisig_program(
     http_client: &dyn HttpClient,
     request: SignProgramMultisigRequest,
-) -> Result<PostMultisigProgramSignResponse, Error> {
+) -> Result<SignProgramMultisigResponse, Error> {
     let p_request = request;
 
     let path = "/v1/multisig/signprogram".to_string();

@@ -11,22 +11,22 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
-/// APIV1POSTMasterKeyExportRequest is the request for `POST /v1/master-key/export`
+/// The request for `POST /v1/master-key/export`
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct ExportMasterKeyRequest {
-    #[serde(
-        rename = "wallet_handle_token",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub wallet_handle_token: Option<String>,
+    #[serde(rename = "wallet_handle_token")]
+    pub wallet_handle_token: String,
     #[serde(rename = "wallet_password", skip_serializing_if = "Option::is_none")]
     pub wallet_password: Option<String>,
 }
 
 impl ExportMasterKeyRequest {
-    /// Default constructor for ExportMasterKeyRequest
-    pub fn new() -> ExportMasterKeyRequest {
-        ExportMasterKeyRequest::default()
+    /// Constructor for ExportMasterKeyRequest
+    pub fn new(wallet_handle_token: String) -> ExportMasterKeyRequest {
+        ExportMasterKeyRequest {
+            wallet_handle_token,
+            wallet_password: None,
+        }
     }
 }

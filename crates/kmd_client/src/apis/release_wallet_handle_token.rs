@@ -15,7 +15,6 @@ use std::collections::HashMap;
 use super::{ContentType, Error, KmdApiError};
 
 // Import all custom types used by this endpoint
-use crate::models::PostWalletReleaseResponse;
 
 // Import request body type if needed
 use crate::models::ReleaseWalletHandleTokenRequest;
@@ -33,7 +32,7 @@ pub enum ReleaseWalletHandleTokenError {
 pub async fn release_wallet_handle_token(
     http_client: &dyn HttpClient,
     request: ReleaseWalletHandleTokenRequest,
-) -> Result<PostWalletReleaseResponse, Error> {
+) -> Result<(), Error> {
     let p_request = request;
 
     let path = "/v1/wallet/release".to_string();
@@ -59,29 +58,6 @@ pub async fn release_wallet_handle_token(
         .await
         .map_err(|e| Error::Http { source: e })?;
 
-    let content_type = response
-        .headers
-        .get("content-type")
-        .map(|s| s.as_str())
-        .unwrap_or("application/json");
-
-    match ContentType::from(content_type) {
-        ContentType::Json => serde_json::from_slice(&response.body).map_err(|e| Error::Serde {
-            message: e.to_string(),
-        }),
-        ContentType::MsgPack => Err(Error::Serde {
-            message: "MsgPack not supported".to_string(),
-        }),
-        ContentType::Text => {
-            let text = String::from_utf8(response.body).map_err(|e| Error::Serde {
-                message: e.to_string(),
-            })?;
-            Err(Error::Serde {
-                message: format!("Unexpected text response: {}", text),
-            })
-        }
-        ContentType::Unsupported(ct) => Err(Error::Serde {
-            message: format!("Unsupported content type: {}", ct),
-        }),
-    }
+    let _ = response;
+    Ok(())
 }

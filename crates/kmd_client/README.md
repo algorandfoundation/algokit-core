@@ -146,82 +146,58 @@ This client provides access to 23 API operations:
 - `delete_multisig` - Delete a multisig
 - `export_multisig` - Export multisig address metadata
 - `import_multisig` - Import a multisig account
-- `list_multisg` - List multisig accounts
+- `list_multisig` - List multisig accounts
 - `sign_multisig_transaction` - Sign a multisig transaction
 - `sign_multisig_program` - Sign a program for a multisig account
 - `sign_program` - Sign program
 - `sign_transaction` - Sign a transaction
 - `create_wallet` - Create a wallet
-- `get_wallet_info` - Get wallet info
-- `init_wallet_handle_token` - Initialize a wallet handle token
+- `wallet_info` - Get wallet info
+- `init_wallet_handle` - Initialize a wallet handle token
 - `release_wallet_handle_token` - Release a wallet handle token
 - `rename_wallet` - Rename a wallet
 - `renew_wallet_handle_token` - Renew a wallet handle token
 - `list_wallets` - List wallets
-- `get_version` - Retrieves the current version
+- `version` - Retrieves the current version
 
 ## Models
 
 The following data models are available:
 
-- `DeleteKeyResponse` - APIV1DELETEKeyResponse is the response to `DELETE /v1/key`
-friendly:DeleteKeyResponse
-- `DeleteMultisigResponse` - APIV1DELETEMultisigResponse is the response to POST /v1/multisig/delete`
-friendly:DeleteMultisigResponse
-- `GetWalletsResponse` - APIV1GETWalletsResponse is the response to `GET /v1/wallets`
-friendly:ListWalletsResponse
-- `PostKeyExportResponse` - APIV1POSTKeyExportResponse is the response to `POST /v1/key/export`
-friendly:ExportKeyResponse
-- `PostKeyImportResponse` - APIV1POSTKeyImportResponse is the response to `POST /v1/key/import`
-friendly:ImportKeyResponse
-- `PostKeyListResponse` - APIV1POSTKeyListResponse is the response to `POST /v1/key/list`
-friendly:ListKeysResponse
-- `PostKeyResponse` - APIV1POSTKeyResponse is the response to `POST /v1/key`
-friendly:GenerateKeyResponse
-- `PostMasterKeyExportResponse` - APIV1POSTMasterKeyExportResponse is the response to `POST /v1/master-key/export`
-friendly:ExportMasterKeyResponse
-- `PostMultisigExportResponse` - APIV1POSTMultisigExportResponse is the response to `POST /v1/multisig/export`
-friendly:ExportMultisigResponse
-- `PostMultisigImportResponse` - APIV1POSTMultisigImportResponse is the response to `POST /v1/multisig/import`
-friendly:ImportMultisigResponse
-- `PostMultisigListResponse` - APIV1POSTMultisigListResponse is the response to `POST /v1/multisig/list`
-friendly:ListMultisigResponse
-- `PostMultisigProgramSignResponse` - APIV1POSTMultisigProgramSignResponse is the response to `POST /v1/multisig/signdata`
-friendly:SignProgramMultisigResponse
-- `PostMultisigTransactionSignResponse` - APIV1POSTMultisigTransactionSignResponse is the response to `POST /v1/multisig/sign`
-friendly:SignMultisigResponse
-- `PostProgramSignResponse` - APIV1POSTProgramSignResponse is the response to `POST /v1/data/sign`
-friendly:SignProgramResponse
-- `PostTransactionSignResponse` - APIV1POSTTransactionSignResponse is the response to `POST /v1/transaction/sign`
-friendly:SignTransactionResponse
-- `PostWalletInfoResponse` - APIV1POSTWalletInfoResponse is the response to `POST /v1/wallet/info`
-friendly:WalletInfoResponse
-- `PostWalletInitResponse` - APIV1POSTWalletInitResponse is the response to `POST /v1/wallet/init`
-friendly:InitWalletHandleTokenResponse
-- `PostWalletReleaseResponse` - APIV1POSTWalletReleaseResponse is the response to `POST /v1/wallet/release`
-friendly:ReleaseWalletHandleTokenResponse
-- `PostWalletRenameResponse` - APIV1POSTWalletRenameResponse is the response to `POST /v1/wallet/rename`
-friendly:RenameWalletResponse
-- `PostWalletRenewResponse` - APIV1POSTWalletRenewResponse is the response to `POST /v1/wallet/renew`
-friendly:RenewWalletHandleTokenResponse
-- `PostWalletResponse` - APIV1POSTWalletResponse is the response to `POST /v1/wallet`
-friendly:CreateWalletResponse
-- `Wallet` - APIV1Wallet is the API's representation of a wallet
-- `WalletHandle` - APIV1WalletHandle includes the wallet the handle corresponds to
+- `ListWalletsResponse` - ListWalletsResponse is the response to `GET /v1/wallets`
+- `ExportKeyResponse` - ExportKeyResponse is the response to `POST /v1/key/export`
+- `ImportKeyResponse` - ImportKeyResponse is the response to `POST /v1/key/import`
+- `ListKeysResponse` - ListKeysResponse is the response to `POST /v1/key/list`
+- `GenerateKeyResponse` - GenerateKeyResponse is the response to `POST /v1/key`
+- `ExportMasterKeyResponse` - ExportMasterKeyResponse is the response to `POST /v1/master-key/export`
+- `ExportMultisigResponse` - ExportMultisigResponse is the response to `POST /v1/multisig/export`
+- `ImportMultisigResponse` - ImportMultisigResponse is the response to `POST /v1/multisig/import`
+- `ListMultisigResponse` - ListMultisigResponse is the response to `POST /v1/multisig/list`
+- `SignProgramMultisigResponse` - SignProgramMultisigResponse is the response to `POST /v1/multisig/signdata`
+- `SignMultisigResponse` - SignMultisigResponse is the response to `POST /v1/multisig/sign`
+- `SignProgramResponse` - SignProgramResponse is the response to `POST /v1/data/sign`
+- `SignTransactionResponse` - SignTransactionResponse is the response to `POST /v1/transaction/sign`
+- `WalletInfoResponse` - WalletInfoResponse is the response to `POST /v1/wallet/info`
+- `InitWalletHandleTokenResponse` - InitWalletHandleTokenResponse is the response to `POST /v1/wallet/init`
+- `RenameWalletResponse` - RenameWalletResponse is the response to `POST /v1/wallet/rename`
+- `RenewWalletHandleTokenResponse` - RenewWalletHandleTokenResponse is the response to `POST /v1/wallet/renew`
+- `CreateWalletResponse` - CreateWalletResponse is the response to `POST /v1/wallet`
+- `Wallet` - Wallet is the API's representation of a wallet
+- `WalletHandle` - WalletHandle includes the wallet the handle corresponds to
 and the number of number of seconds to expiration
-- `CreateWalletRequest` - APIV1POSTWalletRequest is the request for `POST /v1/wallet`
-- `DeleteKeyRequest` - APIV1DELETEKeyRequest is the request for `DELETE /v1/key`
-- `DeleteMultisigRequest` - APIV1DELETEMultisigRequest is the request for `DELETE /v1/multisig`
+- `CreateWalletRequest` - The request for `POST /v1/wallet`
+- `DeleteKeyRequest` - The request for `DELETE /v1/key`
+- `DeleteMultisigRequest` - The request for `DELETE /v1/multisig`
 - `Digest` - No description
-- `ExportKeyRequest` - APIV1POSTKeyExportRequest is the request for `POST /v1/key/export`
-- `ExportMasterKeyRequest` - APIV1POSTMasterKeyExportRequest is the request for `POST /v1/master-key/export`
-- `ExportMultisigRequest` - APIV1POSTMultisigExportRequest is the request for `POST /v1/multisig/export`
-- `GenerateKeyRequest` - APIV1POSTKeyRequest is the request for `POST /v1/key`
-- `ImportKeyRequest` - APIV1POSTKeyImportRequest is the request for `POST /v1/key/import`
-- `ImportMultisigRequest` - APIV1POSTMultisigImportRequest is the request for `POST /v1/multisig/import`
-- `InitWalletHandleTokenRequest` - APIV1POSTWalletInitRequest is the request for `POST /v1/wallet/init`
-- `ListKeysRequest` - APIV1POSTKeyListRequest is the request for `POST /v1/key/list`
-- `ListMultisigRequest` - APIV1POSTMultisigListRequest is the request for `POST /v1/multisig/list`
+- `ExportKeyRequest` - The request for `POST /v1/key/export`
+- `ExportMasterKeyRequest` - The request for `POST /v1/master-key/export`
+- `ExportMultisigRequest` - The request for `POST /v1/multisig/export`
+- `GenerateKeyRequest` - The request for `POST /v1/key`
+- `ImportKeyRequest` - The request for `POST /v1/key/import`
+- `ImportMultisigRequest` - The request for `POST /v1/multisig/import`
+- `InitWalletHandleTokenRequest` - The request for `POST /v1/wallet/init`
+- `ListKeysRequest` - The request for `POST /v1/key/list`
+- `ListMultisigRequest` - The request for `POST /v1/multisig/list`
 - `ListWalletsRequest` - APIV1GETWalletsRequest is the request for `GET /v1/wallets`
 - `MasterDerivationKey` - MasterDerivationKey is used to derive ed25519 keys for use in wallets
 - `MultisigSig` - MultisigSig is the structure that holds multiple Subsigs
@@ -229,19 +205,19 @@ and the number of number of seconds to expiration
 signatures may be empty
 - `PrivateKey` - No description
 - `PublicKey` - No description
-- `ReleaseWalletHandleTokenRequest` - APIV1POSTWalletReleaseRequest is the request for `POST /v1/wallet/release`
-- `RenameWalletRequest` - APIV1POSTWalletRenameRequest is the request for `POST /v1/wallet/rename`
-- `RenewWalletHandleTokenRequest` - APIV1POSTWalletRenewRequest is the request for `POST /v1/wallet/renew`
-- `SignMultisigRequest` - APIV1POSTMultisigTransactionSignRequest is the request for `POST /v1/multisig/sign`
-- `SignProgramMultisigRequest` - APIV1POSTMultisigProgramSignRequest is the request for `POST /v1/multisig/signprogram`
-- `SignProgramRequest` - APIV1POSTProgramSignRequest is the request for `POST /v1/program/sign`
-- `SignTransactionRequest` - APIV1POSTTransactionSignRequest is the request for `POST /v1/transaction/sign`
+- `ReleaseWalletHandleTokenRequest` - The request for `POST /v1/wallet/release`
+- `RenameWalletRequest` - The request for `POST /v1/wallet/rename`
+- `RenewWalletHandleTokenRequest` - The request for `POST /v1/wallet/renew`
+- `SignMultisigTxnRequest` - The request for `POST /v1/multisig/sign`
+- `SignProgramMultisigRequest` - The request for `POST /v1/multisig/signprogram`
+- `SignProgramRequest` - The request for `POST /v1/program/sign`
+- `SignTxnRequest` - The request for `POST /v1/transaction/sign`
 - `Signature` - No description
 - `TxType` - TxType is the type of the transaction written to the ledger
 - `VersionsRequest` - VersionsRequest is the request for `GET /versions`
 - `VersionsResponse` - VersionsResponse is the response to `GET /versions`
 friendly:VersionsResponse
-- `WalletInfoRequest` - APIV1POSTWalletInfoRequest is the request for `POST /v1/wallet/info`
+- `WalletInfoRequest` - The request for `POST /v1/wallet/info`
 - `Ed25519PrivateKey` - No description
 - `Ed25519PublicKey` - No description
 - `Ed25519Signature` - No description

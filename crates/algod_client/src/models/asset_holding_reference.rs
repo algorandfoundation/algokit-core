@@ -16,15 +16,17 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "ffi_uniffi")]
 use algokit_transact_ffi::SignedTransaction as AlgokitSignedTransaction;
 
+use algokit_transact::Address;
 use algokit_transact::AlgorandMsgpack;
 
 /// References an asset held by an account.
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
+// This struct represents an Algorand asset holding reference (account + asset id).
 pub struct AssetHoldingReference {
     /// Address of the account holding the asset.
     #[serde(rename = "account")]
-    pub account: String,
+    pub account: Address,
     /// Asset ID of the holding.
     #[serde(rename = "asset")]
     pub asset: u64,
@@ -36,7 +38,7 @@ impl AlgorandMsgpack for AssetHoldingReference {
 
 impl AssetHoldingReference {
     /// Constructor for AssetHoldingReference
-    pub fn new(account: String, asset: u64) -> AssetHoldingReference {
+    pub fn new(account: Address, asset: u64) -> AssetHoldingReference {
         AssetHoldingReference { account, asset }
     }
 

@@ -2,13 +2,9 @@
 """Command-line interface for the Rust OAS Generator."""
 
 import argparse
-import contextlib
 import json
-import shutil
 import sys
-import tempfile
 import traceback
-from collections.abc import Generator
 from pathlib import Path
 
 from rust_oas_generator.generator.template_engine import RustCodeGenerator
@@ -98,34 +94,29 @@ def print_generation_summary(*, file_count: int, files: dict[Path, str], output_
     print(f"\nRust client generated successfully in {output_dir}")
 
 
-@contextlib.contextmanager
-def backup_and_clean_output_dir(output_dir: Path) -> Generator[None, None, None]:
-    """A context manager to backup and clean the output directory."""
-    backup_dir = None
-    if output_dir.exists() and any(output_dir.iterdir()):
-        backup_dir = Path(tempfile.mkdtemp())
-        shutil.copytree(output_dir, backup_dir, dirs_exist_ok=True)
+def remove_orphaned_generated_files(output_dir: Path, generated_files: dict[Path, str]) -> None:
+    """Delete previously generated files that are no longer produced.
 
-    # Clean output directory before generation
-    if output_dir.exists():
-        shutil.rmtree(output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
+    Only the generated `src/` tree is swept: every `.rs` file currently under
+    `output_dir/src` that is not in the freshly generated set is removed (these
+    are orphans left by renamed/removed schemas or operations). Non-generated
+    paths outside `src/` — e.g. a hand-written `tests/` directory — are never
+    touched, so generation overwrites generated files and leaves everything else
+    in place.
+    """
+    src_dir = output_dir / "src"
+    if not src_dir.is_dir():
+        return
 
-    try:
-        yield
-    except Exception:
-        if backup_dir:
-            print(
-                "Error: Generation failed. Restoring original content.",
-                file=sys.stderr,
-            )
-            if output_dir.exists():
-                shutil.rmtree(output_dir)
-            shutil.copytree(backup_dir, output_dir, dirs_exist_ok=True)
-        raise
-    finally:
-        if backup_dir:
-            shutil.rmtree(backup_dir)
+    generated = {path.resolve() for path in generated_files}
+    for existing in src_dir.rglob("*.rs"):
+        if existing.resolve() not in generated:
+            existing.unlink()
+
+    # Prune any directories left empty by the sweep.
+    for directory in sorted(src_dir.rglob("*"), reverse=True):
+        if directory.is_dir() and not any(directory.iterdir()):
+            directory.rmdir()
 
 
 def generate_rust_client_from_spec(
@@ -162,26 +153,29 @@ def main(args: list[str] | None = None) -> int:
     parsed_args = parse_command_line_args(args)
 
     try:
-        with backup_and_clean_output_dir(parsed_args.output_dir):
-            generated_files = generate_rust_client_from_spec(
-                spec_file=parsed_args.spec_file,
+        # Render everything first so a generation failure leaves the existing
+        # output untouched (nothing is deleted until we have a full new set).
+        generated_files = generate_rust_client_from_spec(
+            spec_file=parsed_args.spec_file,
+            output_dir=parsed_args.output_dir,
+            package_name=parsed_args.package_name,
+            verbose=parsed_args.verbose,
+            custom_description=parsed_args.custom_description,
+        )
+
+        # Overwrite generated files, then drop generated files that are no longer
+        # produced. Non-generated paths (e.g. tests/) are preserved.
+        write_files_to_disk(generated_files)
+        remove_orphaned_generated_files(parsed_args.output_dir, generated_files)
+
+        if parsed_args.verbose:
+            print_generation_summary(
+                file_count=len(generated_files),
+                files=generated_files,
                 output_dir=parsed_args.output_dir,
-                package_name=parsed_args.package_name,
-                verbose=parsed_args.verbose,
-                custom_description=parsed_args.custom_description,
             )
-
-            # Write files to disk
-            write_files_to_disk(generated_files)
-
-            if parsed_args.verbose:
-                print_generation_summary(
-                    file_count=len(generated_files),
-                    files=generated_files,
-                    output_dir=parsed_args.output_dir,
-                )
-            else:
-                print(f"Rust client generated successfully in {parsed_args.output_dir}")
+        else:
+            print(f"Rust client generated successfully in {parsed_args.output_dir}")
 
         return EXIT_SUCCESS
 

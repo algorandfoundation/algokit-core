@@ -27,7 +27,7 @@ pub struct AccountParticipation {
     /// \[sel\] Selection public key (if any) currently registered for this round.
     #[serde_as(as = "serde_with::base64::Base64")]
     #[serde(rename = "selection-participation-key")]
-    pub selection_participation_key: Vec<u8>,
+    pub selection_participation_key: [u8; 32],
     /// \[voteFst\] First round for which this participation is valid.
     #[serde(rename = "vote-first-valid")]
     pub vote_first_valid: u64,
@@ -40,11 +40,11 @@ pub struct AccountParticipation {
     /// \[vote\] root participation public key (if any) currently registered for this round.
     #[serde_as(as = "serde_with::base64::Base64")]
     #[serde(rename = "vote-participation-key")]
-    pub vote_participation_key: Vec<u8>,
+    pub vote_participation_key: [u8; 32],
     /// \[stprf\] Root of the state proof key (if any)
     #[serde_as(as = "Option<serde_with::base64::Base64>")]
     #[serde(rename = "state-proof-key", skip_serializing_if = "Option::is_none")]
-    pub state_proof_key: Option<Vec<u8>>,
+    pub state_proof_key: Option<[u8; 64]>,
 }
 
 impl AlgorandMsgpack for AccountParticipation {
@@ -54,11 +54,11 @@ impl AlgorandMsgpack for AccountParticipation {
 impl AccountParticipation {
     /// Constructor for AccountParticipation
     pub fn new(
-        selection_participation_key: Vec<u8>,
+        selection_participation_key: [u8; 32],
         vote_first_valid: u64,
         vote_key_dilution: u64,
         vote_last_valid: u64,
-        vote_participation_key: Vec<u8>,
+        vote_participation_key: [u8; 32],
     ) -> AccountParticipation {
         AccountParticipation {
             selection_participation_key,

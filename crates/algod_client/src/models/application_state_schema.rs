@@ -24,10 +24,10 @@ use algokit_transact::AlgorandMsgpack;
 pub struct ApplicationStateSchema {
     /// \[nui\] num of uints.
     #[serde(rename = "num-uint")]
-    pub num_uint: u32,
+    pub num_uints: u32,
     /// \[nbs\] num of byte slices.
     #[serde(rename = "num-byte-slice")]
-    pub num_byte_slice: u32,
+    pub num_byte_slices: u32,
 }
 
 impl AlgorandMsgpack for ApplicationStateSchema {
@@ -36,10 +36,10 @@ impl AlgorandMsgpack for ApplicationStateSchema {
 
 impl ApplicationStateSchema {
     /// Constructor for ApplicationStateSchema
-    pub fn new(num_uint: u32, num_byte_slice: u32) -> ApplicationStateSchema {
+    pub fn new(num_uints: u32, num_byte_slices: u32) -> ApplicationStateSchema {
         ApplicationStateSchema {
-            num_uint,
-            num_byte_slice,
+            num_uints,
+            num_byte_slices,
         }
     }
 

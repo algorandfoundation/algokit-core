@@ -9,31 +9,38 @@
  */
 
 use crate::models;
+use algokit_transact::Address;
 use serde::{Deserialize, Serialize};
 use serde_with::{Bytes, serde_as};
 
-/// APIV1POSTProgramSignRequest is the request for `POST /v1/program/sign`
+/// The request for `POST /v1/program/sign`
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct SignProgramRequest {
-    #[serde(rename = "address", skip_serializing_if = "Option::is_none")]
-    pub address: Option<String>,
-    #[serde_as(as = "Option<serde_with::base64::Base64>")]
-    #[serde(rename = "data", skip_serializing_if = "Option::is_none")]
-    pub data: Option<Vec<u8>>,
-    #[serde(
-        rename = "wallet_handle_token",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub wallet_handle_token: Option<String>,
+    #[serde(rename = "address")]
+    pub address: Address,
+    #[serde_as(as = "serde_with::base64::Base64")]
+    #[serde(rename = "data")]
+    pub program: Vec<u8>,
+    #[serde(rename = "wallet_handle_token")]
+    pub wallet_handle_token: String,
     #[serde(rename = "wallet_password", skip_serializing_if = "Option::is_none")]
     pub wallet_password: Option<String>,
 }
 
 impl SignProgramRequest {
-    /// Default constructor for SignProgramRequest
-    pub fn new() -> SignProgramRequest {
-        SignProgramRequest::default()
+    /// Constructor for SignProgramRequest
+    pub fn new(
+        address: Address,
+        program: Vec<u8>,
+        wallet_handle_token: String,
+    ) -> SignProgramRequest {
+        SignProgramRequest {
+            address,
+            program,
+            wallet_handle_token,
+            wallet_password: None,
+        }
     }
 }

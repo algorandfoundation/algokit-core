@@ -11,20 +11,19 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
-/// APIV1POSTWalletRenewRequest is the request for `POST /v1/wallet/renew`
+/// The request for `POST /v1/wallet/renew`
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct RenewWalletHandleTokenRequest {
-    #[serde(
-        rename = "wallet_handle_token",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub wallet_handle_token: Option<String>,
+    #[serde(rename = "wallet_handle_token")]
+    pub wallet_handle_token: String,
 }
 
 impl RenewWalletHandleTokenRequest {
-    /// Default constructor for RenewWalletHandleTokenRequest
-    pub fn new() -> RenewWalletHandleTokenRequest {
-        RenewWalletHandleTokenRequest::default()
+    /// Constructor for RenewWalletHandleTokenRequest
+    pub fn new(wallet_handle_token: String) -> RenewWalletHandleTokenRequest {
+        RenewWalletHandleTokenRequest {
+            wallet_handle_token,
+        }
     }
 }

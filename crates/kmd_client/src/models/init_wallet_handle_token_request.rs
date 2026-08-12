@@ -11,19 +11,22 @@
 use crate::models;
 use serde::{Deserialize, Serialize};
 
-/// APIV1POSTWalletInitRequest is the request for `POST /v1/wallet/init`
+/// The request for `POST /v1/wallet/init`
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct InitWalletHandleTokenRequest {
-    #[serde(rename = "wallet_id", skip_serializing_if = "Option::is_none")]
-    pub wallet_id: Option<String>,
-    #[serde(rename = "wallet_password", skip_serializing_if = "Option::is_none")]
-    pub wallet_password: Option<String>,
+    #[serde(rename = "wallet_id")]
+    pub wallet_id: String,
+    #[serde(rename = "wallet_password")]
+    pub wallet_password: String,
 }
 
 impl InitWalletHandleTokenRequest {
-    /// Default constructor for InitWalletHandleTokenRequest
-    pub fn new() -> InitWalletHandleTokenRequest {
-        InitWalletHandleTokenRequest::default()
+    /// Constructor for InitWalletHandleTokenRequest
+    pub fn new(wallet_id: String, wallet_password: String) -> InitWalletHandleTokenRequest {
+        InitWalletHandleTokenRequest {
+            wallet_id,
+            wallet_password,
+        }
     }
 }

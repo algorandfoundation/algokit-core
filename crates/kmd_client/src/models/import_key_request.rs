@@ -12,24 +12,24 @@ use crate::models;
 use serde::{Deserialize, Serialize};
 use serde_with::{Bytes, serde_as};
 
-/// APIV1POSTKeyImportRequest is the request for `POST /v1/key/import`
+/// The request for `POST /v1/key/import`
 #[serde_as]
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Record))]
 pub struct ImportKeyRequest {
-    #[serde_as(as = "Option<serde_with::base64::Base64>")]
-    #[serde(rename = "private_key", skip_serializing_if = "Option::is_none")]
-    pub private_key: Option<Vec<u8>>,
-    #[serde(
-        rename = "wallet_handle_token",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub wallet_handle_token: Option<String>,
+    #[serde_as(as = "serde_with::base64::Base64")]
+    #[serde(rename = "private_key")]
+    pub private_key: Vec<u8>,
+    #[serde(rename = "wallet_handle_token")]
+    pub wallet_handle_token: String,
 }
 
 impl ImportKeyRequest {
-    /// Default constructor for ImportKeyRequest
-    pub fn new() -> ImportKeyRequest {
-        ImportKeyRequest::default()
+    /// Constructor for ImportKeyRequest
+    pub fn new(private_key: Vec<u8>, wallet_handle_token: String) -> ImportKeyRequest {
+        ImportKeyRequest {
+            private_key,
+            wallet_handle_token,
+        }
     }
 }
