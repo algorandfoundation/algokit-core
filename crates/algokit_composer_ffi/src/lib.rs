@@ -15,6 +15,9 @@ use snafu::Snafu;
 #[cfg(feature = "ffi_uniffi")]
 uniffi::setup_scaffolding!();
 
+mod simulate;
+pub use simulate::*;
+
 /// FFI-compatible error type for composer operations.
 #[derive(Debug, Clone, Snafu)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]
@@ -36,6 +39,21 @@ pub enum AlgoKitComposerError {
 
     #[snafu(display("{error_msg}"))]
     Transact { error_msg: String },
+
+    #[snafu(display("{error_msg}"))]
+    Algod { error_msg: String },
+
+    #[snafu(display("{error_msg}"))]
+    Msgpack { error_msg: String },
+
+    #[snafu(display("{error_msg}"))]
+    SimulateResponseShape { error_msg: String },
+
+    #[snafu(display("{error_msg}"))]
+    InvalidSimulateOptions { error_msg: String },
+
+    #[snafu(display("{error_msg}"))]
+    SimulationFailed { error_msg: String },
 }
 
 impl From<RustComposerError> for AlgoKitComposerError {
@@ -49,6 +67,15 @@ impl From<RustComposerError> for AlgoKitComposerError {
             }
             RustComposerError::Signing { .. } => Self::Signing { error_msg },
             RustComposerError::Transact { .. } => Self::Transact { error_msg },
+            RustComposerError::Algod { .. } => Self::Algod { error_msg },
+            RustComposerError::Msgpack { .. } => Self::Msgpack { error_msg },
+            RustComposerError::SimulateResponseShape { .. } => {
+                Self::SimulateResponseShape { error_msg }
+            }
+            RustComposerError::InvalidSimulateOptions { .. } => {
+                Self::InvalidSimulateOptions { error_msg }
+            }
+            RustComposerError::SimulationFailed { .. } => Self::SimulationFailed { error_msg },
         }
     }
 }

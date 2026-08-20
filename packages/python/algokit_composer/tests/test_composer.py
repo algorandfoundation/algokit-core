@@ -1,3 +1,4 @@
+import msgpack
 import pytest
 from nacl.signing import SigningKey
 
@@ -8,9 +9,14 @@ from algokit_composer import (
     OfflineKeyRegParams,
     OnlineKeyRegParams,
     PaymentParams,
+    SimulateOptions,
+    SimulateTraceConfig,
     TxnParams,
     TxnParamsKind,
+    build_signed_simulate_request,
+    build_unsigned_simulate_request,
     compose,
+    map_simulate_response,
     sign_transactions,
 )
 from algokit_transact import (
@@ -29,6 +35,168 @@ from . import (
 
 
 # Polytest Suite: Composer
+
+# Polytest Group: Simulate Tests
+
+
+def _simulate_options(**overrides):
+    """A SimulateOptions with everything unset, plus any overrides."""
+    fields = {
+        "skip_signatures": None,
+        "round": None,
+        "allow_empty_signatures": None,
+        "allow_more_logging": None,
+        "allow_unnamed_resources": None,
+        "extra_opcode_budget": None,
+        "exec_trace_config": None,
+        "fix_signers": None,
+    }
+    fields.update(overrides)
+    return SimulateOptions(**fields)
+
+
+def _unsigned_payment():
+    """One composed, unsigned payment transaction as encoded bytes."""
+    return compose(
+        [
+            TxnParams(
+                kind=TxnParamsKind.PAYMENT,
+                payment=PaymentParams(
+                    common=common_params(),
+                    receiver=RECEIVER_ADDRESS,
+                    amount=1000,
+                    close_remainder_to=None,
+                ),
+                asset_transfer=None,
+                asset_opt_in=None,
+                online_key_reg=None,
+                offline_key_reg=None,
+            )
+        ],
+        composer_params(),
+    )
+
+
+def _signed_payment():
+    """The same payment, signed, as encoded signed-transaction bytes."""
+    signing_key = SigningKey.generate()
+    return sign_transactions(_unsigned_payment(), [bytes(signing_key)])
+
+
+def _simulate_response(groups):
+    """MsgPack-encode a minimal algod SimulateResponse with the given groups."""
+    return msgpack.packb(
+        {"version": 2, "last-round": 0, "txn-groups": groups},
+        use_bin_type=True,
+    )
+
+
+def _txn_map(encoded):
+    """Unpack an encoded transaction, dropping the "TX" domain-separator prefix."""
+    body = encoded[2:] if encoded[:2] == b"TX" else encoded
+    return msgpack.unpackb(body, raw=False)
+
+
+def _group(txn_bytes_list, **extra):
+    """One txn-group entry whose results echo the supplied transactions."""
+    group = {
+        "txn-results": [
+            {"txn-result": {"pool-error": "", "txn": {"txn": _txn_map(t)}}}
+            for t in txn_bytes_list
+        ]
+    }
+    group.update(extra)
+    return group
+
+
+@pytest.mark.group_simulate_tests
+def test_map_simulate_response_rejects_group_count_mismatch():
+    """map_simulate_response() errors when the response does not carry exactly one group"""
+    txns = _unsigned_payment()
+    response = _simulate_response([_group(txns), _group(txns)])
+
+    with pytest.raises(AlgoKitComposerError):
+        map_simulate_response(txns, response)
+
+@pytest.mark.group_simulate_tests
+def test_map_simulate_response_surfaces_group_failure():
+    """map_simulate_response() reports failure_message and failed_at as data rather than raising"""
+    txns = _unsigned_payment()
+    response = _simulate_response(
+        [_group(txns, **{"failure-message": "assert failed", "failed-at": [0]})]
+    )
+
+    result = map_simulate_response(txns, response)
+
+    assert result.failure_message == "assert failed"
+    assert result.failed_at == [0]
+    # The per-transaction results survive a failing group.
+    assert len(result.txn_results) == 1
+
+@pytest.mark.group_simulate_tests
+def test_map_simulate_response_returns_per_transaction_results():
+    """map_simulate_response() projects tx ids and confirmations from the first group"""
+    txns = _unsigned_payment()
+    result = map_simulate_response(txns, _simulate_response([_group(txns)]))
+
+    assert len(result.txn_results) == 1
+    assert len(result.tx_ids) == 1
+    assert result.tx_ids[0] == result.txn_results[0].tx_id
+    assert result.txn_results[0].confirmation
+    assert result.failure_message is None
+
+@pytest.mark.group_simulate_tests
+def test_build_simulate_request_rejects_empty_group():
+    """Building a simulate request with no transactions returns an error"""
+    with pytest.raises(AlgoKitComposerError):
+        build_unsigned_simulate_request([], _simulate_options())
+
+@pytest.mark.group_simulate_tests
+def test_simulate_options_merge_per_field():
+    """Setting one SimulateOptions field leaves the remaining request fields unset"""
+    encoded = build_signed_simulate_request(
+        _signed_payment(), _simulate_options(extra_opcode_budget=1000)
+    )
+    request = msgpack.unpackb(encoded, raw=False)
+
+    assert request["extra-opcode-budget"] == 1000
+    for untouched in ("round", "allow-more-logging", "allow-unnamed-resources"):
+        assert untouched not in request
+
+@pytest.mark.group_simulate_tests
+def test_skip_signatures_forces_allow_empty_signatures_and_fix_signers():
+    """skip_signatures overrides caller-supplied allow_empty_signatures and fix_signers to true"""
+    encoded = build_signed_simulate_request(
+        _signed_payment(),
+        _simulate_options(
+            skip_signatures=True, allow_empty_signatures=False, fix_signers=False
+        ),
+    )
+    request = msgpack.unpackb(encoded, raw=False)
+
+    assert request["allow-empty-signatures"] is True
+    assert request["fix-signers"] is True
+
+@pytest.mark.group_simulate_tests
+def test_build_signed_simulate_request_preserves_signatures():
+    """build_signed_simulate_request() keeps the supplied signatures on each txn entry"""
+    encoded = build_signed_simulate_request(_signed_payment(), _simulate_options())
+    request = msgpack.unpackb(encoded, raw=False)
+
+    assert all("sig" in entry for entry in request["txn-groups"][0]["txns"])
+
+@pytest.mark.group_simulate_tests
+def test_build_unsigned_simulate_request_omits_signatures():
+    """build_unsigned_simulate_request() produces txn entries carrying only a txn key, with no sig"""
+    encoded = build_unsigned_simulate_request(_unsigned_payment(), _simulate_options())
+    request = msgpack.unpackb(encoded, raw=False)
+
+    entries = request["txn-groups"][0]["txns"]
+    assert entries, "expected at least one transaction entry"
+    # No sig key at all, rather than a zero-filled one.
+    assert all(list(entry.keys()) == ["txn"] for entry in entries)
+    assert request["allow-empty-signatures"] is True
+    assert request["fix-signers"] is True
 
 # Polytest Group: Composer Tests
 

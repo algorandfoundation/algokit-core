@@ -400,6 +400,22 @@ fileprivate final class UniffiHandleMap<T>: @unchecked Sendable {
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
+fileprivate struct FfiConverterUInt32: FfiConverterPrimitive {
+    typealias FfiType = UInt32
+    typealias SwiftType = UInt32
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> UInt32 {
+        return try lift(readInt(&buf))
+    }
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterUInt64: FfiConverterPrimitive {
     typealias FfiType = UInt64
     typealias SwiftType = UInt64
@@ -1131,6 +1147,488 @@ public func FfiConverterTypePaymentParams_lower(_ value: PaymentParams) -> RustB
 }
 
 
+public struct SimulateOptions {
+    /**
+     * `None` is treated as `false`. Optional only so the generated bindings get a
+     * default-constructible record.
+     */
+    public var skipSignatures: Bool?
+    public var round: UInt64?
+    public var allowEmptySignatures: Bool?
+    public var allowMoreLogging: Bool?
+    public var allowUnnamedResources: Bool?
+    public var extraOpcodeBudget: UInt64?
+    public var execTraceConfig: SimulateTraceConfig?
+    public var fixSigners: Bool?
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(
+        /**
+         * `None` is treated as `false`. Optional only so the generated bindings get a
+         * default-constructible record.
+         */skipSignatures: Bool? = nil, round: UInt64? = nil, allowEmptySignatures: Bool? = nil, allowMoreLogging: Bool? = nil, allowUnnamedResources: Bool? = nil, extraOpcodeBudget: UInt64? = nil, execTraceConfig: SimulateTraceConfig? = nil, fixSigners: Bool? = nil) {
+        self.skipSignatures = skipSignatures
+        self.round = round
+        self.allowEmptySignatures = allowEmptySignatures
+        self.allowMoreLogging = allowMoreLogging
+        self.allowUnnamedResources = allowUnnamedResources
+        self.extraOpcodeBudget = extraOpcodeBudget
+        self.execTraceConfig = execTraceConfig
+        self.fixSigners = fixSigners
+    }
+}
+
+#if compiler(>=6)
+extension SimulateOptions: Sendable {}
+#endif
+
+
+extension SimulateOptions: Equatable, Hashable {
+    public static func ==(lhs: SimulateOptions, rhs: SimulateOptions) -> Bool {
+        if lhs.skipSignatures != rhs.skipSignatures {
+            return false
+        }
+        if lhs.round != rhs.round {
+            return false
+        }
+        if lhs.allowEmptySignatures != rhs.allowEmptySignatures {
+            return false
+        }
+        if lhs.allowMoreLogging != rhs.allowMoreLogging {
+            return false
+        }
+        if lhs.allowUnnamedResources != rhs.allowUnnamedResources {
+            return false
+        }
+        if lhs.extraOpcodeBudget != rhs.extraOpcodeBudget {
+            return false
+        }
+        if lhs.execTraceConfig != rhs.execTraceConfig {
+            return false
+        }
+        if lhs.fixSigners != rhs.fixSigners {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(skipSignatures)
+        hasher.combine(round)
+        hasher.combine(allowEmptySignatures)
+        hasher.combine(allowMoreLogging)
+        hasher.combine(allowUnnamedResources)
+        hasher.combine(extraOpcodeBudget)
+        hasher.combine(execTraceConfig)
+        hasher.combine(fixSigners)
+    }
+}
+
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeSimulateOptions: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SimulateOptions {
+        return
+            try SimulateOptions(
+                skipSignatures: FfiConverterOptionBool.read(from: &buf), 
+                round: FfiConverterOptionUInt64.read(from: &buf), 
+                allowEmptySignatures: FfiConverterOptionBool.read(from: &buf), 
+                allowMoreLogging: FfiConverterOptionBool.read(from: &buf), 
+                allowUnnamedResources: FfiConverterOptionBool.read(from: &buf), 
+                extraOpcodeBudget: FfiConverterOptionUInt64.read(from: &buf), 
+                execTraceConfig: FfiConverterOptionTypeSimulateTraceConfig.read(from: &buf), 
+                fixSigners: FfiConverterOptionBool.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: SimulateOptions, into buf: inout [UInt8]) {
+        FfiConverterOptionBool.write(value.skipSignatures, into: &buf)
+        FfiConverterOptionUInt64.write(value.round, into: &buf)
+        FfiConverterOptionBool.write(value.allowEmptySignatures, into: &buf)
+        FfiConverterOptionBool.write(value.allowMoreLogging, into: &buf)
+        FfiConverterOptionBool.write(value.allowUnnamedResources, into: &buf)
+        FfiConverterOptionUInt64.write(value.extraOpcodeBudget, into: &buf)
+        FfiConverterOptionTypeSimulateTraceConfig.write(value.execTraceConfig, into: &buf)
+        FfiConverterOptionBool.write(value.fixSigners, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeSimulateOptions_lift(_ buf: RustBuffer) throws -> SimulateOptions {
+    return try FfiConverterTypeSimulateOptions.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeSimulateOptions_lower(_ value: SimulateOptions) -> RustBuffer {
+    return FfiConverterTypeSimulateOptions.lower(value)
+}
+
+
+public struct SimulateResult {
+    /**
+     * MsgPack-encoded transactions, index-aligned with `txn_results`.
+     */
+    public var transactions: [Data]
+    public var txIds: [String]
+    public var groupId: Data?
+    public var txnResults: [SimulateTxnResult]
+    public var failureMessage: String?
+    public var failedAt: [UInt64]?
+    public var appBudgetAdded: UInt64?
+    public var appBudgetConsumed: UInt64?
+    public var lastRound: UInt64
+    public var version: UInt64
+    /**
+     * The complete algod response as msgpack: execution traces, initial states, eval
+     * overrides, and anything this record does not flatten.
+     */
+    public var simulateResponse: Data
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(
+        /**
+         * MsgPack-encoded transactions, index-aligned with `txn_results`.
+         */transactions: [Data], txIds: [String], groupId: Data? = nil, txnResults: [SimulateTxnResult], failureMessage: String? = nil, failedAt: [UInt64]? = nil, appBudgetAdded: UInt64? = nil, appBudgetConsumed: UInt64? = nil, lastRound: UInt64, version: UInt64, 
+        /**
+         * The complete algod response as msgpack: execution traces, initial states, eval
+         * overrides, and anything this record does not flatten.
+         */simulateResponse: Data) {
+        self.transactions = transactions
+        self.txIds = txIds
+        self.groupId = groupId
+        self.txnResults = txnResults
+        self.failureMessage = failureMessage
+        self.failedAt = failedAt
+        self.appBudgetAdded = appBudgetAdded
+        self.appBudgetConsumed = appBudgetConsumed
+        self.lastRound = lastRound
+        self.version = version
+        self.simulateResponse = simulateResponse
+    }
+}
+
+#if compiler(>=6)
+extension SimulateResult: Sendable {}
+#endif
+
+
+extension SimulateResult: Equatable, Hashable {
+    public static func ==(lhs: SimulateResult, rhs: SimulateResult) -> Bool {
+        if lhs.transactions != rhs.transactions {
+            return false
+        }
+        if lhs.txIds != rhs.txIds {
+            return false
+        }
+        if lhs.groupId != rhs.groupId {
+            return false
+        }
+        if lhs.txnResults != rhs.txnResults {
+            return false
+        }
+        if lhs.failureMessage != rhs.failureMessage {
+            return false
+        }
+        if lhs.failedAt != rhs.failedAt {
+            return false
+        }
+        if lhs.appBudgetAdded != rhs.appBudgetAdded {
+            return false
+        }
+        if lhs.appBudgetConsumed != rhs.appBudgetConsumed {
+            return false
+        }
+        if lhs.lastRound != rhs.lastRound {
+            return false
+        }
+        if lhs.version != rhs.version {
+            return false
+        }
+        if lhs.simulateResponse != rhs.simulateResponse {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(transactions)
+        hasher.combine(txIds)
+        hasher.combine(groupId)
+        hasher.combine(txnResults)
+        hasher.combine(failureMessage)
+        hasher.combine(failedAt)
+        hasher.combine(appBudgetAdded)
+        hasher.combine(appBudgetConsumed)
+        hasher.combine(lastRound)
+        hasher.combine(version)
+        hasher.combine(simulateResponse)
+    }
+}
+
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeSimulateResult: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SimulateResult {
+        return
+            try SimulateResult(
+                transactions: FfiConverterSequenceData.read(from: &buf), 
+                txIds: FfiConverterSequenceString.read(from: &buf), 
+                groupId: FfiConverterOptionData.read(from: &buf), 
+                txnResults: FfiConverterSequenceTypeSimulateTxnResult.read(from: &buf), 
+                failureMessage: FfiConverterOptionString.read(from: &buf), 
+                failedAt: FfiConverterOptionSequenceUInt64.read(from: &buf), 
+                appBudgetAdded: FfiConverterOptionUInt64.read(from: &buf), 
+                appBudgetConsumed: FfiConverterOptionUInt64.read(from: &buf), 
+                lastRound: FfiConverterUInt64.read(from: &buf), 
+                version: FfiConverterUInt64.read(from: &buf), 
+                simulateResponse: FfiConverterData.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: SimulateResult, into buf: inout [UInt8]) {
+        FfiConverterSequenceData.write(value.transactions, into: &buf)
+        FfiConverterSequenceString.write(value.txIds, into: &buf)
+        FfiConverterOptionData.write(value.groupId, into: &buf)
+        FfiConverterSequenceTypeSimulateTxnResult.write(value.txnResults, into: &buf)
+        FfiConverterOptionString.write(value.failureMessage, into: &buf)
+        FfiConverterOptionSequenceUInt64.write(value.failedAt, into: &buf)
+        FfiConverterOptionUInt64.write(value.appBudgetAdded, into: &buf)
+        FfiConverterOptionUInt64.write(value.appBudgetConsumed, into: &buf)
+        FfiConverterUInt64.write(value.lastRound, into: &buf)
+        FfiConverterUInt64.write(value.version, into: &buf)
+        FfiConverterData.write(value.simulateResponse, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeSimulateResult_lift(_ buf: RustBuffer) throws -> SimulateResult {
+    return try FfiConverterTypeSimulateResult.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeSimulateResult_lower(_ value: SimulateResult) -> RustBuffer {
+    return FfiConverterTypeSimulateResult.lower(value)
+}
+
+
+public struct SimulateTraceConfig {
+    public var enable: Bool?
+    public var stackChange: Bool?
+    public var scratchChange: Bool?
+    public var stateChange: Bool?
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(enable: Bool? = nil, stackChange: Bool? = nil, scratchChange: Bool? = nil, stateChange: Bool? = nil) {
+        self.enable = enable
+        self.stackChange = stackChange
+        self.scratchChange = scratchChange
+        self.stateChange = stateChange
+    }
+}
+
+#if compiler(>=6)
+extension SimulateTraceConfig: Sendable {}
+#endif
+
+
+extension SimulateTraceConfig: Equatable, Hashable {
+    public static func ==(lhs: SimulateTraceConfig, rhs: SimulateTraceConfig) -> Bool {
+        if lhs.enable != rhs.enable {
+            return false
+        }
+        if lhs.stackChange != rhs.stackChange {
+            return false
+        }
+        if lhs.scratchChange != rhs.scratchChange {
+            return false
+        }
+        if lhs.stateChange != rhs.stateChange {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(enable)
+        hasher.combine(stackChange)
+        hasher.combine(scratchChange)
+        hasher.combine(stateChange)
+    }
+}
+
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeSimulateTraceConfig: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SimulateTraceConfig {
+        return
+            try SimulateTraceConfig(
+                enable: FfiConverterOptionBool.read(from: &buf), 
+                stackChange: FfiConverterOptionBool.read(from: &buf), 
+                scratchChange: FfiConverterOptionBool.read(from: &buf), 
+                stateChange: FfiConverterOptionBool.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: SimulateTraceConfig, into buf: inout [UInt8]) {
+        FfiConverterOptionBool.write(value.enable, into: &buf)
+        FfiConverterOptionBool.write(value.stackChange, into: &buf)
+        FfiConverterOptionBool.write(value.scratchChange, into: &buf)
+        FfiConverterOptionBool.write(value.stateChange, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeSimulateTraceConfig_lift(_ buf: RustBuffer) throws -> SimulateTraceConfig {
+    return try FfiConverterTypeSimulateTraceConfig.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeSimulateTraceConfig_lower(_ value: SimulateTraceConfig) -> RustBuffer {
+    return FfiConverterTypeSimulateTraceConfig.lower(value)
+}
+
+
+public struct SimulateTxnResult {
+    public var txId: String
+    /**
+     * MsgPack-encoded `PendingTransactionResponse`.
+     */
+    public var confirmation: Data
+    public var appBudgetConsumed: UInt32?
+    public var logicSigBudgetConsumed: UInt32?
+    /**
+     * The address algod says should have signed, when `fix_signers` was set.
+     */
+    public var fixedSigner: String?
+    public var logs: [Data]
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(txId: String, 
+        /**
+         * MsgPack-encoded `PendingTransactionResponse`.
+         */confirmation: Data, appBudgetConsumed: UInt32? = nil, logicSigBudgetConsumed: UInt32? = nil, 
+        /**
+         * The address algod says should have signed, when `fix_signers` was set.
+         */fixedSigner: String? = nil, logs: [Data]) {
+        self.txId = txId
+        self.confirmation = confirmation
+        self.appBudgetConsumed = appBudgetConsumed
+        self.logicSigBudgetConsumed = logicSigBudgetConsumed
+        self.fixedSigner = fixedSigner
+        self.logs = logs
+    }
+}
+
+#if compiler(>=6)
+extension SimulateTxnResult: Sendable {}
+#endif
+
+
+extension SimulateTxnResult: Equatable, Hashable {
+    public static func ==(lhs: SimulateTxnResult, rhs: SimulateTxnResult) -> Bool {
+        if lhs.txId != rhs.txId {
+            return false
+        }
+        if lhs.confirmation != rhs.confirmation {
+            return false
+        }
+        if lhs.appBudgetConsumed != rhs.appBudgetConsumed {
+            return false
+        }
+        if lhs.logicSigBudgetConsumed != rhs.logicSigBudgetConsumed {
+            return false
+        }
+        if lhs.fixedSigner != rhs.fixedSigner {
+            return false
+        }
+        if lhs.logs != rhs.logs {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(txId)
+        hasher.combine(confirmation)
+        hasher.combine(appBudgetConsumed)
+        hasher.combine(logicSigBudgetConsumed)
+        hasher.combine(fixedSigner)
+        hasher.combine(logs)
+    }
+}
+
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeSimulateTxnResult: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SimulateTxnResult {
+        return
+            try SimulateTxnResult(
+                txId: FfiConverterString.read(from: &buf), 
+                confirmation: FfiConverterData.read(from: &buf), 
+                appBudgetConsumed: FfiConverterOptionUInt32.read(from: &buf), 
+                logicSigBudgetConsumed: FfiConverterOptionUInt32.read(from: &buf), 
+                fixedSigner: FfiConverterOptionString.read(from: &buf), 
+                logs: FfiConverterSequenceData.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: SimulateTxnResult, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.txId, into: &buf)
+        FfiConverterData.write(value.confirmation, into: &buf)
+        FfiConverterOptionUInt32.write(value.appBudgetConsumed, into: &buf)
+        FfiConverterOptionUInt32.write(value.logicSigBudgetConsumed, into: &buf)
+        FfiConverterOptionString.write(value.fixedSigner, into: &buf)
+        FfiConverterSequenceData.write(value.logs, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeSimulateTxnResult_lift(_ buf: RustBuffer) throws -> SimulateTxnResult {
+    return try FfiConverterTypeSimulateTxnResult.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeSimulateTxnResult_lower(_ value: SimulateTxnResult) -> RustBuffer {
+    return FfiConverterTypeSimulateTxnResult.lower(value)
+}
+
+
 public struct SuggestedParams {
     public var fee: UInt64
     public var flatFee: Bool
@@ -1358,6 +1856,16 @@ public enum AlgoKitComposerError: Swift.Error {
     )
     case Transact(errorMsg: String
     )
+    case Algod(errorMsg: String
+    )
+    case Msgpack(errorMsg: String
+    )
+    case SimulateResponseShape(errorMsg: String
+    )
+    case InvalidSimulateOptions(errorMsg: String
+    )
+    case SimulationFailed(errorMsg: String
+    )
 }
 
 
@@ -1390,6 +1898,21 @@ public struct FfiConverterTypeAlgoKitComposerError: FfiConverterRustBuffer {
             errorMsg: try FfiConverterString.read(from: &buf)
             )
         case 6: return .Transact(
+            errorMsg: try FfiConverterString.read(from: &buf)
+            )
+        case 7: return .Algod(
+            errorMsg: try FfiConverterString.read(from: &buf)
+            )
+        case 8: return .Msgpack(
+            errorMsg: try FfiConverterString.read(from: &buf)
+            )
+        case 9: return .SimulateResponseShape(
+            errorMsg: try FfiConverterString.read(from: &buf)
+            )
+        case 10: return .InvalidSimulateOptions(
+            errorMsg: try FfiConverterString.read(from: &buf)
+            )
+        case 11: return .SimulationFailed(
             errorMsg: try FfiConverterString.read(from: &buf)
             )
 
@@ -1431,6 +1954,31 @@ public struct FfiConverterTypeAlgoKitComposerError: FfiConverterRustBuffer {
         
         case let .Transact(errorMsg):
             writeInt(&buf, Int32(6))
+            FfiConverterString.write(errorMsg, into: &buf)
+            
+        
+        case let .Algod(errorMsg):
+            writeInt(&buf, Int32(7))
+            FfiConverterString.write(errorMsg, into: &buf)
+            
+        
+        case let .Msgpack(errorMsg):
+            writeInt(&buf, Int32(8))
+            FfiConverterString.write(errorMsg, into: &buf)
+            
+        
+        case let .SimulateResponseShape(errorMsg):
+            writeInt(&buf, Int32(9))
+            FfiConverterString.write(errorMsg, into: &buf)
+            
+        
+        case let .InvalidSimulateOptions(errorMsg):
+            writeInt(&buf, Int32(10))
+            FfiConverterString.write(errorMsg, into: &buf)
+            
+        
+        case let .SimulationFailed(errorMsg):
+            writeInt(&buf, Int32(11))
             FfiConverterString.write(errorMsg, into: &buf)
             
         }
@@ -1561,6 +2109,30 @@ extension TxnParamsKind: Equatable, Hashable {}
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
+fileprivate struct FfiConverterOptionUInt32: FfiConverterRustBuffer {
+    typealias SwiftType = UInt32?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterUInt32.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterUInt32.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionUInt64: FfiConverterRustBuffer {
     typealias SwiftType = UInt64?
 
@@ -1577,6 +2149,30 @@ fileprivate struct FfiConverterOptionUInt64: FfiConverterRustBuffer {
         switch try readInt(&buf) as Int8 {
         case 0: return nil
         case 1: return try FfiConverterUInt64.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterOptionBool: FfiConverterRustBuffer {
+    typealias SwiftType = Bool?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterBool.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterBool.read(from: &buf)
         default: throw UniffiInternalError.unexpectedOptionalTag
         }
     }
@@ -1753,6 +2349,104 @@ fileprivate struct FfiConverterOptionTypePaymentParams: FfiConverterRustBuffer {
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
+fileprivate struct FfiConverterOptionTypeSimulateTraceConfig: FfiConverterRustBuffer {
+    typealias SwiftType = SimulateTraceConfig?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTypeSimulateTraceConfig.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTypeSimulateTraceConfig.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterOptionSequenceUInt64: FfiConverterRustBuffer {
+    typealias SwiftType = [UInt64]?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterSequenceUInt64.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterSequenceUInt64.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterSequenceUInt64: FfiConverterRustBuffer {
+    typealias SwiftType = [UInt64]
+
+    public static func write(_ value: [UInt64], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterUInt64.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [UInt64] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [UInt64]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterUInt64.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterSequenceString: FfiConverterRustBuffer {
+    typealias SwiftType = [String]
+
+    public static func write(_ value: [String], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterString.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [String] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [String]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterString.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterSequenceData: FfiConverterRustBuffer {
     typealias SwiftType = [Data]
 
@@ -1770,6 +2464,31 @@ fileprivate struct FfiConverterSequenceData: FfiConverterRustBuffer {
         seq.reserveCapacity(Int(len))
         for _ in 0 ..< len {
             seq.append(try FfiConverterData.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterSequenceTypeSimulateTxnResult: FfiConverterRustBuffer {
+    typealias SwiftType = [SimulateTxnResult]
+
+    public static func write(_ value: [SimulateTxnResult], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeSimulateTxnResult.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [SimulateTxnResult] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [SimulateTxnResult]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeSimulateTxnResult.read(from: &buf))
         }
         return seq
     }
@@ -1800,6 +2519,31 @@ fileprivate struct FfiConverterSequenceTypeTxnParams: FfiConverterRustBuffer {
     }
 }
 /**
+ * Encode a simulate request for an already-signed group. Signatures are preserved unless
+ * `options.skip_signatures` is set.
+ */
+public func buildSignedSimulateRequest(signedTransactions: [Data], options: SimulateOptions)throws  -> Data  {
+    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeAlgoKitComposerError_lift) {
+    uniffi_algokit_composer_ffi_fn_func_build_signed_simulate_request(
+        FfiConverterSequenceData.lower(signedTransactions),
+        FfiConverterTypeSimulateOptions_lower(options),$0
+    )
+})
+}
+/**
+ * Wrap unsigned transactions in signature-less envelopes and encode the simulate request
+ * body, ready to POST to `/v2/transactions/simulate?format=msgpack` with `Content-Type`
+ * and `Accept` both `application/msgpack`.
+ */
+public func buildUnsignedSimulateRequest(transactions: [Data], options: SimulateOptions)throws  -> Data  {
+    return try  FfiConverterData.lift(try rustCallWithError(FfiConverterTypeAlgoKitComposerError_lift) {
+    uniffi_algokit_composer_ffi_fn_func_build_unsigned_simulate_request(
+        FfiConverterSequenceData.lower(transactions),
+        FfiConverterTypeSimulateOptions_lower(options),$0
+    )
+})
+}
+/**
  * Build transactions from the supplied TxnParams list using composer-level
  * defaults. Returns each transaction encoded to MsgPack bytes. When the input
  * has more than one entry the results are atomically grouped (shared group ID).
@@ -1809,6 +2553,20 @@ public func compose(txnParams: [TxnParams], composerParams: ComposerParams)throw
     uniffi_algokit_composer_ffi_fn_func_compose(
         FfiConverterSequenceTypeTxnParams.lower(txnParams),
         FfiConverterTypeComposerParams_lower(composerParams),$0
+    )
+})
+}
+/**
+ * Map a raw msgpack simulate response onto a structured result.
+ *
+ * `transactions` is the list the request was built from, passed explicitly rather than
+ * recovered from the request body.
+ */
+public func mapSimulateResponse(transactions: [Data], response: Data)throws  -> SimulateResult  {
+    return try  FfiConverterTypeSimulateResult_lift(try rustCallWithError(FfiConverterTypeAlgoKitComposerError_lift) {
+    uniffi_algokit_composer_ffi_fn_func_map_simulate_response(
+        FfiConverterSequenceData.lower(transactions),
+        FfiConverterData.lower(response),$0
     )
 })
 }
@@ -1840,7 +2598,16 @@ private let initializationResult: InitializationResult = {
     if bindings_contract_version != scaffolding_contract_version {
         return InitializationResult.contractVersionMismatch
     }
+    if (uniffi_algokit_composer_ffi_checksum_func_build_signed_simulate_request() != 31440) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_algokit_composer_ffi_checksum_func_build_unsigned_simulate_request() != 27549) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_algokit_composer_ffi_checksum_func_compose() != 7997) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_algokit_composer_ffi_checksum_func_map_simulate_response() != 41676) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_algokit_composer_ffi_checksum_func_sign_transactions() != 48318) {

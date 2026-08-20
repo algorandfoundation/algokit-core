@@ -6,11 +6,27 @@ edition = "2024"
 [dependencies]
 algokit_transact = { path = "../algokit_transact" }
 algokit_crypto = { path = "../algokit_crypto" }
+# default-features = false keeps reqwest out of the core graph: the composer never
+# constructs a transport, callers inject one. Never enable algod_client/ffi_uniffi —
+# it does not compile, and Cargo unifies features across the workspace, so enabling it
+# would flip SimulateRequestTransactionGroup.txns to the FFI SignedTransaction for
+# every consumer of this crate.
+algod_client = { path = "../algod_client", default-features = false }
+algokit_http_client = { path = "../algokit_http_client", default-features = false }
+rmp-serde = { workspace = true }
 snafu.workspace = true
 tokio = { version = "1.49.0", features = ["rt"] }
 zeroize.workspace = true
 
 [dev-dependencies]
 algokit_transact = { path = "../algokit_transact", features = ["test_utils"] }
+# Default features on for both here only: DefaultHttpClient (reqwest) and
+# AlgodClient::localnet() for the #[ignore]'d localnet test.
+algokit_http_client = { path = "../algokit_http_client" }
+algod_client = { path = "../algod_client" }
+serde_json = { workspace = true }
+async-trait = "0.1.88"
+rmpv = { workspace = true }
+tokio = { version = "1.49.0", features = ["rt", "macros"] }
 rstest.workspace = true
 pretty_assertions.workspace = true
