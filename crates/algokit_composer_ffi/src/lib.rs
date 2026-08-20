@@ -36,6 +36,21 @@ pub enum AlgoKitComposerError {
 
     #[snafu(display("{error_msg}"))]
     Transact { error_msg: String },
+
+    #[snafu(display("{error_msg}"))]
+    Algod { error_msg: String },
+
+    #[snafu(display("{error_msg}"))]
+    Msgpack { error_msg: String },
+
+    #[snafu(display("{error_msg}"))]
+    SimulateResponseShape { error_msg: String },
+
+    #[snafu(display("{error_msg}"))]
+    InvalidSimulateOptions { error_msg: String },
+
+    #[snafu(display("{error_msg}"))]
+    SimulationFailed { error_msg: String },
 }
 
 impl From<RustComposerError> for AlgoKitComposerError {
@@ -49,6 +64,15 @@ impl From<RustComposerError> for AlgoKitComposerError {
             }
             RustComposerError::Signing { .. } => Self::Signing { error_msg },
             RustComposerError::Transact { .. } => Self::Transact { error_msg },
+            RustComposerError::Algod { .. } => Self::Algod { error_msg },
+            RustComposerError::Msgpack { .. } => Self::Msgpack { error_msg },
+            RustComposerError::SimulateResponseShape { .. } => {
+                Self::SimulateResponseShape { error_msg }
+            }
+            RustComposerError::InvalidSimulateOptions { .. } => {
+                Self::InvalidSimulateOptions { error_msg }
+            }
+            RustComposerError::SimulationFailed { .. } => Self::SimulationFailed { error_msg },
         }
     }
 }
