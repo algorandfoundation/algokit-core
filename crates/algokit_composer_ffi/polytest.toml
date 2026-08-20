@@ -5,7 +5,7 @@ package_name = "algokit_composer"
 
 [suite."Composer"]
 desc = "Tests for the stateless transaction composer"
-groups = ["Composer Tests"]
+groups = ["Composer Tests", "Simulate Tests"]
 
 # Test Group: Composer Tests
 
@@ -38,6 +38,36 @@ desc = "sign_transactions() pairs each transaction with the secret key at the sa
 
 [group."Composer Tests".test."sign rejects length mismatch"]
 desc = "sign_transactions() returns an error when txn count and key count differ"
+
+
+# Test Group: Simulate Tests
+
+[group."Simulate Tests"]
+desc = "Tests that exercise the simulate request builder and response mapper"
+
+[group."Simulate Tests".test."build unsigned simulate request omits signatures"]
+desc = "build_unsigned_simulate_request() produces txn entries carrying only a txn key, with no sig"
+
+[group."Simulate Tests".test."build signed simulate request preserves signatures"]
+desc = "build_signed_simulate_request() keeps the supplied signatures on each txn entry"
+
+[group."Simulate Tests".test."skip signatures forces allow empty signatures and fix signers"]
+desc = "skip_signatures overrides caller-supplied allow_empty_signatures and fix_signers to true"
+
+[group."Simulate Tests".test."simulate options merge per field"]
+desc = "Setting one SimulateOptions field leaves the remaining request fields unset"
+
+[group."Simulate Tests".test."build simulate request rejects empty group"]
+desc = "Building a simulate request with no transactions returns an error"
+
+[group."Simulate Tests".test."map simulate response returns per transaction results"]
+desc = "map_simulate_response() projects tx ids and confirmations from the first group"
+
+[group."Simulate Tests".test."map simulate response surfaces group failure"]
+desc = "map_simulate_response() reports failure_message and failed_at as data rather than raising"
+
+[group."Simulate Tests".test."map simulate response rejects group count mismatch"]
+desc = "map_simulate_response() errors when the response does not carry exactly one group"
 
 
 # Test Targets
