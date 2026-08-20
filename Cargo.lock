@@ -93,6 +93,7 @@ dependencies = [
  "algokit_transact",
  "ffi_macros",
  "pretty_assertions",
+ "rmp-serde",
  "serde",
  "snafu",
  "uniffi",

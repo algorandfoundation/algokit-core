@@ -15,6 +15,9 @@ use snafu::Snafu;
 #[cfg(feature = "ffi_uniffi")]
 uniffi::setup_scaffolding!();
 
+mod simulate;
+pub use simulate::*;
+
 /// FFI-compatible error type for composer operations.
 #[derive(Debug, Clone, Snafu)]
 #[cfg_attr(feature = "ffi_uniffi", derive(uniffi::Error))]

@@ -22,4 +22,5 @@ serde = { workspace = true }
 
 [dev-dependencies]
 algokit_transact = { path = "../algokit_transact", features = ["test_utils"] }
+rmp-serde = { workspace = true }
 pretty_assertions.workspace = true
