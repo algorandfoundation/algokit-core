@@ -20,12 +20,13 @@ pub use transactions::{
     AssetConfigTransactionFields, AssetFreezeTransactionBuilder, AssetFreezeTransactionFields,
     AssetTransferTransactionBuilder, AssetTransferTransactionFields, BoxReference,
     FalconSignatureStruct, FalconVerifier, FeeParams, HashFactory, HeartbeatProof,
-    HeartbeatProofBuilder, HeartbeatTransactionBuilder, HeartbeatTransactionFields,
-    KeyRegistrationTransactionBuilder, KeyRegistrationTransactionFields, MerkleArrayProof,
-    MerkleSignatureVerifier, OnApplicationComplete, Participant, PaymentTransactionBuilder,
-    PaymentTransactionFields, Reveal, SignedTransaction, SigslotCommit, StateProof,
-    StateProofMessage, StateProofTransactionBuilder, StateProofTransactionFields, StateSchema,
-    Transaction, TransactionHeader, TransactionHeaderBuilder,
+    HeartbeatProofBuilder, HeartbeatTransactionBuilder, HeartbeatTransactionFields, HoldingRef,
+    KeyRegistrationTransactionBuilder, KeyRegistrationTransactionFields, LocalsRef,
+    MerkleArrayProof, MerkleSignatureVerifier, OnApplicationComplete, Participant,
+    PaymentTransactionBuilder, PaymentTransactionFields, ResourceRef, Reveal, SignedTransaction,
+    SigslotCommit, StateProof, StateProofMessage, StateProofTransactionBuilder,
+    StateProofTransactionFields, StateSchema, Transaction, TransactionHeader,
+    TransactionHeaderBuilder,
 };
 
 #[cfg(feature = "test_utils")]

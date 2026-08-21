@@ -29,6 +29,7 @@ pub const MAX_ACCOUNT_REFERENCES: usize = 4;
 pub const MAX_APP_REFERENCES: usize = 8;
 pub const MAX_ASSET_REFERENCES: usize = 8;
 pub const MAX_BOX_REFERENCES: usize = 8;
+pub const MAX_ACCESS_REFERENCES: usize = 16;
 
 // Application state schema limits
 pub const MAX_GLOBAL_STATE_KEYS: u32 = 64;

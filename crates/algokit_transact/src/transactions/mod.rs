@@ -15,8 +15,8 @@ mod payment;
 pub mod state_proof;
 
 pub use app_call::{
-    AppCallTransactionBuilder, AppCallTransactionFields, BoxReference, OnApplicationComplete,
-    StateSchema,
+    AppCallTransactionBuilder, AppCallTransactionFields, BoxReference, HoldingRef, LocalsRef,
+    OnApplicationComplete, ResourceRef, StateSchema,
 };
 use app_call::{app_call_deserializer, app_call_serializer};
 pub use asset_config::{
@@ -367,6 +367,7 @@ mod transaction_tests {
             app_references: None,
             asset_references: None,
             box_references: None,
+            access: None,
         });
 
         // Test pattern matching for app call
@@ -422,6 +423,7 @@ mod transaction_tests {
                 app_references: None,
                 asset_references: None,
                 box_references: None,
+                access: None,
             }),
         ];
 
