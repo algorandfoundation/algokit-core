@@ -12,6 +12,11 @@ pub const MULTISIG_DOMAIN_SEPARATOR: &str = "MultisigAddr";
 pub const EMPTY_SIGNATURE: [u8; ALGORAND_SIGNATURE_BYTE_LENGTH] =
     [0; ALGORAND_SIGNATURE_BYTE_LENGTH];
 
+// LogicSig domain separators and program size limit
+pub const PROGRAM_DOMAIN_SEPARATOR: &str = "Program";
+pub const MULTISIG_PROGRAM_DOMAIN_SEPARATOR: &str = "MsigProgram";
+pub const MAX_LOGIC_SIG_SIZE: usize = 16_000; // In bytes
+
 // Application program size constraints
 pub const MAX_EXTRA_PROGRAM_PAGES: u32 = 3;
 pub const PROGRAM_PAGE_SIZE: usize = 2048; // In bytes

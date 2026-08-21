@@ -27,14 +27,6 @@ pub struct SignedTxnInBlock {
     /// SignedTransaction fields (flattened from algokit_transact)
     #[serde(flatten)]
     pub signed_transaction: AlgokitSignedTransaction,
-    /// [lsig] Logic signature (program signature).
-    #[serde(
-        with = "crate::msgpack_value_bytes",
-        default,
-        rename = "lsig",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub logic_signature: Option<Vec<u8>>,
     /// [ca] Rewards applied to close-remainder-to account.
     #[serde(rename = "ca", skip_serializing_if = "Option::is_none")]
     pub closing_amount: Option<u64>,
@@ -95,8 +87,8 @@ impl Default for SignedTxnInBlock {
                 signature: None,
                 auth_address: None,
                 multisignature: None,
+                logic_signature: None,
             },
-            logic_signature: None,
             closing_amount: None,
             asset_closing_amount: None,
             sender_rewards: None,

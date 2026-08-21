@@ -328,6 +328,7 @@ impl TransactionTestData {
             signature: Some(signature.to_bytes()),
             auth_address: None,
             multisignature: None,
+            logic_signature: None,
         };
         let signed_bytes = signed_txn.encode().unwrap();
 
@@ -339,6 +340,7 @@ impl TransactionTestData {
             signature: Some(signature.to_bytes()),
             auth_address: Some(rekeyed_sender_auth_address.clone()),
             multisignature: None,
+            logic_signature: None,
         };
         let rekeyed_sender_signed_bytes = signer_signed_txn.encode().unwrap();
 
@@ -369,6 +371,7 @@ impl TransactionTestData {
             signature: None,
             auth_address: None,
             multisignature: Some(multisig_signature),
+            logic_signature: None,
         };
         let multisig_signed_bytes = multisig_signed_txn.encode().unwrap();
 
@@ -576,6 +579,7 @@ pub fn check_transaction_encoding(tx: &Transaction, expected_encoded_len: usize)
         signature: Some(PLACEHOLDER_SIGNATURE),
         auth_address: None,
         multisignature: None,
+        logic_signature: None,
     };
     let encoded_stx = signed_tx.encode().unwrap();
     let decoded_stx = SignedTransaction::decode(&encoded_stx).unwrap();
@@ -600,6 +604,7 @@ pub fn check_signed_transaction_encoding(
         signature: Some(PLACEHOLDER_SIGNATURE),
         auth_address: auth_account,
         multisignature: None,
+        logic_signature: None,
     };
     let encoded_stx = signed_tx.encode().unwrap();
     assert_eq!(encoded_stx.len(), expected_encoded_len);
@@ -626,6 +631,7 @@ pub fn check_multisigned_transaction_encoding(tx: &Transaction, expected_encoded
         signature: None,
         auth_address: None,
         multisignature,
+        logic_signature: None,
     };
     let encoded_stx = signed_tx.encode().unwrap();
     assert_eq!(encoded_stx.len(), expected_encoded_len);
@@ -639,6 +645,7 @@ pub fn check_transaction_id(tx: &Transaction, expected_tx_id: &str) {
         signature: Some(PLACEHOLDER_SIGNATURE),
         auth_address: None,
         multisignature: None,
+        logic_signature: None,
     };
 
     assert_eq!(tx.id().unwrap(), expected_tx_id);

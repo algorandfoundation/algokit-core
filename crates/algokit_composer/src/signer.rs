@@ -60,6 +60,7 @@ fn sign_transaction(
         signature: Some(signature),
         auth_address: None,
         multisignature: None,
+        logic_signature: None,
     })
 }
 

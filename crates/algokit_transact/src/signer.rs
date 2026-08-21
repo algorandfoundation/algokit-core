@@ -54,6 +54,7 @@ impl TransactionSigner for EmptyTransactionSigner {
                         auth_address: None,
                         signature: Some(EMPTY_SIGNATURE),
                         multisignature: None,
+                        logic_signature: None,
                     }
                 } else {
                     // Return completely unsigned for transactions we weren't asked to sign
@@ -62,6 +63,7 @@ impl TransactionSigner for EmptyTransactionSigner {
                         auth_address: None,
                         signature: None,
                         multisignature: None,
+                        logic_signature: None,
                     }
                 }
             })
@@ -144,6 +146,7 @@ impl TransactionSigner for AlgorandSigner {
                     auth_address: self.auth_addr.clone(),
                     signature: Some(signature),
                     multisignature: None,
+                    logic_signature: None,
                 });
             } else {
                 // Transaction not meant to be signed by this signer
@@ -152,6 +155,7 @@ impl TransactionSigner for AlgorandSigner {
                     auth_address: None,
                     signature: None,
                     multisignature: None,
+                    logic_signature: None,
                 });
             }
         }

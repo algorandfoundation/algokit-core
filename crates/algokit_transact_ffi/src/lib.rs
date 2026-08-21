@@ -1,3 +1,4 @@
+mod logic_sig;
 mod multisig;
 mod signer;
 pub mod transactions;
@@ -9,6 +10,7 @@ use algokit_transact::{
 use ffi_macros::{ffi_enum, ffi_func, ffi_record};
 use serde::{Deserialize, Serialize};
 
+pub use logic_sig::*;
 pub use multisig::{MultisigSignature, MultisigSubsignature};
 pub use signer::ed25519_sign_transaction;
 pub use transactions::AppCallTransactionFields;
@@ -387,6 +389,9 @@ pub struct SignedTransaction {
 
     /// Optional multisig signature if the transaction is a multisig transaction.
     pub multisignature: Option<MultisigSignature>,
+
+    /// Optional logic signature authorizing the transaction with a program.
+    pub logic_signature: Option<LogicSignature>,
 }
 
 impl From<algokit_transact::SignedTransaction> for SignedTransaction {
@@ -396,6 +401,7 @@ impl From<algokit_transact::SignedTransaction> for SignedTransaction {
             signature: signed_transaction.signature.map(|sig| sig.into()),
             auth_address: signed_transaction.auth_address.map(|addr| addr.as_str()),
             multisignature: signed_transaction.multisignature.map(Into::into),
+            logic_signature: signed_transaction.logic_signature.map(Into::into),
         }
     }
 }
@@ -422,6 +428,10 @@ impl TryFrom<SignedTransaction> for algokit_transact::SignedTransaction {
                 .transpose()?,
             multisignature: signed_transaction
                 .multisignature
+                .map(TryInto::try_into)
+                .transpose()?,
+            logic_signature: signed_transaction
+                .logic_signature
                 .map(TryInto::try_into)
                 .transpose()?,
         })
