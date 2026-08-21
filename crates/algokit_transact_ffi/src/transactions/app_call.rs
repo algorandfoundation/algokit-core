@@ -68,6 +68,118 @@ pub struct AppCallTransactionFields {
 
     /// The boxes that should be made available for the runtime of the program.
     box_references: Option<Vec<BoxReference>>,
+
+    /// The unified access list, replacing the separate reference arrays above.
+    access: Option<Vec<ResourceRef>>,
+}
+
+/// A single entry in an app call's access list.
+///
+/// At most one field is set. An entry with none set bumps the box read/write quota.
+#[ffi_record]
+pub struct ResourceRef {
+    /// An account made available to the program.
+    address: Option<String>,
+
+    /// An asset made available to the program.
+    asset: Option<u64>,
+
+    /// An app made available to the program.
+    app: Option<u64>,
+
+    /// An asset holding, naming an account and an asset already in the access list.
+    holding: Option<HoldingRef>,
+
+    /// An account's local state for an app, both already in the access list.
+    locals: Option<LocalsRef>,
+
+    /// A box owned by an app in the access list. `app_id` here is a 1-based index into
+    /// the access list, not an app ID.
+    box_ref: Option<BoxReference>,
+}
+
+/// An asset holding, by position within the access list.
+#[ffi_record]
+pub struct HoldingRef {
+    /// 0 is the sender, otherwise a 1-based index into the access list.
+    address: u64,
+
+    /// A 1-based index into the access list.
+    asset: u64,
+}
+
+/// An account's local state for an app, by position within the access list.
+#[ffi_record]
+pub struct LocalsRef {
+    /// 0 is the sender, otherwise a 1-based index into the access list.
+    address: u64,
+
+    /// 0 is the app being called, otherwise a 1-based index into the access list.
+    app: u64,
+}
+
+impl From<algokit_transact::HoldingRef> for HoldingRef {
+    fn from(r: algokit_transact::HoldingRef) -> Self {
+        Self {
+            address: r.address,
+            asset: r.asset,
+        }
+    }
+}
+
+impl From<HoldingRef> for algokit_transact::HoldingRef {
+    fn from(r: HoldingRef) -> Self {
+        Self {
+            address: r.address,
+            asset: r.asset,
+        }
+    }
+}
+
+impl From<algokit_transact::LocalsRef> for LocalsRef {
+    fn from(r: algokit_transact::LocalsRef) -> Self {
+        Self {
+            address: r.address,
+            app: r.app,
+        }
+    }
+}
+
+impl From<LocalsRef> for algokit_transact::LocalsRef {
+    fn from(r: LocalsRef) -> Self {
+        Self {
+            address: r.address,
+            app: r.app,
+        }
+    }
+}
+
+impl From<algokit_transact::ResourceRef> for ResourceRef {
+    fn from(r: algokit_transact::ResourceRef) -> Self {
+        Self {
+            address: r.address.map(|a| a.as_str()),
+            asset: r.asset,
+            app: r.app,
+            holding: r.holding.map(Into::into),
+            locals: r.locals.map(Into::into),
+            box_ref: r.box_ref.map(Into::into),
+        }
+    }
+}
+
+impl TryFrom<ResourceRef> for algokit_transact::ResourceRef {
+    type Error = AlgoKitTransactError;
+
+    fn try_from(r: ResourceRef) -> Result<Self, Self::Error> {
+        Ok(Self {
+            address: r.address.map(|a| a.parse()).transpose()?,
+            asset: r.asset,
+            app: r.app,
+            holding: r.holding.map(Into::into),
+            locals: r.locals.map(Into::into),
+            box_ref: r.box_ref.map(Into::into),
+        })
+    }
 }
 
 impl From<algokit_transact::AppCallTransactionFields> for AppCallTransactionFields {
@@ -89,6 +201,9 @@ impl From<algokit_transact::AppCallTransactionFields> for AppCallTransactionFiel
             box_references: tx
                 .box_references
                 .map(|boxes| boxes.into_iter().map(Into::into).collect()),
+            access: tx
+                .access
+                .map(|refs| refs.into_iter().map(Into::into).collect()),
         }
     }
 }
@@ -130,6 +245,14 @@ impl TryFrom<Transaction> for algokit_transact::AppCallTransactionFields {
             box_references: data
                 .box_references
                 .map(|boxes| boxes.into_iter().map(Into::into).collect()),
+            access: data
+                .access
+                .map(|refs| {
+                    refs.into_iter()
+                        .map(TryInto::try_into)
+                        .collect::<Result<Vec<_>, _>>()
+                })
+                .transpose()?,
         };
 
         transaction_fields

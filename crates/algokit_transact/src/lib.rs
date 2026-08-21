@@ -1,6 +1,7 @@
 mod address;
 pub mod constants;
 mod error;
+pub mod logic_sig;
 pub mod multisig;
 pub mod signer;
 mod traits;
@@ -11,6 +12,7 @@ mod utils;
 pub use address::Address;
 pub use constants::*;
 pub use error::AlgoKitTransactError;
+pub use logic_sig::LogicSignature;
 pub use multisig::*;
 pub use traits::{AlgorandMsgpack, EstimateTransactionSize, TransactionId, Transactions, Validate};
 pub use transactions::{
@@ -18,12 +20,13 @@ pub use transactions::{
     AssetConfigTransactionFields, AssetFreezeTransactionBuilder, AssetFreezeTransactionFields,
     AssetTransferTransactionBuilder, AssetTransferTransactionFields, BoxReference,
     FalconSignatureStruct, FalconVerifier, FeeParams, HashFactory, HeartbeatProof,
-    HeartbeatProofBuilder, HeartbeatTransactionBuilder, HeartbeatTransactionFields,
-    KeyRegistrationTransactionBuilder, KeyRegistrationTransactionFields, MerkleArrayProof,
-    MerkleSignatureVerifier, OnApplicationComplete, Participant, PaymentTransactionBuilder,
-    PaymentTransactionFields, Reveal, SignedTransaction, SigslotCommit, StateProof,
-    StateProofMessage, StateProofTransactionBuilder, StateProofTransactionFields, StateSchema,
-    Transaction, TransactionHeader, TransactionHeaderBuilder,
+    HeartbeatProofBuilder, HeartbeatTransactionBuilder, HeartbeatTransactionFields, HoldingRef,
+    KeyRegistrationTransactionBuilder, KeyRegistrationTransactionFields, LocalsRef,
+    MerkleArrayProof, MerkleSignatureVerifier, OnApplicationComplete, Participant,
+    PaymentTransactionBuilder, PaymentTransactionFields, ResourceRef, Reveal, SignedTransaction,
+    SigslotCommit, StateProof, StateProofMessage, StateProofTransactionBuilder,
+    StateProofTransactionFields, StateSchema, Transaction, TransactionHeader,
+    TransactionHeaderBuilder,
 };
 
 #[cfg(feature = "test_utils")]

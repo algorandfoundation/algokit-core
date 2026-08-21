@@ -84,3 +84,22 @@ fn box_reference_roundtrip() {
     assert_eq!(parsed, value);
     assert_eq!(parsed.name, vec![1, 2, 3, 4]);
 }
+
+/// A logic signature inside a block-embedded transaction must reach the flattened
+/// `algokit_transact::SignedTransaction`, not a competing field on the outer struct.
+#[test]
+fn signed_txn_in_block_carries_a_logic_signature() {
+    use algod_client::models::SignedTxnInBlock;
+
+    let mut stxn = SignedTxnInBlock::new();
+    stxn.signed_transaction.logic_signature =
+        Some(algokit_transact::LogicSignature::new(vec![1, 32, 1, 1, 34]));
+
+    let encoded = rmp_serde::to_vec_named(&stxn).unwrap();
+    let decoded: SignedTxnInBlock = rmp_serde::from_slice(&encoded).unwrap();
+
+    assert_eq!(
+        decoded.signed_transaction.logic_signature,
+        stxn.signed_transaction.logic_signature
+    );
+}

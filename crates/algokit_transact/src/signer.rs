@@ -1,5 +1,6 @@
 use crate::{
-    Address, AlgoKitTransactError, SignedTransaction, Transaction, traits::AlgorandMsgpack,
+    Address, AlgoKitTransactError, EMPTY_SIGNATURE, SignedTransaction, Transaction,
+    traits::AlgorandMsgpack,
 };
 use algokit_crypto::ed25519::Ed25519KeyAndSigner;
 use async_trait::async_trait;
@@ -51,8 +52,9 @@ impl TransactionSigner for EmptyTransactionSigner {
                     SignedTransaction {
                         transaction: txn.clone(),
                         auth_address: None,
-                        signature: Some([0u8; 64]),
+                        signature: Some(EMPTY_SIGNATURE),
                         multisignature: None,
+                        logic_signature: None,
                     }
                 } else {
                     // Return completely unsigned for transactions we weren't asked to sign
@@ -61,6 +63,7 @@ impl TransactionSigner for EmptyTransactionSigner {
                         auth_address: None,
                         signature: None,
                         multisignature: None,
+                        logic_signature: None,
                     }
                 }
             })
@@ -143,6 +146,7 @@ impl TransactionSigner for AlgorandSigner {
                     auth_address: self.auth_addr.clone(),
                     signature: Some(signature),
                     multisignature: None,
+                    logic_signature: None,
                 });
             } else {
                 // Transaction not meant to be signed by this signer
@@ -151,6 +155,7 @@ impl TransactionSigner for AlgorandSigner {
                     auth_address: None,
                     signature: None,
                     multisignature: None,
+                    logic_signature: None,
                 });
             }
         }

@@ -179,7 +179,7 @@ mod tests {
     };
     use crate::{
         AlgorandMsgpack, SignedTransaction, Transaction, Transactions,
-        constants::EMPTY_SIGNATURE,
+        test_utils::PLACEHOLDER_SIGNATURE,
         test_utils::{AccountMother, TransactionMother},
         traits::TransactionId,
         transactions::FeeParams,
@@ -410,9 +410,10 @@ mod tests {
 
         let signed_tx = SignedTransaction {
             transaction: key_reg_tx.clone(),
-            signature: Some(EMPTY_SIGNATURE),
+            signature: Some(PLACEHOLDER_SIGNATURE),
             auth_address: None,
             multisignature: None,
+            logic_signature: None,
         };
         let encoded_stx = signed_tx.encode().unwrap();
         let decoded_stx = SignedTransaction::decode(&encoded_stx).unwrap();
@@ -441,9 +442,10 @@ mod tests {
 
         let signed_tx = SignedTransaction {
             transaction: key_reg_tx.clone(),
-            signature: Some(EMPTY_SIGNATURE),
+            signature: Some(PLACEHOLDER_SIGNATURE),
             auth_address: None,
             multisignature: None,
+            logic_signature: None,
         };
         let encoded_stx = signed_tx.encode().unwrap();
         let decoded_stx = SignedTransaction::decode(&encoded_stx).unwrap();
@@ -473,9 +475,10 @@ mod tests {
 
         let signed_tx = SignedTransaction {
             transaction: key_reg_tx.clone(),
-            signature: Some(EMPTY_SIGNATURE),
+            signature: Some(PLACEHOLDER_SIGNATURE),
             auth_address: None,
             multisignature: None,
+            logic_signature: None,
         };
 
         // Test that transaction ID can be generated

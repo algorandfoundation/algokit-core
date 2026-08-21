@@ -15,8 +15,8 @@ mod payment;
 pub mod state_proof;
 
 pub use app_call::{
-    AppCallTransactionBuilder, AppCallTransactionFields, BoxReference, OnApplicationComplete,
-    StateSchema,
+    AppCallTransactionBuilder, AppCallTransactionFields, BoxReference, HoldingRef, LocalsRef,
+    OnApplicationComplete, ResourceRef, StateSchema,
 };
 use app_call::{app_call_deserializer, app_call_serializer};
 pub use asset_config::{
@@ -43,8 +43,8 @@ use crate::constants::{
 };
 use crate::error::AlgoKitTransactError;
 use crate::traits::{AlgorandMsgpack, EstimateTransactionSize, TransactionId, Transactions};
-use crate::utils::{compute_group, is_zero_addr_opt};
-use crate::{Address, MultisigSignature};
+use crate::utils::{compute_group, is_empty_signature_opt, is_zero_addr_opt};
+use crate::{Address, LogicSignature, MultisigSignature};
 use serde::{Deserialize, Serialize};
 use serde_with::{Bytes, serde_as};
 use std::any::Any;
@@ -178,9 +178,9 @@ pub struct SignedTransaction {
     #[serde(rename = "txn")]
     pub transaction: Transaction,
 
-    /// Optional Ed25519 signature authorizing the transaction.
+    /// Optional Ed25519 signature authorizing the transaction. All-zero encodes as absent.
     #[serde(rename = "sig")]
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "is_empty_signature_opt")]
     #[serde_as(as = "Option<Bytes>")]
     pub signature: Option<[u8; ALGORAND_SIGNATURE_BYTE_LENGTH]>,
 
@@ -194,6 +194,12 @@ pub struct SignedTransaction {
     #[serde(rename = "msig")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub multisignature: Option<MultisigSignature>,
+
+    /// Optional logic signature authorizing the transaction with a program.
+    #[serde(rename = "lsig")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    pub logic_signature: Option<LogicSignature>,
 }
 
 impl AlgorandMsgpack for SignedTransaction {
@@ -305,6 +311,7 @@ impl Transaction {
 mod transaction_tests {
     use crate::{
         EMPTY_SIGNATURE, MAX_TX_GROUP_SIZE,
+        test_utils::PLACEHOLDER_SIGNATURE,
         test_utils::{TransactionGroupMother, TransactionHeaderMother, TransactionMother},
     };
     use base64::{Engine, prelude::BASE64_STANDARD};
@@ -360,6 +367,7 @@ mod transaction_tests {
             app_references: None,
             asset_references: None,
             box_references: None,
+            access: None,
         });
 
         // Test pattern matching for app call
@@ -415,6 +423,7 @@ mod transaction_tests {
                 app_references: None,
                 asset_references: None,
                 box_references: None,
+                access: None,
             }),
         ];
 
@@ -618,9 +627,10 @@ mod transaction_tests {
             .iter()
             .map(|tx| SignedTransaction {
                 transaction: tx.clone(),
-                signature: Some(EMPTY_SIGNATURE),
+                signature: Some(PLACEHOLDER_SIGNATURE),
                 auth_address: None,
                 multisignature: None,
+                logic_signature: None,
             })
             .collect::<Vec<SignedTransaction>>();
 
@@ -643,5 +653,51 @@ mod transaction_tests {
             assert_eq!(encoded_signed_tx, signed_grouped_tx.encode().unwrap());
             assert_eq!(decoded_signed_tx, signed_grouped_tx);
         }
+    }
+
+    fn signed_with(signature: Option<[u8; ALGORAND_SIGNATURE_BYTE_LENGTH]>) -> SignedTransaction {
+        SignedTransaction {
+            transaction: TransactionMother::simple_payment().build().unwrap(),
+            signature,
+            auth_address: None,
+            multisignature: None,
+            logic_signature: None,
+        }
+    }
+
+    #[test]
+    fn zero_signature_encodes_the_same_as_an_absent_one() {
+        let zeroed = signed_with(Some(EMPTY_SIGNATURE)).encode().unwrap();
+        let absent = signed_with(None).encode().unwrap();
+
+        assert_eq!(zeroed, absent);
+    }
+
+    #[test]
+    fn zero_signature_does_not_emit_a_sig_key() {
+        let encoded = signed_with(Some(EMPTY_SIGNATURE)).encode_raw().unwrap();
+        let value: rmpv::Value = rmp_serde::from_slice(&encoded).unwrap();
+
+        let keys: Vec<String> = match value {
+            rmpv::Value::Map(entries) => entries
+                .iter()
+                .filter_map(|(k, _)| k.as_str().map(str::to_string))
+                .collect(),
+            other => panic!("expected a msgpack map, got {other:?}"),
+        };
+
+        assert_eq!(keys, vec!["txn".to_string()]);
+    }
+
+    #[test]
+    fn a_real_signature_still_encodes() {
+        let signed = signed_with(Some(PLACEHOLDER_SIGNATURE));
+        let encoded = signed.encode().unwrap();
+
+        assert_ne!(encoded, signed_with(None).encode().unwrap());
+        assert_eq!(
+            SignedTransaction::decode(&encoded).unwrap().signature,
+            Some(PLACEHOLDER_SIGNATURE)
+        );
     }
 }

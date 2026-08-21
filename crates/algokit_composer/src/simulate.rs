@@ -125,6 +125,7 @@ pub fn empty_signature_envelope(transaction: Transaction) -> SignedTransaction {
         signature: None,
         auth_address: None,
         multisignature: None,
+        logic_signature: None,
     }
 }
 
@@ -481,7 +482,7 @@ mod tests {
     }
 
     #[test]
-    fn empty_signature_envelope_differs_from_zero_signature() {
+    fn empty_signature_envelope_matches_a_zero_signature() {
         let txn = payment();
         let empty = empty_signature_envelope(txn.clone());
         let zeroed = SignedTransaction {
@@ -489,16 +490,14 @@ mod tests {
             signature: Some([0u8; 64]),
             auth_address: None,
             multisignature: None,
+            logic_signature: None,
         };
 
+        // An all-zero signature is omitted, so both produce the same envelope.
+        assert_eq!(envelope_keys(&zeroed), vec!["txn".to_string()]);
         assert_eq!(
-            envelope_keys(&zeroed),
-            vec!["txn".to_string(), "sig".to_string()]
-        );
-        assert_ne!(
             rmp_serde::to_vec_named(&empty).unwrap(),
             rmp_serde::to_vec_named(&zeroed).unwrap(),
-            "an all-zero signature is not the same wire shape as an absent one"
         );
     }
 
@@ -525,6 +524,7 @@ mod tests {
             signature: Some([7u8; 64]),
             auth_address: None,
             multisignature: None,
+            logic_signature: None,
         };
 
         let request =
@@ -545,6 +545,7 @@ mod tests {
             signature: Some([7u8; 64]),
             auth_address: None,
             multisignature: None,
+            logic_signature: None,
         };
 
         let request = build_simulate_request(vec![signed], &SimulateOptions::default()).unwrap();
@@ -829,6 +830,7 @@ mod tests {
             signature: Some([9u8; 64]),
             auth_address: None,
             multisignature: None,
+            logic_signature: None,
         };
         let client = StubHttpClient {
             response: response_for(&[txn]),

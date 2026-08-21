@@ -6,12 +6,16 @@ mod key_registration;
 mod state_proof;
 
 use crate::{
-    ALGORAND_PUBLIC_KEY_BYTE_LENGTH, Address, AlgorandMsgpack, Byte32, EMPTY_SIGNATURE,
-    HASH_BYTES_LENGTH, MultisigSignature, MultisigSubsignature, SignedTransaction, Transaction,
-    TransactionHeaderBuilder, TransactionId,
+    ALGORAND_PUBLIC_KEY_BYTE_LENGTH, ALGORAND_SIGNATURE_BYTE_LENGTH, Address, AlgorandMsgpack,
+    Byte32, HASH_BYTES_LENGTH, MultisigSignature, MultisigSubsignature, SignedTransaction,
+    Transaction, TransactionHeaderBuilder, TransactionId,
     test_utils::state_proof::StateProofTransactionMother,
     transactions::{AssetTransferTransactionBuilder, PaymentTransactionBuilder},
 };
+
+/// Placeholder signature for encoding tests. Not all-zero, which would encode as absent.
+pub const PLACEHOLDER_SIGNATURE: [u8; ALGORAND_SIGNATURE_BYTE_LENGTH] =
+    [1u8; ALGORAND_SIGNATURE_BYTE_LENGTH];
 use base64::{Engine, prelude::BASE64_STANDARD};
 use convert_case::{Case, Casing};
 use ed25519_dalek::{Signer, SigningKey};
@@ -324,6 +328,7 @@ impl TransactionTestData {
             signature: Some(signature.to_bytes()),
             auth_address: None,
             multisignature: None,
+            logic_signature: None,
         };
         let signed_bytes = signed_txn.encode().unwrap();
 
@@ -335,6 +340,7 @@ impl TransactionTestData {
             signature: Some(signature.to_bytes()),
             auth_address: Some(rekeyed_sender_auth_address.clone()),
             multisignature: None,
+            logic_signature: None,
         };
         let rekeyed_sender_signed_bytes = signer_signed_txn.encode().unwrap();
 
@@ -365,6 +371,7 @@ impl TransactionTestData {
             signature: None,
             auth_address: None,
             multisignature: Some(multisig_signature),
+            logic_signature: None,
         };
         let multisig_signed_bytes = multisig_signed_txn.encode().unwrap();
 
@@ -569,9 +576,10 @@ pub fn check_transaction_encoding(tx: &Transaction, expected_encoded_len: usize)
 
     let signed_tx = SignedTransaction {
         transaction: tx.clone(),
-        signature: Some(EMPTY_SIGNATURE),
+        signature: Some(PLACEHOLDER_SIGNATURE),
         auth_address: None,
         multisignature: None,
+        logic_signature: None,
     };
     let encoded_stx = signed_tx.encode().unwrap();
     let decoded_stx = SignedTransaction::decode(&encoded_stx).unwrap();
@@ -593,9 +601,10 @@ pub fn check_signed_transaction_encoding(
 ) {
     let signed_tx = SignedTransaction {
         transaction: tx.clone(),
-        signature: Some(EMPTY_SIGNATURE),
+        signature: Some(PLACEHOLDER_SIGNATURE),
         auth_address: auth_account,
         multisignature: None,
+        logic_signature: None,
     };
     let encoded_stx = signed_tx.encode().unwrap();
     assert_eq!(encoded_stx.len(), expected_encoded_len);
@@ -611,10 +620,10 @@ pub fn check_multisigned_transaction_encoding(tx: &Transaction, expected_encoded
     )
     .unwrap();
     let multisignature_0 = unsigned_multisignature
-        .apply_subsignature(AccountMother::account(), EMPTY_SIGNATURE)
+        .apply_subsignature(AccountMother::account(), PLACEHOLDER_SIGNATURE)
         .unwrap();
     let multisignature_1 = unsigned_multisignature
-        .apply_subsignature(AccountMother::neil(), EMPTY_SIGNATURE)
+        .apply_subsignature(AccountMother::neil(), PLACEHOLDER_SIGNATURE)
         .unwrap();
     let multisignature = Some(multisignature_0.merge(&multisignature_1).unwrap());
     let signed_tx = SignedTransaction {
@@ -622,6 +631,7 @@ pub fn check_multisigned_transaction_encoding(tx: &Transaction, expected_encoded
         signature: None,
         auth_address: None,
         multisignature,
+        logic_signature: None,
     };
     let encoded_stx = signed_tx.encode().unwrap();
     assert_eq!(encoded_stx.len(), expected_encoded_len);
@@ -632,9 +642,10 @@ pub fn check_multisigned_transaction_encoding(tx: &Transaction, expected_encoded
 pub fn check_transaction_id(tx: &Transaction, expected_tx_id: &str) {
     let signed_tx = SignedTransaction {
         transaction: tx.clone(),
-        signature: Some(EMPTY_SIGNATURE),
+        signature: Some(PLACEHOLDER_SIGNATURE),
         auth_address: None,
         multisignature: None,
+        logic_signature: None,
     };
 
     assert_eq!(tx.id().unwrap(), expected_tx_id);

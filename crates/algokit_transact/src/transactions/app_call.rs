@@ -7,9 +7,10 @@ use crate::traits::{MsgPackEmpty, Validate};
 use crate::transactions::common::{TransactionHeader, TransactionValidationError};
 use crate::utils::{is_empty_struct_opt, is_empty_vec_opt, is_zero, is_zero_opt};
 use crate::{
-    Address, MAX_ACCOUNT_REFERENCES, MAX_APP_ARGS, MAX_APP_REFERENCES, MAX_ARGS_SIZE,
-    MAX_ASSET_REFERENCES, MAX_BOX_REFERENCES, MAX_EXTRA_PROGRAM_PAGES, MAX_GLOBAL_STATE_KEYS,
-    MAX_LOCAL_STATE_KEYS, MAX_OVERALL_REFERENCES, PROGRAM_PAGE_SIZE, Transaction,
+    Address, MAX_ACCESS_REFERENCES, MAX_ACCOUNT_REFERENCES, MAX_APP_ARGS, MAX_APP_REFERENCES,
+    MAX_ARGS_SIZE, MAX_ASSET_REFERENCES, MAX_BOX_REFERENCES, MAX_EXTRA_PROGRAM_PAGES,
+    MAX_GLOBAL_STATE_KEYS, MAX_LOCAL_STATE_KEYS, MAX_OVERALL_REFERENCES, PROGRAM_PAGE_SIZE,
+    Transaction,
 };
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
@@ -238,6 +239,114 @@ pub struct AppCallTransactionFields {
     #[serde(default)]
     #[builder(default)]
     pub box_references: Option<Vec<BoxReference>>,
+
+    /// The unified access list, replacing the separate reference arrays above.
+    /// Mutually exclusive with them.
+    #[serde(rename = "al")]
+    #[serde(skip_serializing_if = "is_empty_vec_opt")]
+    #[serde(default)]
+    #[builder(default)]
+    pub access: Option<Vec<ResourceRef>>,
+}
+
+/// A single entry in an app call's access list.
+///
+/// At most one field is set. An entry with none set bumps the box read/write quota.
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Default)]
+pub struct ResourceRef {
+    /// An account made available to the program.
+    #[serde(rename = "d")]
+    #[serde(default)]
+    pub address: Option<Address>,
+
+    /// An asset made available to the program.
+    #[serde(rename = "s")]
+    #[serde(skip_serializing_if = "is_zero_opt")]
+    #[serde(default)]
+    pub asset: Option<u64>,
+
+    /// An app made available to the program.
+    #[serde(rename = "p")]
+    #[serde(skip_serializing_if = "is_zero_opt")]
+    #[serde(default)]
+    pub app: Option<u64>,
+
+    /// An asset holding, naming an account and an asset already in the access list.
+    #[serde(rename = "h")]
+    #[serde(default)]
+    pub holding: Option<HoldingRef>,
+
+    /// An account's local state for an app, both already in the access list.
+    #[serde(rename = "l")]
+    #[serde(default)]
+    pub locals: Option<LocalsRef>,
+
+    /// A box owned by an app in the access list. `app_id` here is a 1-based index into
+    /// the access list, not an app ID.
+    #[serde(rename = "b")]
+    #[serde(default)]
+    pub box_ref: Option<BoxReference>,
+}
+
+/// An asset holding, by position within the access list.
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Default)]
+pub struct HoldingRef {
+    /// 0 is the sender, otherwise a 1-based index into the access list.
+    #[serde(rename = "d")]
+    #[serde(skip_serializing_if = "is_zero")]
+    #[serde(default)]
+    pub address: u64,
+
+    /// A 1-based index into the access list.
+    #[serde(rename = "s")]
+    #[serde(skip_serializing_if = "is_zero")]
+    #[serde(default)]
+    pub asset: u64,
+}
+
+/// An account's local state for an app, by position within the access list.
+#[skip_serializing_none]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Default)]
+pub struct LocalsRef {
+    /// 0 is the sender, otherwise a 1-based index into the access list.
+    #[serde(rename = "d")]
+    #[serde(skip_serializing_if = "is_zero")]
+    #[serde(default)]
+    pub address: u64,
+
+    /// 0 is the app being called, otherwise a 1-based index into the access list.
+    #[serde(rename = "p")]
+    #[serde(skip_serializing_if = "is_zero")]
+    #[serde(default)]
+    pub app: u64,
+}
+
+impl ResourceRef {
+    /// Whether no resource is named. Empty entries bump the box quota.
+    pub fn is_empty(&self) -> bool {
+        self.address.is_none()
+            && self.asset.is_none()
+            && self.app.is_none()
+            && self.holding.is_none()
+            && self.locals.is_none()
+            && self.box_ref.is_none()
+    }
+
+    fn named_count(&self) -> usize {
+        [
+            self.address.is_some(),
+            self.asset.is_some(),
+            self.app.is_some(),
+            self.holding.is_some(),
+            self.locals.is_some(),
+            self.box_ref.is_some(),
+        ]
+        .iter()
+        .filter(|set| **set)
+        .count()
+    }
 }
 
 fn is_default_on_complete(on_complete: &OnApplicationComplete) -> bool {
@@ -556,6 +665,41 @@ impl AppCallTransactionFields {
                     max: MAX_ARGS_SIZE,
                     unit: "bytes".to_string(),
                 });
+            }
+        }
+
+        // Validate the unified access list
+        if let Some(ref access) = self.access {
+            if access.len() > MAX_ACCESS_REFERENCES {
+                errors.push(TransactionValidationError::FieldTooLong {
+                    field: "Access".to_string(),
+                    actual: access.len(),
+                    max: MAX_ACCESS_REFERENCES,
+                    unit: "refs".to_string(),
+                });
+            }
+
+            if access.iter().any(|entry| entry.named_count() > 1) {
+                errors.push(TransactionValidationError::ArbitraryConstraint(
+                    "Each Access entry may name at most one resource".to_string(),
+                ));
+            }
+
+            let legacy_refs_present = self
+                .account_references
+                .as_ref()
+                .is_some_and(|r| !r.is_empty())
+                || self.app_references.as_ref().is_some_and(|r| !r.is_empty())
+                || self
+                    .asset_references
+                    .as_ref()
+                    .is_some_and(|r| !r.is_empty())
+                || self.box_references.as_ref().is_some_and(|r| !r.is_empty());
+
+            if legacy_refs_present {
+                errors.push(TransactionValidationError::ArbitraryConstraint(
+                    "Access cannot be combined with the separate reference arrays".to_string(),
+                ));
             }
         }
 
@@ -1360,5 +1504,169 @@ mod tests {
             data.id,
             String::from("XVVC7UDLCPI622KCJZLWK3SEAWWVUEPEXUM5CO3DFLWOBH7NOPDQ")
         );
+    }
+}
+
+#[cfg(test)]
+mod access_tests {
+    use super::*;
+    use crate::AlgorandMsgpack;
+    use crate::test_utils::{AccountMother, AppCallTransactionMother};
+
+    fn app_call_with_access(access: Vec<ResourceRef>) -> AppCallTransactionFields {
+        let mut fields = AppCallTransactionMother::app_call().build_fields().unwrap();
+        fields.account_references = None;
+        fields.app_references = None;
+        fields.asset_references = None;
+        fields.box_references = None;
+        fields.access = Some(access);
+        fields
+    }
+
+    fn map_keys(value: &rmpv::Value) -> Vec<String> {
+        match value {
+            rmpv::Value::Map(entries) => entries
+                .iter()
+                .filter_map(|(k, _)| k.as_str().map(str::to_string))
+                .collect(),
+            other => panic!("expected a msgpack map, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn access_entries_encode_with_the_expected_tags() {
+        let access = vec![
+            ResourceRef {
+                address: Some(AccountMother::neil()),
+                ..Default::default()
+            },
+            ResourceRef {
+                asset: Some(107686045),
+                ..Default::default()
+            },
+            ResourceRef {
+                app: Some(1234),
+                ..Default::default()
+            },
+            ResourceRef {
+                holding: Some(HoldingRef {
+                    address: 1,
+                    asset: 2,
+                }),
+                ..Default::default()
+            },
+            ResourceRef {
+                locals: Some(LocalsRef { address: 1, app: 3 }),
+                ..Default::default()
+            },
+            ResourceRef {
+                box_ref: Some(BoxReference {
+                    app_id: 3,
+                    name: b"box".to_vec(),
+                }),
+                ..Default::default()
+            },
+        ];
+
+        let encoded = rmp_serde::to_vec_named(&access).unwrap();
+        let decoded: rmpv::Value = rmp_serde::from_slice(&encoded).unwrap();
+        let entries = match decoded {
+            rmpv::Value::Array(entries) => entries,
+            other => panic!("expected an array, got {other:?}"),
+        };
+
+        assert_eq!(map_keys(&entries[0]), vec!["d"]);
+        assert_eq!(map_keys(&entries[1]), vec!["s"]);
+        assert_eq!(map_keys(&entries[2]), vec!["p"]);
+        assert_eq!(map_keys(&entries[3]), vec!["h"]);
+        assert_eq!(map_keys(&entries[4]), vec!["l"]);
+        assert_eq!(map_keys(&entries[5]), vec!["b"]);
+    }
+
+    #[test]
+    fn an_empty_entry_encodes_as_an_empty_map() {
+        let encoded = rmp_serde::to_vec_named(&ResourceRef::default()).unwrap();
+        let decoded: rmpv::Value = rmp_serde::from_slice(&encoded).unwrap();
+
+        assert!(ResourceRef::default().is_empty());
+        assert_eq!(map_keys(&decoded), Vec::<String>::new());
+    }
+
+    #[test]
+    fn access_round_trips_through_a_transaction() {
+        let fields = app_call_with_access(vec![
+            ResourceRef {
+                address: Some(AccountMother::neil()),
+                ..Default::default()
+            },
+            ResourceRef {
+                box_ref: Some(BoxReference {
+                    app_id: 1,
+                    name: b"b".to_vec(),
+                }),
+                ..Default::default()
+            },
+        ]);
+        let txn = Transaction::AppCall(fields.clone());
+
+        let decoded = Transaction::decode(&txn.encode().unwrap()).unwrap();
+
+        match decoded {
+            Transaction::AppCall(decoded) => assert_eq!(decoded.access, fields.access),
+            other => panic!("expected an app call, got {other:?}"),
+        }
+    }
+
+    /// Access box refs index the access list, so the legacy app-id rewrite must not
+    /// touch them.
+    #[test]
+    fn access_box_refs_are_not_rewritten() {
+        let fields = app_call_with_access(vec![ResourceRef {
+            box_ref: Some(BoxReference {
+                app_id: 2,
+                name: b"b".to_vec(),
+            }),
+            ..Default::default()
+        }]);
+
+        let txn = Transaction::AppCall(fields);
+        let decoded = Transaction::decode(&txn.encode().unwrap()).unwrap();
+
+        match decoded {
+            Transaction::AppCall(decoded) => {
+                let refs = decoded.access.unwrap();
+                assert_eq!(refs[0].box_ref.as_ref().unwrap().app_id, 2);
+            }
+            other => panic!("expected an app call, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn rejects_an_entry_naming_more_than_one_resource() {
+        let fields = app_call_with_access(vec![ResourceRef {
+            asset: Some(1),
+            app: Some(2),
+            ..Default::default()
+        }]);
+
+        assert!(fields.validate().is_err());
+    }
+
+    #[test]
+    fn rejects_access_combined_with_legacy_reference_arrays() {
+        let mut fields = app_call_with_access(vec![ResourceRef {
+            asset: Some(1),
+            ..Default::default()
+        }]);
+        fields.asset_references = Some(vec![2]);
+
+        assert!(fields.validate().is_err());
+    }
+
+    #[test]
+    fn rejects_more_entries_than_the_bound() {
+        let fields = app_call_with_access(vec![ResourceRef::default(); MAX_ACCESS_REFERENCES + 1]);
+
+        assert!(fields.validate().is_err());
     }
 }
