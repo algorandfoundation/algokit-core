@@ -481,7 +481,7 @@ mod tests {
     }
 
     #[test]
-    fn empty_signature_envelope_differs_from_zero_signature() {
+    fn empty_signature_envelope_matches_a_zero_signature() {
         let txn = payment();
         let empty = empty_signature_envelope(txn.clone());
         let zeroed = SignedTransaction {
@@ -491,14 +491,11 @@ mod tests {
             multisignature: None,
         };
 
+        // An all-zero signature is omitted, so both produce the same envelope.
+        assert_eq!(envelope_keys(&zeroed), vec!["txn".to_string()]);
         assert_eq!(
-            envelope_keys(&zeroed),
-            vec!["txn".to_string(), "sig".to_string()]
-        );
-        assert_ne!(
             rmp_serde::to_vec_named(&empty).unwrap(),
             rmp_serde::to_vec_named(&zeroed).unwrap(),
-            "an all-zero signature is not the same wire shape as an absent one"
         );
     }
 

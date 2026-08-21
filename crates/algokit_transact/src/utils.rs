@@ -1,5 +1,6 @@
 use crate::constants::{
-    ALGORAND_CHECKSUM_BYTE_LENGTH, ALGORAND_PUBLIC_KEY_BYTE_LENGTH, Byte32, HASH_BYTES_LENGTH,
+    ALGORAND_CHECKSUM_BYTE_LENGTH, ALGORAND_PUBLIC_KEY_BYTE_LENGTH, ALGORAND_SIGNATURE_BYTE_LENGTH,
+    Byte32, EMPTY_SIGNATURE, HASH_BYTES_LENGTH,
 };
 use crate::traits::MsgPackEmpty;
 use crate::{
@@ -239,6 +240,11 @@ pub fn is_zero_addr(addr: &Address) -> bool {
 
 pub fn is_zero_addr_opt(addr: &Option<Address>) -> bool {
     addr.as_ref().is_none_or(is_zero_addr)
+}
+
+/// An all-zero signature is the absent signature on the wire; go-algorand omits it.
+pub fn is_empty_signature_opt(signature: &Option<[u8; ALGORAND_SIGNATURE_BYTE_LENGTH]>) -> bool {
+    signature.as_ref().is_none_or(|sig| sig == &EMPTY_SIGNATURE)
 }
 
 pub fn is_empty_bytes32(bytes: &Byte32) -> bool {

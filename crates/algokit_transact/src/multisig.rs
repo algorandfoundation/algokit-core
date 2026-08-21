@@ -10,7 +10,7 @@
 //! a cryptographic hash function.
 
 use crate::address::Address;
-use crate::utils::hash;
+use crate::utils::{hash, is_empty_signature_opt};
 use crate::{
     ALGORAND_PUBLIC_KEY_BYTE_LENGTH, ALGORAND_SIGNATURE_BYTE_LENGTH, AlgoKitTransactError,
     MULTISIG_DOMAIN_SEPARATOR,
@@ -202,9 +202,9 @@ pub struct MultisigSubsignature {
     /// Address of a keypair account participant that is sub-signing a multisignature transaction.
     #[serde(rename = "pk")]
     pub address: Address,
-    /// The signature bytes.
+    /// The signature bytes. An all-zero signature encodes as absent.
     #[serde(rename = "s")]
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "is_empty_signature_opt")]
     #[serde_as(as = "Option<Bytes>")]
     pub signature: Option<[u8; ALGORAND_SIGNATURE_BYTE_LENGTH]>,
 }
